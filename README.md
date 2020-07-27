@@ -1,6 +1,6 @@
 # GitHub's REST API OpenAPI Description
 
-This repository contains [OpenAPI](https://www.openapis.org/) descriptions for [GitHub's REST API](https://developer.github.com/v3/).
+This repository contains [OpenAPI](https://www.openapis.org/) descriptions for [GitHub's REST API](https://docs.github.com/rest).
 
 ## What is OpenAPI?
 
