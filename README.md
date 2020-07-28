@@ -1,6 +1,6 @@
 # GitHub's REST API OpenAPI Description
 
-This repository contains [OpenAPI](https://www.openapis.org/) descriptions for [GitHub's REST API](https://developer.github.com/v3/).
+This repository contains [OpenAPI](https://www.openapis.org/) descriptions for [GitHub's REST API](https://docs.github.com/rest).
 
 ## What is OpenAPI?
 
@@ -27,7 +27,7 @@ We use various vendor extensions for concepts that are harder to express with Op
 
   - Not all headers are described in the OpenAPI documents, expect those to be added over time.
   - Certain GitHub API resources use multi segment path parameters, which aren't supported by the OpenAPI specification. For the time being, we have annotated such parameters with a `x-multi-segment` extension. In general, URL encoding those parameters is a good idea.
-  - A lot of operations described in these documents are accessible through multiple paths. For the time being we have described the most common way to access these opereations, but are working on a way to describe alias paths and/or describe all possible paths.
+  - A lot of operations described in these documents are accessible through multiple paths. For the time being we have described the most common way to access these operations, but are working on a way to describe alias paths and/or describe all possible paths.
   - This repository only contains the bundled and dereferenced versions of our REST API descriptions. We're looking into offering a fully **referenced** directory structure for easier browsing.
 
 ## Contributing
