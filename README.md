@@ -16,8 +16,8 @@ This project is currently in **BETA**. We expect this description to be accurate
 
 Each OpenAPI document is available in two formats: **bundled** and **dereferenced**.
 
-  - The bundled descriptions are single file artifacts that make usages of OpenAPI **components** for reuse and portability. This is the prefered way of interacting with GitHub's OpenAPI description.
-  - Certain tools have poor support for references to components within the artifact. We highly encourage to look into tooling that supports referenced components, but since that's not always posssible, we also provide a fully dereferenced version of the description as well, without any references.
+  - The bundled descriptions are single file artifacts that make usages of OpenAPI **components** for reuse and portability. This is the preferred way of interacting with GitHub's OpenAPI description.
+  - Certain tools have poor support for references to components within the artifact. We highly encourage to look into tooling that supports referenced components, but since that's not always possible, we also provide a fully dereferenced version of the description as well, without any references.
 
 ## Vendor Extensions
 
