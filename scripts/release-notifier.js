@@ -70,6 +70,6 @@ async function main() {
     }
   } catch (error) {
     console.log(error);
-    throw error;
+    process.exit(1)
   }
 }
