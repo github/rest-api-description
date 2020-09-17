@@ -55,7 +55,7 @@ async function main() {
         repositories.length
       );
 
-      for (const { name, full_name: fullRepoName } of repositories) {
+      for (const { id, name, private } of repositories) {
         await installationOctokit.request(
           "POST /repos/:owner/:repo/dispatches",
           {
@@ -65,11 +65,16 @@ async function main() {
             client_payload: EVENT_PAYLOAD,
           }
         );
-        console.log("Event distpatched for %s", fullRepoName);
+        console.log(
+          "Event distpatched for %s/%s (%d)",
+          login,
+          private ? "[PRIVATE]" : name,
+          id
+        );
       }
     }
   } catch (error) {
     console.log(error);
-    process.exit(1)
+    process.exit(1);
   }
 }
