@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  version: 1.0.1
+  version: 1.1.0
   title: GitHub v3 REST API
   description: GitHub's v3 REST API.
   license:
@@ -1699,6 +1699,267 @@ paths:
         previews: []
         category: emojis
         subcategory: 
+  "/enterprises/{enterprise}/actions/permissions":
+    get:
+      summary: Get GitHub Actions permissions for an enterprise
+      description: |-
+        Gets the GitHub Actions permissions policy for organizations and allowed actions in an enterprise.
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/get-github-actions-permissions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#get-github-actions-permissions-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-enterprise-permissions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-enterprise-permissions"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+    put:
+      summary: Set GitHub Actions permissions for an enterprise
+      description: |-
+        Sets the GitHub Actions permissions policy for organizations and allowed actions in an enterprise.
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/set-github-actions-permissions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#set-github-actions-permissions-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled_organizations:
+                  "$ref": "#/components/schemas/enabled-organizations"
+                allowed_actions:
+                  "$ref": "#/components/schemas/allowed-actions"
+              required:
+              - enabled_organizations
+            example:
+              enabled_organizations: all
+              allowed_actions: selected
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+  "/enterprises/{enterprise}/actions/permissions/organizations":
+    get:
+      summary: List selected organizations enabled for GitHub Actions in an enterprise
+      description: |-
+        Lists the organizations that are selected to have GitHub Actions enabled in an enterprise. To use this endpoint, the enterprise permission policy for `enabled_organizations` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/list-selected-organizations-enabled-github-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#list-selected-organizations-enabled-for-github-actions-in-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/per_page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    type: number
+                  organizations:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/organization-simple"
+              examples:
+                default:
+                  "$ref": "#/components/examples/organization-targets"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+    put:
+      summary: Set selected organizations enabled for GitHub Actions in an enterprise
+      description: |-
+        Replaces the list of selected organizations that are enabled for GitHub Actions in an enterprise. To use this endpoint, the enterprise permission policy for `enabled_organizations` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/set-selected-organizations-enabled-github-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#set-selected-organizations-enabled-for-github-actions-in-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_organization_ids:
+                  description: List of organization IDs to enable for GitHub Actions.
+                  type: array
+                  items:
+                    type: integer
+                    description: Unique identifier of the organization.
+              required:
+              - selected_organization_ids
+            example:
+              selected_organization_ids:
+              - 32
+              - 91
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+  "/enterprises/{enterprise}/actions/permissions/organizations/{org_id}":
+    put:
+      summary: Enable a selected organization for GitHub Actions in an enterprise
+      description: |-
+        Adds an organization to the list of selected organizations that are enabled for GitHub Actions in an enterprise. To use this endpoint, the enterprise permission policy for `enabled_organizations` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/enable-selected-organization-github-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#enable-a-selected-organization-for-github-actions-in-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/org_id"
+      responses:
+        '204':
+          description: Empty response
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+    delete:
+      summary: Disable a selected organization for GitHub Actions in an enterprise
+      description: |-
+        Removes an organization from the list of selected organizations that are enabled for GitHub Actions in an enterprise. To use this endpoint, the enterprise permission policy for `enabled_organizations` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/disable-selected-organization-github-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#disable-a-selected-organization-for-github-actions-in-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/org_id"
+      responses:
+        '204':
+          description: Empty response
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+  "/enterprises/{enterprise}/actions/permissions/selected-actions":
+    get:
+      summary: Get allowed actions for an enterprise
+      description: |-
+        Gets the selected actions that are allowed in an enterprise. To use this endpoint, the enterprise permission policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/get-allowed-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#get-allowed-actions-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/selected-actions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
+    put:
+      summary: Set allowed actions for an enterprise
+      description: |-
+        Sets the actions that are allowed in an enterprise. To use this endpoint, the enterprise permission policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an enterprise](#set-github-actions-permissions-for-an-enterprise)."
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/set-allowed-actions-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/enterprise-admin#set-allowed-actions-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/selected-actions"
+            examples:
+              selected_actions:
+                "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        previews: []
+        category: enterprise-admin
+        subcategory: actions
   "/enterprises/{enterprise}/actions/runner-groups":
     get:
       summary: List self-hosted runner groups for an enterprise
@@ -4692,6 +4953,273 @@ paths:
             ```
         category: orgs
         subcategory: 
+  "/orgs/{org}/actions/permissions":
+    get:
+      summary: Get GitHub Actions permissions for an organization
+      description: |-
+        Gets the GitHub Actions permissions policy for repositories and allowed actions in an organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/get-github-actions-permissions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#get-github-actions-permissions-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-organization-permissions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-organization-permissions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set GitHub Actions permissions for an organization
+      description: |-
+        Sets the GitHub Actions permissions policy for repositories and allowed actions in an organization.
+
+        If the organization belongs to an enterprise that has set restrictive permissions at the enterprise level, such as `allowed_actions` to `selected` actions, then you cannot override them for the organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/set-github-actions-permissions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#set-github-actions-permissions-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled_repositories:
+                  "$ref": "#/components/schemas/enabled-repositories"
+                allowed_actions:
+                  "$ref": "#/components/schemas/allowed-actions"
+              required:
+              - enabled_repositories
+            example:
+              enabled_repositories: all
+              allowed_actions: selected
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+  "/orgs/{org}/actions/permissions/repositories":
+    get:
+      summary: List selected repositories enabled for GitHub Actions in an organization
+      description: |-
+        Lists the selected repositories that are enabled for GitHub Actions in an organization. To use this endpoint, the organization permission policy for `enabled_repositories` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization)."
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/list-selected-repositories-enabled-github-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#list-selected-repositories-enabled-for-github-actions-in-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per_page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    type: number
+                  repositories:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repository-paginated"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set selected repositories enabled for GitHub Actions in an organization
+      description: |-
+        Replaces the list of selected repositories that are enabled for GitHub Actions in an organization. To use this endpoint, the organization permission policy for `enabled_repositories` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization)."
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/set-selected-repositories-enabled-github-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#set-selected-repositories-enabled-for-github-actions-in-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_repository_ids:
+                  description: List of repository IDs to enable for GitHub Actions.
+                  type: array
+                  items:
+                    type: integer
+                    description: Unique identifier of the repository.
+              required:
+              - selected_repository_ids
+            example:
+              selected_repository_ids:
+              - 32
+              - 42
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+  "/orgs/{org}/actions/permissions/repositories/{repository_id}":
+    put:
+      summary: Enable a selected repository for GitHub Actions in an organization
+      description: |-
+        Adds a repository to the list of selected repositories that are enabled for GitHub Actions in an organization. To use this endpoint, the organization permission policy for `enabled_repositories` must be must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization)."
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/enable-selected-repository-github-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#enable-a-selected-repository-for-github-actions-in-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/repository_id"
+      responses:
+        '204':
+          description: Empty response
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    delete:
+      summary: Disable a selected repository for GitHub Actions in an organization
+      description: |-
+        Removes a repository from the list of selected repositories that are enabled for GitHub Actions in an organization. To use this endpoint, the organization permission policy for `enabled_repositories` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization)."
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/disable-selected-repository-github-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#disable-a-selected-repository-for-github-actions-in-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/repository_id"
+      responses:
+        '204':
+          description: Empty response
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+  "/orgs/{org}/actions/permissions/selected-actions":
+    get:
+      summary: Get allowed actions for an organization
+      description: |-
+        Gets the selected actions that are allowed in an organization. To use this endpoint, the organization permission policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization).""
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/get-allowed-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#get-allowed-actions-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/selected-actions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set allowed actions for an organization
+      description: |-
+        Sets the actions that are allowed in an organization. To use this endpoint, the organization permission policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for an organization](#set-github-actions-permissions-for-an-organization)."
+
+        If the organization belongs to an enterprise that has `selected` actions set at the enterprise level, then you cannot override any of the enterprise's allowed actions settings.
+
+        To use the `patterns_allowed` setting for private repositories, the organization must belong to an enterprise. If the organization does not belong to an enterprise, then the `patterns_allowed` setting only applies to public repositories in the organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      operationId: actions/set-allowed-actions-organization
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#set-allowed-actions-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/selected-actions"
+            examples:
+              selected_actions:
+                "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
   "/orgs/{org}/actions/runner-groups":
     get:
       summary: List self-hosted runner groups for an organization
@@ -11611,6 +12139,148 @@ paths:
         previews: []
         category: actions
         subcategory: workflow-jobs
+  "/repos/{owner}/{repo}/actions/permissions":
+    get:
+      summary: Get GitHub Actions permissions for a repository
+      description: |-
+        Gets the GitHub Actions permissions policy for a repository, including whether GitHub Actions is enabled and the actions allowed to run in the repository.
+
+        You must authenticate using an access token with the `repo` scope to use this
+        endpoint. GitHub Apps must have the `administration` repository permission to use this API.
+      operationId: actions/get-github-actions-permissions-repository
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#get-github-actions-permissions-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-repository-permissions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-repository-permissions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set GitHub Actions permissions for a repository
+      description: |-
+        Sets the GitHub Actions permissions policy for enabling GitHub Actions and allowed actions in the repository.
+
+        If the repository belongs to an organization or enterprise that has set restrictive permissions at the organization or enterprise levels, such as `allowed_actions` to `selected` actions, then you cannot override them for the repository.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration` repository permission to use this API.
+      operationId: actions/set-github-actions-permissions-repository
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#set-github-actions-permissions-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  "$ref": "#/components/schemas/actions-enabled"
+                allowed_actions:
+                  "$ref": "#/components/schemas/allowed-actions"
+              required:
+              - enabled
+            example:
+              enabled: true
+              allowed_actions: selected
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+  "/repos/{owner}/{repo}/actions/permissions/selected-actions":
+    get:
+      summary: Get allowed actions for a repository
+      description: |-
+        Gets the settings for selected actions that are allowed in a repository. To use this endpoint, the repository policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for a repository](#set-github-actions-permissions-for-a-repository)."
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration` repository permission to use this API.
+      operationId: actions/get-allowed-actions-repository
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#get-allowed-actions-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/selected-actions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set allowed actions for a repository
+      description: |-
+        Sets the actions that are allowed in a repository. To use this endpoint, the repository permission policy for `allowed_actions` must be configured to `selected`. For more information, see "[Set GitHub Actions permissions for a repository](#set-github-actions-permissions-for-a-repository)."
+
+        If the repository belongs to an organization or enterprise that has `selected` actions set at the organization or enterprise levels, then you cannot override any of the allowed actions settings.
+
+        To use the `patterns_allowed` setting for private repositories, the repository must belong to an enterprise. If the repository does not belong to an enterprise, then the `patterns_allowed` setting only applies to public repositories.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration` repository permission to use this API.
+      operationId: actions/set-allowed-actions-repository
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://developer.github.com/rest/reference/actions#set-allowed-actions-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '204':
+          description: Empty response
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/selected-actions"
+            examples:
+              selected_actions:
+                "$ref": "#/components/examples/selected-actions"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        previews: []
+        category: actions
+        subcategory: permissions
   "/repos/{owner}/{repo}/actions/runners":
     get:
       summary: List self-hosted runners for a repository
@@ -34896,21 +35566,40 @@ components:
       - id
       - title
       - body
-    runner-groups-enterprise:
+    enabled-organizations:
+      type: string
+      description: 'The policy that controls the organizations in the enterprise that
+        are allowed to run GitHub Actions. Can be one of: `all`, `none`, or `selected`.'
+      enum:
+      - all
+      - none
+      - selected
+    allowed-actions:
+      type: string
+      description: 'The permissions policy that controls the actions that are allowed
+        to run. Can be one of: `all`, `local_only`, or `selected`.'
+      enum:
+      - all
+      - local_only
+      - selected
+    selected-actions-url:
+      type: string
+      description: The API URL to use to get or set the actions that are allowed to
+        run, when `allowed_actions` is set to `selected`.
+    actions-enterprise-permissions:
       type: object
       properties:
-        id:
-          type: number
-        name:
-          type: string
-        visibility:
-          type: string
-        default:
-          type: boolean
+        enabled_organizations:
+          "$ref": "#/components/schemas/enabled-organizations"
         selected_organizations_url:
           type: string
-        runners_url:
-          type: string
+          description: The API URL to use to get or set the selected organizations
+            that are allowed to run GitHub Actions, when `enabled_organizations` is
+            set to `selected`.
+        allowed_actions:
+          "$ref": "#/components/schemas/allowed-actions"
+        selected_actions_url:
+          "$ref": "#/components/schemas/selected-actions-url"
     organization-simple:
       title: Organization Simple
       description: Organization Simple
@@ -34969,6 +35658,40 @@ components:
       - public_members_url
       - avatar_url
       - description
+    selected-actions:
+      type: object
+      properties:
+        github_owned_allowed:
+          type: boolean
+          description: Whether GitHub-owned actions are allowed. For example, this
+            includes the actions in the `actions` organization.
+        verified_allowed:
+          type: boolean
+          description: Whether actions in GitHub Marketplace from verified creators
+            are allowed. Set to `true` to allow all GitHub Marketplace actions by
+            verified creators.
+        patterns_allowed:
+          type: array
+          description: Specifies a list of string-matching patterns to allow specific
+            action(s). Wildcards, tags, and SHAs are allowed. For example, `monalisa/octocat@*`,
+            `monalisa/octocat@v2`, `monalisa/*`."
+          items:
+            type: string
+    runner-groups-enterprise:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        visibility:
+          type: string
+        default:
+          type: boolean
+        selected_organizations_url:
+          type: string
+        runners_url:
+          type: string
     runner:
       title: Self hosted runners
       description: A self hosted runner
@@ -37109,6 +37832,28 @@ components:
       - type
       - created_at
       - updated_at
+    enabled-repositories:
+      type: string
+      description: 'The policy that controls the repositories in the organization
+        that are allowed to run GitHub Actions. Can be one of: `all`, `none`, or `selected`.'
+      enum:
+      - all
+      - none
+      - selected
+    actions-organization-permissions:
+      type: object
+      properties:
+        enabled_repositories:
+          "$ref": "#/components/schemas/enabled-repositories"
+        selected_repositories_url:
+          type: string
+          description: The API URL to use to get or set the selected repositories
+            that are allowed to run GitHub Actions, when `enabled_repositories` is
+            set to `selected`.
+        allowed_actions:
+          "$ref": "#/components/schemas/allowed-actions"
+        selected_actions_url:
+          "$ref": "#/components/schemas/selected-actions-url"
     runner-groups-org:
       type: object
       properties:
@@ -39398,6 +40143,18 @@ components:
       - started_at
       - completed_at
       - check_run_url
+    actions-enabled:
+      type: boolean
+      description: Whether GitHub Actions is enabled on the repository.
+    actions-repository-permissions:
+      type: object
+      properties:
+        enabled:
+          "$ref": "#/components/schemas/actions-enabled"
+        allowed_actions:
+          "$ref": "#/components/schemas/allowed-actions"
+        selected_actions_url:
+          "$ref": "#/components/schemas/selected-actions-url"
     pull-request-minimal:
       title: Pull Request Minimal
       type: object
@@ -47915,6 +48672,34 @@ components:
            The error was found in core/models.py in get_or_create_user at line 62.
 
            self.save()
+    actions-enterprise-permissions:
+      value:
+        enabled_organizations: all
+        allowed_actions: selected
+        selected_actions_url: https://api.github.com/enterprises/2/actions/permissions/selected-actions
+    organization-targets:
+      value:
+        total_count: 1
+        organizations:
+        - login: octocat
+          id: 161335
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          url: https://api.github.com/orgs/octo-org
+          repos_url: https://api.github.com/orgs/octo-org/repos
+          events_url: https://api.github.com/orgs/octo-org/events
+          hooks_url: https://api.github.com/orgs/octo-org/hooks
+          issues_url: https://api.github.com/orgs/octo-org/issues
+          members_url: https://api.github.com/orgs/octo-org/members{/member}
+          public_members_url: https://api.github.com/orgs/octo-org/public_members{/member}
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          description: A great organization
+    selected-actions:
+      value:
+        github_owned_allowed: true
+        verified_allowed: false
+        patterns_allowed:
+        - monalisa/octocat@*
+        - docker/*
     runner-groups-enterprise:
       value:
         total_count: 3
@@ -47951,22 +48736,6 @@ components:
         default: false
         selected_organizations_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/organizations
         runners_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/runners
-    organization-targets:
-      value:
-        total_count: 1
-        organizations:
-        - login: octocat
-          id: 161335
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          url: https://api.github.com/orgs/octo-org
-          repos_url: https://api.github.com/orgs/octo-org/repos
-          events_url: https://api.github.com/orgs/octo-org/events
-          hooks_url: https://api.github.com/orgs/octo-org/hooks
-          issues_url: https://api.github.com/orgs/octo-org/issues
-          members_url: https://api.github.com/orgs/octo-org/members{/member}
-          public_members_url: https://api.github.com/orgs/octo-org/public_members{/member}
-          avatar_url: https://github.com/images/error/octocat_happy.gif
-          description: A great organization
     runner-paginated:
       value:
         total_count: 2
@@ -49258,47 +50027,11 @@ components:
         members_can_create_internal_repositories: false
         members_can_create_pages: true
         updated_at: '2014-03-03T18:58:10Z'
-    runner-groups-org:
+    actions-organization-permissions:
       value:
-        total_count: 3
-        runner_groups:
-        - id: 1
-          name: Default
-          visibility: all
-          default: true
-          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/1/runners
-          inherited: false
-        - id: 2
-          name: octo-runner-group
-          visibility: selected
-          default: false
-          selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
-          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
-          inherited: true
-        - id: 3
-          name: expensive-hardware
-          visibility: private
-          default: false
-          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/3/runners
-          inherited: false
-    runner-group:
-      value:
-        id: 2
-        name: octo-runner-group
-        visibility: selected
-        default: false
-        selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner-groups/2/repositories
-        runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
-        inherited: false
-    runner-group-item:
-      value:
-        id: 2
-        name: octo-runner-group
-        visibility: selected
-        default: false
-        selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
-        runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
-        inherited: false
+        enabled_repositories: all
+        allowed_actions: selected
+        selected_actions_url: https://api.github.com/organizations/42/actions/permissions/selected-actions
     repository-paginated:
       value:
         total_count: 1
@@ -49419,6 +50152,47 @@ components:
           forks: 1
           open_issues: 1
           watchers: 1
+    runner-groups-org:
+      value:
+        total_count: 3
+        runner_groups:
+        - id: 1
+          name: Default
+          visibility: all
+          default: true
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/1/runners
+          inherited: false
+        - id: 2
+          name: octo-runner-group
+          visibility: selected
+          default: false
+          selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
+          inherited: true
+        - id: 3
+          name: expensive-hardware
+          visibility: private
+          default: false
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/3/runners
+          inherited: false
+    runner-group:
+      value:
+        id: 2
+        name: octo-runner-group
+        visibility: selected
+        default: false
+        selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner-groups/2/repositories
+        runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
+        inherited: false
+    runner-group-item:
+      value:
+        id: 2
+        name: octo-runner-group
+        visibility: selected
+        default: false
+        selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
+        runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
+        inherited: false
     organization-actions-secret-paginated:
       value:
         total_count: 3
@@ -52449,6 +53223,11 @@ components:
           started_at: '2020-01-20T09:44:39.000-08:00'
           completed_at: '2020-01-20T09:44:39.000-08:00'
         check_run_url: https://api.github.com/repos/octo-org/octo-repo/check-runs/399444496
+    actions-repository-permissions:
+      value:
+        enabled: true
+        allowed_actions: selected
+        selected_actions_url: https://api.github.com/repositories/42/actions/permissions/selected-actions
     workflow-run-paginated:
       value:
         total_count: 1
@@ -62633,21 +63412,22 @@ components:
         type: integer
     enterprise:
       name: enterprise
-      description: Unique identifier of the GitHub Enterprise Cloud instance.
+      description: The slug version of the enterprise name. You can also substitute
+        this value with the enterprise id.
       in: path
       required: true
       schema:
         type: string
-    runner_group_id:
-      name: runner_group_id
-      description: Unique identifier of the self-hosted runner group.
+    org_id:
+      name: org_id
+      description: Unique identifier of an organization.
       in: path
       required: true
       schema:
         type: integer
-    org_id:
-      name: org_id
-      description: Unique identifier of an organization.
+    runner_group_id:
+      name: runner_group_id
+      description: Unique identifier of the self-hosted runner group.
       in: path
       required: true
       schema:
