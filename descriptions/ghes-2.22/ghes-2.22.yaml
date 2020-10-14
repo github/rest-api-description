@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  version: 1.1.0
+  version: 1.1.1
   title: GitHub v3 REST API
   description: GitHub's v3 REST API.
   license:
@@ -14596,6 +14596,8 @@ paths:
         **Note:** The Checks API only looks for pushes in the repository where the check suite or check run were created. Pushes to a branch in a forked repository are not detected and return an empty `pull_requests` array.
 
         Creates a new check run for a specific commit in a repository. Your GitHub App must have the `checks:write` permission to create check runs.
+
+        In a check suite, GitHub limits the number of check runs with the same name to 1000. Once these check runs exceed 1000, GitHub will start to automatically delete older check runs.
       tags:
       - checks
       operationId: checks/create
@@ -15522,7 +15524,7 @@ paths:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-code-scanning-alert-items"
         '404':
-          description: Response if the ref doesn't match an existing ref
+          description: Response if the ref does not match an existing ref
         '503':
           "$ref": "#/components/responses/service_unavailable"
       x-github:
@@ -15612,9 +15614,11 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-code-scanning-alert-dismissed"
+        '403':
+          description: Response if the repository is archived
         '503':
-          description: When code scanning isn't available you can try again at a later
-            time
+          description: Response when code scanning is not available and you should
+            try again at a later time
       x-github:
         enabledForApps: true
         githubCloudOnly: false
@@ -15722,6 +15726,8 @@ paths:
       responses:
         '202':
           description: response
+        '403':
+          description: Response if the repository is archived
         '404':
           description: Response if `commit_sha` or `ref` cannot be found
       x-github:
