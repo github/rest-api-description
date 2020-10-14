@@ -36,7 +36,7 @@ Because this description is used across GitHub's whole API development experienc
 
 ## License
 
-github/rest-api-description is licensed under the [MIT license](LICENSEE.md)
+github/rest-api-description is licensed under the [MIT license](LICENSE.md)
 
 
 ## Contact
