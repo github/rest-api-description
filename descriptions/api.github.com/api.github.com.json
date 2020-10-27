@@ -463,6 +463,113 @@
         }
       }
     },
+    "/app/hook/config": {
+      "get": {
+        "summary": "Get a webhook configuration for an app",
+        "description": "Returns the webhook configuration for a GitHub App. For more information about configuring a webhook for your app, see \"[Creating a GitHub App](/developers/apps/creating-a-github-app).\"\n\nYou must use a [JWT](https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.",
+        "tags": [
+          "apps"
+        ],
+        "operationId": "apps/get-webhook-config-for-app",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/apps#get-a-webhook-configuration-for-an-app"
+        },
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "previews": [
+
+          ],
+          "category": "apps",
+          "subcategory": "webhooks"
+        }
+      },
+      "patch": {
+        "summary": "Update a webhook configuration for an app",
+        "description": "Updates the webhook configuration for a GitHub App. For more information about configuring a webhook for your app, see \"[Creating a GitHub App](/developers/apps/creating-a-github-app).\"\n\nYou must use a [JWT](https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.",
+        "tags": [
+          "apps"
+        ],
+        "operationId": "apps/update-webhook-config-for-app",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/apps#update-a-webhook-configuration-for-an-app"
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "$ref": "#/components/schemas/webhook-config-url"
+                  },
+                  "content_type": {
+                    "$ref": "#/components/schemas/webhook-config-content-type"
+                  },
+                  "secret": {
+                    "$ref": "#/components/schemas/webhook-config-secret"
+                  },
+                  "insecure_ssl": {
+                    "$ref": "#/components/schemas/webhook-config-insecure-ssl"
+                  }
+                },
+                "example": {
+                  "content_type": "json",
+                  "insecure_ssl": "0",
+                  "secret": "********",
+                  "url": "https://example.com/webhook"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "previews": [
+
+          ],
+          "category": "apps",
+          "subcategory": "webhooks"
+        }
+      }
+    },
     "/app/installations": {
       "get": {
         "summary": "List installations for the authenticated app",
@@ -6814,7 +6921,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/since"
+            "$ref": "#/components/parameters/since-org"
           },
           {
             "$ref": "#/components/parameters/per_page"
@@ -9331,7 +9438,7 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "post": {
@@ -9365,20 +9472,16 @@
                     "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://developer.github.com/v3/orgs/hooks/#create-hook-config-params).",
                     "properties": {
                       "url": {
-                        "type": "string",
-                        "description": "The URL to which the payloads will be delivered."
+                        "$ref": "#/components/schemas/webhook-config-url"
                       },
                       "content_type": {
-                        "type": "string",
-                        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                        "$ref": "#/components/schemas/webhook-config-content-type"
                       },
                       "secret": {
-                        "type": "string",
-                        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://developer.github.com/webhooks/event-payloads/#delivery-headers) header."
+                        "$ref": "#/components/schemas/webhook-config-secret"
                       },
                       "insecure_ssl": {
-                        "type": "string",
-                        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+                        "$ref": "#/components/schemas/webhook-config-insecure-ssl"
                       },
                       "username": {
                         "type": "string",
@@ -9467,14 +9570,14 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       }
     },
     "/orgs/{org}/hooks/{hook_id}": {
       "get": {
         "summary": "Get an organization webhook",
-        "description": "",
+        "description": "Returns a webhook configured in an organization. To get only the webhook `config` properties, see \"[Get a webhook configuration for an organization](/rest/reference/orgs#get-a-webhook-configuration-for-an-organization).\"",
         "tags": [
           "orgs"
         ],
@@ -9518,12 +9621,12 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "patch": {
         "summary": "Update an organization webhook",
-        "description": "",
+        "description": "Updates a webhook configured in an organization. When you update a webhook, the `secret` will be overwritten. If you previously had a `secret` set, you must provide the same `secret` or set a new `secret` or the secret will be removed. If you are only updating individual webhook `config` properties, use \"[Update a webhook configuration for an organization](/rest/reference/orgs#update-a-webhook-configuration-for-an-organization).\"",
         "tags": [
           "orgs"
         ],
@@ -9551,20 +9654,16 @@
                     "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://developer.github.com/v3/orgs/hooks/#update-hook-config-params).",
                     "properties": {
                       "url": {
-                        "type": "string",
-                        "description": "The URL to which the payloads will be delivered."
+                        "$ref": "#/components/schemas/webhook-config-url"
                       },
                       "content_type": {
-                        "type": "string",
-                        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                        "$ref": "#/components/schemas/webhook-config-content-type"
                       },
                       "secret": {
-                        "type": "string",
-                        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value in the [`X-Hub-Signature`](https://developer.github.com/webhooks/event-payloads/#delivery-headers) header."
+                        "$ref": "#/components/schemas/webhook-config-secret"
                       },
                       "insecure_ssl": {
-                        "type": "string",
-                        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+                        "$ref": "#/components/schemas/webhook-config-insecure-ssl"
                       }
                     },
                     "required": [
@@ -9631,7 +9730,7 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "delete": {
@@ -9668,7 +9767,130 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
+        }
+      }
+    },
+    "/orgs/{org}/hooks/{hook_id}/config": {
+      "get": {
+        "summary": "Get a webhook configuration for an organization",
+        "description": "Returns the webhook configuration for an organization. To get more information about the webhook, including the `active` state and `events`, use \"[Get an organization webhook ](/rest/reference/orgs#get-an-organization-webhook).\"\n\nAccess tokens must have the `admin:org_hook` scope, and GitHub Apps must have the `organization_hooks:read` permission.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/get-webhook-config-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/orgs#get-a-webhook-configuration-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/hook-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "orgs",
+          "subcategory": "webhooks"
+        }
+      },
+      "patch": {
+        "summary": "Update a webhook configuration for an organization",
+        "description": "Updates the webhook configuration for an organization. To update more information about the webhook, including the `active` state and `events`, use \"[Update an organization webhook ](/rest/reference/orgs#update-an-organization-webhook).\"\n\nAccess tokens must have the `admin:org_hook` scope, and GitHub Apps must have the `organization_hooks:write` permission.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/update-webhook-config-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/orgs#update-a-webhook-configuration-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/hook-id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "$ref": "#/components/schemas/webhook-config-url"
+                  },
+                  "content_type": {
+                    "$ref": "#/components/schemas/webhook-config-content-type"
+                  },
+                  "secret": {
+                    "$ref": "#/components/schemas/webhook-config-secret"
+                  },
+                  "insecure_ssl": {
+                    "$ref": "#/components/schemas/webhook-config-insecure-ssl"
+                  }
+                },
+                "example": {
+                  "content_type": "json",
+                  "insecure_ssl": "0",
+                  "secret": "********",
+                  "url": "https://example.com/webhook"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "orgs",
+          "subcategory": "webhooks"
         }
       }
     },
@@ -9707,7 +9929,7 @@
 
           ],
           "category": "orgs",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       }
     },
@@ -26898,7 +27120,7 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "post": {
@@ -26935,20 +27157,16 @@
                     "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://developer.github.com/v3/repos/hooks/#create-hook-config-params).",
                     "properties": {
                       "url": {
-                        "type": "string",
-                        "description": "The URL to which the payloads will be delivered."
+                        "$ref": "#/components/schemas/webhook-config-url"
                       },
                       "content_type": {
-                        "type": "string",
-                        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                        "$ref": "#/components/schemas/webhook-config-content-type"
                       },
                       "secret": {
-                        "type": "string",
-                        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://developer.github.com/webhooks/event-payloads/#delivery-headers)."
+                        "$ref": "#/components/schemas/webhook-config-secret"
                       },
                       "insecure_ssl": {
-                        "type": "string",
-                        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+                        "$ref": "#/components/schemas/webhook-config-insecure-ssl"
                       },
                       "token": {
                         "type": "string",
@@ -27040,14 +27258,14 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       }
     },
     "/repos/{owner}/{repo}/hooks/{hook_id}": {
       "get": {
         "summary": "Get a repository webhook",
-        "description": "",
+        "description": "Returns a webhook configured in a repository. To get only the webhook `config` properties, see \"[Get a webhook configuration for a repository](/rest/reference/repos#get-a-webhook-configuration-for-a-repository).\"",
         "tags": [
           "repos"
         ],
@@ -27094,12 +27312,12 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "patch": {
         "summary": "Update a repository webhook",
-        "description": "",
+        "description": "Updates a webhook configured in a repository. If you previously had a `secret` set, you must provide the same `secret` or set a new `secret` or the secret will be removed. If you are only updating individual webhook `config` properties, use \"[Update a webhook configuration for a repository](/rest/reference/repos#update-a-webhook-configuration-for-a-repository).\"",
         "tags": [
           "repos"
         ],
@@ -27130,20 +27348,16 @@
                     "description": "Key/value pairs to provide settings for this webhook. [These are defined below](https://developer.github.com/v3/repos/hooks/#create-hook-config-params).",
                     "properties": {
                       "url": {
-                        "type": "string",
-                        "description": "The URL to which the payloads will be delivered."
+                        "$ref": "#/components/schemas/webhook-config-url"
                       },
                       "content_type": {
-                        "type": "string",
-                        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`."
+                        "$ref": "#/components/schemas/webhook-config-content-type"
                       },
                       "secret": {
-                        "type": "string",
-                        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://developer.github.com/webhooks/event-payloads/#delivery-headers)."
+                        "$ref": "#/components/schemas/webhook-config-secret"
                       },
                       "insecure_ssl": {
-                        "type": "string",
-                        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**"
+                        "$ref": "#/components/schemas/webhook-config-insecure-ssl"
                       },
                       "address": {
                         "type": "string",
@@ -27228,7 +27442,7 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       },
       "delete": {
@@ -27268,7 +27482,136 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/config": {
+      "get": {
+        "summary": "Get a webhook configuration for a repository",
+        "description": "Returns the webhook configuration for a repository. To get more information about the webhook, including the `active` state and `events`, use \"[Get a repository webhook](/rest/reference/orgs#get-a-repository-webhook).\"\n\nAccess tokens must have the `read:repo_hook` or `repo` scope, and GitHub Apps must have the `repository_hooks:read` permission.",
+        "tags": [
+          "repos"
+        ],
+        "operationId": "repos/get-webhook-config-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/repos#get-a-webhook-configuration-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/hook-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "repos",
+          "subcategory": "webhooks"
+        }
+      },
+      "patch": {
+        "summary": "Update a webhook configuration for a repository",
+        "description": "Updates the webhook configuration for a repository. To update more information about the webhook, including the `active` state and `events`, use \"[Update a repository webhook](/rest/reference/orgs#update-a-repository-webhook).\"\n\nAccess tokens must have the `write:repo_hook` or `repo` scope, and GitHub Apps must have the `repository_hooks:write` permission.",
+        "tags": [
+          "repos"
+        ],
+        "operationId": "repos/update-webhook-config-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://developer.github.com/v3/repos#update-a-webhook-configuration-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/hook-id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "$ref": "#/components/schemas/webhook-config-url"
+                  },
+                  "content_type": {
+                    "$ref": "#/components/schemas/webhook-config-content-type"
+                  },
+                  "secret": {
+                    "$ref": "#/components/schemas/webhook-config-secret"
+                  },
+                  "insecure_ssl": {
+                    "$ref": "#/components/schemas/webhook-config-insecure-ssl"
+                  }
+                },
+                "example": {
+                  "content_type": "json",
+                  "insecure_ssl": "0",
+                  "secret": "********",
+                  "url": "https://example.com/webhook"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook-config"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/webhook-config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "repos",
+          "subcategory": "webhooks"
         }
       }
     },
@@ -27310,7 +27653,7 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       }
     },
@@ -27352,7 +27695,7 @@
 
           ],
           "category": "repos",
-          "subcategory": "hooks"
+          "subcategory": "webhooks"
         }
       }
     },
@@ -27655,7 +27998,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "$ref": "#/components/parameters/since"
+            "$ref": "#/components/parameters/since-user"
           }
         ],
         "responses": {
@@ -46192,7 +46535,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/since"
+            "$ref": "#/components/parameters/since-user"
           },
           {
             "$ref": "#/components/parameters/per_page"
@@ -47844,6 +48187,46 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "webhook-config-url": {
+        "type": "string",
+        "description": "The URL to which the payloads will be delivered.",
+        "example": "https://example.com/webhook",
+        "format": "uri"
+      },
+      "webhook-config-content-type": {
+        "type": "string",
+        "description": "The media type used to serialize the payloads. Supported values include `json` and `form`. The default is `form`.",
+        "example": "\"json\""
+      },
+      "webhook-config-secret": {
+        "type": "string",
+        "description": "If provided, the `secret` will be used as the `key` to generate the HMAC hex digest value for [delivery signature headers](https://developer.github.com/webhooks/event-payloads/#delivery-headers).",
+        "example": "\"********\""
+      },
+      "webhook-config-insecure-ssl": {
+        "type": "string",
+        "description": "Determines whether the SSL certificate of the host for `url` will be verified when delivering payloads. Supported values include `0` (verification is performed) and `1` (verification is not performed). The default is `0`. **We strongly recommend not setting this to `1` as you are subject to man-in-the-middle and other attacks.**",
+        "example": "\"0\""
+      },
+      "webhook-config": {
+        "title": "Webhook Configuration",
+        "description": "Configuration object of the webhook",
+        "type": "object",
+        "properties": {
+          "url": {
+            "$ref": "#/components/schemas/webhook-config-url"
+          },
+          "content_type": {
+            "$ref": "#/components/schemas/webhook-config-content-type"
+          },
+          "secret": {
+            "$ref": "#/components/schemas/webhook-config-secret"
+          },
+          "insecure_ssl": {
+            "$ref": "#/components/schemas/webhook-config-insecure-ssl"
           }
         }
       },
@@ -59406,7 +59789,7 @@
             "example": "https://api.github.com/repos/octocat/example"
           },
           "transient_environment": {
-            "description": "Specifies if the given environment is will no longer exist at some point in hte future. Default: false.",
+            "description": "Specifies if the given environment is will no longer exist at some point in the future. Default: false.",
             "example": true,
             "type": "boolean"
           },
@@ -59979,7 +60362,7 @@
         ]
       },
       "hook": {
-        "title": "Webook",
+        "title": "Webhook",
         "description": "Webhooks for repositories.",
         "type": "object",
         "properties": {
@@ -60032,24 +60415,20 @@
                 "example": "\"foo\""
               },
               "url": {
-                "type": "string",
-                "example": "\"http://bar.com\""
+                "$ref": "#/components/schemas/webhook-config-url"
               },
               "insecure_ssl": {
-                "type": "string",
-                "example": "\"0\""
+                "$ref": "#/components/schemas/webhook-config-insecure-ssl"
               },
               "content_type": {
-                "type": "string",
-                "example": "\"form\""
+                "$ref": "#/components/schemas/webhook-config-content-type"
               },
               "digest": {
                 "type": "string",
                 "example": "\"md5\""
               },
               "secret": {
-                "type": "string",
-                "example": "\"********\""
+                "$ref": "#/components/schemas/webhook-config-secret"
               },
               "token": {
                 "type": "string",
@@ -66268,6 +66647,14 @@
           "client_secret": "1726be1638095a19edd134c77bde3aa2ece1e5d8",
           "webhook_secret": "e340154128314309424b7c8e90325147d99fdafa",
           "pem": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEAuEPzOUE+kiEH1WLiMeBytTEF856j0hOVcSUSUkZxKvqczkWM\n9vo1gDyC7ZXhdH9fKh32aapba3RSsp4ke+giSmYTk2mGR538ShSDxh0OgpJmjiKP\nX0Bj4j5sFqfXuCtl9SkH4iueivv4R53ktqM+n6hk98l6hRwC39GVIblAh2lEM4L/\n6WvYwuQXPMM5OG2Ryh2tDZ1WS5RKfgq+9ksNJ5Q9UtqtqHkO+E63N5OK9sbzpUUm\noNaOl3udTlZD3A8iqwMPVxH4SxgATBPAc+bmjk6BMJ0qIzDcVGTrqrzUiywCTLma\nszdk8GjzXtPDmuBgNn+o6s02qVGpyydgEuqmTQIDAQABAoIBACL6AvkjQVVLn8kJ\ndBYznJJ4M8ECo+YEgaFwgAHODT0zRQCCgzd+Vxl4YwHmKV2Lr+y2s0drZt8GvYva\nKOK8NYYZyi15IlwFyRXmvvykF1UBpSXluYFDH7KaVroWMgRreHcIys5LqVSIb6Bo\ngDmK0yBLPp8qR29s2b7ScZRtLaqGJiX+j55rNzrZwxHkxFHyG9OG+u9IsBElcKCP\nkYCVE8ZdYexfnKOZbgn2kZB9qu0T/Mdvki8yk3I2bI6xYO24oQmhnT36qnqWoCBX\nNuCNsBQgpYZeZET8mEAUmo9d+ABmIHIvSs005agK8xRaP4+6jYgy6WwoejJRF5yd\nNBuF7aECgYEA50nZ4FiZYV0vcJDxFYeY3kYOvVuKn8OyW+2rg7JIQTremIjv8FkE\nZnwuF9ZRxgqLxUIfKKfzp/5l5LrycNoj2YKfHKnRejxRWXqG+ZETfxxlmlRns0QG\nJ4+BYL0CoanDSeA4fuyn4Bv7cy/03TDhfg/Uq0Aeg+hhcPE/vx3ebPsCgYEAy/Pv\neDLssOSdeyIxf0Brtocg6aPXIVaLdus+bXmLg77rJIFytAZmTTW8SkkSczWtucI3\nFI1I6sei/8FdPzAl62/JDdlf7Wd9K7JIotY4TzT7Tm7QU7xpfLLYIP1bOFjN81rk\n77oOD4LsXcosB/U6s1blPJMZ6AlO2EKs10UuR1cCgYBipzuJ2ADEaOz9RLWwi0AH\nPza2Sj+c2epQD9ZivD7Zo/Sid3ZwvGeGF13JyR7kLEdmAkgsHUdu1rI7mAolXMaB\n1pdrsHureeLxGbRM6za3tzMXWv1Il7FQWoPC8ZwXvMOR1VQDv4nzq7vbbA8z8c+c\n57+8tALQHOTDOgQIzwK61QKBgERGVc0EJy4Uag+VY8J4m1ZQKBluqo7TfP6DQ7O8\nM5MX73maB/7yAX8pVO39RjrhJlYACRZNMbK+v/ckEQYdJSSKmGCVe0JrGYDuPtic\nI9+IGfSorf7KHPoMmMN6bPYQ7Gjh7a++tgRFTMEc8956Hnt4xGahy9NcglNtBpVN\n6G8jAoGBAMCh028pdzJa/xeBHLLaVB2sc0Fe7993WlsPmnVE779dAz7qMscOtXJK\nfgtriltLSSD6rTA9hUAsL/X62rY0wdXuNdijjBb/qvrx7CAV6i37NK1CjABNjsfG\nZM372Ac6zc1EqSrid2IjET1YqyIW2KGLI1R2xbQc98UGlt48OdWu\n-----END RSA PRIVATE KEY-----\n"
+        }
+      },
+      "webhook-config": {
+        "value": {
+          "content_type": "json",
+          "insecure_ssl": "0",
+          "secret": "********",
+          "url": "https://example.com/webhook"
         }
       },
       "base-installation-items": {
@@ -83793,6 +84180,15 @@
           "type": "integer"
         }
       },
+      "since-org": {
+        "name": "since",
+        "description": "An organization ID. Only return organizations with an ID greater than this ID.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer"
+        }
+      },
       "org": {
         "name": "org",
         "in": "path",
@@ -84076,6 +84472,15 @@
         "description": "deployment_id parameter",
         "in": "path",
         "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "since-user": {
+        "name": "since",
+        "description": "A user ID. Only return users with an ID greater than this ID.",
+        "in": "query",
+        "required": false,
         "schema": {
           "type": "integer"
         }
