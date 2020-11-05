@@ -27292,14 +27292,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/v3/repos/#list-public-repositories
       parameters:
-      - "$ref": "#/components/parameters/per_page"
-      - "$ref": "#/components/parameters/since"
-      - name: visibility
-        in: query
-        required: false
-        schema:
-          type: string
-          example: all
+      - "$ref": "#/components/parameters/since-repo"
       responses:
         '200':
           description: response
@@ -41735,12 +41728,6 @@ components:
       format: uri
       readOnly: true
       nullable: false
-    code-scanning-alert-dismissed-by:
-      nullable: true
-      oneOf:
-      - "$ref": "#/components/schemas/simple-user"
-      - enum:
-        - 
     code-scanning-alert-dismissed-at:
       type: string
       description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -41753,13 +41740,10 @@ components:
         or closing the alert. Can be one of: `false positive`, `won't fix`, and `used
         in tests`."
       nullable: true
-      oneOf:
-      - enum:
-        - false positive
-        - won't fix
-        - used in tests
-      - enum:
-        - 
+      enum:
+      - false positive
+      - won't fix
+      - used in tests
     code-scanning-alert-rule:
       type: object
       properties:
@@ -41806,7 +41790,7 @@ components:
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         dismissed_by:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-by"
+          "$ref": "#/components/schemas/simple-user"
         dismissed_at:
           "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
         dismissed_reason:
@@ -41857,7 +41841,7 @@ components:
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         dismissed_by:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-by"
+          "$ref": "#/components/schemas/simple-user"
         dismissed_at:
           "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
         dismissed_reason:
@@ -64086,6 +64070,14 @@ components:
         - day
         - week
         default: day
+    since-repo:
+      name: since
+      description: A repository ID. Only return repositories with an ID greater than
+        this ID.
+      in: query
+      required: false
+      schema:
+        type: integer
     start_index:
       name: startIndex
       description: 'Used for pagination: the index of the first result to return.'
