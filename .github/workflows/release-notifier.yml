@@ -1,20 +1,16 @@
 name: Release Notifier
-on: release
+on:
+  release:
+    types:
+      - published
 
 jobs:
   notify:
-    name: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: gr2m/release-notifier-action@v1
         with:
-          node-version: 14
-      - run: npm ci
-      - run: node scripts/release-notifier
-        env:
-          # Credentials for https://github.com/apps/openapi-release-notifier
-          PRIVATE_KEY: ${{ secrets.OPENAPI_RELEASE_NOTIFIER_PRIVATE_KEY }}
-          APP_ID: ${{ secrets.OPENAPI_RELEASE_NOTIFIER_APP_ID }}
-          DISPATCH_EVENT_NAME: github-openapi-release
-          EVENT_PAYLOAD_JSON: ${{ toJson(github.event) }}
+          # https://github.com/apps/openapi-release-notifier
+          app_id: ${{ secrets.OPENAPI_RELEASE_NOTIFIER_APP_ID }}
+          private_key: ${{ secrets.OPENAPI_RELEASE_NOTIFIER_PRIVATE_KEY }}
+          dispatch_event_type: github-openapi-release
