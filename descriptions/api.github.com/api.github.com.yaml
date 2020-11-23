@@ -7093,8 +7093,8 @@ paths:
   "/orgs/{org}/interaction-limits":
     get:
       summary: Get interaction restrictions for an organization
-      description: Shows which group of GitHub users can interact with this organization
-        and when the restriction expires. If there are no restrictions, you will see
+      description: Shows which type of GitHub user can interact with this organization
+        and when the restriction expires. If there is no restrictions, you will see
         an empty response.
       tags:
       - interactions
@@ -7110,10 +7110,10 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/interaction-limit"
+                "$ref": "#/components/schemas/interaction-limit-response"
               examples:
                 default:
-                  "$ref": "#/components/examples/interaction-limit"
+                  "$ref": "#/components/examples/interaction-limit-response"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -7122,9 +7122,11 @@ paths:
         subcategory: orgs
     put:
       summary: Set interaction restrictions for an organization
-      description: Temporarily restricts interactions to certain GitHub users in any
-        public repository in the given organization. You must be an organization owner
-        to set these restrictions.
+      description: Temporarily restricts interactions to a certain type of GitHub
+        user in any public repository in the given organization. You must be an organization
+        owner to set these restrictions. Setting the interaction limit at the organization
+        level will overwrite any interaction limits that are set for individual repositories
+        owned by the organization.
       tags:
       - interactions
       operationId: interactions/set-restrictions-for-org
@@ -7137,32 +7139,17 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                limit:
-                  type: string
-                  description: 'Specifies the group of GitHub users who can comment,
-                    open issues, or create pull requests in public repositories for
-                    the given organization. Must be one of: `existing_users`, `contributors_only`,
-                    or `collaborators_only`.'
-                  enum:
-                  - existing_users
-                  - contributors_only
-                  - collaborators_only
-              required:
-              - limit
-            example:
-              limit: collaborators_only
+              "$ref": "#/components/schemas/interaction-limit"
       responses:
         '200':
           description: response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/interaction-limit"
+                "$ref": "#/components/schemas/interaction-limit-response"
               examples:
                 default:
-                  "$ref": "#/components/examples/interaction-limit"
+                  "$ref": "#/components/examples/interaction-limit-response"
         '422':
           "$ref": "#/components/responses/validation_failed"
       x-github:
@@ -20548,7 +20535,7 @@ paths:
   "/repos/{owner}/{repo}/interaction-limits":
     get:
       summary: Get interaction restrictions for a repository
-      description: Shows which group of GitHub users can interact with this repository
+      description: Shows which type of GitHub user can interact with this repository
         and when the restriction expires. If there are no restrictions, you will see
         an empty response.
       tags:
@@ -20566,7 +20553,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/interaction-limit"
+                "$ref": "#/components/schemas/interaction-limit-response"
               examples:
                 default:
                   "$ref": "#/components/examples/interaction-limit-2"
@@ -20578,8 +20565,12 @@ paths:
         subcategory: repos
     put:
       summary: Set interaction restrictions for a repository
-      description: Temporarily restricts interactions to certain GitHub users within
-        the given repository. You must have owner or admin access to set restrictions.
+      description: Temporarily restricts interactions to a certain type of GitHub
+        user within the given repository. You must have owner or admin access to set
+        these restrictions. If an interaction limit is set for the user or organization
+        that owns this repository, you will receive a `409 Conflict` response and
+        will not be able to use this endpoint to change the interaction limit for
+        a single repository.
       tags:
       - interactions
       operationId: interactions/set-restrictions-for-repo
@@ -20593,31 +20584,19 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                limit:
-                  type: string
-                  description: 'Specifies the group of GitHub users who can comment,
-                    open issues, or create pull requests for the given repository.
-                    Must be one of: `existing_users`, `contributors_only`, or `collaborators_only`.'
-                  enum:
-                  - existing_users
-                  - contributors_only
-                  - collaborators_only
-              required:
-              - limit
-            example:
-              limit: collaborators_only
+              "$ref": "#/components/schemas/interaction-limit"
       responses:
         '200':
           description: response
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/interaction-limit"
+                "$ref": "#/components/schemas/interaction-limit-response"
               examples:
                 default:
                   "$ref": "#/components/examples/interaction-limit-2"
+        '409':
+          description: Conflict
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -20627,7 +20606,10 @@ paths:
     delete:
       summary: Remove interaction restrictions for a repository
       description: Removes all interaction restrictions from the given repository.
-        You must have owner or admin access to remove restrictions.
+        You must have owner or admin access to remove restrictions. If the interaction
+        limit is set for the user or organization that owns this repository, you will
+        receive a `409 Conflict` response and will not be able to use this endpoint
+        to change the interaction limit for a single repository.
       tags:
       - interactions
       operationId: interactions/remove-restrictions-for-repo
@@ -20640,6 +20622,8 @@ paths:
       responses:
         '204':
           description: Empty response
+        '409':
+          description: Conflict
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -31859,6 +31843,87 @@ paths:
         previews: []
         category: apps
         subcategory: installations
+  "/user/interaction-limits":
+    get:
+      summary: Get interaction restrictions for your public repositories
+      description: Shows which type of GitHub user can interact with your public repositories
+        and when the restriction expires. If there are no restrictions, you will see
+        an empty response.
+      tags:
+      - interactions
+      operationId: interactions/get-restrictions-for-your-public-repos
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/interactions#get-interaction-restrictions-for-your-public-repositories
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/interaction-limit-response"
+              examples:
+                default:
+                  "$ref": "#/components/examples/interaction-limit-user"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: interactions
+        subcategory: user
+    put:
+      summary: Set interaction restrictions for your public repositories
+      description: Temporarily restricts which type of GitHub user can interact with
+        your public repositories. Setting the interaction limit at the user level
+        will overwrite any interaction limits that are set for individual repositories
+        owned by the user.
+      tags:
+      - interactions
+      operationId: interactions/set-restrictions-for-your-public-repos
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/interactions#set-interaction-restrictions-for-your-public-repositories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/interaction-limit"
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/interaction-limit-response"
+              examples:
+                default:
+                  "$ref": "#/components/examples/interaction-limit-user"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: interactions
+        subcategory: user
+    delete:
+      summary: Remove interaction restrictions from your public repositories
+      description: Removes any interaction restrictions from your public repositories.
+      tags:
+      - interactions
+      operationId: interactions/remove-restrictions-for-your-public-repos
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/interactions#remove-interaction-restrictions-from-your-public-repositories
+      responses:
+        '204':
+          description: Empty response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: interactions
+        subcategory: user
   "/user/issues":
     get:
       summary: List user account issues assigned to the authenticated user
@@ -38278,19 +38343,23 @@ components:
       - ping_url
       - created_at
       - updated_at
-    interaction-limit:
+    interaction-group:
+      type: string
+      description: 'The type of GitHub user that can comment, open issues, or create
+        pull requests while the interaction limit is in effect. Can be one of: `existing_users`,
+        `contributors_only`, `collaborators_only`.'
+      example: collaborators_only
+      enum:
+      - existing_users
+      - contributors_only
+      - collaborators_only
+    interaction-limit-response:
       title: Interaction Limits
       description: Interaction limit settings.
       type: object
       properties:
         limit:
-          description: The interaction limit to enable.
-          enum:
-          - existing_users
-          - contributors_only
-          - collaborators_only
-          example: existing_users
-          type: string
+          "$ref": "#/components/schemas/interaction-group"
         origin:
           type: string
           example: repository
@@ -38302,6 +38371,28 @@ components:
       - limit
       - origin
       - expires_at
+    interaction-expiry:
+      type: string
+      description: 'The duration of the interaction restriction. Can be one of: `one_day`,
+        `three_days`, `one_week`, `one_month`, `six_months`. Default: `one_day`.'
+      example: one_month
+      enum:
+      - one_day
+      - three_days
+      - one_week
+      - one_month
+      - six_months
+    interaction-limit:
+      title: Interaction Restrictions
+      description: Limit interactions to a specific type of user for a specified duration
+      type: object
+      properties:
+        limit:
+          "$ref": "#/components/schemas/interaction-group"
+        expiry:
+          "$ref": "#/components/schemas/interaction-expiry"
+      required:
+      - limit
     organization-invitation:
       title: Organization Invitation
       description: Organization Invitation
@@ -50703,7 +50794,7 @@ components:
           - config.yml
           - ".github/issue_TEMPLATE.md"
           app_slug: github-actions
-    interaction-limit:
+    interaction-limit-response:
       value:
         limit: collaborators_only
         origin: organization
@@ -62358,6 +62449,11 @@ components:
           created_at: '2017-07-08T16:18:44-04:00'
           updated_at: '2017-07-08T16:18:44-04:00'
           app_slug: github-actions
+    interaction-limit-user:
+      value:
+        limit: collaborators_only
+        origin: user
+        expires_at: '2018-08-17T04:18:39Z'
     key-items:
       value:
       - key_id: '012345678912345678'
