@@ -12907,8 +12907,6 @@ paths:
     get:
       summary: Get workflow run usage
       description: |-
-        **Warning:** This GitHub Actions usage endpoint is currently in public beta and subject to change. For more information, see "[GitHub Actions API workflow usage](https://developer.github.com/changes/2020-05-15-actions-api-workflow-usage)."
-
         Gets the number of billable minutes and total run time for a specific workflow run. Billable minutes only apply to workflows in private repositories that use GitHub-hosted runners. Usage is listed for each GitHub-hosted runner operating system in milliseconds. Any job re-runs are also included in the usage. The usage does not include the multiplier for macOS and Windows runners and is not rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
 
         Anyone with read access to the repository can use this endpoint. If the repository is private you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
@@ -13426,8 +13424,6 @@ paths:
     get:
       summary: Get workflow usage
       description: |-
-        **Warning:** This GitHub Actions usage endpoint is currently in public beta and subject to change. For more information, see "[GitHub Actions API workflow usage](https://developer.github.com/changes/2020-05-15-actions-api-workflow-usage)."
-
         Gets the number of billable minutes used by a specific workflow during the current billing cycle. Billable minutes only apply to workflows in private repositories that use GitHub-hosted runners. Usage is listed for each GitHub-hosted runner operating system in milliseconds. Any job re-runs are also included in the usage. The usage does not include the multiplier for macOS and Windows runners and is not rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
 
         You can replace `workflow_id` with the workflow file name. For example, you could use `main.yaml`. Anyone with read access to the repository can use this endpoint. If the repository is private you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
@@ -16399,6 +16395,10 @@ paths:
           description: Response if the repository is archived
         '404':
           description: Response if `commit_sha` or `ref` cannot be found
+        '400':
+          description: Response if the `sarif` field is invalid
+        '413':
+          description: Response if the `sarif` field is too large
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -19854,7 +19854,7 @@ paths:
                       example: '"abc"'
                     digest:
                       type: string
-                      example: '"md5"'
+                      example: '"sha256"'
                   required:
                   - url
                 events:
@@ -37600,10 +37600,6 @@ components:
         ssh_key_fingerprints:
           type: object
           properties:
-            MD5_RSA:
-              type: string
-            MD5_DSA:
-              type: string
             SHA256_RSA:
               type: string
             SHA256_DSA:
@@ -43997,7 +43993,7 @@ components:
               "$ref": "#/components/schemas/webhook-config-content-type"
             digest:
               type: string
-              example: '"md5"'
+              example: '"sha256"'
             secret:
               "$ref": "#/components/schemas/webhook-config-secret"
             token:
@@ -50120,8 +50116,6 @@ components:
       value:
         verifiable_password_authentication: true
         ssh_key_fingerprints:
-          MD5_RSA: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
-          MD5_DSA: ad:1c:08:a4:40:e3:6f:9c:f5:66:26:5d:4b:33:5d:8c
           SHA256_RSA: nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
           SHA256_DSA: br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ
         hooks:
