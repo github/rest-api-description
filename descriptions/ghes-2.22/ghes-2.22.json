@@ -120,6 +120,10 @@
       "description": "Look for stuff on GitHub."
     },
     {
+      "name": "secret-scanning",
+      "description": "Retrieve secret scanning alerts from a repository."
+    },
+    {
       "name": "teams",
       "description": "Interact with GitHub Teams."
     },
@@ -21860,6 +21864,12 @@
           },
           "404": {
             "description": "Response if `commit_sha` or `ref` cannot be found"
+          },
+          "400": {
+            "description": "Response if the `sarif` field is invalid"
+          },
+          "413": {
+            "description": "Response if the `sarif` field is too large"
           }
         },
         "x-github": {
@@ -26202,7 +26212,7 @@
                       },
                       "digest": {
                         "type": "string",
-                        "example": "\"md5\""
+                        "example": "\"sha256\""
                       }
                     },
                     "required": [
@@ -44406,10 +44416,10 @@
       "alert_number": {
         "name": "alert_number",
         "in": "path",
-        "description": "The code scanning alert number.",
+        "description": "The security alert number, found at the end of the security alert's URL.",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/code-scanning-alert-number"
+          "$ref": "#/components/schemas/alert-number"
         }
       },
       "commit_sha": {
@@ -48811,12 +48821,6 @@
           "ssh_key_fingerprints": {
             "type": "object",
             "properties": {
-              "MD5_RSA": {
-                "type": "string"
-              },
-              "MD5_DSA": {
-                "type": "string"
-              },
               "SHA256_RSA": {
                 "type": "string"
               },
@@ -54131,27 +54135,27 @@
         "type": "string",
         "description": "The full Git reference, formatted as `refs/heads/<branch name>`."
       },
-      "code-scanning-alert-number": {
+      "alert-number": {
         "type": "integer",
-        "description": "The code scanning alert number.",
+        "description": "The security alert number.",
         "readOnly": true,
         "nullable": false
       },
-      "code-scanning-alert-created-at": {
+      "alert-created-at": {
         "type": "string",
         "description": "The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
         "format": "date-time",
         "readOnly": true,
         "nullable": false
       },
-      "code-scanning-alert-url": {
+      "alert-url": {
         "type": "string",
         "description": "The REST API URL of the alert resource.",
         "format": "uri",
         "readOnly": true,
         "nullable": false
       },
-      "code-scanning-alert-html-url": {
+      "alert-html-url": {
         "type": "string",
         "description": "The GitHub URL of the alert resource.",
         "format": "uri",
@@ -54230,16 +54234,16 @@
         "type": "object",
         "properties": {
           "number": {
-            "$ref": "#/components/schemas/code-scanning-alert-number"
+            "$ref": "#/components/schemas/alert-number"
           },
           "created_at": {
-            "$ref": "#/components/schemas/code-scanning-alert-created-at"
+            "$ref": "#/components/schemas/alert-created-at"
           },
           "url": {
-            "$ref": "#/components/schemas/code-scanning-alert-url"
+            "$ref": "#/components/schemas/alert-url"
           },
           "html_url": {
-            "$ref": "#/components/schemas/code-scanning-alert-html-url"
+            "$ref": "#/components/schemas/alert-html-url"
           },
           "state": {
             "$ref": "#/components/schemas/code-scanning-alert-state"
@@ -54297,16 +54301,16 @@
         "type": "object",
         "properties": {
           "number": {
-            "$ref": "#/components/schemas/code-scanning-alert-number"
+            "$ref": "#/components/schemas/alert-number"
           },
           "created_at": {
-            "$ref": "#/components/schemas/code-scanning-alert-created-at"
+            "$ref": "#/components/schemas/alert-created-at"
           },
           "url": {
-            "$ref": "#/components/schemas/code-scanning-alert-url"
+            "$ref": "#/components/schemas/alert-url"
           },
           "html_url": {
-            "$ref": "#/components/schemas/code-scanning-alert-html-url"
+            "$ref": "#/components/schemas/alert-html-url"
           },
           "instances": {
             "$ref": "#/components/schemas/code-scanning-alert-instances"
@@ -56809,7 +56813,7 @@
               },
               "digest": {
                 "type": "string",
-                "example": "\"md5\""
+                "example": "\"sha256\""
               },
               "secret": {
                 "$ref": "#/components/schemas/webhook-config-secret"
@@ -64407,8 +64411,6 @@
         "value": {
           "verifiable_password_authentication": true,
           "ssh_key_fingerprints": {
-            "MD5_RSA": "16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48",
-            "MD5_DSA": "ad:1c:08:a4:40:e3:6f:9c:f5:66:26:5d:4b:33:5d:8c",
             "SHA256_RSA": "nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8",
             "SHA256_DSA": "br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ"
           },
