@@ -2739,6 +2739,44 @@ paths:
         previews: []
         category: enterprise-admin
         subcategory: actions
+  "/enterprises/{enterprise}/audit-log":
+    get:
+      summary: Get the audit log for an enterprise
+      description: |-
+        **Note:** The audit log REST API is currently in beta and is subject to change. To join the beta, talk to your services or sales contact at GitHub.
+
+        Gets the audit log for an enterprise. To use this endpoint, you must be an enterprise admin, and you must use an access token with the `admin:enterprise` scope.
+      operationId: audit-log/get-audit-log
+      tags:
+      - audit-log
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/enterprise-admin#get-the-audit-log-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-include"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/per_page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: audit-log
   "/enterprises/{enterprise}/settings/billing/actions":
     get:
       summary: Get GitHub Actions billing for an enterprise
@@ -6454,6 +6492,46 @@ paths:
         previews: []
         category: actions
         subcategory: secrets
+  "/orgs/{org}/audit-log":
+    get:
+      summary: Get the audit log for an organization
+      description: |-
+        **Note:** The audit log REST API is currently in beta and is subject to change. To join the beta, talk to your services or sales contact at GitHub.
+
+        Gets the audit log for an organization. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization)."
+
+        To use this endpoint, you must be an organization owner, and you must use an access token with the `admin:org` scope. GitHub Apps must have the `organization_administration` read permission to use this endpoint.
+      operationId: orgs/get-audit-log
+      tags:
+      - orgs
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#get-the-audit-log-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-include"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/per_page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: 
   "/orgs/{org}/blocks":
     get:
       summary: List users blocked by an organization
@@ -36320,6 +36398,94 @@ components:
       required:
       - token
       - expires_at
+    audit-log-event:
+      type: object
+      properties:
+        "@timestamp":
+          type: integer
+          description: The time the audit log event occurred, given as a [Unix timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        action:
+          type: string
+          description: The name of the action that was performed, for example `user.login`
+            or `repo.create`.
+        active:
+          type: boolean
+        active_was:
+          type: boolean
+        actor:
+          type: string
+          description: The actor who performed the action.
+        blocked_user:
+          type: string
+          description: The username of the account being blocked.
+        business:
+          type: string
+        config:
+          type: array
+        config_was:
+          type: array
+        content_type:
+          type: string
+        created_at:
+          type: integer
+          description: The time the audit log event was recorded, given as a [Unix
+            timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        deploy_key_fingerprint:
+          type: string
+        emoji:
+          type: string
+        events:
+          type: array
+        events_were:
+          type: array
+        explanation:
+          type: string
+        fingerprint:
+          type: string
+        hook_id:
+          type: integer
+        limited_availability:
+          type: boolean
+        message:
+          type: string
+        name:
+          type: string
+        old_user:
+          type: string
+        openssh_public_key:
+          type: string
+        org:
+          type: string
+        previous_visibility:
+          type: string
+        read_only:
+          type: boolean
+        repo:
+          type: string
+          description: The name of the repository.
+        repository:
+          type: string
+          description: The name of the repository.
+        repository_public:
+          type: boolean
+        target_login:
+          type: string
+        team:
+          type: string
+        transport_protocol:
+          type: integer
+          description: The type of protocol (for example, HTTP or SSH) used to transfer
+            Git data.
+        transport_protocol_name:
+          type: string
+          description: A human readable name for the protocol (for example, HTTP or
+            SSH) used to transfer Git data.
+        user:
+          type: string
+          description: The user that was affected by the action performed (if available).
+        visibility:
+          type: string
+          description: The repository visibility, for example `public` or `private`.
     actions-billing-usage:
       type: object
       properties:
@@ -49443,6 +49609,27 @@ components:
         - id: 21
           name: no-gpu
           type: custom
+    audit-log:
+      value:
+      - "@timestamp": 1606929874512
+        action: team.add_member
+        actor: octocat
+        created_at: 1606929874512
+        org: octo-corp
+        team: octo-corp/example-team
+        user: monalisa
+      - "@timestamp": 1606507117008
+        action: org.create
+        actor: octocat
+        created_at: 1606507117008
+        org: octocat-test-org
+      - "@timestamp": 1605719148837
+        action: repo.destroy
+        actor: monalisa
+        created_at: 1605719148837
+        org: mona-org
+        repo: mona-org/mona-test-repo
+        visibility: private
     actions-billing-usage:
       value:
         total_minutes_used: 305
@@ -64191,6 +64378,48 @@ components:
       required: true
       schema:
         type: integer
+    audit-log-phrase:
+      name: phrase
+      description: A search phrase. For more information, see [Searching the audit
+        log](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-include:
+      name: include
+      description: |-
+        The event types to include:
+
+        - `web` - returns web (non-Git) events
+        - `git` - returns Git events
+        - `all` - returns both web and Git events
+
+        The default is `web`.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - web
+        - git
+        - all
+    audit-log-after:
+      name: after
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events after this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-before:
+      name: before
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events before this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
     gist_id:
       name: gist_id
       description: gist_id parameter
