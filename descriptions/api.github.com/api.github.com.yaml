@@ -798,7 +798,7 @@ paths:
     delete:
       summary: Revoke a grant for an application
       description: |-
-        **Deprecation Notice:** GitHub will replace and discontinue OAuth endpoints containing `access_token` in the path parameter. We are introducing new endpoints that allow you to securely manage tokens for OAuth Apps by using `access_token` as an input parameter. The OAuth Application API will be removed on May 5, 2021. For more information, including scheduled brownouts, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
+        **Deprecation Notice:** GitHub will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
 
         OAuth application owners can revoke a grant for their OAuth application and a specific user. You must use [Basic Authentication](https://docs.github.com/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid token as `:access_token` and the grant for the token's owner will be deleted.
 
@@ -960,7 +960,7 @@ paths:
     get:
       summary: Check an authorization
       description: |-
-        **Deprecation Notice:** GitHub will replace and discontinue OAuth endpoints containing `access_token` in the path parameter. We are introducing new endpoints that allow you to securely manage tokens for OAuth Apps by using `access_token` as an input parameter. The OAuth Application API will be removed on May 5, 2021. For more information, including scheduled brownouts, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
+        **Deprecation Notice:** GitHub will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
 
         OAuth applications can use a special API method for checking OAuth token validity without exceeding the normal rate limits for failed login attempts. Authentication works differently with this particular endpoint. You must use [Basic Authentication](https://docs.github.com/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. Invalid tokens will return `404 NOT FOUND`.
       tags:
@@ -998,7 +998,7 @@ paths:
     post:
       summary: Reset an authorization
       description: |-
-        **Deprecation Notice:** GitHub will replace and discontinue OAuth endpoints containing `access_token` in the path parameter. We are introducing new endpoints that allow you to securely manage tokens for OAuth Apps by using `access_token` as an input parameter. The OAuth Application API will be removed on May 5, 2021. For more information, including scheduled brownouts, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
+        **Deprecation Notice:** GitHub will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
 
         OAuth applications can use this API method to reset a valid OAuth token without end-user involvement. Applications must save the "token" property in the response because changes take effect immediately. You must use [Basic Authentication](https://docs.github.com/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. Invalid tokens will return `404 NOT FOUND`.
       tags:
@@ -1032,7 +1032,7 @@ paths:
     delete:
       summary: Revoke an authorization for an application
       description: |-
-        **Deprecation Notice:** GitHub will replace and discontinue OAuth endpoints containing `access_token` in the path parameter. We are introducing new endpoints that allow you to securely manage tokens for OAuth Apps by using `access_token` as an input parameter. The OAuth Application API will be removed on May 5, 2021. For more information, including scheduled brownouts, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
+        **Deprecation Notice:** GitHub will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
 
         OAuth application owners can revoke a single token for an OAuth application. You must use [Basic Authentication](https://docs.github.com/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password.
       tags:
@@ -2739,6 +2739,44 @@ paths:
         previews: []
         category: enterprise-admin
         subcategory: actions
+  "/enterprises/{enterprise}/audit-log":
+    get:
+      summary: Get the audit log for an enterprise
+      description: |-
+        **Note:** The audit log REST API is currently in beta and is subject to change. To join the beta, talk to your services or sales contact at GitHub.
+
+        Gets the audit log for an enterprise. To use this endpoint, you must be an enterprise admin, and you must use an access token with the `admin:enterprise` scope.
+      operationId: audit-log/get-audit-log
+      tags:
+      - audit-log
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/enterprise-admin#get-the-audit-log-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-include"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/per_page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: audit-log
   "/enterprises/{enterprise}/settings/billing/actions":
     get:
       summary: Get GitHub Actions billing for an enterprise
@@ -6454,6 +6492,46 @@ paths:
         previews: []
         category: actions
         subcategory: secrets
+  "/orgs/{org}/audit-log":
+    get:
+      summary: Get the audit log for an organization
+      description: |-
+        **Note:** The audit log REST API is currently in beta and is subject to change. To join the beta, talk to your services or sales contact at GitHub.
+
+        Gets the audit log for an organization. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization)."
+
+        To use this endpoint, you must be an organization owner, and you must use an access token with the `admin:org` scope. GitHub Apps must have the `organization_administration` read permission to use this endpoint.
+      operationId: orgs/get-audit-log
+      tags:
+      - orgs
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#get-the-audit-log-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-include"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/per_page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: 
   "/orgs/{org}/blocks":
     get:
       summary: List users blocked by an organization
@@ -6483,7 +6561,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: orgs
         subcategory: blocking
   "/orgs/{org}/blocks/{username}":
@@ -6511,7 +6598,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: orgs
         subcategory: blocking
     put:
@@ -6534,7 +6630,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: orgs
         subcategory: blocking
     delete:
@@ -6555,7 +6660,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: orgs
         subcategory: blocking
   "/orgs/{org}/credential-authorizations":
@@ -8622,7 +8736,7 @@ paths:
 
         Paid minutes only apply to workflows in private repositories that use GitHub-hosted runners. Minutes used is listed for each GitHub-hosted runner operating system. Any job re-runs are also included in the usage. The usage does not include the multiplier for macOS and Windows runners and is not rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
 
-        Access tokens must have the `read:org` scope.
+        Access tokens must have the `repo` or `admin:org` scope.
       operationId: billing/get-github-actions-billing-org
       tags:
       - billing
@@ -8655,7 +8769,7 @@ paths:
 
         Paid minutes only apply to packages stored for private repositories. For more information, see "[Managing billing for GitHub Packages](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-packages)."
 
-        Access tokens must have the `read:org` scope.
+        Access tokens must have the `repo` or `admin:org` scope.
       operationId: billing/get-github-packages-billing-org
       tags:
       - billing
@@ -8688,7 +8802,7 @@ paths:
 
         Paid minutes only apply to packages stored for private repositories. For more information, see "[Managing billing for GitHub Packages](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-packages)."
 
-        Access tokens must have the `read:org` scope.
+        Access tokens must have the `repo` or `admin:org` scope.
       operationId: billing/get-shared-storage-billing-org
       tags:
       - billing
@@ -16151,10 +16265,9 @@ paths:
     get:
       summary: List code scanning alerts for a repository
       description: Lists all open code scanning alerts for the default branch (usually
-        `main` or `master`). For private repos, you must use an access token with
-        the `repo` scope. For public repos, you must use an access token with `public_repo`
-        and `repo:security_events` scopes. GitHub Apps must have the `security_events`
-        read permission to use this endpoint.
+        `main` or `master`). You must use an access token with the `security_events`
+        scope to use this endpoint. GitHub Apps must have the `security_events` read
+        permission to use this endpoint.
       tags:
       - code-scanning
       operationId: code-scanning/list-alerts-for-repo
@@ -16190,6 +16303,9 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-code-scanning-alert-items"
+        '403':
+          description: Response if GitHub Advanced Security is not enabled for this
+            repository
         '404':
           description: Response if the ref does not match an existing ref
         '503':
@@ -16231,6 +16347,9 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-code-scanning-alert"
+        '403':
+          description: Response if GitHub Advanced Security is not enabled for this
+            repository
         '404':
           "$ref": "#/components/responses/not_found"
         '503':
@@ -16243,9 +16362,9 @@ paths:
         subcategory: 
     patch:
       summary: Update a code scanning alert
-      description: |-
-        Updates the status of a single code scanning alert. For private repos, you must use an access token with the `repo` scope. For public repos, you must use an access token with `public_repo` and `repo:security_events` scopes.
-        GitHub Apps must have the `security_events` write permission to use this endpoint.
+      description: Updates the status of a single code scanning alert. You must use
+        an access token with the `security_events` scope to use this endpoint. GitHub
+        Apps must have the `security_events` write permission to use this endpoint.
       operationId: code-scanning/update-alert
       tags:
       - code-scanning
@@ -16282,7 +16401,8 @@ paths:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-code-scanning-alert-dismissed"
         '403':
-          description: Response if the repository is archived
+          description: Response if the repository is archived, or if GitHub Advanced
+            Security is not enabled for this repository
         '503':
           description: Response when code scanning is not available and you should
             try again at a later time
@@ -16295,9 +16415,8 @@ paths:
     get:
       summary: List recent code scanning analyses for a repository
       description: List the details of recent code scanning analyses for a repository.
-        For private repos, you must use an access token with the `repo` scope. For
-        public repos, you must use an access token with `public_repo` and `repo:security_events`
-        scopes. GitHub Apps must have the `security_events` read permission to use
+        You must use an access token with the `security_events` scope to use this
+        endpoint. GitHub Apps must have the `security_events` read permission to use
         this endpoint.
       operationId: code-scanning/list-recent-analyses
       tags:
@@ -16333,6 +16452,9 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-analysis-code-scanning-analysis-items"
+        '403':
+          description: Response if GitHub Advanced Security is not enabled for this
+            repository
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -16341,9 +16463,10 @@ paths:
   "/repos/{owner}/{repo}/code-scanning/sarifs":
     post:
       summary: Upload a SARIF file
-      description: |-
-        Upload a SARIF file containing the results of a code scanning analysis to make the results available in a repository.
-        For private repos, you must use an access token with the `repo` scope. For public repos, you must use an access token with `public_repo` and `repo:security_events` scopes. GitHub Apps must have the `security_events` write permission to use this endpoint.
+      description: Upload a SARIF file containing the results of a code scanning analysis
+        to make the results available in a repository. You must use an access token
+        with the `security_events` scope to use this endpoint. GitHub Apps must have
+        the `security_events` write permission to use this endpoint.
       operationId: code-scanning/upload-sarif
       tags:
       - code-scanning
@@ -16394,7 +16517,8 @@ paths:
         '202':
           description: response
         '403':
-          description: Response if the repository is archived
+          description: Response if the repository is archived, or if GitHub Advanced
+            Security is not enabled for this repository
         '404':
           description: Response if `commit_sha` or `ref` cannot be found
         '400':
@@ -19683,10 +19807,9 @@ paths:
                           Using both `tree.sha` and `content` will return an error."
                 base_tree:
                   type: string
-                  description: The SHA1 of the tree you want to update with new data.
-                    If you don't set this, the commit will be created on top of everything;
-                    however, it will only contain your change, the rest of your files
-                    will show up as deleted.
+                  description: |
+                    The SHA1 of an existing Git tree object which will be used as the base for the new tree. If provided, a new Git tree object will be created from entries in the Git tree object pointed to by `base_tree` and entries defined in the `tree` parameter. Entries defined in the `tree` parameter will overwrite items from `base_tree` with the same `path`. If you're creating new changes on a branch, then normally you'd set `base_tree` to the SHA1 of the Git tree object of the current latest commit on the branch you're working on.
+                    If not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.
               required:
               - tree
             example:
@@ -24006,28 +24129,8 @@ paths:
   "/repos/{owner}/{repo}/pulls/comments":
     get:
       summary: List review comments in a repository
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Lists review comments for all pull requests in a repository. By default, review comments are in ascending order by ID.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/rest/reference/reactions) reactions.
+      description: Lists review comments for all pull requests in a repository. By
+        default, review comments are in ascending order by ID.
       tags:
       - pulls
       operationId: pulls/list-review-comments-for-repo
@@ -24072,10 +24175,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -24091,28 +24208,7 @@ paths:
   "/repos/{owner}/{repo}/pulls/comments/{comment_id}":
     get:
       summary: Get a review comment for a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Provides details for a review comment.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/rest/reference/reactions) reactions.
+      description: Provides details for a review comment.
       tags:
       - pulls
       operationId: pulls/get-review-comment
@@ -24142,10 +24238,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -24160,26 +24270,7 @@ paths:
         subcategory: comments
     patch:
       summary: Update a review comment for a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Enables you to edit a review comment.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/rest/reference/pulls#parameters-2) table.
+      description: Enables you to edit a review comment.
       tags:
       - pulls
       operationId: pulls/update-review-comment
@@ -24220,10 +24311,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         category: pulls
         subcategory: comments
     delete:
@@ -24555,28 +24660,8 @@ paths:
   "/repos/{owner}/{repo}/pulls/{pull_number}/comments":
     get:
       summary: List review comments on a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Lists all review comments for a pull request. By default, review comments are in ascending order by ID.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/rest/reference/reactions) reactions.
+      description: Lists all review comments for a pull request. By default, review
+        comments are in ascending order by ID.
       tags:
       - pulls
       operationId: pulls/list-review-comments
@@ -24622,10 +24707,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -24640,32 +24739,15 @@ paths:
         subcategory: comments
     post:
       summary: Create a review comment for a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
+      description: |2-
 
         Creates a review comment in the pull request diff. To add a regular comment to a pull request timeline, see "[Create an issue comment](https://docs.github.com/rest/reference/issues#create-an-issue-comment)." We recommend creating a review comment using `line`, `side`, and optionally `start_line` and `start_side` if your comment applies to more than one line in the pull request diff.
 
-        You can still create a review comment using the `position` parameter. When you use `position`, the `line`, `side`, `start_line`, and `start_side` parameters are not required. For more information, see [Multi-line comment summary](https://docs.github.com/rest/reference/pulls#multi-line-comment-summary-3).
+        You can still create a review comment using the `position` parameter. When you use `position`, the `line`, `side`, `start_line`, and `start_side` parameters are not required. For more information, see the [`comfort-fade` preview notice](https://docs.github.com/rest/reference/pulls#create-a-review-comment-for-a-pull-request-preview-notices).
 
         **Note:** The position value equals the number of lines down from the first "@@" hunk header in the file you want to add a comment. The line just below the "@@" line is position 1, the next line is position 2, and so on. The position in the diff continues to increase through lines of whitespace and additional hunks until the beginning of a new file.
 
         This endpoint triggers [notifications](https://help.github.com/articles/about-notifications/). Creating content too quickly using this endpoint may result in abuse rate limiting. See "[Abuse rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#abuse-rate-limits)" and "[Dealing with abuse rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-rate-limits)" for details.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/rest/reference/pulls#parameters-2) table.
       tags:
       - pulls
       operationId: pulls/create-review-comment
@@ -24792,10 +24874,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         category: pulls
         subcategory: comments
   "/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies":
@@ -31243,16 +31339,22 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: users
         subcategory: blocking
   "/user/blocks/{username}":
     get:
       summary: Check if a user is blocked by the authenticated user
-      description: |-
-        If the user is blocked:
-
-        If the user is not blocked:
+      description: ''
       tags:
       - users
       operationId: users/check-blocked
@@ -31279,7 +31381,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: users
         subcategory: blocking
     put:
@@ -31309,7 +31420,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: users
         subcategory: blocking
     delete:
@@ -31337,7 +31457,16 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
-        previews: []
+        previews:
+        - required: true
+          name: giant-sentry-fist
+          note: |-
+            The API to block users is currently available for developers to preview. See the [preview notice](https://docs.github.com/rest/overview/api-previews#user-blocking) for more information.
+
+            To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.giant-sentry-fist-preview+json
+            ```
         category: users
         subcategory: blocking
   "/user/email/visibility":
@@ -36320,6 +36449,94 @@ components:
       required:
       - token
       - expires_at
+    audit-log-event:
+      type: object
+      properties:
+        "@timestamp":
+          type: integer
+          description: The time the audit log event occurred, given as a [Unix timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        action:
+          type: string
+          description: The name of the action that was performed, for example `user.login`
+            or `repo.create`.
+        active:
+          type: boolean
+        active_was:
+          type: boolean
+        actor:
+          type: string
+          description: The actor who performed the action.
+        blocked_user:
+          type: string
+          description: The username of the account being blocked.
+        business:
+          type: string
+        config:
+          type: array
+        config_was:
+          type: array
+        content_type:
+          type: string
+        created_at:
+          type: integer
+          description: The time the audit log event was recorded, given as a [Unix
+            timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        deploy_key_fingerprint:
+          type: string
+        emoji:
+          type: string
+        events:
+          type: array
+        events_were:
+          type: array
+        explanation:
+          type: string
+        fingerprint:
+          type: string
+        hook_id:
+          type: integer
+        limited_availability:
+          type: boolean
+        message:
+          type: string
+        name:
+          type: string
+        old_user:
+          type: string
+        openssh_public_key:
+          type: string
+        org:
+          type: string
+        previous_visibility:
+          type: string
+        read_only:
+          type: boolean
+        repo:
+          type: string
+          description: The name of the repository.
+        repository:
+          type: string
+          description: The name of the repository.
+        repository_public:
+          type: boolean
+        target_login:
+          type: string
+        team:
+          type: string
+        transport_protocol:
+          type: integer
+          description: The type of protocol (for example, HTTP or SSH) used to transfer
+            Git data.
+        transport_protocol_name:
+          type: string
+          description: A human readable name for the protocol (for example, HTTP or
+            SSH) used to transfer Git data.
+        user:
+          type: string
+          description: The user that was affected by the action performed (if available).
+        visibility:
+          type: string
+          description: The repository visibility, for example `public` or `private`.
     actions-billing-usage:
       type: object
       properties:
@@ -36395,6 +36612,47 @@ components:
       - gravatar_id
       - url
       - avatar_url
+    label:
+      title: Label
+      description: Color-coded labels help you categorize and filter your issues (just
+        like labels in Gmail).
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 208045946
+        node_id:
+          type: string
+          example: MDU6TGFiZWwyMDgwNDU5NDY=
+        url:
+          description: URL for the label
+          example: https://api.github.com/repositories/42/labels/bug
+          type: string
+          format: uri
+        name:
+          description: The name of the label.
+          example: bug
+          type: string
+        description:
+          type: string
+          example: Something isn't working
+          nullable: true
+        color:
+          description: '6-character hex code, without the leading #, identifying the
+            color'
+          example: FFFFFF
+          type: string
+        default:
+          type: boolean
+          example: true
+      required:
+      - id
+      - node_id
+      - url
+      - name
+      - description
+      - color
+      - default
     milestone:
       title: Milestone
       description: A collection of related issues and pull requests.
@@ -36536,23 +36794,7 @@ components:
         labels:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-              node_id:
-                type: string
-              url:
-                type: string
-              name:
-                type: string
-              description:
-                type: string
-                nullable: true
-              color:
-                type: string
-              default:
-                type: boolean
+            "$ref": "#/components/schemas/label"
         assignee:
           nullable: true
           allOf:
@@ -44541,46 +44783,6 @@ components:
         body_text:
           type: string
           example: '"Accusantium fugiat cumque. Autem qui nostrum. Atque quae ullam."'
-    label:
-      title: Label
-      description: Color-coded labels help you categorize and filter your issues (just
-        like labels in Gmail).
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 208045946
-        node_id:
-          type: string
-          example: MDU6TGFiZWwyMDgwNDU5NDY=
-        url:
-          description: URL for the label
-          example: https://api.github.com/repositories/42/labels/bug
-          type: string
-          format: uri
-        name:
-          description: The name of the label.
-          example: bug
-          type: string
-        description:
-          type: string
-          example: Something isn't working
-          nullable: true
-        color:
-          description: '6-character hex code, without the leading #, identifying the
-            color'
-          example: FFFFFF
-          type: string
-        default:
-          type: boolean
-          example: true
-      required:
-      - color
-      - name
-      - id
-      - node_id
-      - default
-      - url
     deploy-key:
       title: Deploy Key
       description: An SSH key granting access to a single repository.
@@ -49443,6 +49645,27 @@ components:
         - id: 21
           name: no-gpu
           type: custom
+    audit-log:
+      value:
+      - "@timestamp": 1606929874512
+        action: team.add_member
+        actor: octocat
+        created_at: 1606929874512
+        org: octo-corp
+        team: octo-corp/example-team
+        user: monalisa
+      - "@timestamp": 1606507117008
+        action: org.create
+        actor: octocat
+        created_at: 1606507117008
+        org: octocat-test-org
+      - "@timestamp": 1605719148837
+        action: repo.destroy
+        actor: monalisa
+        created_at: 1605719148837
+        org: mona-org
+        repo: mona-org/mona-test-repo
+        visibility: private
     actions-billing-usage:
       value:
         total_minutes_used: 305
@@ -62894,6 +63117,7 @@ components:
         account:
           login: github
           id: 4
+          node_id: MDEyOk9yZ2FuaXphdGlvbjE=
           url: https://api.github.com/orgs/github
           email: 
           organization_billing_email: billing@github.com
@@ -64191,6 +64415,48 @@ components:
       required: true
       schema:
         type: integer
+    audit-log-phrase:
+      name: phrase
+      description: A search phrase. For more information, see [Searching the audit
+        log](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-include:
+      name: include
+      description: |-
+        The event types to include:
+
+        - `web` - returns web (non-Git) events
+        - `git` - returns Git events
+        - `all` - returns both web and Git events
+
+        The default is `web`.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - web
+        - git
+        - all
+    audit-log-after:
+      name: after
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events after this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-before:
+      name: before
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events before this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
     gist_id:
       name: gist_id
       description: gist_id parameter
