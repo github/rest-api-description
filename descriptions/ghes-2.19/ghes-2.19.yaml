@@ -14086,10 +14086,9 @@ paths:
                           Using both `tree.sha` and `content` will return an error."
                 base_tree:
                   type: string
-                  description: The SHA1 of the tree you want to update with new data.
-                    If you don't set this, the commit will be created on top of everything;
-                    however, it will only contain your change, the rest of your files
-                    will show up as deleted.
+                  description: |
+                    The SHA1 of an existing Git tree object which will be used as the base for the new tree. If provided, a new Git tree object will be created from entries in the Git tree object pointed to by `base_tree` and entries defined in the `tree` parameter. Entries defined in the `tree` parameter will overwrite items from `base_tree` with the same `path`. If you're creating new changes on a branch, then normally you'd set `base_tree` to the SHA1 of the Git tree object of the current latest commit on the branch you're working on.
+                    If not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.
               required:
               - tree
             example:
@@ -18003,28 +18002,8 @@ paths:
   "/repos/{owner}/{repo}/pulls/comments":
     get:
       summary: List review comments in a repository
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Lists review comments for all pull requests in a repository. By default, review comments are in ascending order by ID.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/enterprise-server@2.19/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions) reactions.
+      description: Lists review comments for all pull requests in a repository. By
+        default, review comments are in ascending order by ID.
       tags:
       - pulls
       operationId: pulls/list-review-comments-for-repo
@@ -18069,10 +18048,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -18088,28 +18081,7 @@ paths:
   "/repos/{owner}/{repo}/pulls/comments/{comment_id}":
     get:
       summary: Get a review comment for a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Provides details for a review comment.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/enterprise-server@2.19/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions) reactions.
+      description: Provides details for a review comment.
       tags:
       - pulls
       operationId: pulls/get-review-comment
@@ -18139,10 +18111,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -18157,26 +18143,7 @@ paths:
         subcategory: comments
     patch:
       summary: Update a review comment for a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Enables you to edit a review comment.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/enterprise-server@2.19/rest/reference/pulls#parameters-2) table.
+      description: Enables you to edit a review comment.
       tags:
       - pulls
       operationId: pulls/update-review-comment
@@ -18217,10 +18184,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         category: pulls
         subcategory: comments
     delete:
@@ -18528,28 +18509,8 @@ paths:
   "/repos/{owner}/{repo}/pulls/{pull_number}/comments":
     get:
       summary: List review comments on a pull request
-      description: |-
-        **Note:** Multi-line comments on pull requests are currently in public beta and subject to change.
-
-        Lists all review comments for a pull request. By default, review comments are in ascending order by ID.
-
-        **Multi-line comment summary**
-
-        **Note:** New parameters and response fields are available for developers to preview. During the preview period, these response fields may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for full details.
-
-        Use the `comfort-fade` preview header and the `line` parameter to show multi-line comment-supported fields in the response.
-
-        If you use the `comfort-fade` preview header, your response will show:
-
-        *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
-        *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
-
-        If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
-
-        *   For multi-line comments, the last line of the comment range for the `position` attribute.
-        *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute. For more information, see `position` in the [input parameters](https://docs.github.com/enterprise-server@2.19/rest/reference/pulls#parameters-2) table.
-
-        The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions) reactions.
+      description: Lists all review comments for a pull request. By default, review
+        comments are in ascending order by ID.
       tags:
       - pulls
       operationId: pulls/list-review-comments
@@ -18595,10 +18556,24 @@ paths:
         - required: false
           name: comfort-fade
           note: |-
-            Multi-line comments in a pull request diff is currently available for developers to preview. To access the new response fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
+            Multi-line comments in a pull request diff is currently available for developers to preview. During the preview period, these response fields may change without advance notice. See the [blog post](https://developer.github.com/changes/2019-10-03-multi-line-comments) for more information.
+
+            To create multi-line comments or see multi-line comments with the new supported fields during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.comfort-fade-preview+json
             ```
+
+            To show multi-line comment-supported fields in the response, use the `comfort-fade` preview header and the `line` parameter.
+
+            If you use the `comfort-fade` preview header, your response will show:
+
+            *   For multi-line comments, values for `start_line`, `original_start_line`, `start_side`, `line`, `original_line`, and `side`.
+            *   For single-line comments, values for `line`, `original_line`, and `side` and a `null` value for `start_line`, `original_start_line`, and `start_side`.
+
+            If you don't use the `comfort-fade` preview header, multi-line and single-line comments will appear the same way in the response with a single `position` attribute. Your response will show:
+
+            *   For multi-line comments, the last line of the comment range for the `position` attribute.
+            *   For single-line comments, the diff-positioned way of referencing comments for the `position` attribute.
         - required: false
           name: squirrel-girl
           note: |-
@@ -25169,8 +25144,6 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/repository-items-default-response"
-        '418':
-          description: Response definition missing
         '422':
           "$ref": "#/components/responses/validation_failed"
         '304':
@@ -28927,6 +28900,47 @@ components:
       - gravatar_id
       - url
       - avatar_url
+    label:
+      title: Label
+      description: Color-coded labels help you categorize and filter your issues (just
+        like labels in Gmail).
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 208045946
+        node_id:
+          type: string
+          example: MDU6TGFiZWwyMDgwNDU5NDY=
+        url:
+          description: URL for the label
+          example: https://api.github.com/repositories/42/labels/bug
+          type: string
+          format: uri
+        name:
+          description: The name of the label.
+          example: bug
+          type: string
+        description:
+          type: string
+          example: Something isn't working
+          nullable: true
+        color:
+          description: '6-character hex code, without the leading #, identifying the
+            color'
+          example: FFFFFF
+          type: string
+        default:
+          type: boolean
+          example: true
+      required:
+      - id
+      - node_id
+      - url
+      - name
+      - description
+      - color
+      - default
     milestone:
       title: Milestone
       description: A collection of related issues and pull requests.
@@ -29068,23 +29082,7 @@ components:
         labels:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-              node_id:
-                type: string
-              url:
-                type: string
-              name:
-                type: string
-              description:
-                type: string
-                nullable: true
-              color:
-                type: string
-              default:
-                type: boolean
+            "$ref": "#/components/schemas/label"
         assignee:
           nullable: true
           allOf:
@@ -34997,46 +34995,6 @@ components:
         body_text:
           type: string
           example: '"Accusantium fugiat cumque. Autem qui nostrum. Atque quae ullam."'
-    label:
-      title: Label
-      description: Color-coded labels help you categorize and filter your issues (just
-        like labels in Gmail).
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 208045946
-        node_id:
-          type: string
-          example: MDU6TGFiZWwyMDgwNDU5NDY=
-        url:
-          description: URL for the label
-          example: https://api.github.com/repositories/42/labels/bug
-          type: string
-          format: uri
-        name:
-          description: The name of the label.
-          example: bug
-          type: string
-        description:
-          type: string
-          example: Something isn't working
-          nullable: true
-        color:
-          description: '6-character hex code, without the leading #, identifying the
-            color'
-          example: FFFFFF
-          type: string
-        default:
-          type: boolean
-          example: true
-      required:
-      - color
-      - name
-      - id
-      - node_id
-      - default
-      - url
     deploy-key:
       title: Deploy Key
       description: An SSH key granting access to a single repository.
