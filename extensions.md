@@ -46,7 +46,7 @@ The `x-github` specification extension is applied to the [Operation Object](http
 
 ```yml
 x-github:
-  enabledForApps: true
+  enabledForGitHubApps: true
   githubCloudOnly: false
   previews: []
 ```
