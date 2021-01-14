@@ -4535,8 +4535,10 @@ paths:
   "/meta":
     get:
       summary: Get GitHub meta information
-      description: This endpoint provides a list of GitHub's IP addresses. For more
-        information, see "[About GitHub's IP addresses](https://help.github.com/articles/about-github-s-ip-addresses/)."
+      description: |-
+        Returns meta information about GitHub, including a list of GitHub's IP addresses. For more information, see "[About GitHub's IP addresses](https://help.github.com/articles/about-github-s-ip-addresses/)."
+
+        **Note:** The IP addresses shown in the documentation's response are only example values. You must always query the API directly to get the latest list of IP addresses.
       tags:
       - meta
       operationId: meta/get
@@ -38409,11 +38411,13 @@ components:
           example:
           - 54.158.161.132
           - 54.226.70.38
-        github_services_sha:
-          type: string
-          example: 3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15
-        installed_version:
-          type: string
+        actions:
+          type: array
+          items:
+            type: string
+          example:
+          - 13.64.0.0/16
+          - 13.65.0.0/16
       required:
       - verifiable_password_authentication
     minimal-repository:
@@ -41446,7 +41450,7 @@ components:
               type: object
               required:
               - total_ms
-              - job
+              - jobs
               properties:
                 total_ms:
                   type: integer
@@ -41456,7 +41460,7 @@ components:
               type: object
               required:
               - total_ms
-              - job
+              - jobs
               properties:
                 total_ms:
                   type: integer
@@ -49959,17 +49963,20 @@ components:
           visibility: all
           default: true
           runners_url: https://api.github.com/enterprises/octo-corp/actions/runner_groups/1/runners
+          allows_public_repositories: false
         - id: 2
           name: octo-runner-group
           visibility: selected
           default: false
           selected_organizations_url: https://api.github.com/enterprises/octo-corp/actions/runner_groups/2/organizations
           runners_url: https://api.github.com/enterprises/octo-corp/actions/runner_groups/2/runners
+          allows_public_repositories: true
         - id: 3
           name: expensive-hardware
           visibility: private
           default: false
           runners_url: https://api.github.com/enterprises/octo-corp/actions/runner_groups/3/runners
+          allows_public_repositories: true
     runner-group-enterprise:
       value:
         id: 2
@@ -49978,6 +49985,7 @@ components:
         default: false
         selected_organizations_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/organizations
         runners_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/runners
+        allows_public_repositories: false
     runner-group-update-enterprise:
       value:
         id: 2
@@ -49986,6 +49994,7 @@ components:
         default: false
         selected_organizations_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/organizations
         runners_url: https://api.github.com/enterprises/octo-corp/actions/runner-groups/2/runners
+        allows_public_repositories: true
     runner-paginated:
       value:
         total_count: 2
@@ -50947,6 +50956,9 @@ components:
         importer:
         - 54.158.161.132
         - 54.226.70.38
+        actions:
+        - 13.64.0.0/16
+        - 13.65.0.0/16
     thread-items:
       value:
       - id: '1'
@@ -51027,6 +51039,7 @@ components:
         updated_at: '2014-11-07T22:01:45Z'
         last_read_at: '2014-11-07T22:01:45Z'
         url: https://api.github.com/notifications/threads/1
+        subscription_url: https://api.github.com/notifications/threads/1/subscription
     thread:
       value:
         id: '1'
@@ -51107,6 +51120,7 @@ components:
         updated_at: '2014-11-07T22:01:45Z'
         last_read_at: '2014-11-07T22:01:45Z'
         url: https://api.github.com/notifications/threads/1
+        subscription_url: https://api.github.com/notifications/threads/1/subscription
     thread-subscription:
       value:
         subscribed: true
@@ -51401,6 +51415,7 @@ components:
           default: true
           runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/1/runners
           inherited: false
+          allows_public_repositories: true
         - id: 2
           name: octo-runner-group
           visibility: selected
@@ -51408,12 +51423,14 @@ components:
           selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
           runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
           inherited: true
+          allows_public_repositories: true
         - id: 3
           name: expensive-hardware
           visibility: private
           default: false
           runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/3/runners
           inherited: false
+          allows_public_repositories: true
     runner-group:
       value:
         id: 2
@@ -51423,6 +51440,7 @@ components:
         selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner-groups/2/repositories
         runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
         inherited: false
+        allows_public_repositories: true
     runner-group-item:
       value:
         id: 2
@@ -51432,6 +51450,7 @@ components:
         selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
         runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
         inherited: false
+        allows_public_repositories: true
     organization-actions-secret-paginated:
       value:
         total_count: 3
@@ -51714,6 +51733,7 @@ components:
       value:
       - id: 1
         login: monalisa
+        node_id: MDQ6VXNlcjE=
         email: octocat@github.com
         role: direct_member
         created_at: '2016-11-30T06:46:10-08:00'
@@ -51742,6 +51762,7 @@ components:
       value:
         id: 1
         login: monalisa
+        node_id: MDQ6VXNlcjE=
         email: octocat@github.com
         role: direct_member
         created_at: '2016-11-30T06:46:10-08:00'
@@ -58773,16 +58794,19 @@ components:
         parents:
         - url: https://api.github.com/repos/octocat/Hello-World/git/commits/7d1b31e74ee336d15cbd21741bc88a537ed063a0
           sha: 7d1b31e74ee336d15cbd21741bc88a537ed063a0
+          html_url: https://github.com/octocat/Hello-World/commit/7d1b31e74ee336d15cbd21741bc88a537ed063a0
         verification:
           verified: false
           reason: unsigned
           signature: 
           payload: 
+        html_url: https://github.com/octocat/Hello-World/commit/7638417db6d59f3c431d3e1f261cc637155684cd
     git-commit-2:
       value:
         sha: 7638417db6d59f3c431d3e1f261cc637155684cd
         node_id: MDY6Q29tbWl0NmRjYjA5YjViNTc4NzVmMzM0ZjYxYWViZWQ2OTVlMmU0MTkzZGI1ZQ==
         url: https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd
+        html_url: https://github.com/octocat/Hello-World/commit/7638417db6d59f3c431d3e1f261cc637155684cd
         author:
           date: '2014-11-07T22:01:45Z'
           name: Monalisa Octocat
@@ -58798,6 +58822,7 @@ components:
         parents:
         - url: https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5
           sha: 1acc419d4d6a9ce985db7be48c6349a0475975b5
+          html_url: https://github.com/octocat/Hello-World/commit/7638417db6d59f3c431d3e1f261cc637155684cd
         verification:
           verified: false
           reason: unsigned
@@ -61155,7 +61180,6 @@ components:
           permission: admin
           members_url: https://api.github.com/teams/1/members{/member}
           repositories_url: https://api.github.com/teams/1/repos
-          parent: 
     pull-request-review-request:
       value:
         url: https://api.github.com/repos/octocat/Hello-World/pulls/1347
