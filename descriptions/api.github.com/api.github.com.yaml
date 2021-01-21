@@ -5102,6 +5102,11 @@ paths:
                     can create GitHub Pages sites.  \n\\* `false` - no organization
                     members can create GitHub Pages sites. Existing published sites
                     will not be impacted.  \nDefault: `true`. "
+                  default: true
+                members_can_create_public_pages:
+                  type: boolean
+                members_can_create_private_pages:
+                  type: boolean
                 blog:
                   type: string
                   example: '"http://github.blog"'
@@ -15689,10 +15694,12 @@ paths:
                       description: The title of the check run.
                     summary:
                       type: string
+                      maxLength: 65535
                       description: The summary of the check run. This parameter supports
                         Markdown.
                     text:
                       type: string
+                      maxLength: 65535
                       description: The details of the check run. This parameter supports
                         Markdown.
                     annotations:
@@ -15709,6 +15716,7 @@ paths:
                         on GitHub, see "[About status checks](https://help.github.com/articles/about-status-checks#checks)".
                         See the [`annotations` object](https://docs.github.com/rest/reference/checks#annotations-object)
                         description for details about how to use this parameter.
+                      maxItems: 50
                       items:
                         type: object
                         properties:
@@ -15798,19 +15806,23 @@ paths:
                     see "[Check runs and requested actions](https://docs.github.com/rest/reference/checks#check-runs-and-requested-actions)."
                     To learn more about check runs and requested actions, see "[Check
                     runs and requested actions](https://docs.github.com/rest/reference/checks#check-runs-and-requested-actions)."
+                  maxItems: 3
                   items:
                     type: object
                     properties:
                       label:
                         type: string
+                        maxLength: 20
                         description: The text to be displayed on a button in the web
                           UI. The maximum size is 20 characters.
                       description:
                         type: string
+                        maxLength: 40
                         description: A short explanation of what this action would
                           do. The maximum size is 40 characters.
                       identifier:
                         type: string
+                        maxLength: 20
                         description: A reference for the action on the integrator's
                           system. The maximum size is 20 characters.
                     required:
@@ -15820,6 +15832,20 @@ paths:
               required:
               - name
               - head_sha
+              anyOf:
+              - properties:
+                  status:
+                    enum:
+                    - completed
+                required:
+                - conclusion
+                additionalProperties: true
+              - properties:
+                  status:
+                    enum:
+                    - queued
+                    - in_progress
+                additionalProperties: true
             examples:
               example-of-in-progress-conclusion:
                 summary: Example of in_progress conclusion
@@ -15999,9 +16025,11 @@ paths:
                     summary:
                       type: string
                       description: Can contain Markdown.
+                      maxLength: 65535
                     text:
                       type: string
                       description: Can contain Markdown.
+                      maxLength: 65535
                     annotations:
                       type: array
                       description: Adds information from your analysis to specific
@@ -16016,6 +16044,7 @@ paths:
                         see "[About status checks](https://help.github.com/articles/about-status-checks#checks)".
                         See the [`annotations` object](https://docs.github.com/rest/reference/checks#annotations-object-1)
                         description for details.
+                      maxItems: 50
                       items:
                         type: object
                         properties:
@@ -16097,25 +16126,43 @@ paths:
                     the [`actions` object](https://docs.github.com/rest/reference/checks#actions-object)
                     description. To learn more about check runs and requested actions,
                     see "[Check runs and requested actions](https://docs.github.com/rest/reference/checks#check-runs-and-requested-actions)."
+                  maxItems: 3
                   items:
                     type: object
                     properties:
                       label:
                         type: string
+                        maxLength: 20
                         description: The text to be displayed on a button in the web
                           UI. The maximum size is 20 characters.
                       description:
                         type: string
+                        maxLength: 40
                         description: A short explanation of what this action would
                           do. The maximum size is 40 characters.
                       identifier:
                         type: string
+                        maxLength: 20
                         description: A reference for the action on the integrator's
                           system. The maximum size is 20 characters.
                     required:
                     - label
                     - description
                     - identifier
+              anyOf:
+              - properties:
+                  status:
+                    enum:
+                    - completed
+                required:
+                - conclusion
+                additionalProperties: true
+              - properties:
+                  status:
+                    enum:
+                    - queued
+                    - in_progress
+                additionalProperties: true
             example:
               name: mighty_readme
               started_at: '2018-05-04T01:14:52Z'
@@ -25307,6 +25354,7 @@ paths:
           application/json:
             schema:
               type: object
+              nullable: true
               properties:
                 commit_title:
                   type: string
@@ -25956,6 +26004,7 @@ paths:
           application/json:
             schema:
               type: object
+              nullable: true
               properties:
                 expected_head_sha:
                   type: string
