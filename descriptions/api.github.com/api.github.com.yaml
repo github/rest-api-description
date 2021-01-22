@@ -15607,6 +15607,70 @@ paths:
         requestBodyParameterName: users
         category: repos
         subcategory: branches
+  "/repos/{owner}/{repo}/branches/{branch}/rename":
+    post:
+      summary: Rename a branch
+      description: |-
+        Renames a branch in a repository.
+
+        **Note:** Although the API responds immediately, the branch rename process might take some extra time to complete in the background. You won't be able to push to the old branch name while the rename process is in progress. For more information, see "[Renaming a branch](https://docs.github.com/github/administering-a-repository/renaming-a-branch)".
+
+        The permissions required to use this endpoint depends on whether you are renaming the default branch.
+
+        To rename a non-default branch:
+
+        * Users must have push access.
+        * GitHub Apps must have the `contents:write` repository permission.
+
+        To rename the default branch:
+
+        * Users must have admin or owner permissions.
+        * GitHub Apps must have the `administration:write` repository permission.
+      tags:
+      - repos
+      operationId: repos/rename-branch
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#rename-a-branch
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/branch"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_name:
+                  type: string
+                  description: The new name of the branch.
+              required:
+              - new_name
+            example:
+              new_name: my_renamed_branch
+      responses:
+        '201':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/branch-with-protection"
+              examples:
+                default:
+                  "$ref": "#/components/examples/branch-with-protection"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: branches
   "/repos/{owner}/{repo}/check-runs":
     post:
       summary: Create a check run
@@ -65878,7 +65942,7 @@ components:
         - type: string
     branch:
       name: branch
-      description: branch+ parameter
+      description: The name of the branch.
       in: path
       required: true
       schema:
