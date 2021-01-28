@@ -1,0 +1,28 @@
+---
+name: Lint OpenAPI Descriptions
+
+on:
+  - push
+
+jobs:
+  build:
+    name: Lint OpenAPI Descriptions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: YAML & JSON Lint
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_YAML: true
+          VALIDATE_JSON: true
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: OpenAPI Lint
+        uses: xuorig/redocly-cli-lint-action@v0.0.1
+        with:
+          entrypoints: 'descriptions/**/*.yaml'
+          config: '.redocly.yml'
