@@ -16710,7 +16710,7 @@ paths:
 
         The response includes a `most_recent_instance` object.
         This provides details of the most recent instance of this alert
-        for the the default branch or for the specified Git reference
+        for the default branch or for the specified Git reference
         (if you used `ref` in the request).
       tags:
       - code-scanning
@@ -16923,6 +16923,10 @@ paths:
       summary: Upload an analysis as SARIF data
       description: |-
         Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.
+
+        There are two places where you can upload code scanning results.
+         - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/triaging-code-scanning-alerts-in-pull-requests)."
+         - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see "[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository)."
 
         You must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:
 
@@ -40916,7 +40920,9 @@ components:
         if provided in the uploaded SARIF data.
     code-scanning-ref:
       type: string
-      description: The full Git reference, formatted as `refs/heads/<branch name>`.
+      description: |-
+        The full Git reference, formatted as `refs/heads/<branch name>`,
+        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
     code-scanning-alert-state:
       type: string
       description: State of a code scanning alert.
