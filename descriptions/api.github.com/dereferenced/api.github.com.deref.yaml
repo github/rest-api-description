@@ -2452,6 +2452,12 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: client_id
+        in: query
+        required: false
+        description: The client ID of your GitHub app.
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -3429,6 +3435,12 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: client_id
+        in: query
+        required: false
+        description: The client ID of your GitHub app.
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -6148,6 +6160,10 @@ paths:
           enum:
           - desc
           - asc
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -9073,6 +9089,7 @@ paths:
           - created
           - mentioned
           - subscribed
+          - repos
           - all
           default: assigned
       - name: state
@@ -9679,6 +9696,10 @@ paths:
         description: Results per page (max 100).
         in: query
         schema: *13
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
       responses:
         '200':
           description: response
@@ -11780,7 +11801,7 @@ paths:
                   required: *48
               examples:
                 default:
-                  value: &482
+                  value: &483
                   - login: github
                     id: 1
                     node_id: MDEyOk9yZ2FuaXphdGlvbjE=
@@ -13230,6 +13251,14 @@ paths:
         in: path
         required: true
         schema: *46
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
       responses:
         '200':
           description: response
@@ -14273,6 +14302,14 @@ paths:
         in: path
         required: true
         schema: *121
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
       responses:
         '200':
           description: response
@@ -14567,6 +14604,10 @@ paths:
         description: Results per page (max 100).
         in: query
         schema: *13
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
       responses:
         '200':
           description: Response
@@ -16424,6 +16465,7 @@ paths:
           - created
           - mentioned
           - subscribed
+          - repos
           - all
           default: assigned
       - name: state
@@ -17085,6 +17127,17 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: exclude
+        description: Exclude attributes from the API response to improve performance
+        in: query
+        schema:
+          type: array
+          items:
+            description: Allowed values that can be passed to the exclude param.
+            enum:
+            - repositories
+            example: repositories
+            type: string
       responses:
         '200':
           description: response
@@ -17572,6 +17625,17 @@ paths:
         required: true
         schema: &154
           type: integer
+      - name: exclude
+        description: Exclude attributes from the API response to improve performance
+        in: query
+        schema:
+          type: array
+          items:
+            description: Allowed values that can be passed to the exclude param.
+            enum:
+            - repositories
+            example: repositories
+            type: string
       responses:
         '200':
           description: |-
@@ -17855,7 +17919,7 @@ paths:
         description: repo_name parameter
         in: path
         required: true
-        schema: &481
+        schema: &482
           type: string
       responses:
         '204':
@@ -18370,7 +18434,7 @@ paths:
                 title: Package
                 description: A software package
                 type: object
-                properties: &483
+                properties: &484
                   id:
                     description: Unique identifier of the package.
                     type: integer
@@ -18428,7 +18492,7 @@ paths:
                   updated_at:
                     type: string
                     format: date-time
-                required: &484
+                required: &485
                 - id
                 - name
                 - package_type
@@ -18560,6 +18624,12 @@ paths:
         in: path
         required: true
         schema: *100
+      - name: token
+        description: package token
+        schema:
+          type: string
+        required: false
+        in: query
       responses:
         '204':
           description: Empty response
@@ -18588,7 +18658,7 @@ paths:
         If `package_type` is not `container`, your token must also include the `repo` scope.
       tags:
       - packages
-      operationId: packages/get-all-package-versions-for-a-package-owned-by-an-org
+      operationId: packages/get-all-package-versions-for-package-owned-by-org
       externalDocs:
         description: API method documentation
         url: https://docs.github.com/rest/reference/packages#get-all-package-versions-for-a-package-owned-by-the-authenticated-user
@@ -18609,6 +18679,24 @@ paths:
         in: path
         required: true
         schema: *100
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
+      - name: state
+        in: query
+        required: false
+        description: The state of the package, either active or deleted.
+        schema:
+          type: string
+          enum:
+          - active
+          - deleted
+          default: active
       responses:
         '200':
           description: response
@@ -19761,7 +19849,7 @@ paths:
       description: |-
         Gets the summary of the free and paid GitHub Actions minutes used.
 
-        Paid minutes only apply to workflows in private repositories that use GitHub-hosted runners. Minutes used is listed for each GitHub-hosted runner operating system. Any job re-runs are also included in the usage. The usage does not include the multiplier for macOS and Windows runners and is not rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
+        Paid minutes only apply to workflows in private repositories that use GitHub-hosted runners. Minutes used is listed for each GitHub-hosted runner operating system. Any job re-runs are also included in the usage. The usage returned includes any minute multipliers for macOS and Windows runners, and is rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
 
         Access tokens must have the `repo` or `admin:org` scope.
       operationId: billing/get-github-actions-billing-org
@@ -19894,9 +19982,10 @@ paths:
         in: query
         schema: *13
       - name: page
-        description: Page number of the results to fetch.
+        description: Page token
         in: query
-        schema: *14
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -20475,6 +20564,12 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: pinned
+        in: query
+        required: false
+        description: Pinned discussions only filter
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -20588,7 +20683,7 @@ paths:
                   - url
               examples:
                 default:
-                  value: &452
+                  value: &453
                   - author:
                       login: octocat
                       id: 1
@@ -20898,7 +20993,7 @@ paths:
                 required: *183
               examples:
                 default:
-                  value: &453
+                  value: &454
                     author:
                       login: octocat
                       id: 1
@@ -21123,7 +21218,7 @@ paths:
                   - url
               examples:
                 default:
-                  value: &454
+                  value: &455
                   - author:
                       login: octocat
                       id: 1
@@ -21417,7 +21512,7 @@ paths:
                 required: *187
               examples:
                 default:
-                  value: &455
+                  value: &456
                     author:
                       login: octocat
                       id: 1
@@ -22239,19 +22334,19 @@ paths:
               examples:
                 response-if-user-has-an-active-membership-with-team:
                   summary: Response if user has an active membership with team
-                  value: &456
+                  value: &457
                     url: https://api.github.com/teams/1/memberships/octocat
                     role: member
                     state: active
                 response-if-user-is-a-team-maintainer:
                   summary: Response if user is a team maintainer
-                  value: &457
+                  value: &458
                     url: https://api.github.com/teams/1/memberships/octocat
                     role: maintainer
                     state: active
                 response-if-user-has-a-pending-membership-with-team:
                   summary: Response if user has a pending membership with team
-                  value: &458
+                  value: &459
                     url: https://api.github.com/teams/1/memberships/octocat
                     role: member
                     state: pending
@@ -22328,13 +22423,13 @@ paths:
               examples:
                 response-if-users-membership-with-team-is-now-active:
                   summary: Response if user's membership with team is now active
-                  value: &459
+                  value: &460
                     url: https://api.github.com/teams/1/memberships/octocat
                     role: member
                     state: active
                 response-if-users-membership-with-team-is-now-pending:
                   summary: Response if user's membership with team is now pending
-                  value: &460
+                  value: &461
                     url: https://api.github.com/teams/1/memberships/octocat
                     role: member
                     state: pending
@@ -22528,7 +22623,7 @@ paths:
                   - permissions
               examples:
                 default:
-                  value: &461
+                  value: &462
                   - owner_url: https://api.github.com/orgs/octocat
                     url: https://api.github.com/projects/1002605
                     html_url: https://github.com/orgs/api-playground/projects/1
@@ -22625,7 +22720,7 @@ paths:
                 required: *198
               examples:
                 default:
-                  value: &462
+                  value: &463
                     owner_url: https://api.github.com/orgs/octocat
                     url: https://api.github.com/projects/1002605
                     html_url: https://github.com/orgs/api-playground/projects/1
@@ -22896,7 +22991,7 @@ paths:
                 title: Team Repository
                 description: A team's access to a repository.
                 type: object
-                properties: &463
+                properties: &464
                   id:
                     description: Unique identifier of the repository
                     example: 42
@@ -23231,7 +23326,7 @@ paths:
                     type: integer
                   master_branch:
                     type: string
-                required: &464
+                required: &465
                 - archive_url
                 - assignees_url
                 - blobs_url
@@ -23834,7 +23929,7 @@ paths:
                   required: *174
               examples:
                 response-if-child-teams-exist:
-                  value: &465
+                  value: &466
                   - id: 2
                     node_id: MDQ6VGVhbTI=
                     url: https://api.github.com/teams/2
@@ -30625,7 +30720,7 @@ paths:
                       - updated_at
               examples:
                 default:
-                  value: &430
+                  value: &431
                     total_count: 2
                     secrets:
                     - name: GH_TOKEN
@@ -30728,7 +30823,7 @@ paths:
                 required: *231
               examples:
                 default:
-                  value: &431
+                  value: &432
                     name: GH_TOKEN
                     created_at: '2019-08-10T14:59:22Z'
                     updated_at: '2020-01-10T14:59:22Z'
@@ -37171,7 +37266,7 @@ paths:
 
         The response includes a `most_recent_instance` object.
         This provides details of the most recent instance of this alert
-        for the the default branch or for the specified Git reference
+        for the default branch or for the specified Git reference
         (if you used `ref` in the request).
       tags:
       - code-scanning
@@ -37225,7 +37320,9 @@ paths:
         required: false
         schema: &281
           type: string
-          description: The full Git reference, formatted as `refs/heads/<branch name>`.
+          description: |-
+            The full Git reference, formatted as `refs/heads/<branch name>`,
+            `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
       - name: state
         description: Set to `open`, `fixed`, or `dismissed` to list code scanning
           alerts in a specific state.
@@ -37236,6 +37333,7 @@ paths:
           description: State of a code scanning alert.
           enum: &272
           - open
+          - closed
           - dismissed
           - fixed
       responses:
@@ -37356,8 +37454,9 @@ paths:
                       properties: &276
                         ref:
                           type: string
-                          description: The full Git reference, formatted as `refs/heads/<branch
-                            name>`.
+                          description: |-
+                            The full Git reference, formatted as `refs/heads/<branch name>`,
+                            `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
                         analysis_key:
                           type: string
                           description: Identifies the configuration under which the
@@ -38094,7 +38193,9 @@ paths:
         required: false
         schema:
           type: string
-          description: The full Git reference, formatted as `refs/heads/<branch name>`.
+          description: |-
+            The full Git reference, formatted as `refs/heads/<branch name>`,
+            `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
       - name: sarif_id
         in: query
         description: Filter analyses belonging to the same SARIF upload.
@@ -38116,8 +38217,9 @@ paths:
                   properties: &284
                     ref:
                       type: string
-                      description: The full Git reference, formatted as `refs/heads/<branch
-                        name>`.
+                      description: |-
+                        The full Git reference, formatted as `refs/heads/<branch name>`,
+                        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
                     commit_sha:
                       description: The SHA of the commit to which the analysis you
                         are uploading relates.
@@ -38425,6 +38527,7 @@ paths:
         required: false
         schema:
           type: string
+          nullable: true
       responses:
         '200':
           description: response
@@ -38472,7 +38575,7 @@ paths:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: &442
+                properties: &443
                   message:
                     type: string
                     nullable: true
@@ -38511,6 +38614,10 @@ paths:
       summary: Upload an analysis as SARIF data
       description: |-
         Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.
+
+        There are two places where you can upload code scanning results.
+         - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/triaging-code-scanning-alerts-in-pull-requests)."
+         - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see "[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository)."
 
         You must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:
 
@@ -38553,8 +38660,9 @@ paths:
                   pattern: "^[0-9a-fA-F]+$"
                 ref:
                   type: string
-                  description: The full Git reference, formatted as `refs/heads/<branch
-                    name>`.
+                  description: |-
+                    The full Git reference, formatted as `refs/heads/<branch name>`,
+                    `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
                 sarif:
                   description: A Base64 string representing the SARIF file to upload.
                     You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -39991,6 +40099,20 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: top
+        description: legacy parameter for pagination.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
+      - name: last_sha
+        description: legacy parameter for pagination.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -41306,8 +41428,16 @@ paths:
         in: path
         required: true
         schema: *201
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -41446,7 +41576,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -41482,6 +41612,11 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: app_id
+        in: query
+        required: false
+        schema:
+          type: integer
       responses:
         '200':
           description: response
@@ -41540,7 +41675,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -41801,12 +41936,20 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
           type: string
         x-multi-segment: true
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
       responses:
         '200':
           description: response
@@ -42018,7 +42161,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -42043,7 +42186,7 @@ paths:
                   title: Status
                   description: The status of a commit.
                   type: object
-                  properties: &420
+                  properties: &421
                     url:
                       type: string
                     avatar_url:
@@ -42072,7 +42215,7 @@ paths:
                       properties: *5
                       required: *6
                       nullable: true
-                  required: &421
+                  required: &422
                   - url
                   - avatar_url
                   - id
@@ -42890,7 +43033,7 @@ paths:
         required: true
         schema: *201
       - name: path
-        description: path+ parameter
+        description: path parameter
         in: path
         required: true
         schema:
@@ -43403,7 +43546,7 @@ paths:
         required: true
         schema: *201
       - name: path
-        description: path+ parameter
+        description: path parameter
         in: path
         required: true
         schema:
@@ -43731,7 +43874,7 @@ paths:
         required: true
         schema: *201
       - name: path
-        description: path+ parameter
+        description: path parameter
         in: path
         required: true
         schema:
@@ -44032,6 +44175,7 @@ paths:
         schema:
           type: string
           default: none
+          nullable: true
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -45606,6 +45750,7 @@ paths:
           - newest
           - oldest
           - stargazers
+          - watchers
           default: newest
       - name: per_page
         description: Results per page (max 100).
@@ -45615,6 +45760,20 @@ paths:
         description: Page number of the results to fetch.
         in: query
         schema: *14
+      - name: org
+        description: legacy query parameter for specifying the org.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
+      - name: organization
+        description: legacy query parameter for specifying the org.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -45774,11 +45933,26 @@ paths:
         in: path
         required: true
         schema: *201
+      - name: org
+        description: legacy query parameter for specifying the org.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
+      - name: organization
+        description: legacy query parameter for specifying the org.
+        in: query
+        deprecated: true
+        required: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
               type: object
+              nullable: true
               properties:
                 organization:
                   type: string
@@ -46430,7 +46604,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -46537,7 +46711,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -46665,7 +46839,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -46733,7 +46907,7 @@ paths:
         required: true
         schema: *201
       - name: ref
-        description: ref+ parameter
+        description: ref parameter
         in: path
         required: true
         schema:
@@ -47252,6 +47426,7 @@ paths:
         required: true
         schema:
           type: string
+        x-multi-segment: true
       - name: recursive
         description: 'Setting this parameter to any value returns the objects or subtrees
           referenced by the tree specified in `:tree_sha`. For example, setting `recursive`
@@ -48518,7 +48693,7 @@ paths:
         description: A user ID. Only return users with an ID greater than this ID.
         in: query
         required: false
-        schema: &488
+        schema: &489
           type: integer
       responses:
         '200':
@@ -49016,7 +49191,7 @@ paths:
                   required: *350
               examples:
                 default:
-                  value: &486
+                  value: &487
                   - id: 1
                     repository:
                       id: 1296269
@@ -56757,11 +56932,14 @@ paths:
         required: true
         schema: *201
       - name: sort
-        description: One of `created` (when the repository was starred) or `updated`
-          (when it was last pushed to).
         in: query
         required: false
-        schema: *90
+        schema:
+          type: string
+          enum:
+          - created
+          - updated
+          - created_at
       - name: direction
         description: Can be either `asc` or `desc`. Ignored without `sort` parameter.
         in: query
@@ -60362,7 +60540,7 @@ paths:
                 required: *407
               examples:
                 default:
-                  value:
+                  value: &408
                     type: file
                     encoding: base64
                     size: 5362
@@ -60378,6 +60556,68 @@ paths:
                       git: https://api.github.com/repos/octokit/octokit.rb/git/blobs/3d21ec53a331a6f037a91c368710b99387d012c1
                       self: https://api.github.com/repos/octokit/octokit.rb/contents/README.md
                       html: https://github.com/octokit/octokit.rb/blob/master/README.md
+        '404':
+          description: Resource Not Found
+          content: *9
+        '422':
+          description: Validation Failed
+          content: *21
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: contents
+  "/repos/{owner}/{repo}/readme/{dir}":
+    get:
+      summary: Get a repository README
+      description: |-
+        Gets the preferred README for a repository.
+
+        READMEs support [custom media types](https://docs.github.com/rest/reference/repos#custom-media-types) for retrieving the raw content or rendered HTML.
+      tags:
+      - repos
+      operationId: repos/get-readme-from-alt-path
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#get-a-repository-readme
+      parameters:
+      - name: owner
+        in: path
+        required: true
+        schema: *200
+      - name: repo
+        in: path
+        required: true
+        schema: *201
+      - name: dir
+        description: The alternate path to look for a README file
+        in: path
+        required: true
+        schema:
+          type: string
+        x-multi-segment: true
+      - name: ref
+        description: 'The name of the commit/branch/tag. Default: the repository’s
+          default branch (usually `master`)'
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: response
+          content:
+            application/json:
+              schema:
+                title: Content File
+                description: Content File
+                type: object
+                properties: *406
+                required: *407
+              examples:
+                default:
+                  value: *408
         '404':
           description: Resource Not Found
           content: *9
@@ -60431,7 +60671,7 @@ paths:
                   title: Release
                   description: A release.
                   type: object
-                  properties: &408
+                  properties: &409
                     url:
                       type: string
                       format: uri
@@ -60500,7 +60740,7 @@ paths:
                         title: Release Asset
                         description: Data related to a release.
                         type: object
-                        properties: &410
+                        properties: &411
                           url:
                             type: string
                             format: uri
@@ -60545,7 +60785,7 @@ paths:
                               properties: *5
                               required: *6
                               nullable: true
-                        required: &411
+                        required: &412
                         - id
                         - name
                         - content_type
@@ -60563,7 +60803,7 @@ paths:
                       type: string
                     body_text:
                       type: string
-                  required: &409
+                  required: &410
                   - assets_url
                   - upload_url
                   - tarball_url
@@ -60735,11 +60975,11 @@ paths:
                 title: Release
                 description: A release.
                 type: object
-                properties: *408
-                required: *409
+                properties: *409
+                required: *410
               examples:
                 default:
-                  value: &414
+                  value: &415
                     url: https://api.github.com/repos/octocat/Hello-World/releases/1
                     html_url: https://github.com/octocat/Hello-World/releases/v1.0.0
                     assets_url: https://api.github.com/repos/octocat/Hello-World/releases/1/assets
@@ -60848,7 +61088,7 @@ paths:
         description: asset_id parameter
         in: path
         required: true
-        schema: &412
+        schema: &413
           type: integer
       responses:
         '200':
@@ -60863,11 +61103,11 @@ paths:
                 title: Release Asset
                 description: Data related to a release.
                 type: object
-                properties: *410
-                required: *411
+                properties: *411
+                required: *412
               examples:
                 default:
-                  value: &413
+                  value: &414
                     url: https://api.github.com/repos/octocat/Hello-World/releases/assets/1
                     browser_download_url: https://github.com/octocat/Hello-World/releases/download/v1.0.0/example.zip
                     id: 1
@@ -60935,7 +61175,7 @@ paths:
         description: asset_id parameter
         in: path
         required: true
-        schema: *412
+        schema: *413
       requestBody:
         content:
           application/json:
@@ -60964,11 +61204,11 @@ paths:
                 title: Release Asset
                 description: Data related to a release.
                 type: object
-                properties: *410
-                required: *411
+                properties: *411
+                required: *412
               examples:
                 default:
-                  value: *413
+                  value: *414
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60997,7 +61237,7 @@ paths:
         description: asset_id parameter
         in: path
         required: true
-        schema: *412
+        schema: *413
       responses:
         '204':
           description: Empty response
@@ -61038,11 +61278,11 @@ paths:
                 title: Release
                 description: A release.
                 type: object
-                properties: *408
-                required: *409
+                properties: *409
+                required: *410
               examples:
                 default:
-                  value: *414
+                  value: *415
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61069,7 +61309,7 @@ paths:
         required: true
         schema: *201
       - name: tag
-        description: tag+ parameter
+        description: tag parameter
         in: path
         required: true
         schema:
@@ -61084,11 +61324,11 @@ paths:
                 title: Release
                 description: A release.
                 type: object
-                properties: *408
-                required: *409
+                properties: *409
+                required: *410
               examples:
                 default:
-                  value: *414
+                  value: *415
         '404':
           description: Resource Not Found
           content: *9
@@ -61122,7 +61362,7 @@ paths:
         description: release_id parameter
         in: path
         required: true
-        schema: &415
+        schema: &416
           type: integer
       responses:
         '200':
@@ -61134,11 +61374,11 @@ paths:
                 title: Release
                 description: A release.
                 type: object
-                properties: *408
-                required: *409
+                properties: *409
+                required: *410
               examples:
                 default:
-                  value: *414
+                  value: *415
         '404':
           description: Resource Not Found
           content: *9
@@ -61170,7 +61410,7 @@ paths:
         description: release_id parameter
         in: path
         required: true
-        schema: *415
+        schema: *416
       requestBody:
         content:
           application/json:
@@ -61216,11 +61456,11 @@ paths:
                 title: Release
                 description: A release.
                 type: object
-                properties: *408
-                required: *409
+                properties: *409
+                required: *410
               examples:
                 default:
-                  value: *414
+                  value: *415
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61249,7 +61489,7 @@ paths:
         description: release_id parameter
         in: path
         required: true
-        schema: *415
+        schema: *416
       responses:
         '204':
           description: Empty response
@@ -61282,7 +61522,7 @@ paths:
         description: release_id parameter
         in: path
         required: true
-        schema: *415
+        schema: *416
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -61302,8 +61542,8 @@ paths:
                   title: Release Asset
                   description: Data related to a release.
                   type: object
-                  properties: *410
-                  required: *411
+                  properties: *411
+                  required: *412
               examples:
                 default:
                   value:
@@ -61399,7 +61639,7 @@ paths:
         description: release_id parameter
         in: path
         required: true
-        schema: *415
+        schema: *416
       - name: name
         in: query
         schema:
@@ -61423,8 +61663,8 @@ paths:
                 title: Release Asset
                 description: Data related to a release.
                 type: object
-                properties: *410
-                required: *411
+                properties: *411
+                required: *412
               examples:
                 response-for-successful-upload:
                   value:
@@ -61514,7 +61754,7 @@ paths:
                 type: array
                 items:
                   type: object
-                  properties: &416
+                  properties: &417
                     number:
                       type: integer
                       description: The security alert number.
@@ -61544,7 +61784,7 @@ paths:
                         be either `open` or `resolved`. You must provide `resolution`
                         when you set the state to `resolved`.
                       type: string
-                      enum: &417
+                      enum: &418
                       - open
                       - resolved
                     resolution:
@@ -61553,7 +61793,7 @@ paths:
                         reason for resolving the alert. Can be one of `false_positive`,
                         `wont_fix`, `revoked`, or `used_in_tests`."
                       nullable: true
-                      oneOf: &418
+                      oneOf: &419
                       - enum:
                         - false_positive
                         - wont_fix
@@ -61670,7 +61910,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *416
+                properties: *417
               examples:
                 default:
                   value:
@@ -61736,14 +61976,14 @@ paths:
                     either `open` or `resolved`. You must provide `resolution` when
                     you set the state to `resolved`.
                   type: string
-                  enum: *417
+                  enum: *418
                 resolution:
                   type: string
                   description: "**Required when the `state` is `resolved`.** The reason
                     for resolving the alert. Can be one of `false_positive`, `wont_fix`,
                     `revoked`, or `used_in_tests`."
                   nullable: true
-                  oneOf: *418
+                  oneOf: *419
               required:
               - state
             example:
@@ -61756,7 +61996,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *416
+                properties: *417
               examples:
                 default:
                   value:
@@ -61960,7 +62200,7 @@ paths:
                   title: Code Frequency Stat
                   description: Code Frequency Stat
                   type: array
-                  items: &419
+                  items: &420
                     type: integer
               examples:
                 default:
@@ -62356,7 +62596,7 @@ paths:
                   title: Code Frequency Stat
                   description: Code Frequency Stat
                   type: array
-                  items: *419
+                  items: *420
               examples:
                 default:
                   value:
@@ -62450,8 +62690,8 @@ paths:
                 title: Status
                 description: The status of a commit.
                 type: object
-                properties: *420
-                required: *421
+                properties: *421
+                required: *422
               examples:
                 default:
                   value:
@@ -62579,7 +62819,7 @@ paths:
                 description: Repository invitations let you manage who you collaborate
                   with.
                 type: object
-                properties: &422
+                properties: &423
                   subscribed:
                     description: Determines if notifications should be received from
                       this repository.
@@ -62604,7 +62844,7 @@ paths:
                     type: string
                     format: uri
                     example: https://api.github.com/repos/octocat/example
-                required: &423
+                required: &424
                 - created_at
                 - ignored
                 - reason
@@ -62677,8 +62917,8 @@ paths:
                 description: Repository invitations let you manage who you collaborate
                   with.
                 type: object
-                properties: *422
-                required: *423
+                properties: *423
+                required: *424
               examples:
                 default:
                   value:
@@ -62929,6 +63169,14 @@ paths:
         in: path
         required: true
         schema: *201
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
       responses:
         '200':
           description: response
@@ -62938,16 +63186,16 @@ paths:
                 title: Topic
                 description: A topic aggregates entities that are related to a subject.
                 type: object
-                properties: &424
+                properties: &425
                   names:
                     type: array
                     items:
                       type: string
-                required: &425
+                required: &426
                 - names
               examples:
                 default:
-                  value: &426
+                  value: &427
                     names:
                     - octocat
                     - atom
@@ -63021,11 +63269,11 @@ paths:
                 title: Topic
                 description: A topic aggregates entities that are related to a subject.
                 type: object
-                properties: *424
-                required: *425
+                properties: *425
+                required: *426
               examples:
                 default:
-                  value: *426
+                  value: *427
         '415':
           description: Preview Header Missing
           content: *12
@@ -63073,9 +63321,10 @@ paths:
         description: 'Must be one of: `day`, `week`.'
         in: query
         required: false
-        schema: &427
+        schema: &428
           type: string
           enum:
+          - ''
           - day
           - week
           default: day
@@ -63100,7 +63349,7 @@ paths:
                     items:
                       title: Traffic
                       type: object
-                      properties: &428
+                      properties: &429
                         timestamp:
                           type: string
                           format: date-time
@@ -63108,7 +63357,7 @@ paths:
                           type: integer
                         count:
                           type: integer
-                      required: &429
+                      required: &430
                       - timestamp
                       - uniques
                       - count
@@ -63369,7 +63618,7 @@ paths:
         description: 'Must be one of: `day`, `week`.'
         in: query
         required: false
-        schema: *427
+        schema: *428
       responses:
         '200':
           description: response
@@ -63391,8 +63640,8 @@ paths:
                     items:
                       title: Traffic
                       type: object
-                      properties: *428
-                      required: *429
+                      properties: *429
+                      required: *430
                 required:
                 - uniques
                 - count
@@ -64058,7 +64307,7 @@ paths:
                       required: *231
               examples:
                 default:
-                  value: *430
+                  value: *431
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -64156,7 +64405,7 @@ paths:
                 required: *231
               examples:
                 default:
-                  value: *431
+                  value: *432
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -64349,14 +64598,26 @@ paths:
         description: 'Used for pagination: the index of the first result to return.'
         in: query
         required: false
-        schema: &436
+        schema: &437
           type: integer
       - name: count
         description: 'Used for pagination: the number of results to return.'
         in: query
         required: false
-        schema: &437
+        schema: &438
           type: integer
+      - name: filter
+        description: filter results
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: excludedAttributes
+        description: attributes to exclude
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -64529,7 +64790,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &432
+                properties: &433
                   schemas:
                     type: array
                     items:
@@ -64563,12 +64824,12 @@ paths:
                         type: string
                       location:
                         type: string
-                required: &433
+                required: &434
                 - schemas
                 - id
               examples:
                 default:
-                  value: &434
+                  value: &435
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:Group
                     id: abcd27f8-a9aa-11ea-8221-f59b2be9cccc
@@ -64614,7 +64875,13 @@ paths:
         description: Identifier generated by the GitHub SCIM endpoint.
         in: path
         required: true
-        schema: &435
+        schema: &436
+          type: string
+      - name: excludedAttributes
+        description: Attributes to exclude.
+        in: query
+        required: false
+        schema:
           type: string
       responses:
         '200':
@@ -64623,11 +64890,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *432
-                required: *433
+                properties: *433
+                required: *434
               examples:
                 default:
-                  value: *434
+                  value: *435
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64657,7 +64924,7 @@ paths:
         description: Identifier generated by the GitHub SCIM endpoint.
         in: path
         required: true
-        schema: *435
+        schema: *436
       requestBody:
         content:
           application/json:
@@ -64700,11 +64967,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *432
-                required: *433
+                properties: *433
+                required: *434
               examples:
                 default:
-                  value: *434
+                  value: *435
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64734,7 +65001,7 @@ paths:
         description: Identifier generated by the GitHub SCIM endpoint.
         in: path
         required: true
-        schema: *435
+        schema: *436
       requestBody:
         content:
           application/json:
@@ -64789,8 +65056,8 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *432
-                required: *433
+                properties: *433
+                required: *434
               examples:
                 default:
                   value:
@@ -64835,7 +65102,7 @@ paths:
         description: Identifier generated by the GitHub SCIM endpoint.
         in: path
         required: true
-        schema: *435
+        schema: *436
       responses:
         '204':
           description: Empty response
@@ -64884,12 +65151,18 @@ paths:
         description: 'Used for pagination: the index of the first result to return.'
         in: query
         required: false
-        schema: *436
+        schema: *437
       - name: count
         description: 'Used for pagination: the number of results to return.'
         in: query
         required: false
-        schema: *437
+        schema: *438
+      - name: filter
+        description: filter results
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: response
@@ -65123,7 +65396,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &438
+                properties: &439
                   schemas:
                     type: array
                     items:
@@ -65172,12 +65445,12 @@ paths:
                         type: string
                       location:
                         type: string
-                required: &439
+                required: &440
                 - schemas
                 - id
               examples:
                 default:
-                  value: &440
+                  value: &441
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:User
                     id: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
@@ -65226,7 +65499,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: &441
+        schema: &442
           type: string
       responses:
         '200':
@@ -65235,11 +65508,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *438
-                required: *439
+                properties: *439
+                required: *440
               examples:
                 default:
-                  value: *440
+                  value: *441
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -65273,7 +65546,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       requestBody:
         content:
           application/json:
@@ -65352,11 +65625,11 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *438
-                required: *439
+                properties: *439
+                required: *440
               examples:
                 default:
-                  value: *440
+                  value: *441
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -65401,7 +65674,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       requestBody:
         content:
           application/json:
@@ -65440,8 +65713,8 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *438
-                required: *439
+                properties: *439
+                required: *440
               examples:
                 default:
                   value:
@@ -65494,7 +65767,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       responses:
         '204':
           description: Empty response
@@ -65592,7 +65865,7 @@ paths:
                       title: SCIM /Users
                       description: SCIM /Users provisioning endpoints
                       type: object
-                      properties: &443
+                      properties: &444
                         schemas:
                           description: SCIM schema used.
                           type: array
@@ -65718,7 +65991,7 @@ paths:
                                 type: string
                               display:
                                 type: string
-                      required: &444
+                      required: &445
                       - id
                       - schemas
                       - externalId
@@ -65813,49 +66086,49 @@ paths:
           description: Not Modified
         '404':
           description: Resource Not Found
-          content: &445
-            application/json:
-              schema:
-                title: Scim Error
-                description: Scim Error
-                type: object
-                properties: *442
-            application/scim+json:
-              schema:
-                title: Scim Error
-                description: Scim Error
-                type: object
-                properties: *442
-        '403':
-          description: Forbidden
           content: &446
             application/json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
             application/scim+json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
-        '400':
-          description: Bad Request
+                properties: *443
+        '403':
+          description: Forbidden
           content: &447
             application/json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
             application/scim+json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
+        '400':
+          description: Bad Request
+          content: &448
+            application/json:
+              schema:
+                title: Scim Error
+                description: Scim Error
+                type: object
+                properties: *443
+            application/scim+json:
+              schema:
+                title: Scim Error
+                description: Scim Error
+                type: object
+                properties: *443
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -65886,11 +66159,11 @@ paths:
                 title: SCIM /Users
                 description: SCIM /Users provisioning endpoints
                 type: object
-                properties: *443
-                required: *444
+                properties: *444
+                required: *445
               examples:
                 default:
-                  value: &448
+                  value: &449
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:User
                     id: edefdfedf-050c-11e7-8d32
@@ -65915,10 +66188,10 @@ paths:
           description: Not Modified
         '404':
           description: Resource Not Found
-          content: *445
+          content: *446
         '403':
           description: Forbidden
-          content: *446
+          content: *447
         '500':
           description: Internal Error
           content:
@@ -65927,13 +66200,13 @@ paths:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
             application/scim+json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
         '409':
           description: Conflict
           content:
@@ -65942,16 +66215,16 @@ paths:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
             application/scim+json:
               schema:
                 title: Scim Error
                 description: Scim Error
                 type: object
-                properties: *442
+                properties: *443
         '400':
           description: Bad Request
-          content: *447
+          content: *448
       requestBody:
         content:
           application/json:
@@ -66043,7 +66316,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       responses:
         '200':
           description: response
@@ -66053,17 +66326,17 @@ paths:
                 title: SCIM /Users
                 description: SCIM /Users provisioning endpoints
                 type: object
-                properties: *443
-                required: *444
+                properties: *444
+                required: *445
               examples:
                 default:
-                  value: *448
+                  value: *449
         '404':
           description: Resource Not Found
-          content: *445
+          content: *446
         '403':
           description: Forbidden
-          content: *446
+          content: *447
         '304':
           description: Not Modified
       x-github:
@@ -66095,7 +66368,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       responses:
         '200':
           description: response
@@ -66105,19 +66378,19 @@ paths:
                 title: SCIM /Users
                 description: SCIM /Users provisioning endpoints
                 type: object
-                properties: *443
-                required: *444
+                properties: *444
+                required: *445
               examples:
                 default:
-                  value: *448
+                  value: *449
         '304':
           description: Not Modified
         '404':
           description: Resource Not Found
-          content: *445
+          content: *446
         '403':
           description: Forbidden
-          content: *446
+          content: *447
       requestBody:
         content:
           application/json:
@@ -66224,7 +66497,7 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       responses:
         '200':
           description: response
@@ -66234,22 +66507,22 @@ paths:
                 title: SCIM /Users
                 description: SCIM /Users provisioning endpoints
                 type: object
-                properties: *443
-                required: *444
+                properties: *444
+                required: *445
               examples:
                 default:
-                  value: *448
+                  value: *449
         '304':
           description: Not Modified
         '404':
           description: Resource Not Found
-          content: *445
+          content: *446
         '403':
           description: Forbidden
-          content: *446
+          content: *447
         '400':
           description: Bad Request
-          content: *447
+          content: *448
         '429':
           description: Too many requests
           content:
@@ -66344,16 +66617,16 @@ paths:
         description: scim_user_id parameter
         in: path
         required: true
-        schema: *441
+        schema: *442
       responses:
         '204':
           description: Empty response
         '404':
           description: Resource Not Found
-          content: *445
+          content: *446
         '403':
           description: Forbidden
-          content: *446
+          content: *447
         '304':
           description: Not Modified
       x-github:
@@ -66418,7 +66691,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: &449
+        schema: &450
           type: string
           enum:
           - desc
@@ -66496,7 +66769,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: &450
+                          items: &451
                             type: object
                             properties:
                               object_url:
@@ -66669,7 +66942,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: *449
+        schema: *450
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -66807,7 +67080,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                       required:
                       - sha
                       - node_id
@@ -67018,7 +67291,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: *449
+        schema: *450
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -67153,7 +67426,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                         pull_request:
                           type: object
                           properties:
@@ -67401,7 +67674,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: *449
+        schema: *450
       responses:
         '200':
           description: response
@@ -67446,7 +67719,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                       required:
                       - id
                       - node_id
@@ -67549,7 +67822,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: *449
+        schema: *450
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -67790,7 +68063,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                         temp_clone_token:
                           type: string
                         allow_merge_commit:
@@ -68094,7 +68367,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                         related:
                           type: array
                           nullable: true
@@ -68301,7 +68574,7 @@ paths:
           is ignored unless you provide `sort`.
         in: query
         required: false
-        schema: *449
+        schema: *450
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -68413,7 +68686,7 @@ paths:
                         text_matches:
                           title: Search Result Text Matches
                           type: array
-                          items: *450
+                          items: *451
                         blog:
                           type: string
                           nullable: true
@@ -68500,7 +68773,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: &451
+        schema: &452
           type: integer
       responses:
         '200':
@@ -68547,7 +68820,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       requestBody:
         content:
           application/json:
@@ -68647,7 +68920,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       responses:
         '204':
           description: Empty response
@@ -68683,7 +68956,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -68713,7 +68986,7 @@ paths:
                   required: *183
               examples:
                 default:
-                  value: *452
+                  value: *453
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -68756,7 +69029,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       requestBody:
         content:
           application/json:
@@ -68834,7 +69107,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -68889,7 +69162,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -68922,7 +69195,7 @@ paths:
                 required: *183
               examples:
                 default:
-                  value: *453
+                  value: *454
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -68958,7 +69231,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -68992,7 +69265,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69025,7 +69298,7 @@ paths:
                   required: *187
               examples:
                 default:
-                  value: *454
+                  value: *455
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -69068,7 +69341,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69137,7 +69410,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69195,7 +69468,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69230,7 +69503,7 @@ paths:
                 required: *187
               examples:
                 default:
-                  value: *455
+                  value: *456
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -69266,7 +69539,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69304,7 +69577,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69394,7 +69667,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69477,7 +69750,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69563,7 +69836,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: discussion_number
         in: path
         required: true
@@ -69642,7 +69915,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -69698,7 +69971,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: role
         description: "Filters members returned by their role in the team. Can be one
           of:  \n\\* `member` - normal members of the team.  \n\\* `maintainer` -
@@ -69773,7 +70046,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -69816,7 +70089,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -69902,7 +70175,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -69942,7 +70215,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -69961,13 +70234,13 @@ paths:
               examples:
                 response-if-user-has-an-active-membership-with-team:
                   summary: Response if user has an active membership with team
-                  value: *456
+                  value: *457
                 response-if-user-is-a-team-maintainer:
                   summary: Response if user is a team maintainer
-                  value: *457
+                  value: *458
                 response-if-user-has-a-pending-membership-with-team:
                   summary: Response if user has a pending membership with team
-                  value: *458
+                  value: *459
         '404':
           description: Resource Not Found
           content: *9
@@ -70004,7 +70277,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -70040,10 +70313,10 @@ paths:
               examples:
                 response-if-users-membership-with-team-is-now-active:
                   summary: Response if user's membership with team is now active
-                  value: *459
+                  value: *460
                 response-if-users-membership-with-team-is-now-pending:
                   summary: Response if user's membership with team is now pending
-                  value: *460
+                  value: *461
         '403':
           description: Response if team synchronization is set up
         '422':
@@ -70109,7 +70382,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: username
         in: path
         required: true
@@ -70145,7 +70418,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -70169,7 +70442,7 @@ paths:
                   required: *198
               examples:
                 default:
-                  value: *461
+                  value: *462
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -70214,7 +70487,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: project_id
         in: path
         required: true
@@ -70232,7 +70505,7 @@ paths:
                 required: *198
               examples:
                 default:
-                  value: *462
+                  value: *463
         '404':
           description: Response if project is not managed by this team
         '415':
@@ -70270,7 +70543,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: project_id
         in: path
         required: true
@@ -70357,7 +70630,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: project_id
         in: path
         required: true
@@ -70400,7 +70673,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -70461,7 +70734,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: owner
         in: path
         required: true
@@ -70479,8 +70752,8 @@ paths:
                 title: Team Repository
                 description: A team's access to a repository.
                 type: object
-                properties: *463
-                required: *464
+                properties: *464
+                required: *465
               examples:
                 alternative-response-with-extra-repository-information:
                   value:
@@ -70746,7 +71019,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: owner
         in: path
         required: true
@@ -70809,7 +71082,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: owner
         in: path
         required: true
@@ -70849,7 +71122,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       responses:
         '200':
           description: response
@@ -70896,7 +71169,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       requestBody:
         content:
           application/json:
@@ -70994,7 +71267,7 @@ paths:
       - name: team_id
         in: path
         required: true
-        schema: *451
+        schema: *452
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -71019,7 +71292,7 @@ paths:
                   required: *174
               examples:
                 response-if-child-teams-exist:
-                  value: *465
+                  value: *466
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -71067,7 +71340,7 @@ paths:
                 - title: Private User
                   description: Private User
                   type: object
-                  properties: &466
+                  properties: &467
                     login:
                       type: string
                       example: octocat
@@ -71224,7 +71497,7 @@ paths:
                       type: boolean
                     ldap_dn:
                       type: string
-                  required: &467
+                  required: &468
                   - avatar_url
                   - events_url
                   - followers_url
@@ -71265,7 +71538,7 @@ paths:
                 - title: Public User
                   description: Public User
                   type: object
-                  properties: &489
+                  properties: &490
                     login:
                       type: string
                     id:
@@ -71385,7 +71658,7 @@ paths:
                     collaborators:
                       type: integer
                       example: 3
-                  required: &490
+                  required: &491
                   - avatar_url
                   - events_url
                   - followers_url
@@ -71573,8 +71846,8 @@ paths:
                 title: Private User
                 description: Private User
                 type: object
-                properties: *466
-                required: *467
+                properties: *467
+                required: *468
               examples:
                 default:
                   value:
@@ -71843,7 +72116,7 @@ paths:
                   title: Email
                   description: Email
                   type: object
-                  properties: &468
+                  properties: &469
                     email:
                       type: string
                       format: email
@@ -71858,7 +72131,7 @@ paths:
                       type: string
                       example: public
                       nullable: true
-                  required: &469
+                  required: &470
                   - email
                   - primary
                   - verified
@@ -71921,11 +72194,11 @@ paths:
                   title: Email
                   description: Email
                   type: object
-                  properties: *468
-                  required: *469
+                  properties: *469
+                  required: *470
               examples:
                 default:
-                  value: &485
+                  value: &486
                   - email: octocat@github.com
                     verified: true
                     primary: true
@@ -72004,8 +72277,8 @@ paths:
                   title: Email
                   description: Email
                   type: object
-                  properties: *468
-                  required: *469
+                  properties: *469
+                  required: *470
               examples:
                 default:
                   value:
@@ -72360,7 +72633,7 @@ paths:
                   title: GPG Key
                   description: A unique encryption key
                   type: object
-                  properties: &470
+                  properties: &471
                     id:
                       type: integer
                       example: 3
@@ -72454,7 +72727,7 @@ paths:
                     raw_key:
                       type: string
                       nullable: true
-                  required: &471
+                  required: &472
                   - id
                   - primary_key_id
                   - key_id
@@ -72470,7 +72743,7 @@ paths:
                   - subkeys
               examples:
                 default:
-                  value: &491
+                  value: &492
                   - id: 3
                     primary_key_id: 2
                     key_id: 3262EFF25BA0D270
@@ -72552,11 +72825,11 @@ paths:
                 title: GPG Key
                 description: A unique encryption key
                 type: object
-                properties: *470
-                required: *471
+                properties: *471
+                required: *472
               examples:
                 default:
-                  value: &472
+                  value: &473
                     id: 3
                     primary_key_id: 2
                     key_id: 3262EFF25BA0D270
@@ -72622,7 +72895,7 @@ paths:
         description: gpg_key_id parameter
         in: path
         required: true
-        schema: &473
+        schema: &474
           type: integer
       responses:
         '200':
@@ -72633,11 +72906,11 @@ paths:
                 title: GPG Key
                 description: A unique encryption key
                 type: object
-                properties: *470
-                required: *471
+                properties: *471
+                required: *472
               examples:
                 default:
-                  value: *472
+                  value: *473
         '404':
           description: Resource Not Found
           content: *9
@@ -72671,7 +72944,7 @@ paths:
         description: gpg_key_id parameter
         in: path
         required: true
-        schema: *473
+        schema: *474
       responses:
         '204':
           description: Empty response
@@ -73042,7 +73315,7 @@ paths:
                 required: *138
               examples:
                 default:
-                  value: &474
+                  value: &475
                     limit: collaborators_only
                     origin: user
                     expires_at: '2018-08-17T04:18:39Z'
@@ -73087,7 +73360,7 @@ paths:
                 required: *138
               examples:
                 default:
-                  value: *474
+                  value: *475
         '422':
           description: Validation Failed
           content: *21
@@ -73147,6 +73420,7 @@ paths:
           - created
           - mentioned
           - subscribed
+          - repos
           - all
           default: assigned
       - name: state
@@ -73273,7 +73547,7 @@ paths:
                   title: Key
                   description: Key
                   type: object
-                  properties: &475
+                  properties: &476
                     key_id:
                       type: string
                     key:
@@ -73291,7 +73565,7 @@ paths:
                       type: boolean
                     read_only:
                       type: boolean
-                  required: &476
+                  required: &477
                   - key_id
                   - key
                   - id
@@ -73378,11 +73652,11 @@ paths:
                 title: Key
                 description: Key
                 type: object
-                properties: *475
-                required: *476
+                properties: *476
+                required: *477
               examples:
                 default:
-                  value: &477
+                  value: &478
                     key_id: '012345678912345678'
                     key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
                     id: 2
@@ -73438,11 +73712,11 @@ paths:
                 title: Key
                 description: Key
                 type: object
-                properties: *475
-                required: *476
+                properties: *476
+                required: *477
               examples:
                 default:
-                  value: *477
+                  value: *478
         '404':
           description: Resource Not Found
           content: *9
@@ -73530,7 +73804,7 @@ paths:
                   title: User Marketplace Purchase
                   description: User Marketplace Purchase
                   type: object
-                  properties: &478
+                  properties: &479
                     billing_cycle:
                       type: string
                       example: monthly
@@ -73589,7 +73863,7 @@ paths:
                       type: object
                       properties: *82
                       required: *83
-                  required: &479
+                  required: &480
                   - billing_cycle
                   - next_billing_date
                   - unit_count
@@ -73600,7 +73874,7 @@ paths:
                   - plan
               examples:
                 default:
-                  value: &480
+                  value: &481
                   - billing_cycle: monthly
                     next_billing_date: '2017-11-11T00:00:00Z'
                     unit_count: 
@@ -73683,11 +73957,11 @@ paths:
                   title: User Marketplace Purchase
                   description: User Marketplace Purchase
                   type: object
-                  properties: *478
-                  required: *479
+                  properties: *479
+                  required: *480
               examples:
                 default:
-                  value: *480
+                  value: *481
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -74793,7 +75067,7 @@ paths:
         description: repo_name parameter
         in: path
         required: true
-        schema: *481
+        schema: *482
       responses:
         '204':
           description: Empty response
@@ -74921,7 +75195,7 @@ paths:
                   required: *48
               examples:
                 default:
-                  value: *482
+                  value: *483
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -74977,11 +75251,11 @@ paths:
                 title: Package
                 description: A software package
                 type: object
-                properties: *483
-                required: *484
+                properties: *484
+                required: *485
               examples:
                 default:
-                  value: &492
+                  value: &493
                     id: 40201
                     name: octo-name
                     package_type: rubygems
@@ -75155,6 +75429,12 @@ paths:
         in: path
         required: true
         schema: *156
+      - name: token
+        description: package token
+        schema:
+          type: string
+        required: false
+        in: query
       responses:
         '204':
           description: Empty response
@@ -75183,7 +75463,7 @@ paths:
         If `package_type` is not `container`, your token must also include the `repo` scope.
       tags:
       - packages
-      operationId: packages/get-all-package-versions-for-a-package-owned-by-the-authenticated-user
+      operationId: packages/get-all-package-versions-for-package-owned-by-authenticated-user
       externalDocs:
         description: API method documentation
         url: https://docs.github.com/rest/reference/packages#get-all-package-versions-for-a-package-owned-by-the-authenticated-user
@@ -75200,6 +75480,24 @@ paths:
         in: path
         required: true
         schema: *156
+      - name: page
+        description: Page number of the results to fetch.
+        in: query
+        schema: *14
+      - name: per_page
+        description: Results per page (max 100).
+        in: query
+        schema: *13
+      - name: state
+        in: query
+        required: false
+        description: The state of the package, either active or deleted.
+        schema:
+          type: string
+          enum:
+          - active
+          - deleted
+          default: active
       responses:
         '200':
           description: response
@@ -75553,11 +75851,11 @@ paths:
                   title: Email
                   description: Email
                   type: object
-                  properties: *468
-                  required: *469
+                  properties: *469
+                  required: *470
               examples:
                 default:
-                  value: *485
+                  value: *486
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -75694,7 +75992,7 @@ paths:
               examples:
                 default:
                   summary: Default response
-                  value: &487
+                  value: &488
                   - id: 1296269
                     node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
                     name: Hello-World
@@ -76029,7 +76327,7 @@ paths:
                   required: *350
               examples:
                 default:
-                  value: *486
+                  value: *487
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -76172,7 +76470,7 @@ paths:
               examples:
                 default-response:
                   summary: Default response
-                  value: *487
+                  value: *488
             application/vnd.github.v3.star+json:
               schema:
                 type: array
@@ -76180,7 +76478,7 @@ paths:
                   title: Starred Repository
                   description: Starred Repository
                   type: object
-                  properties: &493
+                  properties: &494
                     starred_at:
                       type: string
                       format: date-time
@@ -76190,13 +76488,13 @@ paths:
                       type: object
                       properties: *54
                       required: *55
-                  required: &494
+                  required: &495
                   - starred_at
                   - repo
               examples:
                 alternative-response-with-star-creation-timestamps:
                   summary: Alternative response with star creation timestamps
-                  value: &495
+                  value: &496
                   - starred_at: '2011-01-16T19:06:43Z'
                     repo:
                       id: 1296269
@@ -76631,7 +76929,7 @@ paths:
         description: A user ID. Only return users with an ID greater than this ID.
         in: query
         required: false
-        schema: *488
+        schema: *489
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -76698,13 +76996,13 @@ paths:
                 - title: Private User
                   description: Private User
                   type: object
-                  properties: *466
-                  required: *467
+                  properties: *467
+                  required: *468
                 - title: Public User
                   description: Public User
                   type: object
-                  properties: *489
-                  required: *490
+                  properties: *490
+                  required: *491
                   additionalProperties: false
               examples:
                 default-response:
@@ -77151,11 +77449,11 @@ paths:
                   title: GPG Key
                   description: A unique encryption key
                   type: object
-                  properties: *470
-                  required: *471
+                  properties: *471
+                  required: *472
               examples:
                 default:
-                  value: *491
+                  value: *492
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -77390,7 +77688,7 @@ paths:
                   required: *48
               examples:
                 default:
-                  value: *482
+                  value: *483
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -77442,11 +77740,11 @@ paths:
                 title: Package
                 description: A software package
                 type: object
-                properties: *483
-                required: *484
+                properties: *484
+                required: *485
               examples:
                 default:
-                  value: *492
+                  value: *493
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -77906,7 +78204,7 @@ paths:
       description: |-
         Gets the summary of the free and paid GitHub Actions minutes used.
 
-        Paid minutes only apply to workflows in private repositories that use GitHub-hosted runners. Minutes used is listed for each GitHub-hosted runner operating system. Any job re-runs are also included in the usage. The usage does not include the multiplier for macOS and Windows runners and is not rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
+        Paid minutes only apply to workflows in private repositories that use GitHub-hosted runners. Minutes used is listed for each GitHub-hosted runner operating system. Any job re-runs are also included in the usage. The usage returned includes any minute multipliers for macOS and Windows runners, and is rounded up to the nearest whole minute. For more information, see "[Managing billing for GitHub Actions](https://help.github.com/github/setting-up-and-managing-billing-and-payments-on-github/managing-billing-for-github-actions)".
 
         Access tokens must have the `user` scope.
       operationId: billing/get-github-actions-billing-user
@@ -78067,7 +78365,7 @@ paths:
               examples:
                 default-response:
                   summary: Default response
-                  value: *487
+                  value: *488
             application/vnd.github.v3.star+json:
               schema:
                 type: array
@@ -78075,12 +78373,12 @@ paths:
                   title: Starred Repository
                   description: Starred Repository
                   type: object
-                  properties: *493
-                  required: *494
+                  properties: *494
+                  required: *495
               examples:
                 alternative-response-with-star-creation-timestamps:
                   summary: Alternative response with star creation timestamps
-                  value: *495
+                  value: *496
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
