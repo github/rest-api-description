@@ -23747,6 +23747,9 @@ paths:
                     a `null` value will remove the custom domain. For more about custom
                     domains, see "[Using a custom domain with GitHub Pages](https://help.github.com/articles/using-a-custom-domain-with-github-pages/)."
                   nullable: true
+                https_enforced:
+                  type: boolean
+                  description: Specify whether HTTPS should be enforced for the repository.
                 public:
                   type: boolean
                   description: Configures access controls for the GitHub Pages site.
@@ -23793,6 +23796,8 @@ paths:
                 - cname
               - required:
                 - public
+              - required:
+                - https_enforced
             example:
               cname: octocatblog.com
               source:
@@ -35080,6 +35085,8 @@ components:
       - permissions
       - created_at
       - updated_at
+      - suspended_by
+      - suspended_at
     license-simple:
       title: License Simple
       description: License Simple
@@ -44114,6 +44121,42 @@ components:
       required:
       - branch
       - path
+    pages-https-certificate:
+      title: Pages Https Certificate
+      type: object
+      properties:
+        state:
+          type: string
+          enum:
+          - new
+          - authorization_created
+          - authorization_pending
+          - authorized
+          - authorization_revoked
+          - issued
+          - uploaded
+          - approved
+          - errored
+          - bad_authz
+          - destroy_pending
+          - dns_changed
+          example: approved
+        description:
+          type: string
+          example: Certificate is approved
+        domains:
+          type: array
+          description: Array of the domain set and its alternate name (if it is configured)
+          example:
+          - example.com
+          - www.example.com
+        expires_at:
+          type: string
+          format: date
+      required:
+      - state
+      - description
+      - domains
     page:
       title: GitHub Pages
       description: The configuration for GitHub Pages for a repository.
@@ -44156,6 +44199,12 @@ components:
             `true`, the site is accessible to anyone on the internet. If set to `false`,
             the site will only be accessible to users who have at least `read` access
             to the repository that published the site.
+          example: true
+        https_certificate:
+          "$ref": "#/components/schemas/pages-https-certificate"
+        https_enforced:
+          type: boolean
+          description: Whether https is enabled on the domain
           example: true
       required:
       - url
@@ -48369,6 +48418,8 @@ components:
         created_at: '2017-07-08T16:18:44-04:00'
         updated_at: '2017-07-08T16:18:44-04:00'
         app_slug: github-actions
+        suspended_at: 
+        suspended_by: 
     base-installation:
       value:
         id: 1
@@ -48413,6 +48464,8 @@ components:
         created_at: '2017-07-08T16:18:44-04:00'
         updated_at: '2017-07-08T16:18:44-04:00'
         app_slug: github-actions
+        suspended_at: 
+        suspended_by: 
     installation-token:
       value:
         token: v1.1f699f1069f60xxx
@@ -50413,6 +50466,8 @@ components:
         - config.yml
         - ".github/issue_TEMPLATE.md"
         app_slug: github-actions
+        suspended_at: 
+        suspended_by: 
     installation-paginated:
       value:
         total_count: 1
@@ -50460,6 +50515,8 @@ components:
           - config.yml
           - ".github/issue_TEMPLATE.md"
           app_slug: github-actions
+          suspended_at: 
+          suspended_by: 
     simple-user-items:
       value:
       - login: octocat
@@ -58601,6 +58658,13 @@ components:
           branch: master
           path: "/"
         public: true
+        https_certificate:
+          state: approved
+          description: Certificate is approved
+          domains:
+          - developer.github.com
+          expires_at: '2021-05-22'
+        https_enforced: true
     page-build-items:
       value:
       - url: https://api.github.com/repos/github/developer.github.com/pages/builds/5472601
@@ -62271,6 +62335,8 @@ components:
           created_at: '2017-07-08T16:18:44-04:00'
           updated_at: '2017-07-08T16:18:44-04:00'
           app_slug: github-actions
+          suspended_at: 
+          suspended_by: 
         - id: 3
           account:
             login: octocat
@@ -62313,6 +62379,8 @@ components:
           created_at: '2017-07-08T16:18:44-04:00'
           updated_at: '2017-07-08T16:18:44-04:00'
           app_slug: github-actions
+          suspended_at: 
+          suspended_by: 
     key-items:
       value:
       - key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
