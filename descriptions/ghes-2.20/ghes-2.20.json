@@ -24481,6 +24481,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "https_enforced": {
+                    "type": "boolean",
+                    "description": "Specify whether HTTPS should be enforced for the repository."
+                  },
                   "public": {
                     "type": "boolean",
                     "description": "Configures access controls for the GitHub Pages site. If public is set to `true`, the site is accessible to anyone on the internet. If set to `false`, the site will only be accessible to users who have at least `read` access to the repository that published the site. This includes anyone in your Enterprise if the repository is set to `internal` visibility. This feature is only available to repositories in an organization on an Enterprise plan."
@@ -24542,6 +24546,11 @@
                   {
                     "required": [
                       "public"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "https_enforced"
                     ]
                   }
                 ]
@@ -49469,6 +49478,51 @@
           "path"
         ]
       },
+      "pages-https-certificate": {
+        "title": "Pages Https Certificate",
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "new",
+              "authorization_created",
+              "authorization_pending",
+              "authorized",
+              "authorization_revoked",
+              "issued",
+              "uploaded",
+              "approved",
+              "errored",
+              "bad_authz",
+              "destroy_pending",
+              "dns_changed"
+            ],
+            "example": "approved"
+          },
+          "description": {
+            "type": "string",
+            "example": "Certificate is approved"
+          },
+          "domains": {
+            "type": "array",
+            "description": "Array of the domain set and its alternate name (if it is configured)",
+            "example": [
+              "example.com",
+              "www.example.com"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "state",
+          "description",
+          "domains"
+        ]
+      },
       "page": {
         "title": "GitHub Pages",
         "description": "The configuration for GitHub Pages for a repository.",
@@ -49515,6 +49569,14 @@
           "public": {
             "type": "boolean",
             "description": "Whether the GitHub Pages site is publicly visible. If set to `true`, the site is accessible to anyone on the internet. If set to `false`, the site will only be accessible to users who have at least `read` access to the repository that published the site.",
+            "example": true
+          },
+          "https_certificate": {
+            "$ref": "#/components/schemas/pages-https-certificate"
+          },
+          "https_enforced": {
+            "type": "boolean",
+            "description": "Whether https is enabled on the domain",
             "example": true
           }
         },
@@ -64426,7 +64488,16 @@
             "branch": "master",
             "path": "/"
           },
-          "public": true
+          "public": true,
+          "https_certificate": {
+            "state": "approved",
+            "description": "Certificate is approved",
+            "domains": [
+              "developer.github.com"
+            ],
+            "expires_at": "2021-05-22"
+          },
+          "https_enforced": true
         }
       },
       "page-build-items": {

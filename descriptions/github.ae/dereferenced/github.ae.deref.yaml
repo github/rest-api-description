@@ -2902,6 +2902,8 @@ paths:
                   - permissions
                   - created_at
                   - updated_at
+                  - suspended_by
+                  - suspended_at
               examples:
                 default:
                   value:
@@ -2947,6 +2949,8 @@ paths:
                     created_at: '2017-07-08T16:18:44-04:00'
                     updated_at: '2017-07-08T16:18:44-04:00'
                     app_slug: github-actions
+                    suspended_at: 
+                    suspended_by: 
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -3034,6 +3038,8 @@ paths:
                     created_at: '2017-07-08T16:18:44-04:00'
                     updated_at: '2017-07-08T16:18:44-04:00'
                     app_slug: github-actions
+                    suspended_at: 
+                    suspended_by: 
         '404':
           description: Resource not found
           content: *24
@@ -14177,6 +14183,8 @@ paths:
                     - config.yml
                     - ".github/issue_TEMPLATE.md"
                     app_slug: github-actions
+                    suspended_at: 
+                    suspended_by: 
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -14277,6 +14285,8 @@ paths:
                       - config.yml
                       - ".github/issue_TEMPLATE.md"
                       app_slug: github-actions
+                      suspended_at: 
+                      suspended_by: 
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -33394,6 +33404,10 @@ paths:
                       properties: *224
                     deletable:
                       type: boolean
+                    warning:
+                      type: string
+                      description: Warning generated when processing the analysis
+                      example: 123 results were ignored
                   required: &234
                   - ref
                   - commit_sha
@@ -33408,6 +33422,7 @@ paths:
                   - sarif_id
                   - tool
                   - deletable
+                  - warning
               examples:
                 default:
                   value:
@@ -33427,6 +33442,7 @@ paths:
                       guid: 
                       version: 2.4.0
                     deletable: true
+                    warning: ''
                   - ref: refs/heads/my-branch
                     commit_sha: c8cff6510d4d084fb1b4aa13b64b97ca12b07321
                     analysis_key: ".github/workflows/shiftleft.yml:build"
@@ -33443,6 +33459,7 @@ paths:
                       guid: 
                       version: 1.2.0
                     deletable: true
+                    warning: ''
         '403':
           description: Response if GitHub Advanced Security is not enabled for this
             repository
@@ -33538,6 +33555,7 @@ paths:
                       guid: 
                       version: 2.4.0
                     deletable: true
+                    warning: ''
         '403':
           description: Response if GitHub Advanced Security is not enabled for this
             repository
@@ -33566,7 +33584,7 @@ paths:
         You must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:
 
         ```
-        gzip -c analysis-data.sarif | base64
+        gzip -c analysis-data.sarif | base64 -w0
         ```
 
         SARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.
@@ -47697,6 +47715,47 @@ paths:
                       who have at least `read` access to the repository that published
                       the site.
                     example: true
+                  https_certificate:
+                    title: Pages Https Certificate
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum:
+                        - new
+                        - authorization_created
+                        - authorization_pending
+                        - authorized
+                        - authorization_revoked
+                        - issued
+                        - uploaded
+                        - approved
+                        - errored
+                        - bad_authz
+                        - destroy_pending
+                        - dns_changed
+                        example: approved
+                      description:
+                        type: string
+                        example: Certificate is approved
+                      domains:
+                        type: array
+                        description: Array of the domain set and its alternate name
+                          (if it is configured)
+                        example:
+                        - example.com
+                        - www.example.com
+                      expires_at:
+                        type: string
+                        format: date
+                    required:
+                    - state
+                    - description
+                    - domains
+                  https_enforced:
+                    type: boolean
+                    description: Whether https is enabled on the domain
+                    example: true
                 required: &310
                 - url
                 - status
@@ -47715,6 +47774,13 @@ paths:
                       branch: master
                       path: "/"
                     public: true
+                    https_certificate:
+                      state: approved
+                      description: Certificate is approved
+                      domains:
+                      - developer.github.com
+                      expires_at: '2021-05-22'
+                    https_enforced: true
         '404':
           description: Resource not found
           content: *24
@@ -47845,6 +47911,9 @@ paths:
                     a `null` value will remove the custom domain. For more about custom
                     domains, see "[Using a custom domain with GitHub Pages](https://help.github.com/articles/using-a-custom-domain-with-github-pages/)."
                   nullable: true
+                https_enforced:
+                  type: boolean
+                  description: Specify whether HTTPS should be enforced for the repository.
                 public:
                   type: boolean
                   description: Configures access controls for the GitHub Pages site.
@@ -47891,6 +47960,8 @@ paths:
                 - cname
               - required:
                 - public
+              - required:
+                - https_enforced
             example:
               cname: octocatblog.com
               source:
@@ -63390,6 +63461,8 @@ paths:
                       created_at: '2017-07-08T16:18:44-04:00'
                       updated_at: '2017-07-08T16:18:44-04:00'
                       app_slug: github-actions
+                      suspended_at: 
+                      suspended_by: 
                     - id: 3
                       account:
                         login: octocat
@@ -63432,6 +63505,8 @@ paths:
                       created_at: '2017-07-08T16:18:44-04:00'
                       updated_at: '2017-07-08T16:18:44-04:00'
                       app_slug: github-actions
+                      suspended_at: 
+                      suspended_by: 
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
