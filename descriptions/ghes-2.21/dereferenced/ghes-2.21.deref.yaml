@@ -42238,6 +42238,47 @@ paths:
                       who have at least `read` access to the repository that published
                       the site.
                     example: true
+                  https_certificate:
+                    title: Pages Https Certificate
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum:
+                        - new
+                        - authorization_created
+                        - authorization_pending
+                        - authorized
+                        - authorization_revoked
+                        - issued
+                        - uploaded
+                        - approved
+                        - errored
+                        - bad_authz
+                        - destroy_pending
+                        - dns_changed
+                        example: approved
+                      description:
+                        type: string
+                        example: Certificate is approved
+                      domains:
+                        type: array
+                        description: Array of the domain set and its alternate name
+                          (if it is configured)
+                        example:
+                        - example.com
+                        - www.example.com
+                      expires_at:
+                        type: string
+                        format: date
+                    required:
+                    - state
+                    - description
+                    - domains
+                  https_enforced:
+                    type: boolean
+                    description: Whether https is enabled on the domain
+                    example: true
                 required: &255
                 - url
                 - status
@@ -42256,6 +42297,13 @@ paths:
                       branch: master
                       path: "/"
                     public: true
+                    https_certificate:
+                      state: approved
+                      description: Certificate is approved
+                      domains:
+                      - developer.github.com
+                      expires_at: '2021-05-22'
+                    https_enforced: true
         '404':
           description: Resource not found
           content: *24
@@ -42384,6 +42432,9 @@ paths:
             schema:
               type: object
               properties:
+                https_enforced:
+                  type: boolean
+                  description: Specify whether HTTPS should be enforced for the repository.
                 public:
                   type: boolean
                   description: Configures access controls for the GitHub Pages site.
@@ -42438,6 +42489,8 @@ paths:
                 - cname
               - required:
                 - public
+              - required:
+                - https_enforced
             example:
               source: master /docs
       responses:

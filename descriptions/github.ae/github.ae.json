@@ -20986,7 +20986,7 @@
     "/repos/{owner}/{repo}/code-scanning/sarifs": {
       "post": {
         "summary": "Upload an analysis as SARIF data",
-        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64\n```\n\nSARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
+        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64 -w0\n```\n\nSARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
         "operationId": "code-scanning/upload-sarif",
         "tags": [
           "code-scanning"
@@ -30219,6 +30219,10 @@
                     "description": "Specify a custom domain for the repository. Sending a `null` value will remove the custom domain. For more about custom domains, see \"[Using a custom domain with GitHub Pages](https://help.github.com/articles/using-a-custom-domain-with-github-pages/).\"",
                     "nullable": true
                   },
+                  "https_enforced": {
+                    "type": "boolean",
+                    "description": "Specify whether HTTPS should be enforced for the repository."
+                  },
                   "public": {
                     "type": "boolean",
                     "description": "Configures access controls for the GitHub Pages site. If public is set to `true`, the site is accessible to anyone on the internet. If set to `false`, the site will only be accessible to users who have at least `read` access to the repository that published the site. This includes anyone in your Enterprise if the repository is set to `internal` visibility. This feature is only available to repositories in an organization on an Enterprise plan."
@@ -30273,6 +30277,11 @@
                   {
                     "required": [
                       "public"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "https_enforced"
                     ]
                   }
                 ]
@@ -44765,7 +44774,9 @@
           "account",
           "permissions",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "suspended_by",
+          "suspended_at"
         ]
       },
       "license-simple": {
@@ -53715,6 +53726,11 @@
           },
           "deletable": {
             "type": "boolean"
+          },
+          "warning": {
+            "type": "string",
+            "description": "Warning generated when processing the analysis",
+            "example": "123 results were ignored"
           }
         },
         "required": [
@@ -53730,7 +53746,8 @@
           "url",
           "sarif_id",
           "tool",
-          "deletable"
+          "deletable",
+          "warning"
         ]
       },
       "code-scanning-analysis-sarif-file": {
@@ -56837,6 +56854,51 @@
           "path"
         ]
       },
+      "pages-https-certificate": {
+        "title": "Pages Https Certificate",
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "new",
+              "authorization_created",
+              "authorization_pending",
+              "authorized",
+              "authorization_revoked",
+              "issued",
+              "uploaded",
+              "approved",
+              "errored",
+              "bad_authz",
+              "destroy_pending",
+              "dns_changed"
+            ],
+            "example": "approved"
+          },
+          "description": {
+            "type": "string",
+            "example": "Certificate is approved"
+          },
+          "domains": {
+            "type": "array",
+            "description": "Array of the domain set and its alternate name (if it is configured)",
+            "example": [
+              "example.com",
+              "www.example.com"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "state",
+          "description",
+          "domains"
+        ]
+      },
       "page": {
         "title": "GitHub Pages",
         "description": "The configuration for GitHub Pages for a repository.",
@@ -56883,6 +56945,14 @@
           "public": {
             "type": "boolean",
             "description": "Whether the GitHub Pages site is publicly visible. If set to `true`, the site is accessible to anyone on the internet. If set to `false`, the site will only be accessible to users who have at least `read` access to the repository that published the site.",
+            "example": true
+          },
+          "https_certificate": {
+            "$ref": "#/components/schemas/pages-https-certificate"
+          },
+          "https_enforced": {
+            "type": "boolean",
+            "description": "Whether https is enabled on the domain",
             "example": true
           }
         },
@@ -61881,7 +61951,9 @@
             "repository_selection": "selected",
             "created_at": "2017-07-08T16:18:44-04:00",
             "updated_at": "2017-07-08T16:18:44-04:00",
-            "app_slug": "github-actions"
+            "app_slug": "github-actions",
+            "suspended_at": null,
+            "suspended_by": null
           }
         ]
       },
@@ -61932,7 +62004,9 @@
           "repository_selection": "selected",
           "created_at": "2017-07-08T16:18:44-04:00",
           "updated_at": "2017-07-08T16:18:44-04:00",
-          "app_slug": "github-actions"
+          "app_slug": "github-actions",
+          "suspended_at": null,
+          "suspended_by": null
         }
       },
       "installation-token": {
@@ -63916,7 +63990,9 @@
             "config.yml",
             ".github/issue_TEMPLATE.md"
           ],
-          "app_slug": "github-actions"
+          "app_slug": "github-actions",
+          "suspended_at": null,
+          "suspended_by": null
         }
       },
       "installation-paginated": {
@@ -63970,7 +64046,9 @@
                 "config.yml",
                 ".github/issue_TEMPLATE.md"
               ],
-              "app_slug": "github-actions"
+              "app_slug": "github-actions",
+              "suspended_at": null,
+              "suspended_by": null
             }
           ]
         }
@@ -69244,7 +69322,8 @@
               "guid": null,
               "version": "2.4.0"
             },
-            "deletable": true
+            "deletable": true,
+            "warning": ""
           },
           {
             "ref": "refs/heads/my-branch",
@@ -69263,7 +69342,8 @@
               "guid": null,
               "version": "1.2.0"
             },
-            "deletable": true
+            "deletable": true,
+            "warning": ""
           }
         ]
       },
@@ -69286,7 +69366,8 @@
             "guid": null,
             "version": "2.4.0"
           },
-          "deletable": true
+          "deletable": true,
+          "warning": ""
         }
       },
       "code-scanning-sarif-upload": {
@@ -73153,7 +73234,16 @@
             "branch": "master",
             "path": "/"
           },
-          "public": true
+          "public": true,
+          "https_certificate": {
+            "state": "approved",
+            "description": "Certificate is approved",
+            "domains": [
+              "developer.github.com"
+            ],
+            "expires_at": "2021-05-22"
+          },
+          "https_enforced": true
         }
       },
       "page-build-items": {
@@ -77135,7 +77225,9 @@
               "repository_selection": "all",
               "created_at": "2017-07-08T16:18:44-04:00",
               "updated_at": "2017-07-08T16:18:44-04:00",
-              "app_slug": "github-actions"
+              "app_slug": "github-actions",
+              "suspended_at": null,
+              "suspended_by": null
             },
             {
               "id": 3,
@@ -77183,7 +77275,9 @@
               "repository_selection": "all",
               "created_at": "2017-07-08T16:18:44-04:00",
               "updated_at": "2017-07-08T16:18:44-04:00",
-              "app_slug": "github-actions"
+              "app_slug": "github-actions",
+              "suspended_at": null,
+              "suspended_by": null
             }
           ]
         }
