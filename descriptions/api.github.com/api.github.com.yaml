@@ -22,6 +22,8 @@ tags:
   description: Monitor charges and usage from Actions and Packages.
 - name: checks
   description: Rich interactions with checks run by your integrations.
+- name: classroom
+  description: Endpoints that give information about Classroom-related data.
 - name: code-scanning
   description: Retrieve code scanning alerts from a repository.
 - name: codes-of-conduct
@@ -17615,11 +17617,6 @@ paths:
               - ref
               - sarif
       responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema: {}
         '202':
           description: Response
           content:
@@ -25255,6 +25252,47 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         previews: []
+        category: repos
+        subcategory: pages
+  "/repos/{owner}/{repo}/pages/health":
+    get:
+      summary: Get a DNS health check for GitHub Pages
+      description: |-
+        Gets a health check of the DNS settings for the `CNAME` record configured for a repository's GitHub Pages.
+
+        The first request to this endpoint returns a `202 Accepted` status and starts an asynchronous background task to get the results for the domain. After the background task completes, subsequent requests to this endpoint return a `200 OK` status with the health check results in the response.
+
+        Users must have admin or owner permissions. GitHub Apps must have the `pages:write` and `administration:write` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/get-pages-health-check
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#get-a-dns-health-check-for-github-pages
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/pages-health-check"
+              examples:
+                default:
+                  "$ref": "#/components/examples/pages-health-check"
+        '202':
+          description: Empty response
+        '400':
+          description: Custom domains are not available for GitHub Pages
+        '422':
+          description: There isn't a CNAME for this page
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
         category: repos
         subcategory: pages
   "/repos/{owner}/{repo}/projects":
@@ -45389,6 +45427,10 @@ components:
       type: string
       description: Identifies the variable values associated with the environment
         in which this analysis was performed.
+    code-scanning-analysis-category:
+      type: string
+      description: Identifies the configuration and environment under which the analysis
+        was executed.
     code-scanning-analysis-created-at:
       type: string
       description: 'The time that the analysis was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -45412,6 +45454,8 @@ components:
           "$ref": "#/components/schemas/code-scanning-analysis-analysis-key"
         environment:
           "$ref": "#/components/schemas/code-scanning-analysis-environment"
+        category:
+          "$ref": "#/components/schemas/code-scanning-analysis-category"
         error:
           type: string
           example: error reading field xyz
@@ -48194,6 +48238,166 @@ components:
       required:
       - url
       - status
+    pages-health-check:
+      title: Pages Health Check Status
+      description: Pages Health Check Status
+      type: object
+      properties:
+        domain:
+          type: object
+          properties:
+            host:
+              type: string
+            uri:
+              type: string
+            nameservers:
+              type: string
+            dns_resolves:
+              type: boolean
+            is_proxied:
+              type: boolean
+              nullable: true
+            is_cloudflare_ip:
+              type: boolean
+              nullable: true
+            is_fastly_ip:
+              type: boolean
+              nullable: true
+            is_old_ip_address:
+              type: boolean
+              nullable: true
+            is_a_record:
+              type: boolean
+              nullable: true
+            has_cname_record:
+              type: boolean
+              nullable: true
+            has_mx_records_present:
+              type: boolean
+              nullable: true
+            is_valid_domain:
+              type: boolean
+            is_apex_domain:
+              type: boolean
+            should_be_a_record:
+              type: boolean
+              nullable: true
+            is_cname_to_github_user_domain:
+              type: boolean
+              nullable: true
+            is_cname_to_pages_dot_github_dot_com:
+              type: boolean
+              nullable: true
+            is_cname_to_fastly:
+              type: boolean
+              nullable: true
+            is_pointed_to_github_pages_ip:
+              type: boolean
+              nullable: true
+            is_non_github_pages_ip_present:
+              type: boolean
+              nullable: true
+            is_pages_domain:
+              type: boolean
+            is_served_by_pages:
+              type: boolean
+              nullable: true
+            is_valid:
+              type: boolean
+            reason:
+              type: string
+              nullable: true
+            responds_to_https:
+              type: boolean
+            enforces_https:
+              type: boolean
+            https_error:
+              type: string
+              nullable: true
+            is_https_eligible:
+              type: boolean
+              nullable: true
+            caa_error:
+              type: string
+              nullable: true
+        alt_domain:
+          type: object
+          nullable: true
+          properties:
+            host:
+              type: string
+            uri:
+              type: string
+            nameservers:
+              type: string
+            dns_resolves:
+              type: boolean
+            is_proxied:
+              type: boolean
+              nullable: true
+            is_cloudflare_ip:
+              type: boolean
+              nullable: true
+            is_fastly_ip:
+              type: boolean
+              nullable: true
+            is_old_ip_address:
+              type: boolean
+              nullable: true
+            is_a_record:
+              type: boolean
+              nullable: true
+            has_cname_record:
+              type: boolean
+              nullable: true
+            has_mx_records_present:
+              type: boolean
+              nullable: true
+            is_valid_domain:
+              type: boolean
+            is_apex_domain:
+              type: boolean
+            should_be_a_record:
+              type: boolean
+              nullable: true
+            is_cname_to_github_user_domain:
+              type: boolean
+              nullable: true
+            is_cname_to_pages_dot_github_dot_com:
+              type: boolean
+              nullable: true
+            is_cname_to_fastly:
+              type: boolean
+              nullable: true
+            is_pointed_to_github_pages_ip:
+              type: boolean
+              nullable: true
+            is_non_github_pages_ip_present:
+              type: boolean
+              nullable: true
+            is_pages_domain:
+              type: boolean
+            is_served_by_pages:
+              type: boolean
+              nullable: true
+            is_valid:
+              type: boolean
+            reason:
+              type: string
+              nullable: true
+            responds_to_https:
+              type: boolean
+            enforces_https:
+              type: boolean
+            https_error:
+              type: string
+              nullable: true
+            is_https_eligible:
+              type: boolean
+              nullable: true
+            caa_error:
+              type: string
+              nullable: true
     pull-request:
       type: object
       title: Pull Request
@@ -60069,6 +60273,7 @@ components:
         analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
         environment: '{"language":"python"}'
         error: ''
+        category: ".github/workflows/codeql-analysis.yml:analyze/language:python"
         created_at: '2020-08-27T15:05:21Z'
         results_count: 17
         rules_count: 49
@@ -60086,6 +60291,7 @@ components:
         analysis_key: ".github/workflows/shiftleft.yml:build"
         environment: "{}"
         error: ''
+        category: ".github/workflows/shiftleft.yml:build/"
         created_at: '2020-08-31T22:46:44Z'
         results_count: 17
         rules_count: 32
@@ -60106,6 +60312,7 @@ components:
         analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
         environment: '{"language":"javascript"}'
         error: ''
+        category: ".github/workflows/codeql-analysis.yml:analyze/language:javascript"
         created_at: '2021-01-13T11:55:49Z'
         results_count: 3
         rules_count: 67
@@ -63901,6 +64108,66 @@ components:
         duration: 2104
         created_at: '2014-02-10T19:00:49Z'
         updated_at: '2014-02-10T19:00:51Z'
+    pages-health-check:
+      value:
+        domain:
+          host: example.com
+          uri: http://example.com/
+          nameservers: default
+          dns_resolves: true
+          is_proxied: false
+          is_cloudflare_ip: false
+          is_fastly_ip: false
+          is_old_ip_address: false
+          is_a_record: true
+          has_cname_record: false
+          has_mx_records_present: false
+          is_valid_domain: true
+          is_apex_domain: true
+          should_be_a_record: true
+          is_cname_to_github_user_domain: false
+          is_cname_to_pages_dot_github_dot_com: false
+          is_cname_to_fastly: false
+          is_pointed_to_github_pages_ip: true
+          is_non_github_pages_ip_present: false
+          is_pages_domain: false
+          is_served_by_pages: true
+          is_valid: true
+          reason: 
+          responds_to_https: true
+          enforces_https: true
+          https_error: 
+          is_https_eligible: true
+          caa_error: 
+        alt_domain:
+          host: www.example.com
+          uri: http://www.example.com/
+          nameservers: default
+          dns_resolves: true
+          is_proxied: false
+          is_cloudflare_ip: false
+          is_fastly_ip: false
+          is_old_ip_address: false
+          is_a_record: true
+          has_cname_record: false
+          has_mx_records_present: false
+          is_valid_domain: true
+          is_apex_domain: true
+          should_be_a_record: true
+          is_cname_to_github_user_domain: false
+          is_cname_to_pages_dot_github_dot_com: false
+          is_cname_to_fastly: false
+          is_pointed_to_github_pages_ip: true
+          is_non_github_pages_ip_present: false
+          is_pages_domain: false
+          is_served_by_pages: true
+          is_valid: true
+          reason: 
+          responds_to_https: true
+          enforces_https: true
+          https_error: 
+          is_https_eligible: true
+          caa_error: 
     project-items-2:
       value:
       - owner_url: https://api.github.com/repos/api-playground/projects-test
