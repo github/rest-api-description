@@ -34042,6 +34042,113 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/releases/{release_id}/reactions": {
+      "post": {
+        "summary": "Create reaction for a release",
+        "description": "Create a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases). A response with a `Status: 200 OK` means that you already added the reaction type to this release.",
+        "tags": [
+          "reactions"
+        ],
+        "operationId": "reactions/create-for-release",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-release"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/release_id"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types) to add to the release.",
+                    "enum": [
+                      "+1",
+                      "laugh",
+                      "heart",
+                      "hooray",
+                      "rocket",
+                      "eyes"
+                    ]
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              },
+              "example": {
+                "content": "heart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reaction exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/reaction"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/reaction"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Reaction created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/reaction"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/reaction"
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "$ref": "#/components/responses/preview_header_missing"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ],
+          "category": "reactions",
+          "subcategory": null
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}": {
+    },
     "/repos/{owner}/{repo}/stargazers": {
       "get": {
         "summary": "List stargazers",
@@ -53019,19 +53126,11 @@
         "type": "string",
         "description": "**Required when the state is dismissed.** The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
         "nullable": true,
-        "oneOf": [
-          {
-            "enum": [
-              "false positive",
-              "won't fix",
-              "used in tests"
-            ]
-          },
-          {
-            "enum": [
-              null
-            ]
-          }
+        "enum": [
+          null,
+          "false positive",
+          "won't fix",
+          "used in tests"
         ]
       },
       "code-scanning-alert-rule-summary": {
@@ -58937,6 +59036,9 @@
             "description": "The URL of the release discussion.",
             "type": "string",
             "format": "uri"
+          },
+          "reactions": {
+            "$ref": "#/components/schemas/reaction-rollup"
           }
         },
         "required": [

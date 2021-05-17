@@ -22016,7 +22016,7 @@
     "/repos/{owner}/{repo}/code-scanning/alerts": {
       "get": {
         "summary": "List code scanning alerts for a repository",
-        "description": "Lists all open code scanning alerts for the default branch (usually `main`\nor `master`). You must use an access token with the `security_events` scope to use\nthis endpoint. GitHub Apps must have the `security_events` read permission to use\nthis endpoint.\n\nThe response includes a `most_recent_instance` object.\nThis provides details of the most recent instance of this alert\nfor the default branch or for the specified Git reference\n(if you used `ref` in the request).",
+        "description": "Lists all open code scanning alerts for the default branch (usually `main`\nor `master`). You must use an access token with the `security_events` scope to use\nthis endpoint. GitHub Apps must have the `security_events` read permission to use\nthis endpoint.",
         "tags": [
           "code-scanning"
         ],
@@ -22100,7 +22100,7 @@
     "/repos/{owner}/{repo}/code-scanning/alerts/{alert_number}": {
       "get": {
         "summary": "Get a code scanning alert",
-        "description": "Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.",
+        "description": "Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe instances field is deprecated and will, in future, not be included in the response for this endpoint. From GitHub Enterprise Server 3.0, the same information can be retrieved via a GET request to the URL specified by `instances_url`, added in that release.",
         "tags": [
           "code-scanning"
         ],
@@ -55248,13 +55248,6 @@
         "readOnly": true,
         "nullable": false
       },
-      "alert-instances-url": {
-        "type": "string",
-        "description": "The REST API URL for fetching the list of instances for an alert.",
-        "format": "uri",
-        "readOnly": true,
-        "nullable": false
-      },
       "code-scanning-alert-dismissed-at": {
         "type": "string",
         "description": "The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
@@ -55266,19 +55259,11 @@
         "type": "string",
         "description": "**Required when the state is dismissed.** The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
         "nullable": true,
-        "oneOf": [
-          {
-            "enum": [
-              "false positive",
-              "won't fix",
-              "used in tests"
-            ]
-          },
-          {
-            "enum": [
-              null
-            ]
-          }
+        "enum": [
+          null,
+          "false positive",
+          "won't fix",
+          "used in tests"
         ]
       },
       "code-scanning-alert-rule-summary": {
@@ -55425,9 +55410,6 @@
           "html_url": {
             "$ref": "#/components/schemas/alert-html-url"
           },
-          "instances_url": {
-            "$ref": "#/components/schemas/alert-instances-url"
-          },
           "state": {
             "$ref": "#/components/schemas/code-scanning-alert-state"
           },
@@ -55446,8 +55428,11 @@
           "tool": {
             "$ref": "#/components/schemas/code-scanning-analysis-tool"
           },
-          "most_recent_instance": {
+          "instance": {
             "$ref": "#/components/schemas/code-scanning-alert-instance"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/code-scanning-alert-classification"
           }
         },
         "required": [
@@ -55455,14 +55440,14 @@
           "created_at",
           "url",
           "html_url",
-          "instances_url",
           "state",
           "dismissed_by",
           "dismissed_at",
           "dismissed_reason",
           "rule",
           "tool",
-          "most_recent_instance"
+          "instance",
+          "classification"
         ]
       },
       "code-scanning-alert-rule": {
@@ -55529,9 +55514,6 @@
           "instances": {
             "deprecated": true
           },
-          "instances_url": {
-            "$ref": "#/components/schemas/alert-instances-url"
-          },
           "state": {
             "$ref": "#/components/schemas/code-scanning-alert-state"
           },
@@ -55549,9 +55531,6 @@
           },
           "tool": {
             "$ref": "#/components/schemas/code-scanning-analysis-tool"
-          },
-          "most_recent_instance": {
-            "$ref": "#/components/schemas/code-scanning-alert-instance"
           }
         },
         "required": [
@@ -55559,14 +55538,12 @@
           "created_at",
           "url",
           "html_url",
-          "instances_url",
           "state",
           "dismissed_by",
           "dismissed_at",
           "dismissed_reason",
           "rule",
-          "tool",
-          "most_recent_instance"
+          "tool"
         ]
       },
       "code-scanning-alert-set-state": {
@@ -61134,6 +61111,9 @@
           },
           "body_text": {
             "type": "string"
+          },
+          "reactions": {
+            "$ref": "#/components/schemas/reaction-rollup"
           }
         },
         "required": [
@@ -71528,7 +71508,7 @@
               "guid": null,
               "version": "2.4.0"
             },
-            "most_recent_instance": {
+            "instance": {
               "ref": "refs/heads/main",
               "analysis_key": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
               "environment": "{}",
@@ -71547,8 +71527,7 @@
               "classifications": [
                 "test"
               ]
-            },
-            "instances_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4/instances"
+            }
           },
           {
             "number": 3,
@@ -71589,7 +71568,7 @@
               "guid": null,
               "version": "2.4.0"
             },
-            "most_recent_instance": {
+            "instance": {
               "ref": "refs/heads/main",
               "analysis_key": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
               "environment": "{}",
@@ -71608,8 +71587,7 @@
               "classifications": [
 
               ]
-            },
-            "instances_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3/instances"
+            }
           }
         ]
       },
@@ -71659,28 +71637,48 @@
             "guid": null,
             "version": "2.4.0"
           },
-          "most_recent_instance": {
-            "ref": "refs/heads/main",
-            "analysis_key": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
-            "environment": "{}",
-            "state": "dismissed",
-            "commit_sha": "39406e42cb832f683daa691dd652a8dc36ee8930",
-            "message": {
-              "text": "This path depends on a user-provided value."
+          "instances": [
+            {
+              "ref": "refs/heads/main",
+              "analysis_key": ".github/workflows/codeql-analysis.yml:analyze",
+              "environment": "{\"language\":\"javascript\"}",
+              "state": "dismissed",
+              "commit_sha": "39406e42cb832f683daa691dd652a8dc36ee8930",
+              "message": {
+                "text": "Unsanitized zip archive item path, which may contain '..', is used in a file system operation."
+              },
+              "location": {
+                "path": "src/badcode.js",
+                "start_line": 917,
+                "end_line": 917,
+                "start_column": 7,
+                "end_column": 18
+              },
+              "classifications": [
+                "test"
+              ]
             },
-            "location": {
-              "path": "spec-main/api-session-spec.ts",
-              "start_line": 917,
-              "end_line": 917,
-              "start_column": 7,
-              "end_column": 18
-            },
-            "classifications": [
-              "test"
-            ]
-          },
-          "instances_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances",
-          "instances": null
+            {
+              "ref": "refs/pull/3740/head",
+              "analysis_key": ".github/workflows/codeql-analysis.yml:analyze",
+              "environment": "{\"language\":\"javascript\"}",
+              "state": "dismissed",
+              "commit_sha": "42cb832f6839406e3daa691dd652a8dc36ee8930",
+              "message": {
+                "text": "Unsanitized zip archive item path, which may contain '..', is used in a file system operation."
+              },
+              "location": {
+                "path": "src/badcode.js",
+                "start_line": 917,
+                "end_line": 917,
+                "start_column": 7,
+                "end_column": 18
+              },
+              "classifications": [
+                "test"
+              ]
+            }
+          ]
         }
       },
       "code-scanning-alert-dismissed": {
@@ -71729,27 +71727,48 @@
             "guid": null,
             "version": "2.4.0"
           },
-          "most_recent_instance": {
-            "ref": "refs/heads/main",
-            "analysis_key": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
-            "environment": "{}",
-            "state": "dismissed",
-            "commit_sha": "39406e42cb832f683daa691dd652a8dc36ee8930",
-            "message": {
-              "text": "This path depends on a user-provided value."
+          "instances": [
+            {
+              "ref": "refs/heads/main",
+              "analysis_key": ".github/workflows/codeql-analysis.yml:analyze",
+              "environment": "{\"language\":\"javascript\"}",
+              "state": "dismissed",
+              "commit_sha": "4ed4204b0e16480197a64500c4b5848ddfda9561",
+              "message": {
+                "text": "Unsanitized zip archive item path, which may contain '..', is used in a file system operation."
+              },
+              "location": {
+                "path": "src/zipslip.js",
+                "start_line": 20,
+                "end_line": 20,
+                "start_column": 37,
+                "end_column": 45
+              },
+              "classifications": [
+                "test"
+              ]
             },
-            "location": {
-              "path": "spec-main/api-session-spec.ts",
-              "start_line": 917,
-              "end_line": 917,
-              "start_column": 7,
-              "end_column": 18
-            },
-            "classifications": [
-              "test"
-            ]
-          },
-          "instances_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances"
+            {
+              "ref": "refs/pull/3740/head",
+              "analysis_key": ".github/workflows/codeql-analysis.yml:analyze",
+              "environment": "{\"language\":\"javascript\"}",
+              "state": "dismissed",
+              "commit_sha": "fdc19ddaf04649b910b7267b82c0997a4bbe165e",
+              "message": {
+                "text": "Unsanitized zip archive item path, which may contain '..', is used in a file system operation."
+              },
+              "location": {
+                "path": "src/zipslip.js",
+                "start_line": 20,
+                "end_line": 20,
+                "start_column": 37,
+                "end_column": 45
+              },
+              "classifications": [
+                "test"
+              ]
+            }
+          ]
         }
       },
       "code-scanning-analysis-items": {
