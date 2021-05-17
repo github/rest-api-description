@@ -8605,7 +8605,7 @@ paths:
           content: *32
         '503':
           description: Service unavailable
-          content: &232
+          content: &233
             application/json:
               schema:
                 type: object
@@ -33978,11 +33978,6 @@ paths:
         or `master`). You must use an access token with the `security_events` scope to use
         this endpoint. GitHub Apps must have the `security_events` read permission to use
         this endpoint.
-
-        The response includes a `most_recent_instance` object.
-        This provides details of the most recent instance of this alert
-        for the default branch or for the specified Git reference
-        (if you used `ref` in the request).
       tags:
       - code-scanning
       operationId: code-scanning/list-alerts-for-repo
@@ -34085,13 +34080,6 @@ paths:
                       format: uri
                       readOnly: true
                       nullable: false
-                    instances_url:
-                      type: string
-                      description: The REST API URL for fetching the list of instances
-                        for an alert.
-                      format: uri
-                      readOnly: true
-                      nullable: false
                     state:
                       type: string
                       description: State of a code scanning alert.
@@ -34116,7 +34104,7 @@ paths:
                         reason for dismissing or closing the alert. Can be one of:
                         `false positive`, `won't fix`, and `used in tests`."
                       nullable: true
-                      oneOf: &233
+                      oneOf: &234
                       - enum:
                         - false positive
                         - won't fix
@@ -34149,7 +34137,7 @@ paths:
                             the alert.
                     tool:
                       type: object
-                      properties: &234
+                      properties: &235
                         name:
                           type: string
                           description: The name of the tool used to generate the code
@@ -34164,9 +34152,9 @@ paths:
                           type: string
                           description: The GUID of the tool used to generate the code
                             scanning analysis, if provided in the uploaded SARIF data.
-                    most_recent_instance:
+                    instance:
                       type: object
-                      properties: &235
+                      properties:
                         ref:
                           type: string
                           description: |-
@@ -34220,24 +34208,30 @@ paths:
                             description: A classification of the file. For example
                               to identify it as generated.
                             nullable: true
-                            enum:
+                            enum: &232
                             - source
                             - generated
                             - test
                             - library
+                    classification:
+                      type: string
+                      description: A classification of the file. For example to identify
+                        it as generated.
+                      nullable: true
+                      enum: *232
                   required:
                   - number
                   - created_at
                   - url
                   - html_url
-                  - instances_url
                   - state
                   - dismissed_by
                   - dismissed_at
                   - dismissed_reason
                   - rule
                   - tool
-                  - most_recent_instance
+                  - instance
+                  - classification
               examples:
                 default:
                   value:
@@ -34258,7 +34252,7 @@ paths:
                       name: CodeQL
                       guid: 
                       version: 2.4.0
-                    most_recent_instance:
+                    instance:
                       ref: refs/heads/main
                       analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
                       environment: "{}"
@@ -34274,7 +34268,6 @@ paths:
                         end_column: 18
                       classifications:
                       - test
-                    instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4/instances
                   - number: 3
                     created_at: '2020-02-13T12:29:18Z'
                     url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
@@ -34310,7 +34303,7 @@ paths:
                       name: CodeQL
                       guid: 
                       version: 2.4.0
-                    most_recent_instance:
+                    instance:
                       ref: refs/heads/main
                       analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
                       environment: "{}"
@@ -34325,7 +34318,6 @@ paths:
                         start_column: 7
                         end_column: 18
                       classifications: []
-                    instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3/instances
         '403':
           description: Forbidden
           content: *32
@@ -34334,7 +34326,7 @@ paths:
           content: *25
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -34348,7 +34340,7 @@ paths:
         Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.
 
         **Deprecation notice**:
-        The instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.
+        The instances field is deprecated and will, in future, not be included in the response for this endpoint. From GitHub Enterprise Server 3.0, the same information can be retrieved via a GET request to the URL specified by `instances_url`, added in that release.
       tags:
       - code-scanning
       operationId: code-scanning/get-alert
@@ -34410,13 +34402,6 @@ paths:
                     nullable: false
                   instances:
                     deprecated: true
-                  instances_url:
-                    type: string
-                    description: The REST API URL for fetching the list of instances
-                      for an alert.
-                    format: uri
-                    readOnly: true
-                    nullable: false
                   state:
                     type: string
                     description: State of a code scanning alert.
@@ -34441,7 +34426,7 @@ paths:
                       for dismissing or closing the alert. Can be one of: `false positive`,
                       `won't fix`, and `used in tests`."
                     nullable: true
-                    oneOf: *233
+                    oneOf: *234
                   rule:
                     type: object
                     properties:
@@ -34482,23 +34467,18 @@ paths:
                           Flavored Markdown.
                   tool:
                     type: object
-                    properties: *234
-                  most_recent_instance:
-                    type: object
                     properties: *235
                 required: &238
                 - number
                 - created_at
                 - url
                 - html_url
-                - instances_url
                 - state
                 - dismissed_by
                 - dismissed_at
                 - dismissed_reason
                 - rule
                 - tool
-                - most_recent_instance
               examples:
                 default:
                   value:
@@ -34550,24 +34530,39 @@ paths:
                       name: CodeQL
                       guid: 
                       version: 2.4.0
-                    most_recent_instance:
-                      ref: refs/heads/main
-                      analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-                      environment: "{}"
+                    instances:
+                    - ref: refs/heads/main
+                      analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+                      environment: '{"language":"javascript"}'
                       state: dismissed
                       commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
                       message:
-                        text: This path depends on a user-provided value.
+                        text: Unsanitized zip archive item path, which may contain
+                          '..', is used in a file system operation.
                       location:
-                        path: spec-main/api-session-spec.ts
+                        path: src/badcode.js
                         start_line: 917
                         end_line: 917
                         start_column: 7
                         end_column: 18
                       classifications:
                       - test
-                    instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances
-                    instances: 
+                    - ref: refs/pull/3740/head
+                      analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+                      environment: '{"language":"javascript"}'
+                      state: dismissed
+                      commit_sha: 42cb832f6839406e3daa691dd652a8dc36ee8930
+                      message:
+                        text: Unsanitized zip archive item path, which may contain
+                          '..', is used in a file system operation.
+                      location:
+                        path: src/badcode.js
+                        start_line: 917
+                        end_line: 917
+                        start_column: 7
+                        end_column: 18
+                      classifications:
+                      - test
         '403':
           description: Forbidden
           content: *32
@@ -34576,7 +34571,7 @@ paths:
           content: *25
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -34631,7 +34626,7 @@ paths:
                     for dismissing or closing the alert. Can be one of: `false positive`,
                     `won't fix`, and `used in tests`."
                   nullable: true
-                  oneOf: *233
+                  oneOf: *234
               required:
               - state
             example:
@@ -34697,23 +34692,39 @@ paths:
                       name: CodeQL
                       guid: 
                       version: 2.4.0
-                    most_recent_instance:
-                      ref: refs/heads/main
-                      analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-                      environment: "{}"
+                    instances:
+                    - ref: refs/heads/main
+                      analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+                      environment: '{"language":"javascript"}'
                       state: dismissed
-                      commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
+                      commit_sha: 4ed4204b0e16480197a64500c4b5848ddfda9561
                       message:
-                        text: This path depends on a user-provided value.
+                        text: Unsanitized zip archive item path, which may contain
+                          '..', is used in a file system operation.
                       location:
-                        path: spec-main/api-session-spec.ts
-                        start_line: 917
-                        end_line: 917
-                        start_column: 7
-                        end_column: 18
+                        path: src/zipslip.js
+                        start_line: 20
+                        end_line: 20
+                        start_column: 37
+                        end_column: 45
                       classifications:
                       - test
-                    instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances
+                    - ref: refs/pull/3740/head
+                      analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+                      environment: '{"language":"javascript"}'
+                      state: dismissed
+                      commit_sha: fdc19ddaf04649b910b7267b82c0997a4bbe165e
+                      message:
+                        text: Unsanitized zip archive item path, which may contain
+                          '..', is used in a file system operation.
+                      location:
+                        path: src/zipslip.js
+                        start_line: 20
+                        end_line: 20
+                        start_column: 37
+                        end_column: 45
+                      classifications:
+                      - test
         '403':
           description: Forbidden
           content: *32
@@ -34722,7 +34733,7 @@ paths:
           content: *25
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -34875,7 +34886,7 @@ paths:
                       nullable: false
                     tool:
                       type: object
-                      properties: *234
+                      properties: *235
                     deletable:
                       type: boolean
                     warning:
@@ -34944,7 +34955,7 @@ paths:
           content: *25
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -35071,7 +35082,7 @@ paths:
           description: Payload Too Large if the sarif field is too large
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -39973,7 +39984,7 @@ paths:
           content: *247
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44610,7 +44621,7 @@ paths:
           content: *37
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '404':
           description: Resource not found
           content: *25
@@ -46023,7 +46034,7 @@ paths:
           content: *37
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '403':
           description: Forbidden
           content: *32
@@ -55790,6 +55801,11 @@ paths:
                       type: string
                     body_text:
                       type: string
+                    reactions:
+                      title: Reaction Rollup
+                      type: object
+                      properties: *83
+                      required: *84
                   required: &346
                   - assets_url
                   - upload_url
@@ -58879,7 +58895,7 @@ paths:
           description: Not modified
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '422':
           description: Validation failed
           content: *37
@@ -59606,7 +59622,7 @@ paths:
                       author_association: COLLABORATOR
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '422':
           description: Validation failed
           content: *37
@@ -60254,7 +60270,7 @@ paths:
                         html_url: https://api.github.com/licenses/mit
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '422':
           description: Validation failed
           content: *37
@@ -60744,7 +60760,7 @@ paths:
           description: Not modified
         '503':
           description: Service unavailable
-          content: *232
+          content: *233
         '422':
           description: Validation failed
           content: *37

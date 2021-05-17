@@ -15878,11 +15878,6 @@ paths:
         or `master`). You must use an access token with the `security_events` scope to use
         this endpoint. GitHub Apps must have the `security_events` read permission to use
         this endpoint.
-
-        The response includes a `most_recent_instance` object.
-        This provides details of the most recent instance of this alert
-        for the default branch or for the specified Git reference
-        (if you used `ref` in the request).
       tags:
       - code-scanning
       operationId: code-scanning/list-alerts-for-repo
@@ -15935,7 +15930,7 @@ paths:
         Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.
 
         **Deprecation notice**:
-        The instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.
+        The instances field is deprecated and will, in future, not be included in the response for this endpoint. From GitHub Enterprise Server 3.0, the same information can be retrieved via a GET request to the URL specified by `instances_url`, added in that release.
       tags:
       - code-scanning
       operationId: code-scanning/get-alert
@@ -40255,12 +40250,6 @@ components:
       format: uri
       readOnly: true
       nullable: false
-    alert-instances-url:
-      type: string
-      description: The REST API URL for fetching the list of instances for an alert.
-      format: uri
-      readOnly: true
-      nullable: false
     code-scanning-alert-dismissed-at:
       type: string
       description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -40388,8 +40377,6 @@ components:
           "$ref": "#/components/schemas/alert-url"
         html_url:
           "$ref": "#/components/schemas/alert-html-url"
-        instances_url:
-          "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         dismissed_by:
@@ -40402,21 +40389,23 @@ components:
           "$ref": "#/components/schemas/code-scanning-alert-rule-summary"
         tool:
           "$ref": "#/components/schemas/code-scanning-analysis-tool"
-        most_recent_instance:
+        instance:
           "$ref": "#/components/schemas/code-scanning-alert-instance"
+        classification:
+          "$ref": "#/components/schemas/code-scanning-alert-classification"
       required:
       - number
       - created_at
       - url
       - html_url
-      - instances_url
       - state
       - dismissed_by
       - dismissed_at
       - dismissed_reason
       - rule
       - tool
-      - most_recent_instance
+      - instance
+      - classification
     code-scanning-alert-rule:
       type: object
       properties:
@@ -40465,8 +40454,6 @@ components:
           "$ref": "#/components/schemas/alert-html-url"
         instances:
           deprecated: true
-        instances_url:
-          "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         dismissed_by:
@@ -40479,21 +40466,17 @@ components:
           "$ref": "#/components/schemas/code-scanning-alert-rule"
         tool:
           "$ref": "#/components/schemas/code-scanning-analysis-tool"
-        most_recent_instance:
-          "$ref": "#/components/schemas/code-scanning-alert-instance"
       required:
       - number
       - created_at
       - url
       - html_url
-      - instances_url
       - state
       - dismissed_by
       - dismissed_at
       - dismissed_reason
       - rule
       - tool
-      - most_recent_instance
     code-scanning-alert-set-state:
       description: Sets the state of the code scanning alert. Can be one of `open`
         or `dismissed`. You must provide `dismissed_reason` when you set the state
@@ -44683,6 +44666,8 @@ components:
           type: string
         body_text:
           type: string
+        reactions:
+          "$ref": "#/components/schemas/reaction-rollup"
       required:
       - assets_url
       - upload_url
@@ -53590,7 +53575,7 @@ components:
           name: CodeQL
           guid: 
           version: 2.4.0
-        most_recent_instance:
+        instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
@@ -53606,7 +53591,6 @@ components:
             end_column: 18
           classifications:
           - test
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4/instances
       - number: 3
         created_at: '2020-02-13T12:29:18Z'
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
@@ -53642,7 +53626,7 @@ components:
           name: CodeQL
           guid: 
           version: 2.4.0
-        most_recent_instance:
+        instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
@@ -53657,7 +53641,6 @@ components:
             start_column: 7
             end_column: 18
           classifications: []
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3/instances
     code-scanning-alert:
       value:
         number: 42
@@ -53705,24 +53688,39 @@ components:
           name: CodeQL
           guid: 
           version: 2.4.0
-        most_recent_instance:
-          ref: refs/heads/main
-          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-          environment: "{}"
+        instances:
+        - ref: refs/heads/main
+          analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+          environment: '{"language":"javascript"}'
           state: dismissed
           commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
           message:
-            text: This path depends on a user-provided value.
+            text: Unsanitized zip archive item path, which may contain '..', is used
+              in a file system operation.
           location:
-            path: spec-main/api-session-spec.ts
+            path: src/badcode.js
             start_line: 917
             end_line: 917
             start_column: 7
             end_column: 18
           classifications:
           - test
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances
-        instances: 
+        - ref: refs/pull/3740/head
+          analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+          environment: '{"language":"javascript"}'
+          state: dismissed
+          commit_sha: 42cb832f6839406e3daa691dd652a8dc36ee8930
+          message:
+            text: Unsanitized zip archive item path, which may contain '..', is used
+              in a file system operation.
+          location:
+            path: src/badcode.js
+            start_line: 917
+            end_line: 917
+            start_column: 7
+            end_column: 18
+          classifications:
+          - test
     code-scanning-alert-dismissed:
       value:
         number: 42
@@ -53770,23 +53768,39 @@ components:
           name: CodeQL
           guid: 
           version: 2.4.0
-        most_recent_instance:
-          ref: refs/heads/main
-          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-          environment: "{}"
+        instances:
+        - ref: refs/heads/main
+          analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+          environment: '{"language":"javascript"}'
           state: dismissed
-          commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
+          commit_sha: 4ed4204b0e16480197a64500c4b5848ddfda9561
           message:
-            text: This path depends on a user-provided value.
+            text: Unsanitized zip archive item path, which may contain '..', is used
+              in a file system operation.
           location:
-            path: spec-main/api-session-spec.ts
-            start_line: 917
-            end_line: 917
-            start_column: 7
-            end_column: 18
+            path: src/zipslip.js
+            start_line: 20
+            end_line: 20
+            start_column: 37
+            end_column: 45
           classifications:
           - test
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42/instances
+        - ref: refs/pull/3740/head
+          analysis_key: ".github/workflows/codeql-analysis.yml:analyze"
+          environment: '{"language":"javascript"}'
+          state: dismissed
+          commit_sha: fdc19ddaf04649b910b7267b82c0997a4bbe165e
+          message:
+            text: Unsanitized zip archive item path, which may contain '..', is used
+              in a file system operation.
+          location:
+            path: src/zipslip.js
+            start_line: 20
+            end_line: 20
+            start_column: 37
+            end_column: 45
+          classifications:
+          - test
     code-scanning-analysis-items:
       value:
       - ref: refs/heads/main

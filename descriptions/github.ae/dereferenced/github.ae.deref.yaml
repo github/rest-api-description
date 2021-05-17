@@ -54142,6 +54142,11 @@ paths:
                       description: The URL of the release discussion.
                       type: string
                       format: uri
+                    reactions:
+                      title: Reaction Rollup
+                      type: object
+                      properties: *80
+                      required: *81
                   required: &341
                   - assets_url
                   - upload_url
@@ -55045,6 +55050,105 @@ paths:
         previews: []
         category: repos
         subcategory: releases
+  "/repos/{owner}/{repo}/releases/{release_id}/reactions":
+    post:
+      summary: Create reaction for a release
+      description: 'Create a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).
+        A response with a `Status: 200 OK` means that you already added the reaction
+        type to this release.'
+      tags:
+      - reactions
+      operationId: reactions/create-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-release
+      parameters:
+      - name: owner
+        in: path
+        required: true
+        schema: *150
+      - name: repo
+        in: path
+        required: true
+        schema: *151
+      - name: release_id
+        description: release_id parameter
+        in: path
+        required: true
+        schema: *347
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types)
+                    to add to the release.
+                  enum:
+                  - "+1"
+                  - laugh
+                  - heart
+                  - hooray
+                  - rocket
+                  - eyes
+              required:
+              - content
+            example:
+              content: heart
+      responses:
+        '200':
+          description: Reaction exists
+          content:
+            application/json:
+              schema:
+                title: Reaction
+                description: Reactions to conversations provide a way to help people
+                  express their feelings more simply and effectively.
+                type: object
+                properties: *139
+                required: *140
+              examples:
+                default:
+                  value: *141
+        '201':
+          description: Reaction created
+          content:
+            application/json:
+              schema:
+                title: Reaction
+                description: Reactions to conversations provide a way to help people
+                  express their feelings more simply and effectively.
+                type: object
+                properties: *139
+                required: *140
+              examples:
+                default:
+                  value: *141
+        '415':
+          description: Preview header missing
+          content: *29
+        '422':
+          description: Validation failed
+          content: *30
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
+        category: reactions
+        subcategory: 
+  "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}": {}
   "/repos/{owner}/{repo}/stargazers":
     get:
       summary: List stargazers
