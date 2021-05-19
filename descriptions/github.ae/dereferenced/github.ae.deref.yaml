@@ -4802,129 +4802,6 @@ paths:
             ```
         category: codes-of-conduct
         subcategory: 
-  "/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: content_reference_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                title: ContentReferenceAttachment
-                description: Content Reference attachments allow you to provide context
-                  around URLs posted in comments
-                type: object
-                properties:
-                  id:
-                    description: The ID of the attachment
-                    example: 21
-                    type: integer
-                  title:
-                    description: The title of the attachment
-                    example: Title of the attachment
-                    type: string
-                    maxLength: 1024
-                  body:
-                    description: The body of the attachment
-                    example: Body of the attachment
-                    type: string
-                    maxLength: 262144
-                  node_id:
-                    description: The node_id of the content attachment
-                    example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-                    type: string
-                required:
-                - id
-                - title
-                - body
-              examples:
-                default:
-                  value:
-                    id: 101
-                    title: "[A-1234] Error found in core/models.py file'"
-                    body: |-
-                      You have used an email that already exists for the user_email_uniq field.
-                       ## DETAILS:
-
-                      The (email)=(Octocat@github.com) already exists.
-
-                       The error was found in core/models.py in get_or_create_user at line 62.
-
-                       self.save()
-        '422':
-          description: Validation failed
-          content: *30
-        '404':
-          description: Resource not found
-          content: *24
-        '410':
-          description: Gone
-          content: &124
-            application/json:
-              schema:
-                title: Basic Error
-                description: Basic Error
-                type: object
-                properties: *28
-        '415':
-          description: Preview header missing
-          content: *29
-        '304':
-          description: Not modified
-        '403':
-          description: Forbidden
-          content: *35
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
   "/emojis":
     get:
       summary: Get emojis
@@ -10287,12 +10164,12 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: &150
+        schema: &149
           type: string
       - name: repo
         in: path
         required: true
-        schema: &151
+        schema: &150
           type: string
       - name: per_page
         description: Results per page (max 100).
@@ -11917,7 +11794,7 @@ paths:
         Gets the GitHub Actions permissions policy for repositories and allowed actions in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
-      operationId: actions/actions-policies/get-github-actions-permissions-organization
+      operationId: actions/get-github-actions-permissions-organization
       tags:
       - actions
       externalDocs:
@@ -15084,7 +14961,13 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: &162
+            application/json:
+              schema:
+                title: Basic Error
+                description: Basic Error
+                type: object
+                properties: *28
         '422':
           description: Validation failed
           content: *121
@@ -15324,7 +15207,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: &149
+                  value: &148
                   - id: 1296269
                     node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
                     name: Hello-World
@@ -15901,7 +15784,7 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: &152
+                  properties: &151
                     id:
                       type: integer
                     node_id:
@@ -15936,7 +15819,7 @@ paths:
                         description: Groups of organization members that gives permissions
                           on specified repositories.
                         type: object
-                        properties: &125
+                        properties: &124
                           id:
                             description: Unique identifier of the team
                             type: integer
@@ -15986,7 +15869,7 @@ paths:
                               within LDAP environment
                             example: uid=example,ou=users,dc=github,dc=com
                             type: string
-                        required: &126
+                        required: &125
                         - id
                         - node_id
                         - url
@@ -15998,7 +15881,7 @@ paths:
                         - repositories_url
                         - slug
                         nullable: true
-                  required: &153
+                  required: &152
                   - id
                   - node_id
                   - url
@@ -16125,7 +16008,7 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: &127
+                properties: &126
                   id:
                     description: Unique identifier of the team
                     example: 42
@@ -16178,8 +16061,8 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: *125
-                      required: *126
+                      properties: *124
+                      required: *125
                       nullable: true
                   members_count:
                     type: integer
@@ -16206,7 +16089,7 @@ paths:
                       LDAP environment
                     example: uid=example,ou=users,dc=github,dc=com
                     type: string
-                required: &128
+                required: &127
                 - id
                 - node_id
                 - url
@@ -16224,7 +16107,7 @@ paths:
                 - organization
               examples:
                 default:
-                  value: &129
+                  value: &128
                     id: 1
                     node_id: MDQ6VGVhbTE=
                     url: https://api.github.com/teams/1
@@ -16304,7 +16187,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: &130
+        schema: &129
           type: string
       responses:
         '200':
@@ -16316,11 +16199,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *127
-                required: *128
+                properties: *126
+                required: *127
               examples:
                 default:
-                  value: *129
+                  value: *128
         '404':
           description: Resource not found
           content: *24
@@ -16351,7 +16234,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       requestBody:
         content:
           application/json:
@@ -16409,11 +16292,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *127
-                required: *128
+                properties: *126
+                required: *127
               examples:
                 default:
-                  value: *129
+                  value: *128
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -16443,7 +16326,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       responses:
         '204':
           description: Response
@@ -16475,7 +16358,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -16507,7 +16390,7 @@ paths:
                   description: A team discussion is a persistent record of a free-form
                     conversation within a team.
                   type: object
-                  properties: &131
+                  properties: &130
                     author:
                       nullable: true
                       allOf:
@@ -16588,7 +16471,7 @@ paths:
                       type: object
                       properties: *80
                       required: *81
-                  required: &132
+                  required: &131
                   - author
                   - body
                   - body_html
@@ -16700,7 +16583,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       requestBody:
         content:
           application/json:
@@ -16736,11 +16619,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
-                  value: &133
+                  value: &132
                     author:
                       login: octocat
                       id: 1
@@ -16827,11 +16710,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: &134
+        schema: &133
           type: integer
       responses:
         '200':
@@ -16843,11 +16726,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
-                  value: *133
+                  value: *132
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -16885,11 +16768,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -16914,8 +16797,8 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
                   value: &365
@@ -17003,11 +16886,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       responses:
         '204':
           description: Response
@@ -17039,11 +16922,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -17068,7 +16951,7 @@ paths:
                   title: Team Discussion Comment
                   description: A reply to a discussion within a team.
                   type: object
-                  properties: &135
+                  properties: &134
                     author:
                       nullable: true
                       allOf:
@@ -17128,7 +17011,7 @@ paths:
                       type: object
                       properties: *80
                       required: *81
-                  required: &136
+                  required: &135
                   - author
                   - body
                   - body_html
@@ -17229,11 +17112,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -17256,11 +17139,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
-                  value: &137
+                  value: &136
                     author:
                       login: octocat
                       id: 1
@@ -17341,15 +17224,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: &138
+        schema: &137
           type: integer
       responses:
         '200':
@@ -17360,11 +17243,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
-                  value: *137
+                  value: *136
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17402,15 +17285,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       requestBody:
         content:
           application/json:
@@ -17433,8 +17316,8 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
                   value: &367
@@ -17516,15 +17399,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       responses:
         '204':
           description: Response
@@ -17556,15 +17439,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion comment.
@@ -17601,7 +17484,7 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: &139
+                  properties: &138
                     id:
                       type: integer
                       example: 1
@@ -17634,7 +17517,7 @@ paths:
                       type: string
                       format: date-time
                       example: '2016-05-20T20:09:31Z'
-                  required: &140
+                  required: &139
                   - id
                   - node_id
                   - user
@@ -17642,7 +17525,7 @@ paths:
                   - created_at
               examples:
                 default:
-                  value: &142
+                  value: &141
                   - id: 1
                     node_id: MDg6UmVhY3Rpb24x
                     user:
@@ -17708,15 +17591,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       requestBody:
         content:
           application/json:
@@ -17750,11 +17633,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: &141
+                  value: &140
                     id: 1
                     node_id: MDg6UmVhY3Rpb24x
                     user:
@@ -17787,11 +17670,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17830,19 +17713,19 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       - name: reaction_id
         in: path
         required: true
-        schema: &143
+        schema: &142
           type: integer
       responses:
         '204':
@@ -17885,11 +17768,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion.
@@ -17926,11 +17809,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -17973,11 +17856,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -18011,11 +17894,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Response
           content:
@@ -18025,11 +17908,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -18068,15 +17951,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -18118,7 +18001,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: role
         description: "Filters members returned by their role in the team. Can be one
           of:  \n\\* `member` - normal members of the team.  \n\\* `maintainer` -
@@ -18197,7 +18080,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: username
         in: path
         required: true
@@ -18211,7 +18094,7 @@ paths:
                 title: Team Membership
                 description: Team Membership
                 type: object
-                properties: &144
+                properties: &143
                   url:
                     type: string
                     format: uri
@@ -18229,7 +18112,7 @@ paths:
                     enum:
                     - active
                     - pending
-                required: &145
+                required: &144
                 - role
                 - state
                 - url
@@ -18277,7 +18160,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: username
         in: path
         required: true
@@ -18308,8 +18191,8 @@ paths:
                 title: Team Membership
                 description: Team Membership
                 type: object
-                properties: *144
-                required: *145
+                properties: *143
+                required: *144
               examples:
                 response-if-users-membership-with-team-is-now-pending:
                   summary: Response if user's membership with team is now pending
@@ -18353,7 +18236,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: username
         in: path
         required: true
@@ -18391,7 +18274,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -18411,7 +18294,7 @@ paths:
                   title: Team Project
                   description: A team's access to a project.
                   type: object
-                  properties: &146
+                  properties: &145
                     owner_url:
                       type: string
                     url:
@@ -18465,7 +18348,7 @@ paths:
                       - read
                       - write
                       - admin
-                  required: &147
+                  required: &146
                   - owner_url
                   - url
                   - html_url
@@ -18560,11 +18443,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: project_id
         in: path
         required: true
-        schema: &148
+        schema: &147
           type: integer
       responses:
         '200':
@@ -18575,8 +18458,8 @@ paths:
                 title: Team Project
                 description: A team's access to a project.
                 type: object
-                properties: *146
-                required: *147
+                properties: *145
+                required: *146
               examples:
                 default:
                   value: &371
@@ -18653,11 +18536,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       requestBody:
         content:
           application/json:
@@ -18734,11 +18617,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       responses:
         '204':
           description: Response
@@ -18770,7 +18653,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -18794,7 +18677,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: *149
+                  value: *148
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -18832,15 +18715,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Alternative response with repository permissions
@@ -19528,15 +19411,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -19595,15 +19478,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -19635,7 +19518,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *130
+        schema: *129
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -19656,8 +19539,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 response-if-child-teams-exist:
                   value: &374
@@ -19710,7 +19593,7 @@ paths:
         description: card_id parameter
         in: path
         required: true
-        schema: &154
+        schema: &153
           type: integer
       responses:
         '200':
@@ -19721,7 +19604,7 @@ paths:
                 title: Project Card
                 description: Project cards represent a scope of work.
                 type: object
-                properties: &155
+                properties: &154
                   url:
                     type: string
                     format: uri
@@ -19770,7 +19653,7 @@ paths:
                     type: string
                     format: uri
                     example: https://api.github.com/projects/120
-                required: &156
+                required: &155
                 - id
                 - node_id
                 - note
@@ -19782,7 +19665,7 @@ paths:
                 - updated_at
               examples:
                 default:
-                  value: &157
+                  value: &156
                     url: https://api.github.com/projects/columns/cards/1478
                     id: 1478
                     node_id: MDExOlByb2plY3RDYXJkMTQ3OA==
@@ -19850,7 +19733,7 @@ paths:
         description: card_id parameter
         in: path
         required: true
-        schema: *154
+        schema: *153
       requestBody:
         content:
           application/json:
@@ -19875,11 +19758,11 @@ paths:
                 title: Project Card
                 description: Project cards represent a scope of work.
                 type: object
-                properties: *155
-                required: *156
+                properties: *154
+                required: *155
               examples:
                 default:
-                  value: *157
+                  value: *156
         '304':
           description: Not modified
         '403':
@@ -19921,7 +19804,7 @@ paths:
         description: card_id parameter
         in: path
         required: true
-        schema: *154
+        schema: *153
       responses:
         '204':
           description: Response
@@ -19976,7 +19859,7 @@ paths:
         description: card_id parameter
         in: path
         required: true
-        schema: *154
+        schema: *153
       requestBody:
         content:
           application/json:
@@ -20086,7 +19969,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: &158
+        schema: &157
           type: integer
       responses:
         '200':
@@ -20097,7 +19980,7 @@ paths:
                 title: Project Column
                 description: Project columns contain cards of work.
                 type: object
-                properties: &159
+                properties: &158
                   url:
                     type: string
                     format: uri
@@ -20129,7 +20012,7 @@ paths:
                     type: string
                     format: date-time
                     example: '2016-09-05T14:22:28Z'
-                required: &160
+                required: &159
                 - id
                 - node_id
                 - url
@@ -20140,7 +20023,7 @@ paths:
                 - updated_at
               examples:
                 default:
-                  value: &161
+                  value: &160
                     url: https://api.github.com/projects/columns/367
                     project_url: https://api.github.com/projects/120
                     cards_url: https://api.github.com/projects/columns/367/cards
@@ -20187,7 +20070,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: *158
+        schema: *157
       requestBody:
         content:
           application/json:
@@ -20209,11 +20092,11 @@ paths:
                 title: Project Column
                 description: Project columns contain cards of work.
                 type: object
-                properties: *159
-                required: *160
+                properties: *158
+                required: *159
               examples:
                 default:
-                  value: *161
+                  value: *160
         '304':
           description: Not modified
         '403':
@@ -20249,7 +20132,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: *158
+        schema: *157
       responses:
         '204':
           description: Response
@@ -20289,7 +20172,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: *158
+        schema: *157
       - name: archived_state
         description: Filters the project cards that are returned by the card's state.
           Can be one of `all`,`archived`, or `not_archived`.
@@ -20321,8 +20204,8 @@ paths:
                   title: Project Card
                   description: Project cards represent a scope of work.
                   type: object
-                  properties: *155
-                  required: *156
+                  properties: *154
+                  required: *155
               examples:
                 default:
                   value:
@@ -20395,7 +20278,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: *158
+        schema: *157
       requestBody:
         content:
           application/json:
@@ -20433,11 +20316,11 @@ paths:
                 title: Project Card
                 description: Project cards represent a scope of work.
                 type: object
-                properties: *155
-                required: *156
+                properties: *154
+                required: *155
               examples:
                 default:
-                  value: *157
+                  value: *156
         '304':
           description: Not modified
         '403':
@@ -20512,7 +20395,7 @@ paths:
         description: column_id parameter
         in: path
         required: true
-        schema: *158
+        schema: *157
       requestBody:
         content:
           application/json:
@@ -20575,7 +20458,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       responses:
         '200':
           description: Response
@@ -20589,7 +20472,7 @@ paths:
                 required: *123
               examples:
                 default:
-                  value: &162
+                  value: &161
                     owner_url: https://api.github.com/repos/api-playground/projects-test
                     url: https://api.github.com/projects/1002604
                     html_url: https://github.com/api-playground/projects-test/projects/1
@@ -20657,7 +20540,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       requestBody:
         content:
           application/json:
@@ -20703,7 +20586,7 @@ paths:
                 required: *123
               examples:
                 default:
-                  value: *162
+                  value: *161
         '404':
           description: Not Found if the authenticated user does not have access to
             the project
@@ -20729,7 +20612,7 @@ paths:
           content: *69
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *121
@@ -20760,7 +20643,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       responses:
         '204':
           description: Delete Success
@@ -20786,7 +20669,7 @@ paths:
           content: *69
         '410':
           description: Gone
-          content: *124
+          content: *162
         '404':
           description: Resource not found
           content: *24
@@ -20822,7 +20705,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       - name: affiliation
         description: "Filters the collaborators by their affiliation. Can be one of:
           \ \n\\* `outside`: Outside collaborators of a project that are not a member
@@ -20913,7 +20796,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       - name: username
         in: path
         required: true
@@ -20981,7 +20864,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       - name: username
         in: path
         required: true
@@ -21036,7 +20919,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       - name: username
         in: path
         required: true
@@ -21132,7 +21015,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -21152,8 +21035,8 @@ paths:
                   title: Project Column
                   description: Project columns contain cards of work.
                   type: object
-                  properties: *159
-                  required: *160
+                  properties: *158
+                  required: *159
               examples:
                 default:
                   value:
@@ -21204,7 +21087,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       requestBody:
         content:
           application/json:
@@ -21226,8 +21109,8 @@ paths:
                 title: Project Column
                 description: Project columns contain cards of work.
                 type: object
-                properties: *159
-                required: *160
+                properties: *158
+                required: *159
               example:
                 url: https://api.github.com/projects/columns/367
                 project_url: https://api.github.com/projects/120
@@ -21408,7 +21291,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -21422,7 +21305,7 @@ paths:
           content: *69
         '410':
           description: Gone
-          content: *124
+          content: *162
         '415':
           description: Preview header missing
           content: *29
@@ -21462,11 +21345,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -22931,11 +22814,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -23591,11 +23474,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -23644,11 +23527,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -23776,11 +23659,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: artifact_id
         description: artifact_id parameter
         in: path
@@ -23832,11 +23715,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: artifact_id
         description: artifact_id parameter
         in: path
@@ -23869,11 +23752,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: artifact_id
         description: artifact_id parameter
         in: path
@@ -23915,11 +23798,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: job_id
         description: job_id parameter
         in: path
@@ -24154,11 +24037,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: job_id
         description: job_id parameter
         in: path
@@ -24196,11 +24079,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -24255,11 +24138,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -24305,11 +24188,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -24347,11 +24230,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -24385,11 +24268,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -24451,11 +24334,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: runner_id
         description: Unique identifier of the self-hosted runner.
         in: path
@@ -24487,11 +24370,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: actor
         description: Returns someone's workflow runs. Use the login for the user who
           created the `push` associated with the check suite or workflow run.
@@ -25007,11 +24890,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25221,11 +25104,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25257,11 +25140,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25326,11 +25209,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25369,11 +25252,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25529,11 +25412,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25568,11 +25451,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25603,11 +25486,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25645,11 +25528,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: run_id
         description: The id of the workflow run.
         in: path
@@ -25739,11 +25622,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -25826,11 +25709,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -25868,11 +25751,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: secret_name
         description: secret_name parameter
         in: path
@@ -25989,11 +25872,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: secret_name
         description: secret_name parameter
         in: path
@@ -26050,11 +25933,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: secret_name
         description: secret_name parameter
         in: path
@@ -26086,11 +25969,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -26226,11 +26109,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26287,11 +26170,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26326,11 +26209,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26389,11 +26272,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26426,11 +26309,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26525,11 +26408,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: workflow_id
         in: path
         description: The ID of the workflow. You can also pass the workflow file name
@@ -26597,11 +26480,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -26660,11 +26543,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: assignee
         in: path
         required: true
@@ -26703,11 +26586,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: protected
         description: Setting to `true` returns only protected branches. When set to
           `false`, only unprotected branches are returned. Omitting this parameter
@@ -26820,8 +26703,8 @@ paths:
                                     description: Groups of organization members that
                                       gives permissions on specified repositories.
                                     type: object
-                                    properties: *152
-                                    required: *153
+                                    properties: *151
+                                    required: *152
                                 url:
                                   type: string
                                   example: '"https://api.github.com/repos/the-org/an-org-repo/branches/master/protection/dismissal_restrictions"'
@@ -27126,11 +27009,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -27403,11 +27286,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -27590,11 +27473,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -27828,8 +27711,8 @@ paths:
                               description: Groups of organization members that gives
                                 permissions on specified repositories.
                               type: object
-                              properties: *152
-                              required: *153
+                              properties: *151
+                              required: *152
                         required:
                         - url
                         - users_url
@@ -27943,11 +27826,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -27984,11 +27867,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28033,11 +27916,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28080,11 +27963,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28121,11 +28004,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28217,11 +28100,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28320,11 +28203,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28362,11 +28245,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28421,11 +28304,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28478,11 +28361,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28526,11 +28409,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28581,11 +28464,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28654,11 +28537,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28692,11 +28575,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28740,11 +28623,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28817,11 +28700,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28890,11 +28773,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -28965,11 +28848,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29082,11 +28965,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29119,11 +29002,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29216,11 +29099,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29298,11 +29181,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29380,11 +29263,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29459,11 +29342,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29482,8 +29365,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 default:
                   value: *208
@@ -29516,11 +29399,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29560,8 +29443,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 default:
                   value: *208
@@ -29595,11 +29478,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29639,8 +29522,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 default:
                   value: *208
@@ -29674,11 +29557,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29718,8 +29601,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 default:
                   value: *208
@@ -29750,11 +29633,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29807,11 +29690,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29885,11 +29768,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -29963,11 +29846,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: branch
         description: The name of the branch.
         in: path
@@ -30040,11 +29923,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -30644,11 +30527,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_run_id
         description: check_run_id parameter
         in: path
@@ -30768,11 +30651,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_run_id
         description: check_run_id parameter
         in: path
@@ -31050,11 +30933,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_run_id
         description: check_run_id parameter
         in: path
@@ -31167,11 +31050,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -31631,11 +31514,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -31948,11 +31831,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_suite_id
         description: check_suite_id parameter
         in: path
@@ -31997,11 +31880,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_suite_id
         description: check_suite_id parameter
         in: path
@@ -32174,11 +32057,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: check_suite_id
         description: check_suite_id parameter
         in: path
@@ -32222,11 +32105,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: tool_name
         description: The name of a code scanning tool. Only results by this tool will
           be listed. You can specify the tool by using either `tool_name` or `tool_guid`,
@@ -32593,11 +32476,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: alert_number
         in: path
         description: The number that identifies an alert. You can find this at the
@@ -32833,11 +32716,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: alert_number
         in: path
         description: The number that identifies an alert. You can find this at the
@@ -32986,11 +32869,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: alert_number
         in: path
         description: The number that identifies an alert. You can find this at the
@@ -33104,11 +32987,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: tool_name
         description: The name of a code scanning tool. Only results by this tool will
           be listed. You can specify the tool by using either `tool_name` or `tool_guid`,
@@ -33333,11 +33216,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: analysis_id
         in: path
         description: The ID of the analysis, as returned from the `GET /repos/{owner}/{repo}/code-scanning/analyses`
@@ -33425,11 +33308,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -33542,11 +33425,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sarif_id
         description: The SARIF ID obtained after uploading.
         in: path
@@ -33612,11 +33495,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: affiliation
         description: "Filter collaborators returned by their affiliation. Can be one
           of:  \n\\* `outside`: All outside collaborators of an organization-owned
@@ -33802,11 +33685,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: username
         in: path
         required: true
@@ -33846,11 +33729,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: username
         in: path
         required: true
@@ -34099,11 +33982,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: username
         in: path
         required: true
@@ -34132,11 +34015,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: username
         in: path
         required: true
@@ -34201,11 +34084,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -34358,11 +34241,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34445,11 +34328,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34535,11 +34418,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34571,11 +34454,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34617,11 +34500,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -34664,11 +34547,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34707,11 +34590,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Reaction created
           content:
@@ -34721,11 +34604,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '415':
           description: Preview header missing
           content: *29
@@ -34765,11 +34648,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -34778,7 +34661,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -34840,11 +34723,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sha
         description: 'SHA or branch to start listing commits from. Default: the repository’s
           default branch (usually `master`).'
@@ -35045,11 +34928,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: commit_sha
         description: commit_sha parameter
         in: path
@@ -35129,11 +35012,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: commit_sha
         description: commit_sha parameter
         in: path
@@ -35201,11 +35084,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: commit_sha
         description: commit_sha parameter
         in: path
@@ -35291,11 +35174,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: commit_sha
         description: commit_sha parameter
         in: path
@@ -35482,8 +35365,8 @@ paths:
                         description: Groups of organization members that gives permissions
                           on specified repositories.
                         type: object
-                        properties: *125
-                        required: *126
+                        properties: *124
+                        required: *125
                         nullable: true
                       nullable: true
                     head:
@@ -36229,11 +36112,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: page
         description: Page number of the results to fetch.
         in: query
@@ -36376,11 +36259,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -36475,11 +36358,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -36736,11 +36619,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -36961,11 +36844,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -37133,11 +37016,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: page
         description: Page number of the results to fetch.
         in: query
@@ -37567,11 +37450,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: path
         description: path parameter
         in: path
@@ -38080,11 +37963,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: path
         description: path parameter
         in: path
@@ -38408,11 +38291,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: path
         description: path parameter
         in: path
@@ -38541,11 +38424,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: anon
         description: Set to `1` or `true` to include anonymous contributors in results.
         in: query
@@ -38681,11 +38564,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sha
         description: The SHA recorded at creation time.
         in: query
@@ -38955,11 +38838,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -39136,11 +39019,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: deployment_id
         description: deployment_id parameter
         in: path
@@ -39235,11 +39118,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: deployment_id
         description: deployment_id parameter
         in: path
@@ -39274,11 +39157,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: deployment_id
         description: deployment_id parameter
         in: path
@@ -39489,11 +39372,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: deployment_id
         description: deployment_id parameter
         in: path
@@ -39672,11 +39555,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: deployment_id
         description: deployment_id parameter
         in: path
@@ -39745,11 +39628,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -39791,11 +39674,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sort
         description: The sort order. Can be either `newest`, `oldest`, or `stargazers`.
         in: query
@@ -39970,11 +39853,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -40032,11 +39915,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -40118,11 +40001,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: file_sha
         in: path
         required: true
@@ -40229,11 +40112,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -40551,11 +40434,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: commit_sha
         description: commit_sha parameter
         in: path
@@ -40631,11 +40514,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -40738,11 +40621,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -40796,11 +40679,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -40866,11 +40749,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -40934,11 +40817,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: ref parameter
         in: path
@@ -41002,11 +40885,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -41211,11 +41094,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: tag_sha
         in: path
         required: true
@@ -41261,11 +41144,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -41453,11 +41336,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: tree_sha
         in: path
         required: true
@@ -41549,11 +41432,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -41740,11 +41623,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -41879,11 +41762,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -41927,11 +41810,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42042,11 +41925,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42080,11 +41963,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42124,11 +42007,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42197,11 +42080,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42235,11 +42118,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: hook_id
         in: path
         required: true
@@ -42273,11 +42156,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -42319,11 +42202,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -42485,11 +42368,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: invitation_id
         description: invitation_id parameter
         in: path
@@ -42659,11 +42542,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: invitation_id
         description: invitation_id parameter
         in: path
@@ -42698,11 +42581,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: milestone
         description: If an `integer` is passed, it should refer to a milestone by
           its `number` field. If the string `*` is passed, issues with any milestone
@@ -42966,11 +42849,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -43214,7 +43097,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -43236,11 +43119,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sort
         description: One of `created` (when the repository was starred) or `updated`
           (when it was last pushed to).
@@ -43362,11 +43245,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43447,11 +43330,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43507,11 +43390,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43540,11 +43423,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43586,11 +43469,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -43633,11 +43516,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43676,11 +43559,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Reaction created
           content:
@@ -43690,11 +43573,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '415':
           description: Preview header missing
           content: *29
@@ -43734,11 +43617,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -43747,7 +43630,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -43781,11 +43664,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -43901,8 +43784,8 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: *152
-                      required: *153
+                      properties: *151
+                      required: *152
                     dismissed_review:
                       title: Issue Event Dismissed Review
                       type: object
@@ -44189,11 +44072,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: event_id
         in: path
         required: true
@@ -44405,7 +44288,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '403':
           description: Forbidden
           content: *35
@@ -44449,11 +44332,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -44483,7 +44366,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '304':
           description: Not modified
       x-github:
@@ -44515,11 +44398,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -44633,7 +44516,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44655,11 +44538,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -44875,11 +44758,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -44936,11 +44819,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -44988,7 +44871,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -45022,11 +44905,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45070,7 +44953,7 @@ paths:
           content: *35
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *30
@@ -45098,11 +44981,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45233,7 +45116,7 @@ paths:
               schema: *6
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -45263,11 +45146,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45319,7 +45202,7 @@ paths:
               schema: *6
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -45339,11 +45222,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45415,7 +45298,7 @@ paths:
                   value: *294
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *30
@@ -45438,11 +45321,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45510,7 +45393,7 @@ paths:
                   value: *294
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *30
@@ -45533,11 +45416,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45548,7 +45431,7 @@ paths:
           description: Response
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -45571,11 +45454,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45615,7 +45498,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -45639,11 +45522,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45674,7 +45557,7 @@ paths:
           content: *35
         '410':
           description: Gone
-          content: *124
+          content: *162
         '404':
           description: Resource not found
           content: *24
@@ -45700,11 +45583,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45739,11 +45622,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45785,11 +45668,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -45800,7 +45683,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '415':
           description: Preview header missing
           content: *29
@@ -45835,11 +45718,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45878,11 +45761,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Response
           content:
@@ -45892,11 +45775,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '415':
           description: Preview header missing
           content: *29
@@ -45936,11 +45819,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -45949,7 +45832,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -45983,11 +45866,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: issue_number
         description: issue_number parameter
         in: path
@@ -46026,7 +45909,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '415':
           description: Preview header missing
           content: *29
@@ -46066,11 +45949,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -46147,11 +46030,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -46228,11 +46111,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: key_id
         description: key_id parameter
         in: path
@@ -46276,11 +46159,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: key_id
         description: key_id parameter
         in: path
@@ -46309,11 +46192,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -46366,11 +46249,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -46450,11 +46333,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: name
         in: path
         required: true
@@ -46497,11 +46380,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: name
         in: path
         required: true
@@ -46572,11 +46455,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: name
         in: path
         required: true
@@ -46606,11 +46489,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -46650,11 +46533,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -46802,11 +46685,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -46878,11 +46761,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: state
         description: The state of the milestone. Either `open`, `closed`, or `all`.
         in: query
@@ -46999,11 +46882,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -47114,11 +46997,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: milestone_number
         description: milestone_number parameter
         in: path
@@ -47161,11 +47044,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: milestone_number
         description: milestone_number parameter
         in: path
@@ -47233,11 +47116,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: milestone_number
         description: milestone_number parameter
         in: path
@@ -47269,11 +47152,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: milestone_number
         description: milestone_number parameter
         in: path
@@ -47329,11 +47212,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: all
         description: If `true`, show notifications marked as read.
         in: query
@@ -47414,11 +47297,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -47467,11 +47350,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -47619,11 +47502,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -47709,11 +47592,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -47810,11 +47693,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -47854,11 +47737,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -47977,11 +47860,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '201':
           description: Response
@@ -48027,11 +47910,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -48093,11 +47976,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: build_id
         in: path
         required: true
@@ -48140,11 +48023,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: state
         description: Indicates the state of the projects to return. Can be either
           `open`, `closed`, or `all`.
@@ -48229,7 +48112,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *121
@@ -48262,11 +48145,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -48297,7 +48180,7 @@ paths:
                 required: *123
               examples:
                 default:
-                  value: *162
+                  value: *161
         '401':
           description: Requires authentication
           content: *69
@@ -48309,7 +48192,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *124
+          content: *162
         '422':
           description: Validation failed
           content: *121
@@ -48344,11 +48227,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: state
         description: Either `open`, `closed`, or `all` to filter by state.
         in: query
@@ -48458,11 +48341,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -48687,8 +48570,8 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: *125
-                      required: *126
+                      properties: *124
+                      required: *125
                       nullable: true
                     nullable: true
                   head:
@@ -50251,11 +50134,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sort
         in: query
         required: false
@@ -50598,11 +50481,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -50725,11 +50608,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -50803,11 +50686,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -50839,11 +50722,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -50885,11 +50768,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -50932,11 +50815,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -50975,11 +50858,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Reaction created
           content:
@@ -50989,11 +50872,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '415':
           description: Preview header missing
           content: *29
@@ -51033,11 +50916,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: comment_id
         description: comment_id parameter
         in: path
@@ -51046,7 +50929,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *143
+        schema: *142
       responses:
         '204':
           description: Response
@@ -51095,11 +50978,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51153,11 +51036,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51239,11 +51122,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51358,11 +51241,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51575,11 +51458,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51698,11 +51581,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51757,11 +51640,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51832,11 +51715,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51869,11 +51752,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -51989,11 +51872,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -52032,8 +51915,8 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: *125
-                      required: *126
+                      properties: *124
+                      required: *125
                       nullable: true
                 required:
                 - users
@@ -52100,11 +51983,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -52684,11 +52567,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -52752,11 +52635,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -52927,11 +52810,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53083,11 +52966,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53167,11 +53050,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53265,11 +53148,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53319,11 +53202,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53585,11 +53468,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53686,11 +53569,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53767,11 +53650,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: pull_number
         in: path
         required: true
@@ -53848,11 +53731,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         description: 'The name of the commit/branch/tag. Default: the repository’s
           default branch (usually `master`)'
@@ -53918,11 +53801,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: dir
         description: The alternate path to look for a README file
         in: path
@@ -53980,11 +53863,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -54263,11 +54146,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -54422,11 +54305,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: asset_id
         description: asset_id parameter
         in: path
@@ -54509,11 +54392,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: asset_id
         description: asset_id parameter
         in: path
@@ -54571,11 +54454,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: asset_id
         description: asset_id parameter
         in: path
@@ -54607,11 +54490,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -54646,11 +54529,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: tag
         description: tag parameter
         in: path
@@ -54696,11 +54579,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -54744,11 +54627,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -54823,11 +54706,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -54856,11 +54739,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -54973,11 +54856,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -55064,11 +54947,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: release_id
         description: release_id parameter
         in: path
@@ -55105,11 +54988,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '201':
           description: Reaction created
           content:
@@ -55119,11 +55002,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
         '415':
           description: Preview header missing
           content: *29
@@ -55164,11 +55047,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -55287,11 +55170,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Returns a weekly aggregate of the number of additions and deletions
@@ -55341,11 +55224,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Response
@@ -55425,11 +55308,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: |-
@@ -55536,11 +55419,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: The array order is oldest week (index 0) to most recent week.
@@ -55700,11 +55583,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: For example, `[2, 14, 25]` indicates that there were 25 total
@@ -55756,11 +55639,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: sha
         in: path
         required: true
@@ -55873,11 +55756,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -55928,11 +55811,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: if you subscribe to the repository
@@ -56012,11 +55895,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -56073,11 +55956,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -56101,11 +55984,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -56195,11 +56078,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         in: path
         required: true
@@ -56233,11 +56116,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -56258,8 +56141,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 default:
                   value: *208
@@ -56288,11 +56171,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: page
         description: Page number of the results to fetch.
         in: query
@@ -56357,11 +56240,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -56438,11 +56321,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -56718,11 +56601,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       - name: ref
         in: path
         required: true
@@ -56947,127 +56830,6 @@ paths:
             ```shell
             application/vnd.github.baptiste-preview+json
             ```
-        category: repos
-        subcategory: 
-  "/repositories":
-    get:
-      summary: List public repositories
-      description: |-
-        Lists all public repositories in the order that they were created.
-
-        Notes:
-        - For GitHub Enterprise Server and GitHub AE, this endpoint will only list repositories available to all users on the enterprise.
-        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of repositories.
-      tags:
-      - repos
-      operationId: repos/list-public
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/repos#list-public-repositories
-      parameters:
-      - name: since
-        description: A repository ID. Only return repositories with an ID greater
-          than this ID.
-        in: query
-        required: false
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  title: Minimal Repository
-                  description: Minimal Repository
-                  type: object
-                  properties: *108
-                  required: *109
-              examples:
-                default:
-                  value:
-                  - id: 1296269
-                    node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-                    name: Hello-World
-                    full_name: octocat/Hello-World
-                    owner:
-                      login: octocat
-                      id: 1
-                      node_id: MDQ6VXNlcjE=
-                      avatar_url: https://github.com/images/error/octocat_happy.gif
-                      gravatar_id: ''
-                      url: https://api.github.com/users/octocat
-                      html_url: https://github.com/octocat
-                      followers_url: https://api.github.com/users/octocat/followers
-                      following_url: https://api.github.com/users/octocat/following{/other_user}
-                      gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-                      starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-                      subscriptions_url: https://api.github.com/users/octocat/subscriptions
-                      organizations_url: https://api.github.com/users/octocat/orgs
-                      repos_url: https://api.github.com/users/octocat/repos
-                      events_url: https://api.github.com/users/octocat/events{/privacy}
-                      received_events_url: https://api.github.com/users/octocat/received_events
-                      type: User
-                      site_admin: false
-                    private: false
-                    html_url: https://github.com/octocat/Hello-World
-                    description: This your first repo!
-                    fork: false
-                    url: https://api.github.com/repos/octocat/Hello-World
-                    archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-                    assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-                    blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-                    branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-                    collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-                    comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-                    commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-                    compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-                    contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-                    contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-                    deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-                    downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-                    events_url: https://api.github.com/repos/octocat/Hello-World/events
-                    forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-                    git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-                    git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-                    git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-                    git_url: git:github.com/octocat/Hello-World.git
-                    issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-                    issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-                    issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-                    keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-                    labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-                    languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-                    merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-                    milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-                    notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-                    pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-                    releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-                    ssh_url: git@github.com:octocat/Hello-World.git
-                    stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-                    statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-                    subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-                    subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-                    tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-                    teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-                    trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-                    hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
-          headers:
-            Link:
-              example: <https://api.github.com/repositories?since=364>; rel="next"
-              schema:
-                type: string
-        '422':
-          description: Validation failed
-          content: *30
-        '304':
-          description: Not modified
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews: []
         category: repos
         subcategory: 
   "/scim/v2/enterprises/{enterprise}/Groups":
@@ -59757,11 +59519,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *127
-                required: *128
+                properties: *126
+                required: *127
               examples:
                 default:
-                  value: *129
+                  value: *128
         '404':
           description: Resource not found
           content: *24
@@ -59851,11 +59613,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *127
-                required: *128
+                properties: *126
+                required: *127
               examples:
                 default:
-                  value: *129
+                  value: *128
         '201':
           description: Response
           content:
@@ -59865,11 +59627,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *127
-                required: *128
+                properties: *126
+                required: *127
               examples:
                 default:
-                  value: *129
+                  value: *128
         '404':
           description: Resource not found
           content: *24
@@ -59968,8 +59730,8 @@ paths:
                   description: A team discussion is a persistent record of a free-form
                     conversation within a team.
                   type: object
-                  properties: *131
-                  required: *132
+                  properties: *130
+                  required: *131
               examples:
                 default:
                   value: *364
@@ -60051,11 +59813,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
-                  value: *133
+                  value: *132
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -60097,7 +59859,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       responses:
         '200':
           description: Response
@@ -60108,11 +59870,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
-                  value: *133
+                  value: *132
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60152,7 +59914,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -60177,8 +59939,8 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *131
-                required: *132
+                properties: *130
+                required: *131
               examples:
                 default:
                   value: *365
@@ -60221,7 +59983,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       responses:
         '204':
           description: Response
@@ -60255,7 +60017,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -60280,8 +60042,8 @@ paths:
                   title: Team Discussion Comment
                   description: A reply to a discussion within a team.
                   type: object
-                  properties: *135
-                  required: *136
+                  properties: *134
+                  required: *135
               examples:
                 default:
                   value: *366
@@ -60331,7 +60093,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -60354,11 +60116,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
-                  value: *137
+                  value: *136
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -60400,11 +60162,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       responses:
         '200':
           description: Response
@@ -60414,11 +60176,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
-                  value: *137
+                  value: *136
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60458,11 +60220,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       requestBody:
         content:
           application/json:
@@ -60485,8 +60247,8 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *135
-                required: *136
+                properties: *134
+                required: *135
               examples:
                 default:
                   value: *367
@@ -60529,11 +60291,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       responses:
         '204':
           description: Response
@@ -60567,11 +60329,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion comment.
@@ -60608,11 +60370,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -60657,11 +60419,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: comment_number
         in: path
         required: true
-        schema: *138
+        schema: *137
       requestBody:
         content:
           application/json:
@@ -60695,11 +60457,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60740,7 +60502,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion.
@@ -60777,11 +60539,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *139
-                  required: *140
+                  properties: *138
+                  required: *139
               examples:
                 default:
-                  value: *142
+                  value: *141
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -60826,7 +60588,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *134
+        schema: *133
       requestBody:
         content:
           application/json:
@@ -60860,11 +60622,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *139
-                required: *140
+                properties: *138
+                required: *139
               examples:
                 default:
-                  value: *141
+                  value: *140
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -61124,8 +60886,8 @@ paths:
                 title: Team Membership
                 description: Team Membership
                 type: object
-                properties: *144
-                required: *145
+                properties: *143
+                required: *144
               examples:
                 response-if-user-is-a-team-maintainer:
                   summary: Response if user is a team maintainer
@@ -61197,8 +60959,8 @@ paths:
                 title: Team Membership
                 description: Team Membership
                 type: object
-                properties: *144
-                required: *145
+                properties: *143
+                required: *144
               examples:
                 response-if-users-membership-with-team-is-now-pending:
                   summary: Response if user's membership with team is now pending
@@ -61296,8 +61058,8 @@ paths:
                   title: Team Project
                   description: A team's access to a project.
                   type: object
-                  properties: *146
-                  required: *147
+                  properties: *145
+                  required: *146
               examples:
                 default:
                   value: *370
@@ -61349,7 +61111,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       responses:
         '200':
           description: Response
@@ -61359,8 +61121,8 @@ paths:
                 title: Team Project
                 description: A team's access to a project.
                 type: object
-                properties: *146
-                required: *147
+                properties: *145
+                required: *146
               examples:
                 default:
                   value: *371
@@ -61405,7 +61167,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       requestBody:
         content:
           application/json:
@@ -61492,7 +61254,7 @@ paths:
       - name: project_id
         in: path
         required: true
-        schema: *148
+        schema: *147
       responses:
         '204':
           description: Response
@@ -61555,7 +61317,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: *149
+                  value: *148
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -61596,11 +61358,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '200':
           description: Alternative response with extra repository information
@@ -61881,11 +61643,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       requestBody:
         content:
           application/json:
@@ -61944,11 +61706,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -61999,8 +61761,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *151
+                  required: *152
               examples:
                 response-if-child-teams-exist:
                   value: *374
@@ -65157,11 +64919,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response if this repository is starred by you
@@ -65202,11 +64964,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -65240,11 +65002,11 @@ paths:
       - name: owner
         in: path
         required: true
-        schema: *150
+        schema: *149
       - name: repo
         in: path
         required: true
-        schema: *151
+        schema: *150
       responses:
         '204':
           description: Response
@@ -65299,7 +65061,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: *149
+                  value: *148
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -65353,8 +65115,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *127
-                  required: *128
+                  properties: *126
+                  required: *127
               examples:
                 default:
                   value:
@@ -66481,7 +66243,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: *149
+                  value: *148
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -66613,7 +66375,7 @@ paths:
                   required: *109
               examples:
                 default:
-                  value: *149
+                  value: *148
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -66727,3 +66489,135 @@ paths:
         enabledForGitHubApps: true
         previews: []
         category: meta
+  "/{owner}/{repo}/content_references/{content_reference_id}/attachments":
+    post:
+      summary: Create a content attachment
+      description: |-
+        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
+
+        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
+
+        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
+      tags:
+      - apps
+      operationId: apps/create-content-attachment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
+      parameters:
+      - name: owner
+        description: The owner of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: repo
+        description: The name of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: content_reference_id
+        description: The `id` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: The title of the attachment
+                  example: Title of the attachment
+                  type: string
+                  maxLength: 1024
+                body:
+                  description: The body of the attachment
+                  example: Body of the attachment
+                  type: string
+                  maxLength: 262144
+              required:
+              - title
+              - body
+              type: object
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: ContentReferenceAttachment
+                description: Content Reference attachments allow you to provide context
+                  around URLs posted in comments
+                type: object
+                properties:
+                  id:
+                    description: The ID of the attachment
+                    example: 21
+                    type: integer
+                  title:
+                    description: The title of the attachment
+                    example: Title of the attachment
+                    type: string
+                    maxLength: 1024
+                  body:
+                    description: The body of the attachment
+                    example: Body of the attachment
+                    type: string
+                    maxLength: 262144
+                  node_id:
+                    description: The node_id of the content attachment
+                    example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
+                    type: string
+                required:
+                - id
+                - title
+                - body
+              examples:
+                default:
+                  value:
+                    id: 101
+                    title: "[A-1234] Error found in core/models.py file'"
+                    body: |-
+                      You have used an email that already exists for the user_email_uniq field.
+                       ## DETAILS:
+
+                      The (email)=(Octocat@github.com) already exists.
+
+                       The error was found in core/models.py in get_or_create_user at line 62.
+
+                       self.save()
+        '422':
+          description: Validation failed
+          content: *30
+        '404':
+          description: Resource not found
+          content: *24
+        '410':
+          description: Gone
+          content: *162
+        '415':
+          description: Preview header missing
+          content: *29
+        '304':
+          description: Not modified
+        '403':
+          description: Forbidden
+          content: *35
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews:
+        - required: true
+          name: corsair
+          note: |-
+            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.corsair-preview+json
+            ```
+        category: apps
+        subcategory: installations
