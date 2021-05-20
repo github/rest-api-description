@@ -1315,7 +1315,7 @@ paths:
                 title: Organization Simple
                 description: Organization Simple
                 type: object
-                properties: &83
+                properties: &82
                   login:
                     type: string
                     example: github
@@ -1356,7 +1356,7 @@ paths:
                     type: string
                     example: A great organization
                     nullable: true
-                required: &84
+                required: &83
                 - login
                 - url
                 - id
@@ -1426,7 +1426,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: &85
+        schema: &84
           type: string
       responses:
         '202':
@@ -3551,16 +3551,16 @@ paths:
                     type: string
         '422':
           description: Validation failed
-          content: &106
+          content: &105
             application/json:
               schema:
                 title: Validation Error Simple
                 description: Validation Error Simple
                 type: object
-                required: &90
+                required: &89
                 - message
                 - documentation_url
-                properties: &91
+                properties: &90
                   message:
                     type: string
                   documentation_url:
@@ -4094,7 +4094,7 @@ paths:
                       title: Repository
                       description: A git repository
                       type: object
-                      properties: &51
+                      properties: &50
                         id:
                           description: Unique identifier of the repository
                           example: 42
@@ -4115,7 +4115,7 @@ paths:
                           - title: License Simple
                             description: License Simple
                             type: object
-                            properties: &72
+                            properties: &71
                               key:
                                 type: string
                                 example: mit
@@ -4137,7 +4137,7 @@ paths:
                               html_url:
                                 type: string
                                 format: uri
-                            required: &73
+                            required: &72
                             - key
                             - name
                             - url
@@ -4654,7 +4654,7 @@ paths:
                           example: '"2020-07-09T00:17:42Z"'
                         anonymous_access_enabled:
                           type: boolean
-                      required: &52
+                      required: &51
                       - archive_url
                       - assignees_url
                       - blobs_url
@@ -4890,10 +4890,10 @@ paths:
                 title: Validation Error
                 description: Validation Error
                 type: object
-                required: &88
+                required: &87
                 - message
                 - documentation_url
-                properties: &89
+                properties: &88
                   message:
                     type: string
                   documentation_url:
@@ -5637,7 +5637,7 @@ paths:
           content: *43
         '410':
           description: Gone
-          content: &48
+          content: &108
             application/json:
               schema:
                 title: Basic Error
@@ -6366,123 +6366,6 @@ paths:
             ```
         category: codes-of-conduct
         subcategory: 
-  "/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/enterprise-server@2.19/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/enterprise-server@2.19/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/enterprise-server@2.19/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: content_reference_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                title: ContentReferenceAttachment
-                description: Content Reference attachments allow you to provide context
-                  around URLs posted in comments
-                type: object
-                properties:
-                  id:
-                    description: The ID of the attachment
-                    example: 21
-                    type: integer
-                  title:
-                    description: The title of the attachment
-                    example: Title of the attachment
-                    type: string
-                    maxLength: 1024
-                  body:
-                    description: The body of the attachment
-                    example: Body of the attachment
-                    type: string
-                    maxLength: 262144
-                  node_id:
-                    description: The node_id of the content attachment
-                    example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-                    type: string
-                required:
-                - id
-                - title
-                - body
-              examples:
-                default:
-                  value:
-                    id: 101
-                    title: "[A-1234] Error found in core/models.py file'"
-                    body: |-
-                      You have used an email that already exists for the user_email_uniq field.
-                       ## DETAILS:
-
-                      The (email)=(Octocat@github.com) already exists.
-
-                       The error was found in core/models.py in get_or_create_user at line 62.
-
-                       self.save()
-        '422':
-          description: Validation failed
-          content: *43
-        '404':
-          description: Resource not found
-          content: *24
-        '410':
-          description: Gone
-          content: *48
-        '415':
-          description: Preview header missing
-          content: *29
-        '304':
-          description: Not modified
-        '403':
-          description: Forbidden
-          content: *31
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
   "/emojis":
     get:
       summary: Get emojis
@@ -6785,7 +6668,7 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: &75
+                  properties: &74
                     id:
                       type: string
                     type:
@@ -6795,7 +6678,7 @@ paths:
                       title: Actor
                       description: Actor
                       type: object
-                      properties: &49
+                      properties: &48
                         id:
                           type: integer
                         login:
@@ -6811,7 +6694,7 @@ paths:
                         avatar_url:
                           type: string
                           format: uri
-                      required: &50
+                      required: &49
                       - id
                       - login
                       - gravatar_id
@@ -6835,8 +6718,8 @@ paths:
                       title: Actor
                       description: Actor
                       type: object
-                      properties: *49
-                      required: *50
+                      properties: *48
+                      required: *49
                     payload:
                       type: object
                       properties:
@@ -6967,7 +6850,7 @@ paths:
                                 description: A collection of related issues and pull
                                   requests.
                                 type: object
-                                properties: &68
+                                properties: &67
                                   url:
                                     type: string
                                     format: uri
@@ -7039,7 +6922,7 @@ paths:
                                     format: date-time
                                     example: '2012-10-09T23:39:01Z'
                                     nullable: true
-                                required: &69
+                                required: &68
                                 - closed_issues
                                 - creator
                                 - description
@@ -7111,7 +6994,7 @@ paths:
                               type: string
                               example: OWNER
                               description: How the author is associated with the repository.
-                              enum: &53
+                              enum: &52
                               - COLLABORATOR
                               - CONTRIBUTOR
                               - FIRST_TIMER
@@ -7131,8 +7014,8 @@ paths:
                               title: Repository
                               description: A git repository
                               type: object
-                              properties: *51
-                              required: *52
+                              properties: *50
+                              required: *51
                             performed_via_github_app:
                               nullable: true
                               allOf:
@@ -7223,7 +7106,7 @@ paths:
                               type: string
                               example: OWNER
                               description: How the author is associated with the repository.
-                              enum: *53
+                              enum: *52
                             performed_via_github_app:
                               nullable: true
                               allOf:
@@ -7241,7 +7124,7 @@ paths:
                             reactions:
                               title: Reaction Rollup
                               type: object
-                              properties: &70
+                              properties: &69
                                 url:
                                   type: string
                                   format: uri
@@ -7263,7 +7146,7 @@ paths:
                                   type: integer
                                 rocket:
                                   type: integer
-                              required: &71
+                              required: &70
                               - url
                               - total_count
                               - "+1"
@@ -7308,7 +7191,7 @@ paths:
                       type: string
                       format: date-time
                       nullable: true
-                  required: &76
+                  required: &75
                   - id
                   - type
                   - actor
@@ -7404,58 +7287,58 @@ paths:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: &54
+                        properties: &53
                           href:
                             type: string
                           type:
                             type: string
-                        required: &55
+                        required: &54
                         - href
                         - type
                       user:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       security_advisories:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       current_user:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       current_user_public:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       current_user_actor:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       current_user_organization:
                         title: Link With Type
                         description: Hypermedia Link with Type
                         type: object
-                        properties: *54
-                        required: *55
+                        properties: *53
+                        required: *54
                       current_user_organizations:
                         type: array
                         items:
                           title: Link With Type
                           description: Hypermedia Link with Type
                           type: object
-                          properties: *54
-                          required: *55
+                          properties: *53
+                          required: *54
                     required:
                     - timeline
                     - user
@@ -7520,7 +7403,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: &56
+        schema: &55
           type: string
           format: date-time
       - name: per_page
@@ -7542,7 +7425,7 @@ paths:
                   title: Base Gist
                   description: Base Gist
                   type: object
-                  properties: &57
+                  properties: &56
                     url:
                       type: string
                       format: uri
@@ -7622,7 +7505,7 @@ paths:
                     history:
                       type: array
                       items: {}
-                  required: &58
+                  required: &57
                   - id
                   - node_id
                   - url
@@ -7641,7 +7524,7 @@ paths:
                   - updated_at
               examples:
                 default:
-                  value: &59
+                  value: &58
                   - url: https://api.github.com/gists/aa5a315d61ae9438b18d
                     forks_url: https://api.github.com/gists/aa5a315d61ae9438b18d/forks
                     commits_url: https://api.github.com/gists/aa5a315d61ae9438b18d/commits
@@ -7761,7 +7644,7 @@ paths:
                 title: Gist Simple
                 description: Gist Simple
                 type: object
-                properties: &60
+                properties: &59
                   forks:
                     deprecated: true
                     nullable: true
@@ -7939,7 +7822,7 @@ paths:
                     type: boolean
               examples:
                 default:
-                  value: &61
+                  value: &60
                     url: https://api.github.com/gists/aa5a315d61ae9438b18d
                     forks_url: https://api.github.com/gists/aa5a315d61ae9438b18d/forks
                     commits_url: https://api.github.com/gists/aa5a315d61ae9438b18d/commits
@@ -7995,7 +7878,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -8015,11 +7898,11 @@ paths:
                   title: Base Gist
                   description: Base Gist
                   type: object
-                  properties: *57
-                  required: *58
+                  properties: *56
+                  required: *57
               examples:
                 default:
-                  value: *59
+                  value: *58
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -8056,7 +7939,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -8076,11 +7959,11 @@ paths:
                   title: Base Gist
                   description: Base Gist
                   type: object
-                  properties: *57
-                  required: *58
+                  properties: *56
+                  required: *57
               examples:
                 default:
-                  value: *59
+                  value: *58
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -8115,7 +7998,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: &62
+        schema: &61
           type: string
       responses:
         '200':
@@ -8126,13 +8009,13 @@ paths:
                 title: Gist Simple
                 description: Gist Simple
                 type: object
-                properties: *60
+                properties: *59
               examples:
                 default:
-                  value: *61
+                  value: *60
         '403':
           description: Forbidden Gist
-          content: &66
+          content: &65
             application/json:
               schema:
                 type: object
@@ -8178,7 +8061,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       requestBody:
         content:
           application/json:
@@ -8229,10 +8112,10 @@ paths:
                 title: Gist Simple
                 description: Gist Simple
                 type: object
-                properties: *60
+                properties: *59
               examples:
                 default:
-                  value: *61
+                  value: *60
         '422':
           description: Validation failed
           content: *43
@@ -8259,7 +8142,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       responses:
         '204':
           description: Response
@@ -8292,7 +8175,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -8312,7 +8195,7 @@ paths:
                   title: Gist Comment
                   description: A comment made to a gist.
                   type: object
-                  properties: &63
+                  properties: &62
                     id:
                       type: integer
                       example: 1
@@ -8350,8 +8233,8 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
-                  required: &64
+                      enum: *52
+                  required: &63
                   - url
                   - id
                   - node_id
@@ -8422,7 +8305,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       requestBody:
         content:
           application/json:
@@ -8445,11 +8328,11 @@ paths:
                 title: Gist Comment
                 description: A comment made to a gist.
                 type: object
-                properties: *63
-                required: *64
+                properties: *62
+                required: *63
               examples:
                 default:
-                  value: &65
+                  value: &64
                     id: 1
                     node_id: MDExOkdpc3RDb21tZW50MQ==
                     url: https://api.github.com/gists/a6db0bec360bb87e9418/comments/1
@@ -8510,12 +8393,12 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: comment_id
         description: comment_id parameter
         in: path
         required: true
-        schema: &67
+        schema: &66
           type: integer
       responses:
         '200':
@@ -8526,11 +8409,11 @@ paths:
                 title: Gist Comment
                 description: A comment made to a gist.
                 type: object
-                properties: *63
-                required: *64
+                properties: *62
+                required: *63
               examples:
                 default:
-                  value: *65
+                  value: *64
         '304':
           description: Not modified
         '404':
@@ -8538,7 +8421,7 @@ paths:
           content: *24
         '403':
           description: Forbidden Gist
-          content: *66
+          content: *65
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -8559,12 +8442,12 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: comment_id
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -8587,11 +8470,11 @@ paths:
                 title: Gist Comment
                 description: A comment made to a gist.
                 type: object
-                properties: *63
-                required: *64
+                properties: *62
+                required: *63
               examples:
                 default:
-                  value: *65
+                  value: *64
         '404':
           description: Resource not found
           content: *24
@@ -8615,12 +8498,12 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: comment_id
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '204':
           description: Response
@@ -8653,7 +8536,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -8772,7 +8655,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -8792,7 +8675,7 @@ paths:
                   title: Gist Simple
                   description: Gist Simple
                   type: object
-                  properties: *60
+                  properties: *59
               examples:
                 default:
                   value:
@@ -8870,7 +8753,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       responses:
         '201':
           description: Response
@@ -8880,8 +8763,8 @@ paths:
                 title: Base Gist
                 description: Base Gist
                 type: object
-                properties: *57
-                required: *58
+                properties: *56
+                required: *57
               examples:
                 default:
                   value:
@@ -8964,7 +8847,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       responses:
         '204':
           description: Response if gist is starred
@@ -9002,7 +8885,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       responses:
         '204':
           description: Response
@@ -9034,7 +8917,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       responses:
         '204':
           description: Response
@@ -9067,7 +8950,7 @@ paths:
         description: gist_id parameter
         in: path
         required: true
-        schema: *62
+        schema: *61
       - name: sha
         in: path
         required: true
@@ -9082,10 +8965,10 @@ paths:
                 title: Gist Simple
                 description: Gist Simple
                 type: object
-                properties: *60
+                properties: *59
               examples:
                 default:
-                  value: *61
+                  value: *60
         '422':
           description: Validation failed
           content: *43
@@ -9270,8 +9153,8 @@ paths:
                       title: Repository
                       description: A git repository
                       type: object
-                      properties: *51
-                      required: *52
+                      properties: *50
+                      required: *51
                   repository_selection:
                     type: string
                     example: selected
@@ -9466,7 +9349,7 @@ paths:
         description: 'A list of comma separated label names. Example: `bug,ui,@high`'
         in: query
         required: false
-        schema: &96
+        schema: &95
           type: string
       - name: sort
         description: What to sort results by. Can be either `created`, `updated`,
@@ -9491,7 +9374,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: collab
         in: query
         required: false
@@ -9532,7 +9415,7 @@ paths:
                   description: Issues are a great way to keep track of tasks, enhancements,
                     and bugs for your projects.
                   type: object
-                  properties: &97
+                  properties: &96
                     id:
                       type: integer
                     node_id:
@@ -9643,8 +9526,8 @@ paths:
                       - title: Milestone
                         description: A collection of related issues and pull requests.
                         type: object
-                        properties: *68
-                        required: *69
+                        properties: *67
+                        required: *68
                     locked:
                       type: boolean
                     active_lock_reason:
@@ -9710,8 +9593,8 @@ paths:
                       title: Repository
                       description: A git repository
                       type: object
-                      properties: *51
-                      required: *52
+                      properties: *50
+                      required: *51
                     performed_via_github_app:
                       nullable: true
                       allOf:
@@ -9730,13 +9613,13 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
-                  required: &98
+                      properties: *69
+                      required: *70
+                  required: &97
                   - assignee
                   - closed_at
                   - comments
@@ -9760,7 +9643,7 @@ paths:
                   - updated_at
               examples:
                 default:
-                  value: &99
+                  value: &98
                   - id: 1
                     node_id: MDU6SXNzdWUx
                     url: https://api.github.com/repos/octocat/Hello-World/issues/1347
@@ -10050,8 +9933,8 @@ paths:
                   title: License Simple
                   description: License Simple
                   type: object
-                  properties: *72
-                  required: *73
+                  properties: *71
+                  required: *72
               examples:
                 default:
                   value:
@@ -10336,7 +10219,7 @@ paths:
                 type: string
             X-CommonMarker-Version:
               example: 0.17.4
-              schema: &74
+              schema: &73
                 type: string
           content:
             text/html:
@@ -10379,7 +10262,7 @@ paths:
           headers:
             X-CommonMarker-Version:
               example: 0.17.4
-              schema: *74
+              schema: *73
           content:
             text/html:
               schema:
@@ -10497,8 +10380,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
         '404':
           description: Resource not found
           content: *24
@@ -10555,7 +10438,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: before
         description: 'Only show notifications updated before the given time. This
           is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format:
@@ -10584,7 +10467,7 @@ paths:
                   title: Thread
                   description: Thread
                   type: object
-                  properties: &77
+                  properties: &76
                     id:
                       type: string
                     repository:
@@ -10831,8 +10714,8 @@ paths:
                           - title: Repository
                             description: A git repository
                             type: object
-                            properties: *51
-                            required: *52
+                            properties: *50
+                            required: *51
                         subscribers_count:
                           type: integer
                         network_count:
@@ -10939,7 +10822,7 @@ paths:
                     subscription_url:
                       type: string
                       example: https://api.github.com/notifications/threads/2/subscription
-                  required: &78
+                  required: &77
                   - id
                   - unread
                   - reason
@@ -11123,7 +11006,7 @@ paths:
         description: thread_id parameter
         in: path
         required: true
-        schema: &79
+        schema: &78
           type: integer
       responses:
         '200':
@@ -11134,8 +11017,8 @@ paths:
                 title: Thread
                 description: Thread
                 type: object
-                properties: *77
-                required: *78
+                properties: *76
+                required: *77
               examples:
                 default:
                   value:
@@ -11246,7 +11129,7 @@ paths:
         description: thread_id parameter
         in: path
         required: true
-        schema: *79
+        schema: *78
       responses:
         '205':
           description: Reset Content
@@ -11279,7 +11162,7 @@ paths:
         description: thread_id parameter
         in: path
         required: true
-        schema: *79
+        schema: *78
       responses:
         '200':
           description: Response
@@ -11289,7 +11172,7 @@ paths:
                 title: Thread Subscription
                 description: Thread Subscription
                 type: object
-                properties: &80
+                properties: &79
                   subscribed:
                     type: boolean
                     example: true
@@ -11315,7 +11198,7 @@ paths:
                     type: string
                     format: uri
                     example: https://api.github.com/repos/1
-                required: &81
+                required: &80
                 - created_at
                 - ignored
                 - reason
@@ -11323,7 +11206,7 @@ paths:
                 - subscribed
               examples:
                 default:
-                  value: &82
+                  value: &81
                     subscribed: true
                     ignored: false
                     reason: 
@@ -11363,7 +11246,7 @@ paths:
         description: thread_id parameter
         in: path
         required: true
-        schema: *79
+        schema: *78
       requestBody:
         content:
           application/json:
@@ -11383,11 +11266,11 @@ paths:
                 title: Thread Subscription
                 description: Thread Subscription
                 type: object
-                properties: *80
-                required: *81
+                properties: *79
+                required: *80
               examples:
                 default:
-                  value: *82
+                  value: *81
         '304':
           description: Not modified
         '403':
@@ -11420,7 +11303,7 @@ paths:
         description: thread_id parameter
         in: path
         required: true
-        schema: *79
+        schema: *78
       responses:
         '204':
           description: Response
@@ -11503,8 +11386,8 @@ paths:
                   title: Organization Simple
                   description: Organization Simple
                   type: object
-                  properties: *83
-                  required: *84
+                  properties: *82
+                  required: *83
               examples:
                 default:
                   value: &320
@@ -11550,7 +11433,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       responses:
         '200':
           description: Response
@@ -11560,7 +11443,7 @@ paths:
                 title: Organization Full
                 description: Organization Full
                 type: object
-                properties: &86
+                properties: &85
                   login:
                     type: string
                     example: github
@@ -11713,7 +11596,7 @@ paths:
                   updated_at:
                     type: string
                     format: date-time
-                required: &87
+                required: &86
                 - login
                 - url
                 - id
@@ -11823,7 +11706,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -11953,8 +11836,8 @@ paths:
                 title: Organization Full
                 description: Organization Full
                 type: object
-                properties: *86
-                required: *87
+                properties: *85
+                required: *86
               examples:
                 default:
                   value:
@@ -12011,13 +11894,13 @@ paths:
                 - title: Validation Error
                   description: Validation Error
                   type: object
-                  required: *88
-                  properties: *89
+                  required: *87
+                  properties: *88
                 - title: Validation Error Simple
                   description: Validation Error Simple
                   type: object
-                  required: *90
-                  properties: *91
+                  required: *89
+                  properties: *90
         '409':
           description: Conflict
           content: &172
@@ -12059,7 +11942,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -12079,8 +11962,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -12101,7 +11984,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -12121,7 +12004,7 @@ paths:
                   title: Org Hook
                   description: Org Hook
                   type: object
-                  properties: &92
+                  properties: &91
                     id:
                       type: integer
                       example: 1
@@ -12171,7 +12054,7 @@ paths:
                       example: '2011-09-06T17:26:27Z'
                     type:
                       type: string
-                  required: &93
+                  required: &92
                   - id
                   - url
                   - type
@@ -12227,7 +12110,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -12260,7 +12143,7 @@ paths:
                         headers](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#delivery-headers).
                       example: '"********"'
                     insecure_ssl:
-                      oneOf: &95
+                      oneOf: &94
                       - type: string
                         description: Determines whether the SSL certificate of the
                           host for `url` will be verified when delivering payloads.
@@ -12312,11 +12195,11 @@ paths:
                 title: Org Hook
                 description: Org Hook
                 type: object
-                properties: *92
-                required: *93
+                properties: *91
+                required: *92
               examples:
                 default:
-                  value: &94
+                  value: &93
                     id: 1
                     url: https://api.github.com/orgs/octocat/hooks/1
                     ping_url: https://api.github.com/orgs/octocat/hooks/1/pings
@@ -12363,7 +12246,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: hook_id
         in: path
         required: true
@@ -12377,11 +12260,11 @@ paths:
                 title: Org Hook
                 description: Org Hook
                 type: object
-                properties: *92
-                required: *93
+                properties: *91
+                required: *92
               examples:
                 default:
-                  value: *94
+                  value: *93
         '404':
           description: Resource not found
           content: *24
@@ -12408,7 +12291,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: hook_id
         in: path
         required: true
@@ -12442,7 +12325,7 @@ paths:
                         headers](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#delivery-headers).
                       example: '"********"'
                     insecure_ssl:
-                      oneOf: *95
+                      oneOf: *94
                   required:
                   - url
                 events:
@@ -12474,8 +12357,8 @@ paths:
                 title: Org Hook
                 description: Org Hook
                 type: object
-                properties: *92
-                required: *93
+                properties: *91
+                required: *92
               examples:
                 default:
                   value:
@@ -12517,7 +12400,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: hook_id
         in: path
         required: true
@@ -12549,7 +12432,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: hook_id
         in: path
         required: true
@@ -12590,7 +12473,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       responses:
         '200':
           description: Response
@@ -12677,7 +12560,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -12787,7 +12670,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: filter
         description: "Indicates which sorts of issues to return. Can be one of:  \n\\*
           `assigned`: Issues assigned to you  \n\\* `created`: Issues created by you
@@ -12822,7 +12705,7 @@ paths:
         description: 'A list of comma separated label names. Example: `bug,ui,@high`'
         in: query
         required: false
-        schema: *96
+        schema: *95
       - name: sort
         description: What to sort results by. Can be either `created`, `updated`,
           `comments`.
@@ -12846,7 +12729,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -12867,11 +12750,11 @@ paths:
                   description: Issues are a great way to keep track of tasks, enhancements,
                     and bugs for your projects.
                   type: object
-                  properties: *97
-                  required: *98
+                  properties: *96
+                  required: *97
               examples:
                 default:
-                  value: *99
+                  value: *98
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -12909,7 +12792,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: filter
         description: "Filter members returned in the list. Can be one of:  \n\\* `2fa_disabled`
           - Members without [two-factor authentication](https://github.com/blog/1614-two-factor-authentication)
@@ -12960,7 +12843,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: &103
+                  value: &102
                   - login: octocat
                     id: 1
                     node_id: MDQ6VXNlcjE=
@@ -13014,7 +12897,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13053,7 +12936,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13086,7 +12969,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13100,7 +12983,7 @@ paths:
                 title: Org Membership
                 description: Org Membership
                 type: object
-                properties: &100
+                properties: &99
                   url:
                     type: string
                     format: uri
@@ -13129,8 +13012,8 @@ paths:
                     title: Organization Simple
                     description: Organization Simple
                     type: object
-                    properties: *83
-                    required: *84
+                    properties: *82
+                    required: *83
                   user:
                     nullable: true
                     allOf:
@@ -13147,7 +13030,7 @@ paths:
                         type: boolean
                     required:
                     - can_create_repository
-                required: &101
+                required: &100
                 - state
                 - role
                 - organization_url
@@ -13157,7 +13040,7 @@ paths:
               examples:
                 response-if-user-has-an-active-admin-membership-with-organization:
                   summary: Response if user has an active admin membership with organization
-                  value: &102
+                  value: &101
                     url: https://api.github.com/orgs/octocat/memberships/defunkt
                     state: active
                     role: admin
@@ -13231,7 +13114,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13261,12 +13144,12 @@ paths:
                 title: Org Membership
                 description: Org Membership
                 type: object
-                properties: *100
-                required: *101
+                properties: *99
+                required: *100
               examples:
                 response-if-user-already-had-membership-with-organization:
                   summary: Response if user has an active admin membership with organization
-                  value: *102
+                  value: *101
         '422':
           description: Validation failed
           content: *43
@@ -13295,7 +13178,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13329,7 +13212,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: filter
         description: "Filter the list of outside collaborators. Can be one of:  \n\\*
           `2fa_disabled`: Outside collaborators without [two-factor authentication](https://github.com/blog/1614-two-factor-authentication)
@@ -13366,7 +13249,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -13395,7 +13278,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13437,7 +13320,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -13485,7 +13368,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100)
         in: query
@@ -13519,7 +13402,7 @@ paths:
                 type: array
                 items:
                   type: object
-                  properties: &104
+                  properties: &103
                     id:
                       type: integer
                     name:
@@ -13568,7 +13451,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: pre_receive_hook_id
         in: path
         required: true
@@ -13580,10 +13463,10 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *104
+                properties: *103
               examples:
                 default:
-                  value: &105
+                  value: &104
                     id: 42
                     name: Check Commits
                     enforcement: disabled
@@ -13619,7 +13502,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: pre_receive_hook_id
         in: path
         required: true
@@ -13631,7 +13514,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *104
+                properties: *103
               examples:
                 default:
                   value:
@@ -13684,7 +13567,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: pre_receive_hook_id
         in: path
         required: true
@@ -13696,10 +13579,10 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: *104
+                properties: *103
               examples:
                 default:
-                  value: *105
+                  value: *104
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -13733,7 +13616,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: state
         description: Indicates the state of the projects to return. Can be either
           `open`, `closed`, or `all`.
@@ -13766,7 +13649,7 @@ paths:
                   description: Projects are a way to organize columns and cards of
                     work.
                   type: object
-                  properties: &107
+                  properties: &106
                     owner_url:
                       type: string
                       format: uri
@@ -13836,7 +13719,7 @@ paths:
                       description: Whether or not this project can be seen by everyone.
                         Only present if owner is an organization.
                       type: boolean
-                  required: &108
+                  required: &107
                   - id
                   - node_id
                   - number
@@ -13891,7 +13774,7 @@ paths:
               schema: *6
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -13921,7 +13804,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -13948,8 +13831,8 @@ paths:
                 title: Project
                 description: Projects are a way to organize columns and cards of work.
                 type: object
-                properties: *107
-                required: *108
+                properties: *106
+                required: *107
               examples:
                 default:
                   value:
@@ -13995,10 +13878,10 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -14027,7 +13910,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -14052,7 +13935,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -14078,7 +13961,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -14110,7 +13993,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -14140,7 +14023,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: username
         in: path
         required: true
@@ -14168,7 +14051,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: type
         description: 'Specifies the types of repositories you want returned. Can be
           one of `all`, `public`, `private`, `forks`, `sources`, `member`, `internal`.
@@ -14392,7 +14275,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -14513,8 +14396,8 @@ paths:
                 title: Repository
                 description: A git repository
                 type: object
-                properties: *51
-                required: *52
+                properties: *50
+                required: *51
               examples:
                 default:
                   value: &322
@@ -14679,7 +14562,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -14853,7 +14736,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -14998,8 +14881,8 @@ paths:
                     title: Organization Full
                     description: Organization Full
                     type: object
-                    properties: *86
-                    required: *87
+                    properties: *85
+                    required: *86
                   ldap_dn:
                     description: Distinguished Name (DN) that team maps to within
                       LDAP environment
@@ -15097,7 +14980,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: team_slug
         description: team_slug parameter
         in: path
@@ -15326,7 +15209,7 @@ paths:
           content: *24
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -15888,13 +15771,13 @@ paths:
                 - title: Validation Error
                   description: Validation Error
                   type: object
-                  required: *88
-                  properties: *89
+                  required: *87
+                  properties: *88
                 - title: Validation Error Simple
                   description: Validation Error Simple
                   type: object
-                  required: *90
-                  properties: *91
+                  required: *89
+                  properties: *90
         '503':
           description: Response
           content:
@@ -15975,7 +15858,7 @@ paths:
           content: *31
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '401':
           description: Requires authentication
           content: *32
@@ -16019,8 +15902,8 @@ paths:
                 title: Project
                 description: Projects are a way to organize columns and cards of work.
                 type: object
-                properties: *107
-                required: *108
+                properties: *106
+                required: *107
               examples:
                 default:
                   value: &125
@@ -16133,8 +16016,8 @@ paths:
                 title: Project
                 description: Projects are a way to organize columns and cards of work.
                 type: object
-                properties: *107
-                required: *108
+                properties: *106
+                required: *107
               examples:
                 default:
                   value: *125
@@ -16163,10 +16046,10 @@ paths:
           content: *32
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -16220,7 +16103,7 @@ paths:
           content: *32
         '410':
           description: Gone
-          content: *48
+          content: *108
         '404':
           description: Resource not found
           content: *24
@@ -16296,7 +16179,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -16678,7 +16561,7 @@ paths:
           content: *31
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '401':
           description: Requires authentication
           content: *32
@@ -17165,8 +17048,8 @@ paths:
                     - title: Repository
                       description: A git repository
                       type: object
-                      properties: *51
-                      required: *52
+                      properties: *50
+                      required: *51
                   allow_squash_merge:
                     type: boolean
                     example: true
@@ -17185,8 +17068,8 @@ paths:
                     - title: License Simple
                       description: License Simple
                       type: object
-                      properties: *72
-                      required: *73
+                      properties: *71
+                      required: *72
                   organization:
                     nullable: true
                     allOf:
@@ -17200,14 +17083,14 @@ paths:
                     title: Repository
                     description: A git repository
                     type: object
-                    properties: *51
-                    required: *52
+                    properties: *50
+                    required: *51
                   source:
                     title: Repository
                     description: A git repository
                     type: object
-                    properties: *51
-                    required: *52
+                    properties: *50
+                    required: *51
                   forks:
                     type: integer
                   master_branch:
@@ -19056,7 +18939,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -20466,7 +20349,7 @@ paths:
           content: *29
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '404':
           description: Resource not found
           content: *24
@@ -22334,7 +22217,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
         '404':
           description: Resource not found
           content: *24
@@ -22411,7 +22294,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
         '422':
           description: Validation failed
           content: *43
@@ -22489,7 +22372,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
         '422':
           description: Validation failed
           content: *43
@@ -22567,7 +22450,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
         '422':
           description: Validation failed
           content: *43
@@ -25585,12 +25468,12 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
+                      properties: *69
+                      required: *70
                   required: &166
                   - url
                   - html_url
@@ -25683,7 +25566,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '200':
           description: Response
@@ -25770,7 +25653,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -25860,7 +25743,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '204':
           description: Response
@@ -25896,7 +25779,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a commit comment.
@@ -26049,7 +25932,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -26219,7 +26102,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: until
         description: 'Only commits before this date will be returned. This is a timestamp
           in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -26767,8 +26650,8 @@ paths:
                       - title: Milestone
                         description: A collection of related issues and pull requests.
                         type: object
-                        properties: *68
-                        required: *69
+                        properties: *67
+                        required: *68
                     active_lock_reason:
                       type: string
                       example: too heated
@@ -26846,8 +26729,8 @@ paths:
                           title: Repository
                           description: A git repository
                           type: object
-                          properties: *51
-                          required: *52
+                          properties: *50
+                          required: *51
                         sha:
                           type: string
                         user:
@@ -26876,8 +26759,8 @@ paths:
                           title: Repository
                           description: A git repository
                           type: object
-                          properties: *51
-                          required: *52
+                          properties: *50
+                          required: *51
                         sha:
                           type: string
                         user:
@@ -26963,7 +26846,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     draft:
                       description: Indicates whether or not the pull request is a
                         draft.
@@ -31017,8 +30900,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -32866,7 +32749,7 @@ paths:
                           example: https://example.com/webhook
                           format: uri
                         insecure_ssl:
-                          oneOf: *95
+                          oneOf: *94
                         content_type:
                           type: string
                           description: The media type used to serialize the payloads.
@@ -33026,7 +32909,7 @@ paths:
                         headers](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#delivery-headers).
                       example: '"********"'
                     insecure_ssl:
-                      oneOf: *95
+                      oneOf: *94
                     token:
                       type: string
                       example: '"abc"'
@@ -33212,7 +33095,7 @@ paths:
                         headers](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#delivery-headers).
                       example: '"********"'
                     insecure_ssl:
-                      oneOf: *95
+                      oneOf: *94
                     address:
                       type: string
                       example: '"bar@example.com"'
@@ -33887,7 +33770,7 @@ paths:
         description: 'A list of comma separated label names. Example: `bug,ui,@high`'
         in: query
         required: false
-        schema: *96
+        schema: *95
       - name: sort
         description: What to sort results by. Can be either `created`, `updated`,
           `comments`.
@@ -33911,7 +33794,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -34184,8 +34067,8 @@ paths:
                 description: Issues are a great way to keep track of tasks, enhancements,
                   and bugs for your projects.
                 type: object
-                properties: *97
-                required: *98
+                properties: *96
+                required: *97
               examples:
                 default:
                   value: &220
@@ -34351,7 +34234,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -34404,7 +34287,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -34508,7 +34391,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '200':
           description: Response
@@ -34591,7 +34474,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -34651,7 +34534,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '204':
           description: Response
@@ -34684,7 +34567,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to an issue comment.
@@ -34777,7 +34660,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -35057,7 +34940,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     lock_reason:
                       type: string
                       nullable: true
@@ -35497,7 +35380,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '403':
           description: Forbidden
           content: *31
@@ -35577,8 +35460,8 @@ paths:
                 description: Issues are a great way to keep track of tasks, enhancements,
                   and bugs for your projects.
                 type: object
-                properties: *97
-                required: *98
+                properties: *96
+                required: *97
               examples:
                 default:
                   value: *220
@@ -35590,7 +35473,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '304':
           description: Not modified
       x-github:
@@ -35718,8 +35601,8 @@ paths:
                 description: Issues are a great way to keep track of tasks, enhancements,
                   and bugs for your projects.
                 type: object
-                properties: *97
-                required: *98
+                properties: *96
+                required: *97
               examples:
                 default:
                   value: *220
@@ -35740,7 +35623,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36059,7 +35942,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -36095,7 +35978,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36177,7 +36060,7 @@ paths:
           content: *31
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
           content: *43
@@ -36278,7 +36161,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     body:
                       type: string
                       example: '":+1:"'
@@ -36340,7 +36223,7 @@ paths:
               schema: *6
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36433,7 +36316,7 @@ paths:
               schema: *6
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36529,7 +36412,7 @@ paths:
                   value: *226
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
           content: *43
@@ -36624,7 +36507,7 @@ paths:
                   value: *226
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
           content: *43
@@ -36662,7 +36545,7 @@ paths:
           description: Response
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36729,7 +36612,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36788,7 +36671,7 @@ paths:
           content: *31
         '410':
           description: Gone
-          content: *48
+          content: *108
         '404':
           description: Resource not found
           content: *24
@@ -36920,7 +36803,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '415':
           description: Preview header missing
           content: *29
@@ -37096,7 +36979,7 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '415':
           description: Preview header missing
           content: *29
@@ -37788,8 +37671,8 @@ paths:
                     - title: License Simple
                       description: License Simple
                       type: object
-                      properties: *72
-                      required: *73
+                      properties: *71
+                      required: *72
                 required:
                 - _links
                 - git_url
@@ -38003,8 +37886,8 @@ paths:
                   title: Milestone
                   description: A collection of related issues and pull requests.
                   type: object
-                  properties: *68
-                  required: *69
+                  properties: *67
+                  required: *68
               examples:
                 default:
                   value:
@@ -38114,8 +37997,8 @@ paths:
                 title: Milestone
                 description: A collection of related issues and pull requests.
                 type: object
-                properties: *68
-                required: *69
+                properties: *67
+                required: *68
               examples:
                 default:
                   value: &235
@@ -38204,8 +38087,8 @@ paths:
                 title: Milestone
                 description: A collection of related issues and pull requests.
                 type: object
-                properties: *68
-                required: *69
+                properties: *67
+                required: *68
               examples:
                 default:
                   value: *235
@@ -38279,8 +38162,8 @@ paths:
                 title: Milestone
                 description: A collection of related issues and pull requests.
                 type: object
-                properties: *68
-                required: *69
+                properties: *67
+                required: *68
               examples:
                 default:
                   value: *235
@@ -38421,7 +38304,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: before
         description: 'Only show notifications updated before the given time. This
           is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format:
@@ -38448,8 +38331,8 @@ paths:
                   title: Thread
                   description: Thread
                   type: object
-                  properties: *77
-                  required: *78
+                  properties: *76
+                  required: *77
               examples:
                 default:
                   value: *240
@@ -39512,8 +39395,8 @@ paths:
                   description: Projects are a way to organize columns and cards of
                     work.
                   type: object
-                  properties: *107
-                  required: *108
+                  properties: *106
+                  required: *107
               examples:
                 default:
                   value:
@@ -39564,10 +39447,10 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -39628,8 +39511,8 @@ paths:
                 title: Project
                 description: Projects are a way to organize columns and cards of work.
                 type: object
-                properties: *107
-                required: *108
+                properties: *106
+                required: *107
               examples:
                 default:
                   value: *125
@@ -39644,10 +39527,10 @@ paths:
           content: *24
         '410':
           description: Gone
-          content: *48
+          content: *108
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -39970,8 +39853,8 @@ paths:
                     - title: Milestone
                       description: A collection of related issues and pull requests.
                       type: object
-                      properties: *68
-                      required: *69
+                      properties: *67
+                      required: *68
                   active_lock_reason:
                     type: string
                     example: too heated
@@ -40730,8 +40613,8 @@ paths:
                             - title: License Simple
                               description: License Simple
                               type: object
-                              properties: *72
-                              required: *73
+                              properties: *71
+                              required: *72
                           pushed_at:
                             type: string
                             format: date-time
@@ -40974,7 +40857,7 @@ paths:
                     type: string
                     example: OWNER
                     description: How the author is associated with the repository.
-                    enum: *53
+                    enum: *52
                   draft:
                     description: Indicates whether or not the pull request is a draft.
                     example: false
@@ -41629,7 +41512,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -41737,7 +41620,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     _links:
                       type: object
                       properties:
@@ -41775,8 +41658,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
+                      properties: *69
+                      required: *70
                     body_html:
                       type: string
                       example: '"<p>comment body</p>"'
@@ -41913,7 +41796,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '200':
           description: Response
@@ -42034,7 +41917,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -42112,7 +41995,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       responses:
         '204':
           description: Response
@@ -42148,7 +42031,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/enterprise-server@2.19/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a pull request review comment.
@@ -42241,7 +42124,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -42532,7 +42415,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -42832,7 +42715,7 @@ paths:
         description: comment_id parameter
         in: path
         required: true
-        schema: *67
+        schema: *66
       requestBody:
         content:
           application/json:
@@ -44067,7 +43950,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                   required: &265
                   - id
                   - node_id
@@ -44277,7 +44160,7 @@ paths:
                     author_association: COLLABORATOR
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '403':
           description: Forbidden
           content: *31
@@ -44464,7 +44347,7 @@ paths:
                     author_association: COLLABORATOR
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44514,7 +44397,7 @@ paths:
                   value: *267
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '404':
           description: Resource not found
           content: *24
@@ -44641,7 +44524,7 @@ paths:
                       type: string
                       example: OWNER
                       description: How the author is associated with the repository.
-                      enum: *53
+                      enum: *52
                     _links:
                       type: object
                       properties:
@@ -44884,7 +44767,7 @@ paths:
           content: *24
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44961,7 +44844,7 @@ paths:
           content: *24
         '422':
           description: Validation failed
-          content: *106
+          content: *105
         '403':
           description: Forbidden
           content: *31
@@ -45358,8 +45241,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
+                      properties: *69
+                      required: *70
                   required: &273
                   - assets_url
                   - upload_url
@@ -47019,7 +46902,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -47523,7 +47406,7 @@ paths:
           content: *24
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -47825,8 +47708,8 @@ paths:
                 title: Repository
                 description: A git repository
                 type: object
-                properties: *51
-                required: *52
+                properties: *50
+                required: *51
               examples:
                 default:
                   value:
@@ -47965,8 +47848,8 @@ paths:
       description: |-
         Lists all public repositories in the order that they were created.
 
-        Notes:
-        - For GitHub Enterprise Server and GitHub AE, this endpoint will only list repositories available to all users on the enterprise.
+        Note:
+        - For GitHub Enterprise Server, this endpoint will only list repositories available to all users on the enterprise.
         - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@2.19/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of repositories.
       tags:
       - repos
@@ -48869,8 +48752,8 @@ paths:
                           - title: Milestone
                             description: A collection of related issues and pull requests.
                             type: object
-                            properties: *68
-                            required: *69
+                            properties: *67
+                            required: *68
                         comments:
                           type: integer
                         created_at:
@@ -48924,15 +48807,15 @@ paths:
                           type: string
                           example: OWNER
                           description: How the author is associated with the repository.
-                          enum: *53
+                          enum: *52
                         draft:
                           type: boolean
                         repository:
                           title: Repository
                           description: A git repository
                           type: object
-                          properties: *51
-                          required: *52
+                          properties: *50
+                          required: *51
                         body_html:
                           type: string
                         body_text:
@@ -49505,8 +49388,8 @@ paths:
                           - title: License Simple
                             description: License Simple
                             type: object
-                            properties: *72
-                            required: *73
+                            properties: *71
+                            required: *72
                         permissions:
                           type: object
                           properties:
@@ -51361,8 +51244,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
+                      properties: *69
+                      required: *70
                   required: &296
                   - author
                   - body
@@ -51870,8 +51753,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *70
-                      required: *71
+                      properties: *69
+                      required: *70
                   required: &300
                   - author
                   - body
@@ -52643,7 +52526,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -54920,7 +54803,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -54975,7 +54858,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -55698,8 +55581,8 @@ paths:
                       title: Repository
                       description: A git repository
                       type: object
-                      properties: *51
-                      required: *52
+                      properties: *50
+                      required: *51
               examples:
                 default:
                   value:
@@ -55984,7 +55867,7 @@ paths:
         description: 'A list of comma separated label names. Example: `bug,ui,@high`'
         in: query
         required: false
-        schema: *96
+        schema: *95
       - name: sort
         description: What to sort results by. Can be either `created`, `updated`,
           `comments`.
@@ -56008,7 +55891,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -56029,11 +55912,11 @@ paths:
                   description: Issues are a great way to keep track of tasks, enhancements,
                     and bugs for your projects.
                   type: object
-                  properties: *97
-                  required: *98
+                  properties: *96
+                  required: *97
               examples:
                 default:
-                  value: *99
+                  value: *98
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -56348,8 +56231,8 @@ paths:
                   title: Org Membership
                   description: Org Membership
                   type: object
-                  properties: *100
-                  required: *101
+                  properties: *99
+                  required: *100
               examples:
                 default:
                   value:
@@ -56461,7 +56344,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       responses:
         '200':
           description: Response
@@ -56471,8 +56354,8 @@ paths:
                 title: Org Membership
                 description: Org Membership
                 type: object
-                properties: *100
-                required: *101
+                properties: *99
+                required: *100
               examples:
                 default:
                   value:
@@ -56537,7 +56420,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       requestBody:
         content:
           application/json:
@@ -56563,8 +56446,8 @@ paths:
                 title: Org Membership
                 description: Org Membership
                 type: object
-                properties: *100
-                required: *101
+                properties: *99
+                required: *100
               examples:
                 default:
                   value:
@@ -56654,8 +56537,8 @@ paths:
                   title: Organization Simple
                   description: Organization Simple
                   type: object
-                  properties: *83
-                  required: *84
+                  properties: *82
+                  required: *83
               examples:
                 default:
                   value: *320
@@ -56716,8 +56599,8 @@ paths:
                 title: Project
                 description: Projects are a way to organize columns and cards of work.
                 type: object
-                properties: *107
-                required: *108
+                properties: *106
+                required: *107
               examples:
                 default:
                   value:
@@ -56765,7 +56648,7 @@ paths:
           content: *29
         '422':
           description: Validation failed
-          content: *106
+          content: *105
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -56928,7 +56811,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: before
         description: 'Only show notifications updated before the given time. This
           is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format:
@@ -56947,8 +56830,8 @@ paths:
                   title: Repository
                   description: A git repository
                   type: object
-                  properties: *51
-                  required: *52
+                  properties: *50
+                  required: *51
               examples:
                 default:
                   summary: Default response
@@ -57189,8 +57072,8 @@ paths:
                 title: Repository
                 description: A git repository
                 type: object
-                properties: *51
-                required: *52
+                properties: *50
+                required: *51
               examples:
                 default:
                   value: *322
@@ -57413,8 +57296,8 @@ paths:
                   title: Repository
                   description: A git repository
                   type: object
-                  properties: *51
-                  required: *52
+                  properties: *50
+                  required: *51
               examples:
                 default-response:
                   summary: Default response
@@ -57434,8 +57317,8 @@ paths:
                       title: Repository
                       description: A git repository
                       type: object
-                      properties: *51
-                      required: *52
+                      properties: *50
+                      required: *51
                   required: &329
                   - starred_at
                   - repo
@@ -57886,7 +57769,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/users?since=135>; rel="next"
@@ -58063,8 +57946,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -58090,7 +57973,7 @@ paths:
       - name: org
         in: path
         required: true
-        schema: *85
+        schema: *84
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -58110,8 +57993,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -58152,8 +58035,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -58199,7 +58082,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -58250,7 +58133,7 @@ paths:
                   nullable: true
               examples:
                 default:
-                  value: *103
+                  value: *102
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -58314,7 +58197,7 @@ paths:
           `YYYY-MM-DDTHH:MM:SSZ`.'
         in: query
         required: false
-        schema: *56
+        schema: *55
       - name: per_page
         description: Results per page (max 100).
         in: query
@@ -58334,11 +58217,11 @@ paths:
                   title: Base Gist
                   description: Base Gist
                   type: object
-                  properties: *57
-                  required: *58
+                  properties: *56
+                  required: *57
               examples:
                 default:
-                  value: *59
+                  value: *58
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -58635,8 +58518,8 @@ paths:
                   title: Organization Simple
                   description: Organization Simple
                   type: object
-                  properties: *83
-                  required: *84
+                  properties: *82
+                  required: *83
               examples:
                 default:
                   value: *320
@@ -58698,8 +58581,8 @@ paths:
                   description: Projects are a way to organize columns and cards of
                     work.
                   type: object
-                  properties: *107
-                  required: *108
+                  properties: *106
+                  required: *107
               examples:
                 default:
                   value:
@@ -58794,8 +58677,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -58836,8 +58719,8 @@ paths:
                   title: Event
                   description: Event
                   type: object
-                  properties: *75
-                  required: *76
+                  properties: *74
+                  required: *75
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -59041,8 +58924,8 @@ paths:
                     title: Repository
                     description: A git repository
                     type: object
-                    properties: *51
-                    required: *52
+                    properties: *50
+                    required: *51
               examples:
                 default-response:
                   summary: Default response
@@ -59210,3 +59093,135 @@ paths:
         enabledForGitHubApps: true
         previews: []
         category: meta
+  "/{owner}/{repo}/content_references/{content_reference_id}/attachments":
+    post:
+      summary: Create a content attachment
+      description: |-
+        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.19/webhooks/event-payloads/#content_reference) to create an attachment.
+
+        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/enterprise-server@2.19/apps/using-content-attachments/)" for details about content attachments.
+
+        You must use an [installation access token](https://docs.github.com/enterprise-server@2.19/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
+      tags:
+      - apps
+      operationId: apps/create-content-attachment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@2.19/rest/reference/apps#create-a-content-attachment
+      parameters:
+      - name: owner
+        description: The owner of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: repo
+        description: The name of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: content_reference_id
+        description: The `id` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: The title of the attachment
+                  example: Title of the attachment
+                  type: string
+                  maxLength: 1024
+                body:
+                  description: The body of the attachment
+                  example: Body of the attachment
+                  type: string
+                  maxLength: 262144
+              required:
+              - title
+              - body
+              type: object
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: ContentReferenceAttachment
+                description: Content Reference attachments allow you to provide context
+                  around URLs posted in comments
+                type: object
+                properties:
+                  id:
+                    description: The ID of the attachment
+                    example: 21
+                    type: integer
+                  title:
+                    description: The title of the attachment
+                    example: Title of the attachment
+                    type: string
+                    maxLength: 1024
+                  body:
+                    description: The body of the attachment
+                    example: Body of the attachment
+                    type: string
+                    maxLength: 262144
+                  node_id:
+                    description: The node_id of the content attachment
+                    example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
+                    type: string
+                required:
+                - id
+                - title
+                - body
+              examples:
+                default:
+                  value:
+                    id: 101
+                    title: "[A-1234] Error found in core/models.py file'"
+                    body: |-
+                      You have used an email that already exists for the user_email_uniq field.
+                       ## DETAILS:
+
+                      The (email)=(Octocat@github.com) already exists.
+
+                       The error was found in core/models.py in get_or_create_user at line 62.
+
+                       self.save()
+        '422':
+          description: Validation failed
+          content: *43
+        '404':
+          description: Resource not found
+          content: *24
+        '410':
+          description: Gone
+          content: *108
+        '415':
+          description: Preview header missing
+          content: *29
+        '304':
+          description: Not modified
+        '403':
+          description: Forbidden
+          content: *31
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews:
+        - required: true
+          name: corsair
+          note: |-
+            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.19/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.corsair-preview+json
+            ```
+        category: apps
+        subcategory: installations
