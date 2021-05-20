@@ -2116,81 +2116,6 @@ paths:
             ```
         category: codes-of-conduct
         subcategory: 
-  "/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: content_reference_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/content-reference-attachment"
-              examples:
-                default:
-                  "$ref": "#/components/examples/content-reference-attachment"
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '410':
-          "$ref": "#/components/responses/gone"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
-        '304':
-          "$ref": "#/components/responses/not_modified"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
   "/emojis":
     get:
       summary: Get emojis
@@ -5061,7 +4986,7 @@ paths:
         Gets the GitHub Actions permissions policy for repositories and allowed actions in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
-      operationId: actions/actions-policies/get-github-actions-permissions-organization
+      operationId: actions/get-github-actions-permissions-organization
       tags:
       - actions
       externalDocs:
@@ -25370,50 +25295,6 @@ paths:
             ```
         category: repos
         subcategory: 
-  "/repositories":
-    get:
-      summary: List public repositories
-      description: |-
-        Lists all public repositories in the order that they were created.
-
-        Notes:
-        - For GitHub Enterprise Server and GitHub AE, this endpoint will only list repositories available to all users on the enterprise.
-        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of repositories.
-      tags:
-      - repos
-      operationId: repos/list-public
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/repos#list-public-repositories
-      parameters:
-      - "$ref": "#/components/parameters/since-repo"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/minimal-repository"
-              examples:
-                default:
-                  "$ref": "#/components/examples/public-repository-items"
-          headers:
-            Link:
-              example: <https://api.github.com/repositories?since=364>; rel="next"
-              schema:
-                type: string
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-        '304':
-          "$ref": "#/components/responses/not_modified"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews: []
-        category: repos
-        subcategory: 
   "/scim/v2/enterprises/{enterprise}/Groups":
     get:
       summary: List provisioned SCIM groups for an enterprise
@@ -30602,6 +30483,96 @@ paths:
         enabledForGitHubApps: true
         previews: []
         category: meta
+  "/{owner}/{repo}/content_references/{content_reference_id}/attachments":
+    post:
+      summary: Create a content attachment
+      description: |-
+        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
+
+        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
+
+        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
+      tags:
+      - apps
+      operationId: apps/create-content-attachment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
+      parameters:
+      - name: owner
+        description: The owner of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: repo
+        description: The name of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: content_reference_id
+        description: The `id` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: The title of the attachment
+                  example: Title of the attachment
+                  type: string
+                  maxLength: 1024
+                body:
+                  description: The body of the attachment
+                  example: Body of the attachment
+                  type: string
+                  maxLength: 262144
+              required:
+              - title
+              - body
+              type: object
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/content-reference-attachment"
+              examples:
+                default:
+                  "$ref": "#/components/examples/content-reference-attachment"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '410':
+          "$ref": "#/components/responses/gone"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews:
+        - required: true
+          name: corsair
+          note: |-
+            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.corsair-preview+json
+            ```
+        category: apps
+        subcategory: installations
 components:
   parameters:
     per-page:
@@ -31110,14 +31081,6 @@ components:
       description: release_id parameter
       in: path
       required: true
-      schema:
-        type: integer
-    since-repo:
-      name: since
-      description: A repository ID. Only return repositories with an ID greater than
-        this ID.
-      in: query
-      required: false
       schema:
         type: integer
     start_index:
@@ -32953,34 +32916,6 @@ components:
       - html_url
       - key
       - name
-    content-reference-attachment:
-      title: ContentReferenceAttachment
-      description: Content Reference attachments allow you to provide context around
-        URLs posted in comments
-      type: object
-      properties:
-        id:
-          description: The ID of the attachment
-          example: 21
-          type: integer
-        title:
-          description: The title of the attachment
-          example: Title of the attachment
-          type: string
-          maxLength: 1024
-        body:
-          description: The body of the attachment
-          example: Body of the attachment
-          type: string
-          maxLength: 262144
-        node_id:
-          description: The node_id of the content attachment
-          example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-          type: string
-      required:
-      - id
-      - title
-      - body
     announcement-message:
       type: string
       description: The announcement text in GitHub Flavored Markdown. For more information
@@ -44840,6 +44775,34 @@ components:
       required:
       - key
       - id
+    content-reference-attachment:
+      title: ContentReferenceAttachment
+      description: Content Reference attachments allow you to provide context around
+        URLs posted in comments
+      type: object
+      properties:
+        id:
+          description: The ID of the attachment
+          example: 21
+          type: integer
+        title:
+          description: The title of the attachment
+          example: Title of the attachment
+          type: string
+          maxLength: 1024
+        body:
+          description: The body of the attachment
+          example: Body of the attachment
+          type: string
+          maxLength: 262144
+        node_id:
+          description: The node_id of the content attachment
+          example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
+          type: string
+      required:
+      - id
+      - title
+      - body
   examples:
     global-hook-items:
       value:
@@ -45458,19 +45421,6 @@ components:
           [homepage]: http://contributor-covenant.org
           [version]: http://contributor-covenant.org/version/1/4/
         html_url: http://contributor-covenant.org/version/1/4/
-    content-reference-attachment:
-      value:
-        id: 101
-        title: "[A-1234] Error found in core/models.py file'"
-        body: |-
-          You have used an email that already exists for the user_email_uniq field.
-           ## DETAILS:
-
-          The (email)=(Octocat@github.com) already exists.
-
-           The error was found in core/models.py in get_or_create_user at line 62.
-
-           self.save()
     announcement:
       summary: Default response
       value:
@@ -57715,74 +57665,6 @@ components:
           spdx_id: MIT
           node_id: MDc6TGljZW5zZW1pdA==
           html_url: https://github.com/licenses/mit
-    public-repository-items:
-      value:
-      - id: 1296269
-        node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-        name: Hello-World
-        full_name: octocat/Hello-World
-        owner:
-          login: octocat
-          id: 1
-          node_id: MDQ6VXNlcjE=
-          avatar_url: https://github.com/images/error/octocat_happy.gif
-          gravatar_id: ''
-          url: https://api.github.com/users/octocat
-          html_url: https://github.com/octocat
-          followers_url: https://api.github.com/users/octocat/followers
-          following_url: https://api.github.com/users/octocat/following{/other_user}
-          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-          subscriptions_url: https://api.github.com/users/octocat/subscriptions
-          organizations_url: https://api.github.com/users/octocat/orgs
-          repos_url: https://api.github.com/users/octocat/repos
-          events_url: https://api.github.com/users/octocat/events{/privacy}
-          received_events_url: https://api.github.com/users/octocat/received_events
-          type: User
-          site_admin: false
-        private: false
-        html_url: https://github.com/octocat/Hello-World
-        description: This your first repo!
-        fork: false
-        url: https://api.github.com/repos/octocat/Hello-World
-        archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-        assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-        blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-        branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-        collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-        comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-        commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-        compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-        contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-        contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-        deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-        downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-        events_url: https://api.github.com/repos/octocat/Hello-World/events
-        forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-        git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-        git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-        git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-        git_url: git:github.com/octocat/Hello-World.git
-        issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-        issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-        issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-        keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-        labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-        languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-        merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-        milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-        notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-        pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-        releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-        ssh_url: git@github.com:octocat/Hello-World.git
-        stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-        statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-        subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-        subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-        tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-        teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-        trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-        hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
     scim-enterprise-group-list:
       value:
         schemas:
@@ -59533,6 +59415,19 @@ components:
           site_admin: false
         created_at: '2011-04-10T20:09:31Z'
         updated_at: '2014-03-03T18:58:10Z'
+    content-reference-attachment:
+      value:
+        id: 101
+        title: "[A-1234] Error found in core/models.py file'"
+        body: |-
+          You have used an email that already exists for the user_email_uniq field.
+           ## DETAILS:
+
+          The (email)=(Octocat@github.com) already exists.
+
+           The error was found in core/models.py in get_or_create_user at line 62.
+
+           self.save()
   headers:
     link:
       example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -59611,12 +59506,6 @@ components:
             "$ref": "#/components/schemas/validation-error"
     not_modified:
       description: Not modified
-    gone:
-      description: Gone
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
     service_unavailable:
       description: Service unavailable
       content:
@@ -59659,6 +59548,12 @@ components:
             "$ref": "#/components/schemas/basic-error"
     conflict:
       description: Conflict
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
+    gone:
+      description: Gone
       content:
         application/json:
           schema:
