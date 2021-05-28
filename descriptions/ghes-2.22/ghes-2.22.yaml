@@ -16018,8 +16018,8 @@ paths:
         Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.
 
         There are two places where you can upload code scanning results.
-         - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests)."
-         - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see "[Managing code scanning alerts for your repository](/code-security/secure-coding/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository)."
+         - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/automatically-scanning-your-code-for-vulnerabilities-and-errors/triaging-code-scanning-alerts-in-pull-requests)."
+         - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see "[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/automatically-scanning-your-code-for-vulnerabilities-and-errors/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository)."
 
         You must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:
 
@@ -16052,7 +16052,7 @@ paths:
                 ref:
                   "$ref": "#/components/schemas/code-scanning-ref"
                 sarif:
-                  "$ref": "#/components/schemas/code-scanning-analysis-sarif-file"
+                  "$ref": "#/components/schemas/code-scanning-analysis-sarif-file-2"
                 checkout_uri:
                   description: |-
                     The base directory used in the analysis, as it appears in the SARIF file.
@@ -17376,6 +17376,96 @@ paths:
         previews: []
         category: repos
         subcategory: commits
+  "/repos/{owner}/{repo}/content_references/{content_reference_id}/attachments":
+    post:
+      summary: Create a content attachment
+      description: |-
+        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.22/webhooks/event-payloads/#content_reference) to create an attachment.
+
+        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/enterprise-server@2.22/apps/using-content-attachments/)" for details about content attachments.
+
+        You must use an [installation access token](https://docs.github.com/enterprise-server@2.22/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
+      tags:
+      - apps
+      operationId: apps/create-content-attachment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@2.22/rest/reference/apps#create-a-content-attachment
+      parameters:
+      - name: owner
+        description: The owner of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: repo
+        description: The name of the repository. Determined from the `repository`
+          `full_name` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: content_reference_id
+        description: The `id` of the `content_reference` event.
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  description: The title of the attachment
+                  example: Title of the attachment
+                  type: string
+                  maxLength: 1024
+                body:
+                  description: The body of the attachment
+                  example: Body of the attachment
+                  type: string
+                  maxLength: 262144
+              required:
+              - title
+              - body
+              type: object
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/content-reference-attachment"
+              examples:
+                default:
+                  "$ref": "#/components/examples/content-reference-attachment"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '410':
+          "$ref": "#/components/responses/gone"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews:
+        - required: true
+          name: corsair
+          note: |-
+            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.22/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.corsair-preview+json
+            ```
+        category: apps
+        subcategory: installations
   "/repos/{owner}/{repo}/contents/{path}":
     get:
       summary: Get repository content
@@ -32060,96 +32150,6 @@ paths:
         enabledForGitHubApps: true
         previews: []
         category: meta
-  "/{owner}/{repo}/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.22/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/enterprise-server@2.22/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/enterprise-server@2.22/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/enterprise-server@2.22/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: owner
-        description: The owner of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: repo
-        description: The name of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: content_reference_id
-        description: The `id` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/content-reference-attachment"
-              examples:
-                default:
-                  "$ref": "#/components/examples/content-reference-attachment"
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '410':
-          "$ref": "#/components/responses/gone"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
-        '304':
-          "$ref": "#/components/responses/not_modified"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.22/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
 components:
   parameters:
     per-page:
@@ -40558,11 +40558,11 @@ components:
       - tool
       - deletable
       - warning
-    code-scanning-analysis-sarif-file:
+    code-scanning-analysis-sarif-file-2:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
         and then translate the contents of the file into a Base64 encoding string.
-        For more information, see "[SARIF support for code scanning](https://docs.github.com/enterprise-server@2.22/code-security/secure-coding/sarif-support-for-code-scanning)."
+        For more information, see "[SARIF support for code scanning](https://docs.github.com/enterprise-server@2.22/github/finding-security-vulnerabilities-and-errors-in-your-code/integrating-with-code-scanning/sarif-support-for-code-scanning)."
       type: string
     code-scanning-sarifs-receipt:
       type: object
@@ -41320,6 +41320,34 @@ components:
       - behind_by
       - total_commits
       - commits
+    content-reference-attachment:
+      title: ContentReferenceAttachment
+      description: Content Reference attachments allow you to provide context around
+        URLs posted in comments
+      type: object
+      properties:
+        id:
+          description: The ID of the attachment
+          example: 21
+          type: integer
+        title:
+          description: The title of the attachment
+          example: Title of the attachment
+          type: string
+          maxLength: 1024
+        body:
+          description: The body of the attachment
+          example: Body of the attachment
+          type: string
+          maxLength: 262144
+        node_id:
+          description: The node_id of the content attachment
+          example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
+          type: string
+      required:
+      - id
+      - title
+      - body
     content-tree:
       title: Content Tree
       description: Content Tree
@@ -46607,34 +46635,6 @@ components:
       required:
       - key
       - id
-    content-reference-attachment:
-      title: ContentReferenceAttachment
-      description: Content Reference attachments allow you to provide context around
-        URLs posted in comments
-      type: object
-      properties:
-        id:
-          description: The ID of the attachment
-          example: 21
-          type: integer
-        title:
-          description: The title of the attachment
-          example: Title of the attachment
-          type: string
-          maxLength: 1024
-        body:
-          description: The body of the attachment
-          example: Body of the attachment
-          type: string
-          maxLength: 262144
-        node_id:
-          description: The node_id of the content attachment
-          example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-          type: string
-      required:
-      - id
-      - title
-      - body
   examples:
     global-hook-items:
       value:
@@ -55256,6 +55256,19 @@ components:
           raw_url: https://github.com/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/file1.txt
           contents_url: https://api.github.com/repos/octocat/Hello-World/contents/file1.txt?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e
           patch: "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"
+    content-reference-attachment:
+      value:
+        id: 101
+        title: "[A-1234] Error found in core/models.py file'"
+        body: |-
+          You have used an email that already exists for the user_email_uniq field.
+           ## DETAILS:
+
+          The (email)=(Octocat@github.com) already exists.
+
+           The error was found in core/models.py in get_or_create_user at line 62.
+
+           self.save()
     content-file-response-if-content-is-a-file:
       summary: Response if content is a file
       value:
@@ -61572,19 +61585,6 @@ components:
           site_admin: false
         created_at: '2011-04-10T20:09:31Z'
         updated_at: '2014-03-03T18:58:10Z'
-    content-reference-attachment:
-      value:
-        id: 101
-        title: "[A-1234] Error found in core/models.py file'"
-        body: |-
-          You have used an email that already exists for the user_email_uniq field.
-           ## DETAILS:
-
-          The (email)=(Octocat@github.com) already exists.
-
-           The error was found in core/models.py in get_or_create_user at line 62.
-
-           self.save()
   headers:
     link:
       example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;

@@ -22235,7 +22235,7 @@
     "/repos/{owner}/{repo}/code-scanning/sarifs": {
       "post": {
         "summary": "Upload an analysis as SARIF data",
-        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/code-security/secure-coding/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64 -w0\n```\n\nSARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
+        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/github/finding-security-vulnerabilities-and-errors-in-your-code/automatically-scanning-your-code-for-vulnerabilities-and-errors/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/github/finding-security-vulnerabilities-and-errors-in-your-code/automatically-scanning-your-code-for-vulnerabilities-and-errors/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64 -w0\n```\n\nSARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
         "operationId": "code-scanning/upload-sarif",
         "tags": [
           "code-scanning"
@@ -22265,7 +22265,7 @@
                     "$ref": "#/components/schemas/code-scanning-ref"
                   },
                   "sarif": {
-                    "$ref": "#/components/schemas/code-scanning-analysis-sarif-file"
+                    "$ref": "#/components/schemas/code-scanning-analysis-sarif-file-2"
                   },
                   "checkout_uri": {
                     "description": "The base directory used in the analysis, as it appears in the SARIF file.\nThis property is used to convert file paths from absolute to relative, so that alerts can be mapped to their correct location in the repository.",
@@ -24026,6 +24026,124 @@
           ],
           "category": "repos",
           "subcategory": "commits"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/content_references/{content_reference_id}/attachments": {
+      "post": {
+        "summary": "Create a content attachment",
+        "description": "Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.22/webhooks/event-payloads/#content_reference) to create an attachment.\n\nThe app must create a content attachment within six hours of the content reference URL being posted. See \"[Using content attachments](https://docs.github.com/enterprise-server@2.22/apps/using-content-attachments/)\" for details about content attachments.\n\nYou must use an [installation access token](https://docs.github.com/enterprise-server@2.22/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.",
+        "tags": [
+          "apps"
+        ],
+        "operationId": "apps/create-content-attachment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@2.22/rest/reference/apps#create-a-content-attachment"
+        },
+        "parameters": [
+          {
+            "name": "owner",
+            "description": "The owner of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repo",
+            "description": "The name of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "content_reference_id",
+            "description": "The `id` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "title": {
+                    "description": "The title of the attachment",
+                    "example": "Title of the attachment",
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "body": {
+                    "description": "The body of the attachment",
+                    "example": "Body of the attachment",
+                    "type": "string",
+                    "maxLength": 262144
+                  }
+                },
+                "required": [
+                  "title",
+                  "body"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/content-reference-attachment"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/content-reference-attachment"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "410": {
+            "$ref": "#/components/responses/gone"
+          },
+          "415": {
+            "$ref": "#/components/responses/preview_header_missing"
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+            {
+              "required": true,
+              "name": "corsair",
+              "note": "To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.22/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.corsair-preview+json\n```"
+            }
+          ],
+          "category": "apps",
+          "subcategory": "installations"
         }
       }
     },
@@ -44563,124 +44681,6 @@
           "category": "meta"
         }
       }
-    },
-    "/{owner}/{repo}/content_references/{content_reference_id}/attachments": {
-      "post": {
-        "summary": "Create a content attachment",
-        "description": "Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@2.22/webhooks/event-payloads/#content_reference) to create an attachment.\n\nThe app must create a content attachment within six hours of the content reference URL being posted. See \"[Using content attachments](https://docs.github.com/enterprise-server@2.22/apps/using-content-attachments/)\" for details about content attachments.\n\nYou must use an [installation access token](https://docs.github.com/enterprise-server@2.22/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.",
-        "tags": [
-          "apps"
-        ],
-        "operationId": "apps/create-content-attachment",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/enterprise-server@2.22/rest/reference/apps#create-a-content-attachment"
-        },
-        "parameters": [
-          {
-            "name": "owner",
-            "description": "The owner of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "repo",
-            "description": "The name of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "content_reference_id",
-            "description": "The `id` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "title": {
-                    "description": "The title of the attachment",
-                    "example": "Title of the attachment",
-                    "type": "string",
-                    "maxLength": 1024
-                  },
-                  "body": {
-                    "description": "The body of the attachment",
-                    "example": "Body of the attachment",
-                    "type": "string",
-                    "maxLength": 262144
-                  }
-                },
-                "required": [
-                  "title",
-                  "body"
-                ],
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/content-reference-attachment"
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/content-reference-attachment"
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "$ref": "#/components/responses/validation_failed"
-          },
-          "404": {
-            "$ref": "#/components/responses/not_found"
-          },
-          "410": {
-            "$ref": "#/components/responses/gone"
-          },
-          "415": {
-            "$ref": "#/components/responses/preview_header_missing"
-          },
-          "304": {
-            "$ref": "#/components/responses/not_modified"
-          },
-          "403": {
-            "$ref": "#/components/responses/forbidden"
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": true,
-          "previews": [
-            {
-              "required": true,
-              "name": "corsair",
-              "note": "To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@2.22/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.corsair-preview+json\n```"
-            }
-          ],
-          "category": "apps",
-          "subcategory": "installations"
-        }
-      }
     }
   },
   "components": {
@@ -55650,8 +55650,8 @@
           "warning"
         ]
       },
-      "code-scanning-analysis-sarif-file": {
-        "description": "A Base64 string representing the SARIF file to upload. You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html) and then translate the contents of the file into a Base64 encoding string. For more information, see \"[SARIF support for code scanning](https://docs.github.com/enterprise-server@2.22/code-security/secure-coding/sarif-support-for-code-scanning).\"",
+      "code-scanning-analysis-sarif-file-2": {
+        "description": "A Base64 string representing the SARIF file to upload. You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html) and then translate the contents of the file into a Base64 encoding string. For more information, see \"[SARIF support for code scanning](https://docs.github.com/enterprise-server@2.22/github/finding-security-vulnerabilities-and-errors-in-your-code/integrating-with-code-scanning/sarif-support-for-code-scanning).\"",
         "type": "string"
       },
       "code-scanning-sarifs-receipt": {
@@ -56663,6 +56663,40 @@
           "behind_by",
           "total_commits",
           "commits"
+        ]
+      },
+      "content-reference-attachment": {
+        "title": "ContentReferenceAttachment",
+        "description": "Content Reference attachments allow you to provide context around URLs posted in comments",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The ID of the attachment",
+            "example": 21,
+            "type": "integer"
+          },
+          "title": {
+            "description": "The title of the attachment",
+            "example": "Title of the attachment",
+            "type": "string",
+            "maxLength": 1024
+          },
+          "body": {
+            "description": "The body of the attachment",
+            "example": "Body of the attachment",
+            "type": "string",
+            "maxLength": 262144
+          },
+          "node_id": {
+            "description": "The node_id of the content attachment",
+            "example": "MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "body"
         ]
       },
       "content-tree": {
@@ -63794,40 +63828,6 @@
         "required": [
           "key",
           "id"
-        ]
-      },
-      "content-reference-attachment": {
-        "title": "ContentReferenceAttachment",
-        "description": "Content Reference attachments allow you to provide context around URLs posted in comments",
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "The ID of the attachment",
-            "example": 21,
-            "type": "integer"
-          },
-          "title": {
-            "description": "The title of the attachment",
-            "example": "Title of the attachment",
-            "type": "string",
-            "maxLength": 1024
-          },
-          "body": {
-            "description": "The body of the attachment",
-            "example": "Body of the attachment",
-            "type": "string",
-            "maxLength": 262144
-          },
-          "node_id": {
-            "description": "The node_id of the content attachment",
-            "example": "MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "body"
         ]
       }
     },
@@ -73422,6 +73422,13 @@
           ]
         }
       },
+      "content-reference-attachment": {
+        "value": {
+          "id": 101,
+          "title": "[A-1234] Error found in core/models.py file'",
+          "body": "You have used an email that already exists for the user_email_uniq field.\n ## DETAILS:\n\nThe (email)=(Octocat@github.com) already exists.\n\n The error was found in core/models.py in get_or_create_user at line 62.\n\n self.save()"
+        }
+      },
       "content-file-response-if-content-is-a-file": {
         "summary": "Response if content is a file",
         "value": {
@@ -80555,13 +80562,6 @@
             "updated_at": "2014-03-03T18:58:10Z"
           }
         ]
-      },
-      "content-reference-attachment": {
-        "value": {
-          "id": 101,
-          "title": "[A-1234] Error found in core/models.py file'",
-          "body": "You have used an email that already exists for the user_email_uniq field.\n ## DETAILS:\n\nThe (email)=(Octocat@github.com) already exists.\n\n The error was found in core/models.py in get_or_create_user at line 62.\n\n self.save()"
-        }
       }
     },
     "headers": {
