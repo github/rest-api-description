@@ -25479,6 +25479,124 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/content_references/{content_reference_id}/attachments": {
+      "post": {
+        "summary": "Create a content attachment",
+        "description": "Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@3.0/webhooks/event-payloads/#content_reference) to create an attachment.\n\nThe app must create a content attachment within six hours of the content reference URL being posted. See \"[Using content attachments](https://docs.github.com/enterprise-server@3.0/apps/using-content-attachments/)\" for details about content attachments.\n\nYou must use an [installation access token](https://docs.github.com/enterprise-server@3.0/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.",
+        "tags": [
+          "apps"
+        ],
+        "operationId": "apps/create-content-attachment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.0/rest/reference/apps#create-a-content-attachment"
+        },
+        "parameters": [
+          {
+            "name": "owner",
+            "description": "The owner of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repo",
+            "description": "The name of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "content_reference_id",
+            "description": "The `id` of the `content_reference` event.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "title": {
+                    "description": "The title of the attachment",
+                    "example": "Title of the attachment",
+                    "type": "string",
+                    "maxLength": 1024
+                  },
+                  "body": {
+                    "description": "The body of the attachment",
+                    "example": "Body of the attachment",
+                    "type": "string",
+                    "maxLength": 262144
+                  }
+                },
+                "required": [
+                  "title",
+                  "body"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/content-reference-attachment"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/content-reference-attachment"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "410": {
+            "$ref": "#/components/responses/gone"
+          },
+          "415": {
+            "$ref": "#/components/responses/preview_header_missing"
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+            {
+              "required": true,
+              "name": "corsair",
+              "note": "To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.0/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.corsair-preview+json\n```"
+            }
+          ],
+          "category": "apps",
+          "subcategory": "installations"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/contents/{path}": {
       "get": {
         "summary": "Get repository content",
@@ -46143,124 +46261,6 @@
           "category": "meta"
         }
       }
-    },
-    "/{owner}/{repo}/content_references/{content_reference_id}/attachments": {
-      "post": {
-        "summary": "Create a content attachment",
-        "description": "Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/enterprise-server@3.0/webhooks/event-payloads/#content_reference) to create an attachment.\n\nThe app must create a content attachment within six hours of the content reference URL being posted. See \"[Using content attachments](https://docs.github.com/enterprise-server@3.0/apps/using-content-attachments/)\" for details about content attachments.\n\nYou must use an [installation access token](https://docs.github.com/enterprise-server@3.0/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.",
-        "tags": [
-          "apps"
-        ],
-        "operationId": "apps/create-content-attachment",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/enterprise-server@3.0/rest/reference/apps#create-a-content-attachment"
-        },
-        "parameters": [
-          {
-            "name": "owner",
-            "description": "The owner of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "repo",
-            "description": "The name of the repository. Determined from the `repository` `full_name` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "content_reference_id",
-            "description": "The `id` of the `content_reference` event.",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "title": {
-                    "description": "The title of the attachment",
-                    "example": "Title of the attachment",
-                    "type": "string",
-                    "maxLength": 1024
-                  },
-                  "body": {
-                    "description": "The body of the attachment",
-                    "example": "Body of the attachment",
-                    "type": "string",
-                    "maxLength": 262144
-                  }
-                },
-                "required": [
-                  "title",
-                  "body"
-                ],
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/content-reference-attachment"
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/content-reference-attachment"
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "$ref": "#/components/responses/validation_failed"
-          },
-          "404": {
-            "$ref": "#/components/responses/not_found"
-          },
-          "410": {
-            "$ref": "#/components/responses/gone"
-          },
-          "415": {
-            "$ref": "#/components/responses/preview_header_missing"
-          },
-          "304": {
-            "$ref": "#/components/responses/not_modified"
-          },
-          "403": {
-            "$ref": "#/components/responses/forbidden"
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": true,
-          "previews": [
-            {
-              "required": true,
-              "name": "corsair",
-              "note": "To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.0/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.corsair-preview+json\n```"
-            }
-          ],
-          "category": "apps",
-          "subcategory": "installations"
-        }
-      }
     }
   },
   "components": {
@@ -58481,6 +58481,40 @@
           "commits"
         ]
       },
+      "content-reference-attachment": {
+        "title": "ContentReferenceAttachment",
+        "description": "Content Reference attachments allow you to provide context around URLs posted in comments",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The ID of the attachment",
+            "example": 21,
+            "type": "integer"
+          },
+          "title": {
+            "description": "The title of the attachment",
+            "example": "Title of the attachment",
+            "type": "string",
+            "maxLength": 1024
+          },
+          "body": {
+            "description": "The body of the attachment",
+            "example": "Body of the attachment",
+            "type": "string",
+            "maxLength": 262144
+          },
+          "node_id": {
+            "description": "The node_id of the content attachment",
+            "example": "MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "body"
+        ]
+      },
       "content-tree": {
         "title": "Content Tree",
         "description": "Content Tree",
@@ -65611,40 +65645,6 @@
           "key",
           "id"
         ]
-      },
-      "content-reference-attachment": {
-        "title": "ContentReferenceAttachment",
-        "description": "Content Reference attachments allow you to provide context around URLs posted in comments",
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "The ID of the attachment",
-            "example": 21,
-            "type": "integer"
-          },
-          "title": {
-            "description": "The title of the attachment",
-            "example": "Title of the attachment",
-            "type": "string",
-            "maxLength": 1024
-          },
-          "body": {
-            "description": "The body of the attachment",
-            "example": "Body of the attachment",
-            "type": "string",
-            "maxLength": 262144
-          },
-          "node_id": {
-            "description": "The node_id of the content attachment",
-            "example": "MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "body"
-        ]
       }
     },
     "examples": {
@@ -66007,9 +66007,9 @@
               "url": "https://docs.github.com/enterprise/rest/reference/enterprise-admin#list-personal-access-tokens",
               "client_id": "00000000000000000000"
             },
-            "token": "",
+            "token": "ghp_16C7e42F292c6912E7710c838347Ae178B4a",
             "hashed_token": "23cffb2fab1b0a62747863eba88cb9327e561f2f7a0c8661c0d9b83146cb8d45",
-            "token_last_eight": "848f9f8a",
+            "token_last_eight": "Ae178B4a",
             "note": "My personal access token",
             "note_url": null,
             "created_at": "2019-04-24T21:49:02Z",
@@ -66062,8 +66062,8 @@
           "scopes": [
             "public_repo"
           ],
-          "token": "abcdefgh12345678",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66283,7 +66283,7 @@
       },
       "installation-token": {
         "value": {
-          "token": "v1.1f699f1069f60xxx",
+          "token": "ghs_16C7e42F292c6912E7710c838347Ae178B4a",
           "expires_at": "2016-07-11T22:14:10Z",
           "permissions": {
             "issues": "write",
@@ -66458,8 +66458,8 @@
             "public_repo",
             "user"
           ],
-          "token": "abcdefgh12345678",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66500,8 +66500,8 @@
           "scopes": [
 
           ],
-          "token": "abcdefgh12345678",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66576,8 +66576,8 @@
           "scopes": [
             "public_repo"
           ],
-          "token": "",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66598,8 +66598,8 @@
           "scopes": [
             "public_repo"
           ],
-          "token": "",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66620,8 +66620,8 @@
           "scopes": [
             "public_repo"
           ],
-          "token": "abcdefgh12345678",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -66642,8 +66642,8 @@
           "scopes": [
             "public_repo"
           ],
-          "token": "",
-          "token_last_eight": "12345678",
+          "token": "ghu_16C7e42F292c6912E7710c838347Ae178B4a",
+          "token_last_eight": "Ae178B4a",
           "hashed_token": "25f94a2a5c7fbaf499c665bc73d67c1c87e496da8985131633ee0a95819db2e8",
           "app": {
             "url": "http://my-github-app.com",
@@ -75410,6 +75410,13 @@
           ]
         }
       },
+      "content-reference-attachment": {
+        "value": {
+          "id": 101,
+          "title": "[A-1234] Error found in core/models.py file'",
+          "body": "You have used an email that already exists for the user_email_uniq field.\n ## DETAILS:\n\nThe (email)=(Octocat@github.com) already exists.\n\n The error was found in core/models.py in get_or_create_user at line 62.\n\n self.save()"
+        }
+      },
       "content-file-response-if-content-is-a-file": {
         "summary": "Response if content is a file",
         "value": {
@@ -82557,13 +82564,6 @@
             "updated_at": "2014-03-03T18:58:10Z"
           }
         ]
-      },
-      "content-reference-attachment": {
-        "value": {
-          "id": 101,
-          "title": "[A-1234] Error found in core/models.py file'",
-          "body": "You have used an email that already exists for the user_email_uniq field.\n ## DETAILS:\n\nThe (email)=(Octocat@github.com) already exists.\n\n The error was found in core/models.py in get_or_create_user at line 62.\n\n self.save()"
-        }
       }
     },
     "headers": {
