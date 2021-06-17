@@ -25390,6 +25390,12 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries": {
+    },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}": {
+    },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {
+    },
     "/repos/{owner}/{repo}/hooks/{hook_id}/pings": {
       "post": {
         "summary": "Ping a repository webhook",
@@ -42686,6 +42692,14 @@
           "type": "integer"
         }
       },
+      "delivery-id": {
+        "name": "delivery_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      },
       "invitation_id": {
         "name": "invitation_id",
         "description": "invitation_id parameter",
@@ -55637,6 +55651,186 @@
           "updated_at",
           "last_response",
           "test_url"
+        ]
+      },
+      "hook-delivery-item": {
+        "title": "Simple webhook delivery",
+        "description": "Delivery made by a webhook, without request and response information.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the webhook delivery.",
+            "type": "integer",
+            "example": 42
+          },
+          "guid": {
+            "description": "Unique identifier for the event (shared with all deliveries for all webhooks that subscribe to this event).",
+            "type": "string",
+            "example": "58474f00-b361-11eb-836d-0e4f3503ccbe"
+          },
+          "delivered_at": {
+            "description": "Time when the webhook delivery occurred.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-05-12T20:33:44Z"
+          },
+          "redelivery": {
+            "description": "Whether the webhook delivery is a redelivery.",
+            "type": "boolean",
+            "example": false
+          },
+          "duration": {
+            "description": "Time spent delivering.",
+            "type": "number",
+            "example": 0.03
+          },
+          "status": {
+            "description": "Describes the response returned after attempting the delivery.",
+            "type": "string",
+            "example": "failed to connect"
+          },
+          "status_code": {
+            "description": "Status code received when delivery was made.",
+            "type": "integer",
+            "example": 502
+          },
+          "event": {
+            "description": "The event that triggered the delivery.",
+            "type": "string",
+            "example": "issues"
+          },
+          "action": {
+            "description": "The type of activity for the event that triggered the delivery.",
+            "type": "string",
+            "example": "opened",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "guid",
+          "delivered_at",
+          "redelivery",
+          "duration",
+          "status",
+          "status_code",
+          "event",
+          "action"
+        ]
+      },
+      "hook-delivery": {
+        "title": "Webhook delivery",
+        "description": "Delivery made by a webhook.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the delivery.",
+            "type": "integer",
+            "example": 42
+          },
+          "guid": {
+            "description": "Unique identifier for the event (shared with all deliveries for all webhooks that subscribe to this event).",
+            "type": "string",
+            "example": "58474f00-b361-11eb-836d-0e4f3503ccbe"
+          },
+          "delivered_at": {
+            "description": "Time when the delivery was delivered.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-05-12T20:33:44Z"
+          },
+          "redelivery": {
+            "description": "Whether the delivery is a redelivery.",
+            "type": "boolean",
+            "example": false
+          },
+          "duration": {
+            "description": "Time spent delivering.",
+            "type": "number",
+            "example": 0.03
+          },
+          "status": {
+            "description": "Description of the status of the attempted delivery",
+            "type": "string",
+            "example": "failed to connect"
+          },
+          "status_code": {
+            "description": "Status code received when delivery was made.",
+            "type": "integer",
+            "example": 502
+          },
+          "event": {
+            "description": "The event that triggered the delivery.",
+            "type": "string",
+            "example": "issues"
+          },
+          "action": {
+            "description": "The type of activity for the event that triggered the delivery.",
+            "type": "string",
+            "example": "opened",
+            "nullable": true
+          },
+          "request": {
+            "type": "object",
+            "properties": {
+              "include_payload": {
+                "description": "Whether the 'payload' parameter includes the request payload.",
+                "type": "boolean"
+              },
+              "headers": {
+                "description": "The request headers sent with the webhook delivery.",
+                "type": "object",
+                "nullable": true
+              },
+              "payload": {
+                "description": "The webhook payload.",
+                "type": "object",
+                "nullable": true
+              }
+            },
+            "required": [
+              "include_payload",
+              "headers",
+              "payload"
+            ]
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "include_payload": {
+                "description": "Whether the 'payload' parameter includes the response payload.",
+                "type": "boolean"
+              },
+              "headers": {
+                "description": "The response headers received when the delivery was made.",
+                "type": "object",
+                "nullable": true
+              },
+              "payload": {
+                "description": "The response payload received.",
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "include_payload",
+              "headers",
+              "payload"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "guid",
+          "delivered_at",
+          "redelivery",
+          "duration",
+          "status",
+          "status_code",
+          "event",
+          "action",
+          "request",
+          "response"
         ]
       },
       "issue-event-label": {
@@ -71175,6 +71369,68 @@
             "code": null,
             "status": "unused",
             "message": null
+          }
+        }
+      },
+      "hook-delivery-items": {
+        "value": [
+          {
+            "id": 12345678,
+            "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+            "delivered_at": "2019-06-03T00:57:16Z",
+            "redelivery": false,
+            "duration": 0.27,
+            "status": "OK",
+            "status_code": 200,
+            "event": "issues",
+            "action": "opened"
+          },
+          {
+            "id": 123456789,
+            "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+            "delivered_at": "2019-06-04T00:57:16Z",
+            "redelivery": true,
+            "duration": 0.28,
+            "status": "OK",
+            "status_code": 200,
+            "event": "issues",
+            "action": "opened"
+          }
+        ]
+      },
+      "hook-delivery": {
+        "value": {
+          "id": 12345678,
+          "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+          "delivered_at": "2019-06-03T00:57:16Z",
+          "redelivery": false,
+          "duration": 0.27,
+          "status": "OK",
+          "status_code": 200,
+          "event": "issues",
+          "action": "opened",
+          "request": {
+            "include_payload": false,
+            "headers": {
+              "X-GitHub-Delivery": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+              "X-Hub-Signature-256": "sha256=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "Accept": "*/*",
+              "X-GitHub-Hook-ID": "42",
+              "User-Agent": "GitHub-Hookshot/b8c71d8",
+              "X-GitHub-Event": "issues",
+              "X-GitHub-Hook-Installation-Target-ID": "123",
+              "X-GitHub-Hook-Installation-Target-Type": "repository",
+              "content-type": "application/json",
+              "X-Hub-Signature": "sha1=a84d88e7554fc1fa21bcbc4efae3c782a70d2b9d"
+            },
+            "payload": null
+          },
+          "response": {
+            "include_payload": false,
+            "headers": {
+              "Content-Type": "text/html;charset=utf-8"
+            },
+            "payload": null
           }
         }
       },
