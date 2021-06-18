@@ -404,6 +404,9 @@ paths:
         previews: []
         category: apps
         subcategory: webhooks
+  "/app/hook/deliveries": {}
+  "/app/hook/deliveries/{delivery_id}": {}
+  "/app/hook/deliveries/{delivery_id}/attempts": {}
   "/app/installations":
     get:
       summary: List installations for the authenticated app
@@ -7205,6 +7208,9 @@ paths:
         previews: []
         category: orgs
         subcategory: webhooks
+  "/orgs/{org}/hooks/{hook_id}/deliveries": {}
+  "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}": {}
+  "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {}
   "/orgs/{org}/hooks/{hook_id}/pings":
     post:
       summary: Ping an organization webhook
@@ -14608,6 +14614,11 @@ paths:
                     deletion of the protected branch. Default: `false`. For more information,
                     see "[Enabling force pushes to a protected branch](https://help.github.com/en/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)"
                     in the GitHub Help documentation.'
+                required_conversation_resolution:
+                  type: boolean
+                  description: 'Requires all conversations on code to be resolved
+                    before a pull request can be merged into a branch that matches
+                    this rule. Set to `false` to disable. Default: `false`.'
               required:
               - required_status_checks
               - enforce_admins
@@ -14638,6 +14649,7 @@ paths:
               required_linear_history: true
               allow_force_pushes: true
               allow_deletions: true
+              required_conversation_resolution: true
       responses:
         '200':
           description: Response
@@ -21690,6 +21702,9 @@ paths:
         previews: []
         category: repos
         subcategory: webhooks
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries": {}
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}": {}
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {}
   "/repos/{owner}/{repo}/hooks/{hook_id}/pings":
     post:
       summary: Ping a repository webhook
@@ -37412,6 +37427,214 @@ components:
           "$ref": "#/components/schemas/webhook-config-secret"
         insecure_ssl:
           "$ref": "#/components/schemas/webhook-config-insecure-ssl"
+    hook-delivery-item:
+      title: Simple webhook delivery
+      description: Delivery made by a webhook, without request and response information.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the webhook delivery.
+          type: integer
+          example: 42
+        guid:
+          description: Unique identifier for the event (shared with all deliveries
+            for all webhooks that subscribe to this event).
+          type: string
+          example: 58474f00-b361-11eb-836d-0e4f3503ccbe
+        delivered_at:
+          description: Time when the webhook delivery occurred.
+          type: string
+          format: date-time
+          example: '2021-05-12T20:33:44Z'
+        redelivery:
+          description: Whether the webhook delivery is a redelivery.
+          type: boolean
+          example: false
+        duration:
+          description: Time spent delivering.
+          type: number
+          example: 0.03
+        status:
+          description: Describes the response returned after attempting the delivery.
+          type: string
+          example: failed to connect
+        status_code:
+          description: Status code received when delivery was made.
+          type: integer
+          example: 502
+        event:
+          description: The event that triggered the delivery.
+          type: string
+          example: issues
+        action:
+          description: The type of activity for the event that triggered the delivery.
+          type: string
+          example: opened
+          nullable: true
+      required:
+      - id
+      - guid
+      - delivered_at
+      - redelivery
+      - duration
+      - status
+      - status_code
+      - event
+      - action
+    scim-error:
+      title: Scim Error
+      description: Scim Error
+      type: object
+      properties:
+        message:
+          type: string
+          nullable: true
+        documentation_url:
+          type: string
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        status:
+          type: integer
+        scimType:
+          type: string
+          nullable: true
+        schemas:
+          type: array
+          items:
+            type: string
+    validation-error:
+      title: Validation Error
+      description: Validation Error
+      type: object
+      required:
+      - message
+      - documentation_url
+      properties:
+        message:
+          type: string
+        documentation_url:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            properties:
+              resource:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+              code:
+                type: string
+              index:
+                type: integer
+              value:
+                oneOf:
+                - type: string
+                  nullable: true
+                - type: integer
+                  nullable: true
+                - type: array
+                  nullable: true
+                  items:
+                    type: string
+    hook-delivery:
+      title: Webhook delivery
+      description: Delivery made by a webhook.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the delivery.
+          type: integer
+          example: 42
+        guid:
+          description: Unique identifier for the event (shared with all deliveries
+            for all webhooks that subscribe to this event).
+          type: string
+          example: 58474f00-b361-11eb-836d-0e4f3503ccbe
+        delivered_at:
+          description: Time when the delivery was delivered.
+          type: string
+          format: date-time
+          example: '2021-05-12T20:33:44Z'
+        redelivery:
+          description: Whether the delivery is a redelivery.
+          type: boolean
+          example: false
+        duration:
+          description: Time spent delivering.
+          type: number
+          example: 0.03
+        status:
+          description: Description of the status of the attempted delivery
+          type: string
+          example: failed to connect
+        status_code:
+          description: Status code received when delivery was made.
+          type: integer
+          example: 502
+        event:
+          description: The event that triggered the delivery.
+          type: string
+          example: issues
+        action:
+          description: The type of activity for the event that triggered the delivery.
+          type: string
+          example: opened
+          nullable: true
+        request:
+          type: object
+          properties:
+            include_payload:
+              description: Whether the 'payload' parameter includes the request payload.
+              type: boolean
+            headers:
+              description: The request headers sent with the webhook delivery.
+              type: object
+              nullable: true
+            payload:
+              description: The webhook payload.
+              type: object
+              nullable: true
+          required:
+          - include_payload
+          - headers
+          - payload
+        response:
+          type: object
+          properties:
+            include_payload:
+              description: Whether the 'payload' parameter includes the response payload.
+              type: boolean
+            headers:
+              description: The response headers received when the delivery was made.
+              type: object
+              nullable: true
+            payload:
+              description: The response payload received.
+              type: string
+              nullable: true
+          required:
+          - include_payload
+          - headers
+          - payload
+      required:
+      - id
+      - guid
+      - delivered_at
+      - redelivery
+      - duration
+      - status
+      - status_code
+      - event
+      - action
+      - request
+      - response
     enterprise:
       title: Enterprise
       description: An enterprise account
@@ -38513,45 +38736,6 @@ components:
       required:
       - token
       - expires_at
-    validation-error:
-      title: Validation Error
-      description: Validation Error
-      type: object
-      required:
-      - message
-      - documentation_url
-      properties:
-        message:
-          type: string
-        documentation_url:
-          type: string
-        errors:
-          type: array
-          items:
-            type: object
-            required:
-            - code
-            properties:
-              resource:
-                type: string
-              field:
-                type: string
-              message:
-                type: string
-              code:
-                type: string
-              index:
-                type: integer
-              value:
-                oneOf:
-                - type: string
-                  nullable: true
-                - type: integer
-                  nullable: true
-                - type: array
-                  nullable: true
-                  items:
-                    type: string
     application-grant:
       title: Application Grant
       description: The authorization associated with an OAuth Access.
@@ -45652,29 +45836,6 @@ components:
       required:
       - next_analysis_url
       - confirm_delete_url
-    scim-error:
-      title: Scim Error
-      description: Scim Error
-      type: object
-      properties:
-        message:
-          type: string
-          nullable: true
-        documentation_url:
-          type: string
-          nullable: true
-        detail:
-          type: string
-          nullable: true
-        status:
-          type: integer
-        scimType:
-          type: string
-          nullable: true
-        schemas:
-          type: array
-          items:
-            type: string
     code-scanning-analysis-sarif-file:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -52656,6 +52817,56 @@ components:
         insecure_ssl: '0'
         secret: "********"
         url: https://example.com/webhook
+    hook-delivery-items:
+      value:
+      - id: 12345678
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        delivered_at: '2019-06-03T00:57:16Z'
+        redelivery: false
+        duration: 0.27
+        status: OK
+        status_code: 200
+        event: issues
+        action: opened
+      - id: 123456789
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        delivered_at: '2019-06-04T00:57:16Z'
+        redelivery: true
+        duration: 0.28
+        status: OK
+        status_code: 200
+        event: issues
+        action: opened
+    hook-delivery:
+      value:
+        id: 12345678
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        delivered_at: '2019-06-03T00:57:16Z'
+        redelivery: false
+        duration: 0.27
+        status: OK
+        status_code: 200
+        event: issues
+        action: opened
+        request:
+          include_payload: false
+          headers:
+            X-GitHub-Delivery: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+            X-Hub-Signature-256: sha256=6dcb09b5b57875f334f61aebed695e2e4193db5e
+            Accept: "*/*"
+            X-GitHub-Hook-ID: '42'
+            User-Agent: GitHub-Hookshot/b8c71d8
+            X-GitHub-Event: issues
+            X-GitHub-Hook-Installation-Target-ID: '123'
+            X-GitHub-Hook-Installation-Target-Type: repository
+            content-type: application/json
+            X-Hub-Signature: sha1=a84d88e7554fc1fa21bcbc4efae3c782a70d2b9d
+          payload: 
+        response:
+          include_payload: false
+          headers:
+            Content-Type: text/html;charset=utf-8
+          payload: 
     base-installation-items:
       value:
       - id: 1
@@ -69947,6 +70158,27 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/validation-error-simple"
+    bad_request:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
+        application/scim+json:
+          schema:
+            "$ref": "#/components/schemas/scim-error"
+    validation_failed:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/validation-error"
+    accepted:
+      description: Accepted
+      content:
+        application/json:
+          schema:
+            type: object
     preview_header_missing:
       description: Preview header missing
       content:
@@ -69973,12 +70205,6 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
-    validation_failed:
-      description: Validation failed
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/validation-error"
     not_modified:
       description: Not modified
     gone:
@@ -70052,15 +70278,6 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
-    bad_request:
-      description: Bad Request
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
-        application/scim+json:
-          schema:
-            "$ref": "#/components/schemas/scim-error"
     internal_error:
       description: Internal Error
       content:
@@ -70069,12 +70286,6 @@ components:
             "$ref": "#/components/schemas/basic-error"
     found:
       description: Found
-    accepted:
-      description: Accepted
-      content:
-        application/json:
-          schema:
-            type: object
     no_content:
       description: A header with no content is returned.
     scim_not_found:
@@ -70130,6 +70341,21 @@ components:
       schema:
         type: integer
         default: 30
+    cursor:
+      name: cursor
+      description: 'Used for pagination: the starting delivery from which the page
+        of deliveries is fetched. Refer to the `link` header for the next and previous
+        page cursors.'
+      in: query
+      required: false
+      schema:
+        type: string
+    delivery-id:
+      name: delivery_id
+      in: path
+      required: true
+      schema:
+        type: integer
     page:
       name: page
       description: Page number of the results to fetch.
