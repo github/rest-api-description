@@ -597,6 +597,12 @@
         }
       }
     },
+    "/app/hook/deliveries": {
+    },
+    "/app/hook/deliveries/{delivery_id}": {
+    },
+    "/app/hook/deliveries/{delivery_id}/attempts": {
+    },
     "/app/installations": {
       "get": {
         "summary": "List installations for the authenticated app",
@@ -10236,6 +10242,12 @@
           "subcategory": "webhooks"
         }
       }
+    },
+    "/orgs/{org}/hooks/{hook_id}/deliveries": {
+    },
+    "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}": {
+    },
+    "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {
     },
     "/orgs/{org}/hooks/{hook_id}/pings": {
       "post": {
@@ -20444,6 +20456,10 @@
                   "allow_deletions": {
                     "type": "boolean",
                     "description": "Allows deletion of the protected branch by anyone with write access to the repository. Set to `false` to prevent deletion of the protected branch. Default: `false`. For more information, see \"[Enabling force pushes to a protected branch](https://help.github.com/en/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)\" in the GitHub Help documentation."
+                  },
+                  "required_conversation_resolution": {
+                    "type": "boolean",
+                    "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
                   }
                 },
                 "required": [
@@ -20487,7 +20503,8 @@
                 },
                 "required_linear_history": true,
                 "allow_force_pushes": true,
-                "allow_deletions": true
+                "allow_deletions": true,
+                "required_conversation_resolution": true
               }
             }
           }
@@ -29864,6 +29881,12 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries": {
+    },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}": {
+    },
+    "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {
+    },
     "/repos/{owner}/{repo}/hooks/{hook_id}/pings": {
       "post": {
         "summary": "Ping a repository webhook",
@@ -33295,12 +33318,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/issue-event-for-issue"
-                  }
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/issue-event-for-issue-items"
+                    "$ref": "#/components/schemas/timeline-issue-events"
                   }
                 }
               }
@@ -39134,6 +39152,15 @@
                 "open",
                 "resolved"
               ]
+            }
+          },
+          {
+            "name": "secret_types",
+            "in": "query",
+            "description": "Set to a comma seperate list of secret_types to only list secret scanning alerts in for those types. Set to `all` to list all the secret scanning alerts. Default is `all`",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -51809,6 +51836,14 @@
         "description": "Simple User",
         "type": "object",
         "properties": {
+          "name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
           "login": {
             "type": "string",
             "example": "octocat"
@@ -52048,7 +52083,7 @@
           "permissions",
           "events"
         ],
-        "additionalProperties": true
+        "nullable": true
       },
       "basic-error": {
         "title": "Basic Error",
@@ -52139,6 +52174,284 @@
           }
         }
       },
+      "hook-delivery-item": {
+        "title": "Simple webhook delivery",
+        "description": "Delivery made by a webhook, without request and response information.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the webhook delivery.",
+            "type": "integer",
+            "example": 42
+          },
+          "guid": {
+            "description": "Unique identifier for the event (shared with all deliveries for all webhooks that subscribe to this event).",
+            "type": "string",
+            "example": "58474f00-b361-11eb-836d-0e4f3503ccbe"
+          },
+          "delivered_at": {
+            "description": "Time when the webhook delivery occurred.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-05-12T20:33:44Z"
+          },
+          "redelivery": {
+            "description": "Whether the webhook delivery is a redelivery.",
+            "type": "boolean",
+            "example": false
+          },
+          "duration": {
+            "description": "Time spent delivering.",
+            "type": "number",
+            "example": 0.03
+          },
+          "status": {
+            "description": "Describes the response returned after attempting the delivery.",
+            "type": "string",
+            "example": "failed to connect"
+          },
+          "status_code": {
+            "description": "Status code received when delivery was made.",
+            "type": "integer",
+            "example": 502
+          },
+          "event": {
+            "description": "The event that triggered the delivery.",
+            "type": "string",
+            "example": "issues"
+          },
+          "action": {
+            "description": "The type of activity for the event that triggered the delivery.",
+            "type": "string",
+            "example": "opened",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "guid",
+          "delivered_at",
+          "redelivery",
+          "duration",
+          "status",
+          "status_code",
+          "event",
+          "action"
+        ]
+      },
+      "scim-error": {
+        "title": "Scim Error",
+        "description": "Scim Error",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentation_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer"
+          },
+          "scimType": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "validation-error": {
+        "title": "Validation Error",
+        "description": "Validation Error",
+        "type": "object",
+        "required": [
+          "message",
+          "documentation_url"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "documentation_url": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code"
+              ],
+              "properties": {
+                "resource": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "index": {
+                  "type": "integer"
+                },
+                "value": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "hook-delivery": {
+        "title": "Webhook delivery",
+        "description": "Delivery made by a webhook.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the delivery.",
+            "type": "integer",
+            "example": 42
+          },
+          "guid": {
+            "description": "Unique identifier for the event (shared with all deliveries for all webhooks that subscribe to this event).",
+            "type": "string",
+            "example": "58474f00-b361-11eb-836d-0e4f3503ccbe"
+          },
+          "delivered_at": {
+            "description": "Time when the delivery was delivered.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-05-12T20:33:44Z"
+          },
+          "redelivery": {
+            "description": "Whether the delivery is a redelivery.",
+            "type": "boolean",
+            "example": false
+          },
+          "duration": {
+            "description": "Time spent delivering.",
+            "type": "number",
+            "example": 0.03
+          },
+          "status": {
+            "description": "Description of the status of the attempted delivery",
+            "type": "string",
+            "example": "failed to connect"
+          },
+          "status_code": {
+            "description": "Status code received when delivery was made.",
+            "type": "integer",
+            "example": 502
+          },
+          "event": {
+            "description": "The event that triggered the delivery.",
+            "type": "string",
+            "example": "issues"
+          },
+          "action": {
+            "description": "The type of activity for the event that triggered the delivery.",
+            "type": "string",
+            "example": "opened",
+            "nullable": true
+          },
+          "request": {
+            "type": "object",
+            "properties": {
+              "include_payload": {
+                "description": "Whether the 'payload' parameter includes the request payload.",
+                "type": "boolean"
+              },
+              "headers": {
+                "description": "The request headers sent with the webhook delivery.",
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": true
+              },
+              "payload": {
+                "description": "The webhook payload.",
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "include_payload",
+              "headers",
+              "payload"
+            ]
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "include_payload": {
+                "description": "Whether the 'payload' parameter includes the response payload.",
+                "type": "boolean"
+              },
+              "headers": {
+                "description": "The response headers received when the delivery was made.",
+                "type": "object",
+                "nullable": true,
+                "additionalProperties": true
+              },
+              "payload": {
+                "description": "The response payload received.",
+                "type": "string",
+                "nullable": true,
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "include_payload",
+              "headers",
+              "payload"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "guid",
+          "delivered_at",
+          "redelivery",
+          "duration",
+          "status",
+          "status_code",
+          "event",
+          "action",
+          "request",
+          "response"
+        ]
+      },
       "enterprise": {
         "title": "Enterprise",
         "description": "An enterprise account",
@@ -52205,173 +52518,6 @@
           "created_at",
           "updated_at",
           "avatar_url"
-        ]
-      },
-      "installation": {
-        "title": "Installation",
-        "description": "Installation",
-        "type": "object",
-        "properties": {
-          "id": {
-            "description": "The ID of the installation.",
-            "type": "integer",
-            "example": 1
-          },
-          "account": {
-            "nullable": true,
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/simple-user"
-              },
-              {
-                "$ref": "#/components/schemas/enterprise"
-              }
-            ]
-          },
-          "repository_selection": {
-            "description": "Describe whether all repositories have been selected or there's a selection involved",
-            "type": "string",
-            "enum": [
-              "all",
-              "selected"
-            ]
-          },
-          "access_tokens_url": {
-            "type": "string",
-            "format": "uri",
-            "example": "https://api.github.com/installations/1/access_tokens"
-          },
-          "repositories_url": {
-            "type": "string",
-            "format": "uri",
-            "example": "https://api.github.com/installation/repositories"
-          },
-          "html_url": {
-            "type": "string",
-            "format": "uri",
-            "example": "https://github.com/organizations/github/settings/installations/1"
-          },
-          "app_id": {
-            "type": "integer",
-            "example": 1
-          },
-          "target_id": {
-            "description": "The ID of the user or organization this token is being scoped to.",
-            "type": "integer"
-          },
-          "target_type": {
-            "type": "string",
-            "example": "Organization"
-          },
-          "permissions": {
-            "type": "object",
-            "example": {
-              "issues": "read",
-              "deployments": "write"
-            },
-            "properties": {
-              "deployments": {
-                "type": "string"
-              },
-              "checks": {
-                "type": "string"
-              },
-              "metadata": {
-                "type": "string"
-              },
-              "contents": {
-                "type": "string"
-              },
-              "pull_requests": {
-                "type": "string"
-              },
-              "statuses": {
-                "type": "string"
-              },
-              "issues": {
-                "type": "string",
-                "example": "\"read\""
-              },
-              "organization_administration": {
-                "type": "string",
-                "example": "\"read\""
-              }
-            }
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "single_file_name": {
-            "type": "string",
-            "example": "config.yaml",
-            "nullable": true
-          },
-          "has_multiple_single_files": {
-            "type": "boolean",
-            "example": true
-          },
-          "single_file_paths": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": [
-              "config.yml",
-              ".github/issue_TEMPLATE.md"
-            ]
-          },
-          "app_slug": {
-            "type": "string",
-            "example": "github-actions"
-          },
-          "suspended_by": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/simple-user"
-              }
-            ]
-          },
-          "suspended_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "contact_email": {
-            "type": "string",
-            "example": "\"test_13f1e99741e3e004@d7e1eb0bc0a1ba12.com\"",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "app_id",
-          "app_slug",
-          "target_id",
-          "target_type",
-          "single_file_name",
-          "repository_selection",
-          "access_tokens_url",
-          "html_url",
-          "repositories_url",
-          "events",
-          "account",
-          "permissions",
-          "created_at",
-          "updated_at",
-          "suspended_by",
-          "suspended_at"
         ]
       },
       "app-permissions": {
@@ -52586,6 +52732,14 @@
               "admin"
             ]
           },
+          "organization_packages": {
+            "type": "string",
+            "description": "The level of permission to grant the access token for organization packages published to GitHub Packages. Can be one of: `read` or `write`.",
+            "enum": [
+              "read",
+              "write"
+            ]
+          },
           "organization_secrets": {
             "type": "string",
             "description": "The level of permission to grant the access token to manage organization secrets. Can be one of: `read` or `write`.",
@@ -52625,6 +52779,141 @@
           "deployments": "write",
           "single_file": "read"
         }
+      },
+      "installation": {
+        "title": "Installation",
+        "description": "Installation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The ID of the installation.",
+            "type": "integer",
+            "example": 1
+          },
+          "account": {
+            "nullable": true,
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/simple-user"
+              },
+              {
+                "$ref": "#/components/schemas/enterprise"
+              }
+            ]
+          },
+          "repository_selection": {
+            "description": "Describe whether all repositories have been selected or there's a selection involved",
+            "type": "string",
+            "enum": [
+              "all",
+              "selected"
+            ]
+          },
+          "access_tokens_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://api.github.com/installations/1/access_tokens"
+          },
+          "repositories_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://api.github.com/installation/repositories"
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/organizations/github/settings/installations/1"
+          },
+          "app_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "target_id": {
+            "description": "The ID of the user or organization this token is being scoped to.",
+            "type": "integer"
+          },
+          "target_type": {
+            "type": "string",
+            "example": "Organization"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/app-permissions"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "single_file_name": {
+            "type": "string",
+            "example": "config.yaml",
+            "nullable": true
+          },
+          "has_multiple_single_files": {
+            "type": "boolean",
+            "example": true
+          },
+          "single_file_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "config.yml",
+              ".github/issue_TEMPLATE.md"
+            ]
+          },
+          "app_slug": {
+            "type": "string",
+            "example": "github-actions"
+          },
+          "suspended_by": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/simple-user"
+              }
+            ]
+          },
+          "suspended_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "contact_email": {
+            "type": "string",
+            "example": "\"test_13f1e99741e3e004@d7e1eb0bc0a1ba12.com\"",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "app_id",
+          "app_slug",
+          "target_id",
+          "target_type",
+          "single_file_name",
+          "repository_selection",
+          "access_tokens_url",
+          "html_url",
+          "repositories_url",
+          "events",
+          "account",
+          "permissions",
+          "created_at",
+          "updated_at",
+          "suspended_by",
+          "suspended_at"
+        ]
       },
       "license-simple": {
         "title": "License Simple",
@@ -53502,23 +53791,7 @@
             "type": "string"
           },
           "permissions": {
-            "type": "object",
-            "properties": {
-              "issues": {
-                "type": "string"
-              },
-              "contents": {
-                "type": "string"
-              },
-              "metadata": {
-                "type": "string",
-                "example": "read"
-              },
-              "single_file": {
-                "type": "string",
-                "example": "read"
-              }
-            }
+            "$ref": "#/components/schemas/app-permissions"
           },
           "repository_selection": {
             "type": "string",
@@ -53556,68 +53829,6 @@
           "token",
           "expires_at"
         ]
-      },
-      "validation-error": {
-        "title": "Validation Error",
-        "description": "Validation Error",
-        "type": "object",
-        "required": [
-          "message",
-          "documentation_url"
-        ],
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "documentation_url": {
-            "type": "string"
-          },
-          "errors": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "code"
-              ],
-              "properties": {
-                "resource": {
-                  "type": "string"
-                },
-                "field": {
-                  "type": "string"
-                },
-                "message": {
-                  "type": "string"
-                },
-                "code": {
-                  "type": "string"
-                },
-                "index": {
-                  "type": "integer"
-                },
-                "value": {
-                  "oneOf": [
-                    {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    {
-                      "type": "integer",
-                      "nullable": true
-                    },
-                    {
-                      "type": "array",
-                      "nullable": true,
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
       },
       "application-grant": {
         "title": "Application Grant",
@@ -54214,6 +54425,25 @@
           "actor": {
             "type": "string",
             "description": "The actor who performed the action."
+          },
+          "actor_id": {
+            "type": "integer",
+            "description": "The id of the actor who performed the action."
+          },
+          "actor_location": {
+            "type": "object",
+            "properties": {
+              "country_name": {
+                "type": "string"
+              }
+            }
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "org_id": {
+            "type": "integer"
           },
           "blocked_user": {
             "type": "string",
@@ -55285,6 +55515,246 @@
           "updated_at"
         ]
       },
+      "public-user": {
+        "title": "Public User",
+        "description": "Public User",
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "avatar_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "gravatar_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "followers_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "following_url": {
+            "type": "string"
+          },
+          "gists_url": {
+            "type": "string"
+          },
+          "starred_url": {
+            "type": "string"
+          },
+          "subscriptions_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "organizations_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "repos_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events_url": {
+            "type": "string"
+          },
+          "received_events_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "type": {
+            "type": "string"
+          },
+          "site_admin": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "company": {
+            "type": "string",
+            "nullable": true
+          },
+          "blog": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "hireable": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "twitter_username": {
+            "type": "string",
+            "nullable": true
+          },
+          "public_repos": {
+            "type": "integer"
+          },
+          "public_gists": {
+            "type": "integer"
+          },
+          "followers": {
+            "type": "integer"
+          },
+          "following": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "collaborators": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "space": {
+                "type": "integer"
+              },
+              "private_repos": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "collaborators",
+              "name",
+              "space",
+              "private_repos"
+            ]
+          },
+          "suspended_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "private_gists": {
+            "type": "integer",
+            "example": 1
+          },
+          "total_private_repos": {
+            "type": "integer",
+            "example": 2
+          },
+          "owned_private_repos": {
+            "type": "integer",
+            "example": 2
+          },
+          "disk_usage": {
+            "type": "integer",
+            "example": 1
+          },
+          "collaborators": {
+            "type": "integer",
+            "example": 3
+          }
+        },
+        "required": [
+          "avatar_url",
+          "events_url",
+          "followers_url",
+          "following_url",
+          "gists_url",
+          "gravatar_id",
+          "html_url",
+          "id",
+          "node_id",
+          "login",
+          "organizations_url",
+          "received_events_url",
+          "repos_url",
+          "site_admin",
+          "starred_url",
+          "subscriptions_url",
+          "type",
+          "url",
+          "bio",
+          "blog",
+          "company",
+          "email",
+          "followers",
+          "following",
+          "hireable",
+          "location",
+          "name",
+          "public_gists",
+          "public_repos",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "gist-history": {
+        "title": "Gist History",
+        "description": "Gist History",
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "version": {
+            "type": "string"
+          },
+          "committed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "change_status": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "additions": {
+                "type": "integer"
+              },
+              "deletions": {
+                "type": "integer"
+              }
+            }
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
       "gist-simple": {
         "title": "Gist Simple",
         "description": "Gist Simple",
@@ -55295,7 +55765,27 @@
             "nullable": true,
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "user": {
+                  "$ref": "#/components/schemas/public-user"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
             }
           },
           "history": {
@@ -55303,7 +55793,7 @@
             "nullable": true,
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/gist-history"
             }
           },
           "fork_of": {
@@ -56589,6 +57079,12 @@
               },
               "pull": {
                 "type": "boolean"
+              },
+              "maintain": {
+                "type": "boolean"
+              },
+              "triage": {
+                "type": "boolean"
               }
             }
           },
@@ -56612,6 +57108,9 @@
           },
           "network_count": {
             "type": "integer"
+          },
+          "code_of_conduct": {
+            "$ref": "#/components/schemas/code-of-conduct"
           },
           "license": {
             "type": "object",
@@ -57607,6 +58106,33 @@
           "permission": {
             "type": "string"
           },
+          "permissions": {
+            "type": "object",
+            "properties": {
+              "pull": {
+                "type": "boolean"
+              },
+              "triage": {
+                "type": "boolean"
+              },
+              "push": {
+                "type": "boolean"
+              },
+              "maintain": {
+                "type": "boolean"
+              },
+              "admin": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "pull",
+              "triage",
+              "push",
+              "maintain",
+              "admin"
+            ]
+          },
           "url": {
             "type": "string",
             "format": "uri"
@@ -57642,7 +58168,8 @@
           "permission",
           "html_url",
           "repositories_url",
-          "slug"
+          "slug",
+          "parent"
         ]
       },
       "org-membership": {
@@ -59180,6 +59707,12 @@
             "example": false,
             "type": "boolean"
           },
+          "column_name": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
           "column_url": {
             "type": "string",
             "format": "uri",
@@ -59298,12 +59831,16 @@
           },
           "reset": {
             "type": "integer"
+          },
+          "used": {
+            "type": "integer"
           }
         },
         "required": [
           "limit",
           "remaining",
-          "reset"
+          "reset",
+          "used"
         ]
       },
       "rate-limit-overview": {
@@ -59798,9 +60335,23 @@
           "code_of_conduct": {
             "$ref": "#/components/schemas/code-of-conduct-simple"
           },
-          "has_advanced_security": {
-            "type": "boolean",
-            "example": true
+          "security_and_analysis": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "advanced_security": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "enabled",
+                      "disabled"
+                    ]
+                  }
+                }
+              }
+            }
           }
         },
         "required": [
@@ -60580,7 +61131,7 @@
                       "$ref": "#/components/schemas/simple-user"
                     },
                     {
-                      "$ref": "#/components/schemas/team-simple"
+                      "$ref": "#/components/schemas/team"
                     }
                   ]
                 }
@@ -60633,8 +61184,7 @@
             "oneOf": [
               {
                 "type": "object",
-                "properties": {
-                }
+                "additionalProperties": true
               },
               {
                 "type": "string"
@@ -61221,6 +61771,10 @@
                     "type": {
                       "type": "string",
                       "example": "\"Organization\""
+                    },
+                    "site_admin": {
+                      "type": "boolean",
+                      "example": false
                     }
                   }
                 },
@@ -61287,6 +61841,9 @@
           "url": {
             "type": "string"
           },
+          "enabled": {
+            "type": "boolean"
+          },
           "required_status_checks": {
             "type": "object",
             "properties": {
@@ -61304,6 +61861,9 @@
               },
               "contexts_url": {
                 "type": "string"
+              },
+              "strict": {
+                "type": "boolean"
               }
             },
             "required": [
@@ -62845,6 +63405,9 @@
             "type": "string",
             "description": "Warning generated when processing the analysis",
             "example": "123 results were ignored"
+          },
+          "tool_name": {
+            "type": "string"
           }
         },
         "required": [
@@ -62888,38 +63451,6 @@
           "next_analysis_url",
           "confirm_delete_url"
         ]
-      },
-      "scim-error": {
-        "title": "Scim Error",
-        "description": "Scim Error",
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "nullable": true
-          },
-          "documentation_url": {
-            "type": "string",
-            "nullable": true
-          },
-          "detail": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "integer"
-          },
-          "scimType": {
-            "type": "string",
-            "nullable": true
-          },
-          "schemas": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
       },
       "code-scanning-analysis-sarif-file": {
         "description": "A Base64 string representing the SARIF file to upload. You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html) and then translate the contents of the file into a Base64 encoding string. For more information, see \"[SARIF support for code scanning](https://docs.github.com/code-security/secure-coding/sarif-support-for-code-scanning).\"",
@@ -62972,6 +63503,14 @@
           "id": {
             "type": "integer",
             "example": 1
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "nullable": true,
+            "type": "string"
           },
           "node_id": {
             "type": "string",
@@ -63503,7 +64042,7 @@
           "requested_teams": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/team-simple"
+              "$ref": "#/components/schemas/team"
             },
             "nullable": true
           },
@@ -65096,7 +65635,7 @@
                                 "$ref": "#/components/schemas/simple-user"
                               },
                               {
-                                "$ref": "#/components/schemas/team-simple"
+                                "$ref": "#/components/schemas/team"
                               }
                             ]
                           }
@@ -66159,9 +66698,9 @@
           "created_at"
         ]
       },
-      "issue-event-for-issue": {
-        "title": "Issue Event for Issue",
-        "description": "Issue Event for Issue",
+      "labeled-issue-event": {
+        "title": "Labeled Issue Event",
+        "description": "Labeled Issue Event",
         "type": "object",
         "properties": {
           "id": {
@@ -66190,60 +66729,1815 @@
           "created_at": {
             "type": "string"
           },
-          "sha": {
-            "type": "string",
-            "example": "\"480d4f47447129f015cb327536c522ca683939a1\""
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
           },
-          "html_url": {
-            "type": "string",
-            "example": "\"https://github.com/owner-3906e11a33a3d55ba449d63f/BBB_Private_Repo/commit/480d4f47447129f015cb327536c522ca683939a1\""
+          "label": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "color"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "unlabeled-issue-event": {
+        "title": "Unlabeled Issue Event",
+        "description": "Unlabeled Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
           },
-          "message": {
-            "type": "string",
-            "example": "\"add a bunch of files\""
+          "node_id": {
+            "type": "string"
           },
-          "issue_url": {
-            "type": "string",
-            "example": "\"https://api.github.com/repos/owner-3906e11a33a3d55ba449d63f/AAA_Public_Repo/issues/1\""
+          "url": {
+            "type": "string"
           },
-          "updated_at": {
-            "type": "string",
-            "example": "\"2020-07-09T00:17:36Z\""
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
           },
-          "author_association": {
-            "$ref": "#/components/schemas/author_association"
+          "event": {
+            "type": "string"
           },
-          "body": {
+          "commit_id": {
             "type": "string",
-            "example": "\":+1:\"",
             "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "label": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "color"
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "assigned-issue-event": {
+        "title": "Assigned Issue Event",
+        "description": "Assigned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "assigner": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app",
+          "assignee",
+          "assigner"
+        ]
+      },
+      "unassigned-issue-event": {
+        "title": "Unassigned Issue Event",
+        "description": "Unassigned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "assigner": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app",
+          "assignee",
+          "assigner"
+        ]
+      },
+      "milestoned-issue-event": {
+        "title": "Milestoned Issue Event",
+        "description": "Milestoned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "milestone": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        "required": [
+          "milestone",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "demilestoned-issue-event": {
+        "title": "Demilestoned Issue Event",
+        "description": "Demilestoned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "milestone": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        "required": [
+          "milestone",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "renamed-issue-event": {
+        "title": "Renamed Issue Event",
+        "description": "Renamed Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "rename": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ]
+          }
+        },
+        "required": [
+          "rename",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "review-requested-issue-event": {
+        "title": "Review Requested Issue Event",
+        "description": "Review Requested Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "review_requester": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "requested_team": {
+            "$ref": "#/components/schemas/team"
+          },
+          "requested_reviewer": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "review_requester",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "review-request-removed-issue-event": {
+        "title": "Review Request Removed Issue Event",
+        "description": "Review Request Removed Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "review_requester": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "requested_team": {
+            "$ref": "#/components/schemas/team"
+          },
+          "requested_reviewer": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "review_requester",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "review-dismissed-issue-event": {
+        "title": "Review Dismissed Issue Event",
+        "description": "Review Dismissed Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "dismissed_review": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string"
+              },
+              "review_id": {
+                "type": "integer"
+              },
+              "dismissal_message": {
+                "nullable": true,
+                "type": "string"
+              },
+              "dismissal_commit_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "state",
+              "review_id",
+              "dismissal_message"
+            ]
+          }
+        },
+        "required": [
+          "dismissed_review",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "locked-issue-event": {
+        "title": "Locked Issue Event",
+        "description": "Locked Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
           },
           "lock_reason": {
             "type": "string",
             "example": "\"off-topic\"",
             "nullable": true
+          }
+        },
+        "required": [
+          "lock_reason",
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "added-to-project-issue-event": {
+        "title": "Added to Project Issue Event",
+        "description": "Added to Project Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
           },
-          "submitted_at": {
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
             "type": "string",
-            "example": "\"2020-07-09T00:17:51Z\""
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "project_card": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "project_id": {
+                "type": "integer"
+              },
+              "project_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "column_name": {
+                "type": "string"
+              },
+              "previous_column_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "project_id",
+              "project_url",
+              "column_name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "moved-column-in-project-issue-event": {
+        "title": "Moved Column in Project Issue Event",
+        "description": "Moved Column in Project Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "project_card": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "project_id": {
+                "type": "integer"
+              },
+              "project_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "column_name": {
+                "type": "string"
+              },
+              "previous_column_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "project_id",
+              "project_url",
+              "column_name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "removed-from-project-issue-event": {
+        "title": "Removed from Project Issue Event",
+        "description": "Removed from Project Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "project_card": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "project_id": {
+                "type": "integer"
+              },
+              "project_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "column_name": {
+                "type": "string"
+              },
+              "previous_column_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "project_id",
+              "project_url",
+              "column_name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "converted-note-to-issue-issue-event": {
+        "title": "Converted Note to Issue Issue Event",
+        "description": "Converted Note to Issue Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "project_card": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "project_id": {
+                "type": "integer"
+              },
+              "project_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "column_name": {
+                "type": "string"
+              },
+              "previous_column_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "project_id",
+              "project_url",
+              "column_name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
+      "issue-event-for-issue": {
+        "title": "Issue Event for Issue",
+        "description": "Issue Event for Issue",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/labeled-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/unlabeled-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/assigned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/unassigned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/milestoned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/demilestoned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/renamed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-requested-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-request-removed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-dismissed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/locked-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/added-to-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/moved-column-in-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/removed-from-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/converted-note-to-issue-issue-event"
+          }
+        ]
+      },
+      "timeline-comment-event": {
+        "title": "Timeline Comment Event",
+        "description": "Timeline Comment Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "id": {
+            "description": "Unique identifier of the issue comment",
+            "example": 42,
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "description": "URL for the issue comment",
+            "example": "https://api.github.com/repositories/42/issues/comments/1",
+            "type": "string",
+            "format": "uri"
+          },
+          "body": {
+            "description": "Contents of the issue comment",
+            "example": "What version of Safari were you using when you observed this bug?",
+            "type": "string"
+          },
+          "body_text": {
+            "type": "string"
+          },
+          "body_html": {
+            "type": "string"
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "user": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "issue_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author_association": {
+            "$ref": "#/components/schemas/author_association"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "reactions": {
+            "$ref": "#/components/schemas/reaction-rollup"
+          }
+        },
+        "required": [
+          "event",
+          "actor",
+          "id",
+          "node_id",
+          "html_url",
+          "issue_url",
+          "author_association",
+          "user",
+          "url",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "timeline-cross-referenced-event": {
+        "title": "Timeline Cross Referenced Event",
+        "description": "Timeline Cross Referenced Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "issue": {
+                "$ref": "#/components/schemas/issue-simple"
+              }
+            }
+          }
+        },
+        "required": [
+          "event",
+          "created_at",
+          "updated_at",
+          "source"
+        ]
+      },
+      "timeline-committed-event": {
+        "title": "Timeline Committed Event",
+        "description": "Timeline Committed Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "sha": {
+            "description": "SHA for the commit",
+            "example": "7638417db6d59f3c431d3e1f261cc637155684cd",
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author": {
+            "description": "Identifying information for the git-user",
+            "type": "object",
+            "properties": {
+              "date": {
+                "description": "Timestamp of the commit",
+                "example": "2014-08-09T08:02:04+12:00",
+                "format": "date-time",
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "description": "Git email address of the user",
+                "example": "monalisa.octocat@example.com"
+              },
+              "name": {
+                "description": "Name of the git user",
+                "example": "Monalisa Octocat",
+                "type": "string"
+              }
+            },
+            "required": [
+              "email",
+              "name",
+              "date"
+            ]
+          },
+          "committer": {
+            "description": "Identifying information for the git-user",
+            "type": "object",
+            "properties": {
+              "date": {
+                "description": "Timestamp of the commit",
+                "example": "2014-08-09T08:02:04+12:00",
+                "format": "date-time",
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "description": "Git email address of the user",
+                "example": "monalisa.octocat@example.com"
+              },
+              "name": {
+                "description": "Name of the git user",
+                "example": "Monalisa Octocat",
+                "type": "string"
+              }
+            },
+            "required": [
+              "email",
+              "name",
+              "date"
+            ]
+          },
+          "message": {
+            "description": "Message describing the purpose of the commit",
+            "example": "Fix #42",
+            "type": "string"
+          },
+          "tree": {
+            "type": "object",
+            "properties": {
+              "sha": {
+                "description": "SHA for the commit",
+                "example": "7638417db6d59f3c431d3e1f261cc637155684cd",
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "sha",
+              "url"
+            ]
+          },
+          "parents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sha": {
+                  "description": "SHA for the commit",
+                  "example": "7638417db6d59f3c431d3e1f261cc637155684cd",
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "html_url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "required": [
+                "sha",
+                "url",
+                "html_url"
+              ]
+            }
+          },
+          "verification": {
+            "type": "object",
+            "properties": {
+              "verified": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "signature": {
+                "type": "string",
+                "nullable": true
+              },
+              "payload": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "verified",
+              "reason",
+              "signature",
+              "payload"
+            ]
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "sha",
+          "node_id",
+          "url",
+          "html_url",
+          "author",
+          "committer",
+          "tree",
+          "message",
+          "parents",
+          "verification"
+        ]
+      },
+      "timeline-reviewed-event": {
+        "title": "Timeline Reviewed Event",
+        "description": "Timeline Reviewed Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier of the review",
+            "example": 42,
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string",
+            "example": "MDE3OlB1bGxSZXF1ZXN0UmV2aWV3ODA="
+          },
+          "user": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "body": {
+            "nullable": true,
+            "description": "The text of the review.",
+            "example": "This looks great.",
+            "type": "string"
           },
           "state": {
             "type": "string",
-            "example": "\"commented\""
+            "example": "CHANGES_REQUESTED"
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/octocat/Hello-World/pull/12#pullrequestreview-80"
           },
           "pull_request_url": {
             "type": "string",
-            "example": "\"https://api.github.com/repos/owner-3906e11a33a3d55ba449d63f/AAA_Public_Repo/pulls/2\""
+            "format": "uri",
+            "example": "https://api.github.com/repos/octocat/Hello-World/pulls/12"
+          },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "html": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "href"
+                ]
+              },
+              "pull_request": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "href"
+                ]
+              }
+            },
+            "required": [
+              "html",
+              "pull_request"
+            ]
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "commit_id": {
+            "description": "A commit SHA for the review.",
+            "example": "54bb654c9e6025347f57900a4a5c2313a96b8035",
+            "type": "string"
+          },
+          "body_html": {
+            "type": "string"
+          },
+          "body_text": {
+            "type": "string"
+          },
+          "author_association": {
+            "$ref": "#/components/schemas/author_association"
+          }
+        },
+        "required": [
+          "event",
+          "id",
+          "node_id",
+          "user",
+          "body",
+          "state",
+          "commit_id",
+          "html_url",
+          "pull_request_url",
+          "_links",
+          "author_association"
+        ]
+      },
+      "pull-request-review-comment": {
+        "title": "Pull Request Review Comment",
+        "description": "Pull Request Review Comments are comments on a portion of the Pull Request's diff.",
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "URL for the pull request review comment",
+            "example": "https://api.github.com/repos/octocat/Hello-World/pulls/comments/1",
+            "type": "string"
+          },
+          "pull_request_review_id": {
+            "description": "The ID of the pull request review to which the comment belongs.",
+            "example": 42,
+            "type": "integer",
+            "nullable": true
+          },
+          "id": {
+            "description": "The ID of the pull request review comment.",
+            "example": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "description": "The node ID of the pull request review comment.",
+            "type": "string",
+            "example": "MDI0OlB1bGxSZXF1ZXN0UmV2aWV3Q29tbWVudDEw"
+          },
+          "diff_hunk": {
+            "description": "The diff of the line that the comment refers to.",
+            "type": "string",
+            "example": "@@ -16,33 +16,40 @@ public class Connection : IConnection..."
+          },
+          "path": {
+            "description": "The relative path of the file to which the comment applies.",
+            "example": "config/database.yaml",
+            "type": "string"
+          },
+          "position": {
+            "description": "The line index in the diff to which the comment applies.",
+            "example": 1,
+            "type": "integer"
+          },
+          "original_position": {
+            "description": "The index of the original line in the diff to which the comment applies.",
+            "example": 4,
+            "type": "integer"
+          },
+          "commit_id": {
+            "description": "The SHA of the commit to which the comment applies.",
+            "example": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+            "type": "string"
+          },
+          "original_commit_id": {
+            "description": "The SHA of the original commit to which the comment applies.",
+            "example": "9c48853fa3dc5c1c3d6f1f1cd1f2743e72652840",
+            "type": "string"
+          },
+          "in_reply_to_id": {
+            "description": "The comment ID to reply to.",
+            "example": 8,
+            "type": "integer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "body": {
+            "description": "The text of the comment.",
+            "example": "We should probably include a check for null values here.",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "html_url": {
+            "description": "HTML URL for the pull request review comment.",
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/octocat/Hello-World/pull/1#discussion-diff-1"
+          },
+          "pull_request_url": {
+            "description": "URL for the pull request that the review comment belongs to.",
+            "type": "string",
+            "format": "uri",
+            "example": "https://api.github.com/repos/octocat/Hello-World/pulls/1"
+          },
+          "author_association": {
+            "$ref": "#/components/schemas/author_association"
+          },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://api.github.com/repos/octocat/Hello-World/pulls/comments/1"
+                  }
+                },
+                "required": [
+                  "href"
+                ]
+              },
+              "html": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://github.com/octocat/Hello-World/pull/1#discussion-diff-1"
+                  }
+                },
+                "required": [
+                  "href"
+                ]
+              },
+              "pull_request": {
+                "type": "object",
+                "properties": {
+                  "href": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://api.github.com/repos/octocat/Hello-World/pulls/1"
+                  }
+                },
+                "required": [
+                  "href"
+                ]
+              }
+            },
+            "required": [
+              "self",
+              "html",
+              "pull_request"
+            ]
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "The first line of the range for a multi-line comment.",
+            "example": 2,
+            "nullable": true
+          },
+          "original_start_line": {
+            "type": "integer",
+            "description": "The first line of the range for a multi-line comment.",
+            "example": 2,
+            "nullable": true
+          },
+          "start_side": {
+            "type": "string",
+            "description": "The side of the first line of the range for a multi-line comment.",
+            "enum": [
+              "LEFT",
+              "RIGHT"
+            ],
+            "default": "RIGHT",
+            "nullable": true
+          },
+          "line": {
+            "description": "The line of the blob to which the comment applies. The last line of the range for a multi-line comment",
+            "example": 2,
+            "type": "integer"
+          },
+          "original_line": {
+            "description": "The line of the blob to which the comment applies. The last line of the range for a multi-line comment",
+            "example": 2,
+            "type": "integer"
+          },
+          "side": {
+            "description": "The side of the diff to which the comment applies. The side of the last line of the range for a multi-line comment",
+            "enum": [
+              "LEFT",
+              "RIGHT"
+            ],
+            "default": "RIGHT",
+            "type": "string"
+          },
+          "reactions": {
+            "$ref": "#/components/schemas/reaction-rollup"
           },
           "body_html": {
             "type": "string",
-            "example": "\"<p>Accusantium fugiat cumque. Autem qui nostrum. Atque quae ullam.</p>\""
+            "example": "\"<p>comment body</p>\""
           },
           "body_text": {
             "type": "string",
-            "example": "\"Accusantium fugiat cumque. Autem qui nostrum. Atque quae ullam.\""
+            "example": "\"comment body\""
+          }
+        },
+        "required": [
+          "url",
+          "id",
+          "node_id",
+          "pull_request_review_id",
+          "diff_hunk",
+          "path",
+          "position",
+          "original_position",
+          "commit_id",
+          "original_commit_id",
+          "user",
+          "body",
+          "created_at",
+          "updated_at",
+          "html_url",
+          "pull_request_url",
+          "author_association",
+          "_links"
+        ]
+      },
+      "timeline-line-commented-event": {
+        "title": "Timeline Line Commented Event",
+        "description": "Timeline Line Commented Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pull-request-review-comment"
+            }
           }
         }
+      },
+      "timeline-commit-commented-event": {
+        "title": "Timeline Commit Commented Event",
+        "description": "Timeline Commit Commented Event",
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/commit-comment"
+            }
+          }
+        }
+      },
+      "timeline-assigned-issue-event": {
+        "title": "Timeline Assigned Issue Event",
+        "description": "Timeline Assigned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app",
+          "assignee"
+        ]
+      },
+      "timeline-unassigned-issue-event": {
+        "title": "Timeline Unassigned Issue Event",
+        "description": "Timeline Unassigned Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/integration"
+          },
+          "assignee": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app",
+          "assignee"
+        ]
+      },
+      "timeline-issue-events": {
+        "title": "Timeline Event",
+        "description": "Timeline Event",
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/labeled-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/unlabeled-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/milestoned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/demilestoned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/renamed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-requested-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-request-removed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/review-dismissed-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/locked-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/added-to-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/moved-column-in-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/removed-from-project-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/converted-note-to-issue-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-comment-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-cross-referenced-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-committed-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-reviewed-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-line-commented-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-commit-commented-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-assigned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/timeline-unassigned-issue-event"
+          }
+        ]
       },
       "deploy-key": {
         "title": "Deploy Key",
@@ -68307,223 +70601,6 @@
           "review_comments"
         ]
       },
-      "pull-request-review-comment": {
-        "title": "Pull Request Review Comment",
-        "description": "Pull Request Review Comments are comments on a portion of the Pull Request's diff.",
-        "type": "object",
-        "properties": {
-          "url": {
-            "description": "URL for the pull request review comment",
-            "example": "https://api.github.com/repos/octocat/Hello-World/pulls/comments/1",
-            "type": "string"
-          },
-          "pull_request_review_id": {
-            "description": "The ID of the pull request review to which the comment belongs.",
-            "example": 42,
-            "type": "integer",
-            "nullable": true
-          },
-          "id": {
-            "description": "The ID of the pull request review comment.",
-            "example": 1,
-            "type": "integer"
-          },
-          "node_id": {
-            "description": "The node ID of the pull request review comment.",
-            "type": "string",
-            "example": "MDI0OlB1bGxSZXF1ZXN0UmV2aWV3Q29tbWVudDEw"
-          },
-          "diff_hunk": {
-            "description": "The diff of the line that the comment refers to.",
-            "type": "string",
-            "example": "@@ -16,33 +16,40 @@ public class Connection : IConnection..."
-          },
-          "path": {
-            "description": "The relative path of the file to which the comment applies.",
-            "example": "config/database.yaml",
-            "type": "string"
-          },
-          "position": {
-            "description": "The line index in the diff to which the comment applies.",
-            "example": 1,
-            "type": "integer"
-          },
-          "original_position": {
-            "description": "The index of the original line in the diff to which the comment applies.",
-            "example": 4,
-            "type": "integer"
-          },
-          "commit_id": {
-            "description": "The SHA of the commit to which the comment applies.",
-            "example": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "type": "string"
-          },
-          "original_commit_id": {
-            "description": "The SHA of the original commit to which the comment applies.",
-            "example": "9c48853fa3dc5c1c3d6f1f1cd1f2743e72652840",
-            "type": "string"
-          },
-          "in_reply_to_id": {
-            "description": "The comment ID to reply to.",
-            "example": 8,
-            "type": "integer"
-          },
-          "user": {
-            "$ref": "#/components/schemas/simple-user"
-          },
-          "body": {
-            "description": "The text of the comment.",
-            "example": "We should probably include a check for null values here.",
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2011-04-14T16:00:49Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2011-04-14T16:00:49Z"
-          },
-          "html_url": {
-            "description": "HTML URL for the pull request review comment.",
-            "type": "string",
-            "format": "uri",
-            "example": "https://github.com/octocat/Hello-World/pull/1#discussion-diff-1"
-          },
-          "pull_request_url": {
-            "description": "URL for the pull request that the review comment belongs to.",
-            "type": "string",
-            "format": "uri",
-            "example": "https://api.github.com/repos/octocat/Hello-World/pulls/1"
-          },
-          "author_association": {
-            "$ref": "#/components/schemas/author_association"
-          },
-          "_links": {
-            "type": "object",
-            "properties": {
-              "self": {
-                "type": "object",
-                "properties": {
-                  "href": {
-                    "type": "string",
-                    "format": "uri",
-                    "example": "https://api.github.com/repos/octocat/Hello-World/pulls/comments/1"
-                  }
-                },
-                "required": [
-                  "href"
-                ]
-              },
-              "html": {
-                "type": "object",
-                "properties": {
-                  "href": {
-                    "type": "string",
-                    "format": "uri",
-                    "example": "https://github.com/octocat/Hello-World/pull/1#discussion-diff-1"
-                  }
-                },
-                "required": [
-                  "href"
-                ]
-              },
-              "pull_request": {
-                "type": "object",
-                "properties": {
-                  "href": {
-                    "type": "string",
-                    "format": "uri",
-                    "example": "https://api.github.com/repos/octocat/Hello-World/pulls/1"
-                  }
-                },
-                "required": [
-                  "href"
-                ]
-              }
-            },
-            "required": [
-              "self",
-              "html",
-              "pull_request"
-            ]
-          },
-          "start_line": {
-            "type": "integer",
-            "description": "The first line of the range for a multi-line comment.",
-            "example": 2,
-            "nullable": true
-          },
-          "original_start_line": {
-            "type": "integer",
-            "description": "The first line of the range for a multi-line comment.",
-            "example": 2,
-            "nullable": true
-          },
-          "start_side": {
-            "type": "string",
-            "description": "The side of the first line of the range for a multi-line comment.",
-            "enum": [
-              "LEFT",
-              "RIGHT"
-            ],
-            "default": "RIGHT",
-            "nullable": true
-          },
-          "line": {
-            "description": "The line of the blob to which the comment applies. The last line of the range for a multi-line comment",
-            "example": 2,
-            "type": "integer"
-          },
-          "original_line": {
-            "description": "The line of the blob to which the comment applies. The last line of the range for a multi-line comment",
-            "example": 2,
-            "type": "integer"
-          },
-          "side": {
-            "description": "The side of the diff to which the comment applies. The side of the last line of the range for a multi-line comment",
-            "enum": [
-              "LEFT",
-              "RIGHT"
-            ],
-            "default": "RIGHT",
-            "type": "string"
-          },
-          "reactions": {
-            "$ref": "#/components/schemas/reaction-rollup"
-          },
-          "body_html": {
-            "type": "string",
-            "example": "\"<p>comment body</p>\""
-          },
-          "body_text": {
-            "type": "string",
-            "example": "\"comment body\""
-          }
-        },
-        "required": [
-          "url",
-          "id",
-          "node_id",
-          "pull_request_review_id",
-          "diff_hunk",
-          "path",
-          "position",
-          "original_position",
-          "commit_id",
-          "original_commit_id",
-          "user",
-          "body",
-          "created_at",
-          "updated_at",
-          "html_url",
-          "pull_request_url",
-          "author_association",
-          "_links"
-        ]
-      },
       "pull-request-merge-result": {
         "title": "Pull Request Merge Result",
         "description": "Pull Request Merge Result",
@@ -68559,7 +70636,7 @@
           "teams": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/team-simple"
+              "$ref": "#/components/schemas/team"
             }
           }
         },
@@ -68783,6 +70860,9 @@
           },
           "body_html": {
             "type": "string"
+          },
+          "reactions": {
+            "$ref": "#/components/schemas/reaction-rollup"
           },
           "side": {
             "description": "The side of the first line of the range for a multi-line comment.",
@@ -71497,211 +73577,6 @@
           "two_factor_authentication"
         ]
       },
-      "public-user": {
-        "title": "Public User",
-        "description": "Public User",
-        "type": "object",
-        "properties": {
-          "login": {
-            "type": "string"
-          },
-          "id": {
-            "type": "integer"
-          },
-          "node_id": {
-            "type": "string"
-          },
-          "avatar_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "gravatar_id": {
-            "type": "string",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "html_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "followers_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "following_url": {
-            "type": "string"
-          },
-          "gists_url": {
-            "type": "string"
-          },
-          "starred_url": {
-            "type": "string"
-          },
-          "subscriptions_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "organizations_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "repos_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "events_url": {
-            "type": "string"
-          },
-          "received_events_url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "type": {
-            "type": "string"
-          },
-          "site_admin": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "company": {
-            "type": "string",
-            "nullable": true
-          },
-          "blog": {
-            "type": "string",
-            "nullable": true
-          },
-          "location": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "nullable": true
-          },
-          "hireable": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "twitter_username": {
-            "type": "string",
-            "nullable": true
-          },
-          "public_repos": {
-            "type": "integer"
-          },
-          "public_gists": {
-            "type": "integer"
-          },
-          "followers": {
-            "type": "integer"
-          },
-          "following": {
-            "type": "integer"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "plan": {
-            "type": "object",
-            "properties": {
-              "collaborators": {
-                "type": "integer"
-              },
-              "name": {
-                "type": "string"
-              },
-              "space": {
-                "type": "integer"
-              },
-              "private_repos": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "collaborators",
-              "name",
-              "space",
-              "private_repos"
-            ]
-          },
-          "suspended_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "private_gists": {
-            "type": "integer",
-            "example": 1
-          },
-          "total_private_repos": {
-            "type": "integer",
-            "example": 2
-          },
-          "owned_private_repos": {
-            "type": "integer",
-            "example": 2
-          },
-          "disk_usage": {
-            "type": "integer",
-            "example": 1
-          },
-          "collaborators": {
-            "type": "integer",
-            "example": 3
-          }
-        },
-        "required": [
-          "avatar_url",
-          "events_url",
-          "followers_url",
-          "following_url",
-          "gists_url",
-          "gravatar_id",
-          "html_url",
-          "id",
-          "node_id",
-          "login",
-          "organizations_url",
-          "received_events_url",
-          "repos_url",
-          "site_admin",
-          "starred_url",
-          "subscriptions_url",
-          "type",
-          "url",
-          "bio",
-          "blog",
-          "company",
-          "email",
-          "followers",
-          "following",
-          "hireable",
-          "location",
-          "name",
-          "public_gists",
-          "public_repos",
-          "created_at",
-          "updated_at"
-        ],
-        "additionalProperties": false
-      },
       "email": {
         "title": "Email",
         "description": "Email",
@@ -72263,6 +74138,68 @@
           "insecure_ssl": "0",
           "secret": "********",
           "url": "https://example.com/webhook"
+        }
+      },
+      "hook-delivery-items": {
+        "value": [
+          {
+            "id": 12345678,
+            "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+            "delivered_at": "2019-06-03T00:57:16Z",
+            "redelivery": false,
+            "duration": 0.27,
+            "status": "OK",
+            "status_code": 200,
+            "event": "issues",
+            "action": "opened"
+          },
+          {
+            "id": 123456789,
+            "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+            "delivered_at": "2019-06-04T00:57:16Z",
+            "redelivery": true,
+            "duration": 0.28,
+            "status": "OK",
+            "status_code": 200,
+            "event": "issues",
+            "action": "opened"
+          }
+        ]
+      },
+      "hook-delivery": {
+        "value": {
+          "id": 12345678,
+          "guid": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+          "delivered_at": "2019-06-03T00:57:16Z",
+          "redelivery": false,
+          "duration": 0.27,
+          "status": "OK",
+          "status_code": 200,
+          "event": "issues",
+          "action": "opened",
+          "request": {
+            "include_payload": false,
+            "headers": {
+              "X-GitHub-Delivery": "0b989ba4-242f-11e5-81e1-c7b6966d2516",
+              "X-Hub-Signature-256": "sha256=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+              "Accept": "*/*",
+              "X-GitHub-Hook-ID": "42",
+              "User-Agent": "GitHub-Hookshot/b8c71d8",
+              "X-GitHub-Event": "issues",
+              "X-GitHub-Hook-Installation-Target-ID": "123",
+              "X-GitHub-Hook-Installation-Target-Type": "repository",
+              "content-type": "application/json",
+              "X-Hub-Signature": "sha1=a84d88e7554fc1fa21bcbc4efae3c782a70d2b9d"
+            },
+            "payload": null
+          },
+          "response": {
+            "include_payload": false,
+            "headers": {
+              "Content-Type": "text/html;charset=utf-8"
+            },
+            "payload": null
+          }
         }
       },
       "base-installation-items": {
@@ -77263,33 +79200,39 @@
             "core": {
               "limit": 5000,
               "remaining": 4999,
-              "reset": 1372700873
+              "reset": 1372700873,
+              "used": 1
             },
             "search": {
               "limit": 30,
               "remaining": 18,
-              "reset": 1372697452
+              "reset": 1372697452,
+              "used": 12
             },
             "graphql": {
               "limit": 5000,
               "remaining": 4993,
-              "reset": 1372700389
+              "reset": 1372700389,
+              "used": 7
             },
             "integration_manifest": {
               "limit": 5000,
               "remaining": 4999,
-              "reset": 1551806725
+              "reset": 1551806725,
+              "used": 1
             },
             "code_scanning_upload": {
               "limit": 500,
               "remaining": 499,
-              "reset": 1551806725
+              "reset": 1551806725,
+              "used": 1
             }
           },
           "rate": {
             "limit": 5000,
             "remaining": 4999,
-            "reset": 1372700873
+            "reset": 1372700873,
+            "used": 1
           }
         }
       },
@@ -79524,7 +81467,8 @@
                   "privacy": "closed",
                   "permission": "admin",
                   "members_url": "https://api.github.com/teams/1/members{/member}",
-                  "repositories_url": "https://api.github.com/teams/1/repos"
+                  "repositories_url": "https://api.github.com/teams/1/repos",
+                  "parent": null
                 }
               }
             ]
@@ -81950,7 +83894,8 @@
                 "privacy": "closed",
                 "permission": "admin",
                 "members_url": "https://api.github.com/teams/1/members{/member}",
-                "repositories_url": "https://api.github.com/teams/1/repos"
+                "repositories_url": "https://api.github.com/teams/1/repos",
+                "parent": null
               }
             ],
             "head": {
@@ -83516,7 +85461,8 @@
                         "privacy": "closed",
                         "permission": "admin",
                         "members_url": "https://api.github.com/teams/1/members{/member}",
-                        "repositories_url": "https://api.github.com/teams/1/repos"
+                        "repositories_url": "https://api.github.com/teams/1/repos",
+                        "parent": null
                       }
                     }
                   ]
@@ -83592,7 +85538,8 @@
                     "privacy": "closed",
                     "permission": "admin",
                     "members_url": "https://api.github.com/teams/1/members{/member}",
-                    "repositories_url": "https://api.github.com/teams/1/repos"
+                    "repositories_url": "https://api.github.com/teams/1/repos",
+                    "parent": null
                   }
                 }
               ]
@@ -85353,7 +87300,12 @@
             "event": "closed",
             "commit_id": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
             "commit_url": "https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
-            "created_at": "2011-04-14T16:00:49Z"
+            "created_at": "2011-04-14T16:00:49Z",
+            "performed_via_github_app": null,
+            "label": {
+              "name": "label",
+              "color": "red"
+            }
           }
         ]
       },
@@ -86577,7 +88529,8 @@
               "privacy": "closed",
               "permission": "admin",
               "members_url": "https://api.github.com/teams/1/members{/member}",
-              "repositories_url": "https://api.github.com/teams/1/repos"
+              "repositories_url": "https://api.github.com/teams/1/repos",
+              "parent": null
             }
           ]
         }
@@ -86811,7 +88764,8 @@
               "privacy": "closed",
               "permission": "admin",
               "members_url": "https://api.github.com/teams/1/members{/member}",
-              "repositories_url": "https://api.github.com/teams/1/repos"
+              "repositories_url": "https://api.github.com/teams/1/repos",
+              "parent": null
             }
           ],
           "head": {
@@ -91836,6 +93790,41 @@
           }
         }
       },
+      "bad_request": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/basic-error"
+            }
+          },
+          "application/scim+json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          }
+        }
+      },
+      "validation_failed": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/validation-error"
+            }
+          }
+        }
+      },
+      "accepted": {
+        "description": "Accepted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
       "preview_header_missing": {
         "description": "Preview header missing",
         "content": {
@@ -91874,16 +93863,6 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/basic-error"
-            }
-          }
-        }
-      },
-      "validation_failed": {
-        "description": "Validation failed",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/validation-error"
             }
           }
         }
@@ -92005,21 +93984,6 @@
           }
         }
       },
-      "bad_request": {
-        "description": "Bad Request",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/basic-error"
-            }
-          },
-          "application/scim+json": {
-            "schema": {
-              "$ref": "#/components/schemas/scim-error"
-            }
-          }
-        }
-      },
       "internal_error": {
         "description": "Internal Error",
         "content": {
@@ -92032,16 +93996,6 @@
       },
       "found": {
         "description": "Found"
-      },
-      "accepted": {
-        "description": "Accepted",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object"
-            }
-          }
-        }
       },
       "no_content": {
         "description": "A header with no content is returned."
@@ -92130,6 +94084,23 @@
         "schema": {
           "type": "integer",
           "default": 30
+        }
+      },
+      "cursor": {
+        "name": "cursor",
+        "description": "Used for pagination: the starting delivery from which the page of deliveries is fetched. Refer to the `link` header for the next and previous page cursors.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "delivery-id": {
+        "name": "delivery_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
         }
       },
       "page": {
@@ -92500,7 +94471,7 @@
       },
       "package_type": {
         "name": "package_type",
-        "description": "The type of supported package. Can be one of `npm`, `maven`, `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use the package namespace `https://ghcr.io/owner/package-name`, use `container`.",
+        "description": "The type of supported package. Can be one of `npm`, `maven`, `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle registry have the type `maven`. Docker images pushed to GitHub's Container registry (`ghcr.io`) have the type `container`. You can use the type `docker` to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`), even if these have now been migrated to the Container registry.",
         "in": "path",
         "required": true,
         "schema": {
