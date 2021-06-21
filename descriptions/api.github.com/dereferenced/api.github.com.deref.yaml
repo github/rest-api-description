@@ -789,6 +789,9 @@ paths:
         previews: []
         category: apps
         subcategory: webhooks
+  "/app/hook/deliveries": {}
+  "/app/hook/deliveries/{delivery_id}": {}
+  "/app/hook/deliveries/{delivery_id}/attempts": {}
   "/app/installations":
     get:
       summary: List installations for the authenticated app
@@ -15926,6 +15929,9 @@ paths:
         previews: []
         category: orgs
         subcategory: webhooks
+  "/orgs/{org}/hooks/{hook_id}/deliveries": {}
+  "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}": {}
+  "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {}
   "/orgs/{org}/hooks/{hook_id}/pings":
     post:
       summary: Ping an organization webhook
@@ -18513,8 +18519,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: &154
@@ -18667,8 +18676,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -18721,8 +18733,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -18776,8 +18791,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -18946,8 +18964,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -19015,8 +19036,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -19074,8 +19098,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -26214,9 +26241,18 @@ paths:
                     - key
                     - name
                     - html_url
-                  has_advanced_security:
-                    type: boolean
-                    example: true
+                  security_and_analysis:
+                    nullable: true
+                    type: object
+                    properties:
+                      advanced_security:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum:
+                            - enabled
+                            - disabled
                 required: &217
                 - archive_url
                 - assignees_url
@@ -32924,6 +32960,11 @@ paths:
                     deletion of the protected branch. Default: `false`. For more information,
                     see "[Enabling force pushes to a protected branch](https://help.github.com/en/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)"
                     in the GitHub Help documentation.'
+                required_conversation_resolution:
+                  type: boolean
+                  description: 'Requires all conversations on code to be resolved
+                    before a pull request can be merged into a branch that matches
+                    this rule. Set to `false` to disable. Default: `false`.'
               required:
               - required_status_checks
               - enforce_admins
@@ -32954,6 +32995,7 @@ paths:
               required_linear_history: true
               allow_force_pushes: true
               allow_deletions: true
+              required_conversation_resolution: true
       responses:
         '200':
           description: Response
@@ -48542,6 +48584,9 @@ paths:
         previews: []
         category: repos
         subcategory: webhooks
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries": {}
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}": {}
+  "/repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": {}
   "/repos/{owner}/{repo}/hooks/{hook_id}/pings":
     post:
       summary: Ping a repository webhook
@@ -76368,8 +76413,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76507,8 +76555,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76555,8 +76606,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76606,8 +76660,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76705,8 +76762,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76768,8 +76828,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -76821,8 +76884,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -78857,8 +78923,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -78908,8 +78977,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
@@ -79002,8 +79074,11 @@ paths:
       parameters:
       - name: package_type
         description: The type of supported package. Can be one of `npm`, `maven`,
-          `rubygems`, `nuget`, `docker`, or `container`. For Docker images that use
-          the package namespace `https://ghcr.io/owner/package-name`, use `container`.
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
         in: path
         required: true
         schema: *154
