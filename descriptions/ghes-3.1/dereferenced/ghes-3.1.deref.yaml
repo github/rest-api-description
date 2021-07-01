@@ -26053,26 +26053,6 @@ paths:
                     - key
                     - name
                     - html_url
-                  security_and_analysis:
-                    nullable: true
-                    type: object
-                    properties:
-                      advanced_security:
-                        type: object
-                        properties:
-                          status:
-                            type: string
-                            enum:
-                            - enabled
-                            - disabled
-                      secret_scanning:
-                        type: object
-                        properties:
-                          status:
-                            type: string
-                            enum:
-                            - enabled
-                            - disabled
                 required: &210
                 - archive_url
                 - assignees_url
@@ -37128,15 +37108,6 @@ paths:
                         - note
                         - warning
                         - error
-                      security_severity_level:
-                        nullable: true
-                        type: string
-                        description: The security severity of the alert.
-                        enum:
-                        - low
-                        - medium
-                        - high
-                        - critical
                       description:
                         type: string
                         description: A short description of the rule used to detect
@@ -66004,10 +65975,10 @@ paths:
         subcategory: management-console
     post:
       summary: Enable or disable maintenance mode
-      description: |-
-        The possible values for `enabled` are `true` and `false`. When it's `false`, the attribute `when` is ignored and the maintenance mode is turned off. `when` defines the time period when the maintenance was enabled.
-
-        The possible values for `when` are `now` or any date parseable by [mojombo/chronic](https://github.com/mojombo/chronic).
+      description: "**Note:** The request body for this operation must be submitted
+        as `application/x-www-form-urlencoded` data. You can submit a parameter value
+        as a string, or you can use a tool such as `curl` to submit a parameter value
+        as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode)."
       operationId: enterprise-admin/enable-or-disable-maintenance-mode
       tags:
       - enterprise-admin
@@ -66027,15 +65998,22 @@ paths:
                   value: *432
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
                 maintenance:
                   type: string
-                  description: A JSON string with the attributes `enabled` and `when`.
+                  description: |-
+                    A JSON string with the attributes `enabled` and `when`.
+
+                    The possible values for `enabled` are `true` and `false`. When it's `false`, the attribute `when` is ignored and the maintenance mode is turned off. `when` defines the time period when the maintenance was enabled.
+
+                    The possible values for `when` are `now` or any date parseable by [mojombo/chronic](https://github.com/mojombo/chronic).
               required:
               - maintenance
+            example:
+              maintenance: '{"enabled":true, "when":"now"}'
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -66487,7 +66465,10 @@ paths:
         subcategory: management-console
     put:
       summary: Set settings
-      description: For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#get-settings).
+      description: |-
+        For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#get-settings).
+
+        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
       operationId: enterprise-admin/set-settings
       tags:
       - enterprise-admin
@@ -66499,16 +66480,19 @@ paths:
           description: Response
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
                 settings:
                   type: string
                   description: A JSON string with the new settings. Note that you
-                    only need to pass the specific settings you want to modify.
+                    only need to pass the specific settings you want to modify. For
+                    a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#get-settings).
               required:
               - settings
+            example:
+              settings: '{ "enterprise": { "public_pages": true }}'
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -66556,7 +66540,10 @@ paths:
         subcategory: management-console
     post:
       summary: Add an authorized SSH key
-      description: ''
+      description: "**Note:** The request body for this operation must be submitted
+        as `application/x-www-form-urlencoded` data. You can submit a parameter value
+        as a string, or you can use a tool such as `curl` to submit a parameter value
+        as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode)."
       operationId: enterprise-admin/add-authorized-ssh-key
       tags:
       - enterprise-admin
@@ -66578,15 +66565,17 @@ paths:
                   value: *434
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
                 authorized_key:
                   type: string
-                  description: The path to the public SSH key.
+                  description: The public SSH key.
               required:
               - authorized_key
+            example:
+              authorized_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCssTL/Vtu/ODLTj0VtZoRAbvf7uiv5997GyDq0MoAZUjb5jmA5wYe2/wF6sFuhiZTnZoF1ZtCHunPp0hM/GHrn6VySBhNncx14YO8FPt1CIhEeRMSEjUK9cY3xAbS365oXY8vnUHJsS9+1tr/2bx/+4NJfcUt/Ezf1OR/0LStQXw==
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -66595,7 +66584,10 @@ paths:
         subcategory: management-console
     delete:
       summary: Remove an authorized SSH key
-      description: ''
+      description: "**Note:** The request body for this operation must be submitted
+        as `application/x-www-form-urlencoded` data. You can submit a parameter value
+        as a string, or you can use a tool such as `curl` to submit a parameter value
+        as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode)."
       operationId: enterprise-admin/remove-authorized-ssh-key
       tags:
       - enterprise-admin
@@ -66617,15 +66609,17 @@ paths:
                   value: *434
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
                 authorized_key:
                   type: string
-                  description: The path to the public SSH key.
+                  description: The public SSH key.
               required:
               - authorized_key
+            example:
+              authorized_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCssTL/Vtu/ODLTj0VtZoRAbvf7uiv5997GyDq0MoAZUjb5jmA5wYe2/wF6sFuhiZTnZoF1ZtCHunPp0hM/GHrn6VySBhNncx14YO8FPt1CIhEeRMSEjUK9cY3xAbS365oXY8vnUHJsS9+1tr/2bx/+4NJfcUt/Ezf1OR/0LStQXw==
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -66636,16 +66630,16 @@ paths:
     post:
       summary: Create a GitHub license
       description: |-
-        When you boot a GitHub instance for the first time, you can use the following endpoint to upload a license:
+        When you boot a GitHub instance for the first time, you can use the following endpoint to upload a license.
 
-        Note that you need to POST to [`/setup/api/configure`](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#start-a-configuration-process) to start the actual configuration process.
+        Note that you need to `POST` to [`/setup/api/configure`](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#start-a-configuration-process) to start the actual configuration process.
 
         When using this endpoint, your GitHub instance must have a password set. This can be accomplished two ways:
 
         1.  If you're working directly with the API before accessing the web interface, you must pass in the password parameter to set your password.
         2.  If you set up your instance via the web interface before accessing the API, your calls to this endpoint do not need the password parameter.
 
-        For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#get-settings).
+        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
       operationId: enterprise-admin/create-enterprise-server-license
       tags:
       - enterprise-admin
@@ -66657,7 +66651,7 @@ paths:
           description: Response
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
@@ -66672,7 +66666,8 @@ paths:
                 settings:
                   type: string
                   description: An optional JSON string containing the installation
-                    settings.
+                    settings. For a list of the available settings, see the [Get settings
+                    endpoint](https://docs.github.com/enterprise-server@3.1/rest/reference/enterprise-admin#get-settings).
               required:
               - license
       x-github:
@@ -66684,8 +66679,10 @@ paths:
   "/setup/api/upgrade":
     post:
       summary: Upgrade a license
-      description: 'This API upgrades your license and also triggers the configuration
-        process:'
+      description: |-
+        This API upgrades your license and also triggers the configuration process.
+
+        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
       operationId: enterprise-admin/upgrade-license
       tags:
       - enterprise-admin
@@ -66697,7 +66694,7 @@ paths:
           description: Response
       requestBody:
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
