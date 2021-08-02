@@ -4021,8 +4021,8 @@ paths:
         description: "Indicates which sorts of issues to return. Can be one of:  \n\\*
           `assigned`: Issues assigned to you  \n\\* `created`: Issues created by you
           \ \n\\* `mentioned`: Issues mentioning you  \n\\* `subscribed`: Issues you're
-          subscribed to updates for  \n\\* `all`: All issues the authenticated user
-          can see, regardless of participation or creation"
+          subscribed to updates for  \n\\* `all` or `repos`: All issues the authenticated
+          user can see, regardless of participation or creation"
         in: query
         required: false
         schema:
@@ -7782,8 +7782,8 @@ paths:
         description: "Indicates which sorts of issues to return. Can be one of:  \n\\*
           `assigned`: Issues assigned to you  \n\\* `created`: Issues created by you
           \ \n\\* `mentioned`: Issues mentioning you  \n\\* `subscribed`: Issues you're
-          subscribed to updates for  \n\\* `all`: All issues the authenticated user
-          can see, regardless of participation or creation"
+          subscribed to updates for  \n\\* `all` or `repos`: All issues the authenticated
+          user can see, regardless of participation or creation"
         in: query
         required: false
         schema:
@@ -14493,6 +14493,157 @@ paths:
         previews: []
         category: issues
         subcategory: assignees
+  "/repos/{owner}/{repo}/autolinks":
+    get:
+      summary: List all autolinks of a repository
+      description: |-
+        This returns a list of autolinks configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/list-autolinks
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/v3/repos#list-autolinks
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink-items"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+    post:
+      summary: Create an autolink reference for a repository
+      description: Users with admin access to the repository can create an autolink.
+      tags:
+      - repos
+      operationId: repos/create-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/v3/repos#create-an-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key_prefix:
+                  type: string
+                  description: The prefix appended by a number will generate a link
+                    any time it is found in an issue, pull request, or commit.
+                url_template:
+                  type: string
+                  description: The URL must contain <num> for the reference number.
+              required:
+              - key_prefix
+              - url_template
+            example:
+              key_prefix: TICKET-
+              url_template: https://example.com/TICKET?query=<num>
+      responses:
+        '201':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink"
+          headers:
+            Location:
+              example: https://api.github.com/repos/octocat/Hello-World/autolinks/1
+              schema:
+                type: string
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+  "/repos/{owner}/{repo}/autolinks/{autolink_id}":
+    get:
+      summary: Get an autolink reference of a repository
+      description: |-
+        This returns a single autolink reference by ID that was configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/get-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/v3/repos#get-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/autolink-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+    delete:
+      summary: Delete an autolink reference from a repository
+      description: |-
+        This deletes a single autolink reference by ID that was configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/delete-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/v3/repos#delete-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/autolink-id"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
   "/repos/{owner}/{repo}/automated-security-fixes":
     put:
       summary: Enable automated security fixes
@@ -34625,8 +34776,8 @@ paths:
         description: "Indicates which sorts of issues to return. Can be one of:  \n\\*
           `assigned`: Issues assigned to you  \n\\* `created`: Issues created by you
           \ \n\\* `mentioned`: Issues mentioning you  \n\\* `subscribed`: Issues you're
-          subscribed to updates for  \n\\* `all`: All issues the authenticated user
-          can see, regardless of participation or creation"
+          subscribed to updates for  \n\\* `all` or `repos`: All issues the authenticated
+          user can see, regardless of participation or creation"
         in: query
         required: false
         schema:
@@ -44936,6 +45087,27 @@ components:
                   type: integer
       required:
       - billable
+    autolink:
+      title: Autolink reference
+      description: An autolink reference.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        key_prefix:
+          description: The prefix of a key that is linkified.
+          example: TICKET-
+          type: string
+        url_template:
+          description: A template for the target URL that is generated if a key was
+            found.
+          example: https://example.com/TICKET?query=<num>
+          type: string
+      required:
+      - id
+      - key_prefix
+      - url_template
     protected-branch-admin-enforced:
       title: Protected Branch Admin Enforced
       description: Protected Branch Admin Enforced
@@ -52089,6 +52261,8 @@ components:
           type: string
         body_text:
           type: string
+        mentions_count:
+          type: integer
         discussion_url:
           description: The URL of the release discussion.
           type: string
@@ -61015,6 +61189,16 @@ components:
             total_ms: 240000
           WINDOWS:
             total_ms: 300000
+    autolink-items:
+      value:
+      - id: 1
+        key_prefix: TICKET-
+        url_template: https://example.com/TICKET?query=<num>
+    autolink:
+      value:
+        id: 1
+        key_prefix: TICKET-
+        url_template: https://example.com/TICKET?query=<num>
     short-branch-with-protection-items:
       value:
       - name: master
@@ -72290,6 +72474,13 @@ components:
         oneOf:
         - type: integer
         - type: string
+    autolink-id:
+      name: autolink_id
+      description: autolink_id parameter
+      in: path
+      required: true
+      schema:
+        type: integer
     branch:
       name: branch
       description: The name of the branch.
