@@ -2480,7 +2480,11 @@ paths:
                               properties:
                                 admin:
                                   type: boolean
+                                maintain:
+                                  type: boolean
                                 push:
+                                  type: boolean
+                                triage:
                                   type: boolean
                                 pull:
                                   type: boolean
@@ -11748,13 +11752,13 @@ paths:
                           properties:
                             admin:
                               type: boolean
-                            push:
-                              type: boolean
-                            pull:
-                              type: boolean
                             maintain:
                               type: boolean
+                            push:
+                              type: boolean
                             triage:
+                              type: boolean
+                            pull:
                               type: boolean
                         template_repository:
                           nullable: true
@@ -26917,9 +26921,13 @@ paths:
                     properties:
                       admin:
                         type: boolean
-                      pull:
+                      maintain:
                         type: boolean
                       push:
+                        type: boolean
+                      triage:
+                        type: boolean
+                      pull:
                         type: boolean
                     required:
                     - admin
@@ -40378,7 +40386,11 @@ paths:
                       properties:
                         pull:
                           type: boolean
+                        triage:
+                          type: boolean
                         push:
+                          type: boolean
+                        maintain:
                           type: boolean
                         admin:
                           type: boolean
@@ -59306,9 +59318,13 @@ paths:
                             properties:
                               admin:
                                 type: boolean
-                              pull:
+                              maintain:
                                 type: boolean
                               push:
+                                type: boolean
+                              triage:
+                                type: boolean
+                              pull:
                                 type: boolean
                             required:
                             - admin
@@ -59749,9 +59765,13 @@ paths:
                             properties:
                               admin:
                                 type: boolean
-                              pull:
+                              maintain:
                                 type: boolean
                               push:
+                                type: boolean
+                              triage:
+                                type: boolean
+                              pull:
                                 type: boolean
                             required:
                             - admin
@@ -71988,9 +72008,13 @@ paths:
                           properties:
                             admin:
                               type: boolean
-                            pull:
+                            maintain:
                               type: boolean
                             push:
+                              type: boolean
+                            triage:
+                              type: boolean
+                            pull:
                               type: boolean
                           required:
                           - admin
@@ -81524,6 +81548,121 @@ paths:
         previews: []
         category: packages
         subcategory: 
+    delete:
+      summary: Delete a package for a user
+      description: |-
+        Deletes an entire package for a user. You cannot delete a public package if any version of the package has more than 5,000 downloads. In this scenario, contact GitHub support for further assistance.
+
+        To use this endpoint, you must authenticate using an access token with the `packages:read` and `packages:delete` scopes. In addition:
+        - If `package_type` is not `container`, your token must also include the `repo` scope.
+        - If `package_type` is `container`, you must also have admin permissions to the container you want to delete.
+      tags:
+      - packages
+      operationId: packages/delete-package-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/packages#delete-a-package-for-a-user
+      parameters:
+      - name: package_type
+        description: The type of supported package. Can be one of `npm`, `maven`,
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
+        in: path
+        required: true
+        schema: *164
+      - name: package_name
+        description: The name of the package.
+        in: path
+        required: true
+        schema: *165
+      - name: username
+        in: path
+        required: true
+        schema: *131
+      responses:
+        '204':
+          description: Response
+        '404':
+          description: Resource not found
+          content: *15
+        '403':
+          description: Forbidden
+          content: *22
+        '401':
+          description: Requires authentication
+          content: *23
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: packages
+        subcategory: 
+  "/users/{username}/packages/{package_type}/{package_name}/restore":
+    post:
+      summary: Restore a package for a user
+      description: |-
+        Restores an entire package for a user.
+
+        You can restore a deleted package under the following conditions:
+          - The package was deleted within the last 30 days.
+          - The same package namespace and version is still available and not reused for a new package. If the same package namespace is not available, you will not be able to restore your package. In this scenario, to restore the deleted package, you must delete the new package that uses the deleted package's namespace first.
+
+        To use this endpoint, you must authenticate using an access token with the `packages:read` and `packages:write` scopes. In addition:
+        - If `package_type` is not `container`, your token must also include the `repo` scope.
+        - If `package_type` is `container`, you must also have admin permissions to the container that you want to restore.
+      tags:
+      - packages
+      operationId: packages/restore-package-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/packages#restore-a-package-for-a-user
+      parameters:
+      - name: package_type
+        description: The type of supported package. Can be one of `npm`, `maven`,
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
+        in: path
+        required: true
+        schema: *164
+      - name: package_name
+        description: The name of the package.
+        in: path
+        required: true
+        schema: *165
+      - name: username
+        in: path
+        required: true
+        schema: *131
+      - name: token
+        description: package token
+        schema:
+          type: string
+        required: false
+        in: query
+      responses:
+        '204':
+          description: Response
+        '404':
+          description: Resource not found
+          content: *15
+        '403':
+          description: Forbidden
+          content: *22
+        '401':
+          description: Requires authentication
+          content: *23
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: packages
+        subcategory: 
   "/users/{username}/packages/{package_type}/{package_name}/versions":
     get:
       summary: Get all package versions for a package owned by a user
@@ -81685,6 +81824,125 @@ paths:
                     html_url: https://github.com/octocat/octo-name-repo/packages/40201?version=0.2.0
                     metadata:
                       package_type: rubygems
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: packages
+        subcategory: 
+    delete:
+      summary: Delete package version for a user
+      description: |-
+        Deletes a specific package version for a user. If the package is public and the package version has more than 5,000 downloads, you cannot delete the package version. In this scenario, contact GitHub support for further assistance.
+
+        To use this endpoint, you must authenticate using an access token with the `packages:read` and `packages:delete` scopes. In addition:
+        - If `package_type` is not `container`, your token must also include the `repo` scope.
+        - If `package_type` is `container`, you must also have admin permissions to the container you want to delete.
+      tags:
+      - packages
+      operationId: packages/delete-package-version-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/packages#delete-a-package-version-for-a-user
+      parameters:
+      - name: package_type
+        description: The type of supported package. Can be one of `npm`, `maven`,
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
+        in: path
+        required: true
+        schema: *164
+      - name: package_name
+        description: The name of the package.
+        in: path
+        required: true
+        schema: *165
+      - name: username
+        in: path
+        required: true
+        schema: *131
+      - name: package_version_id
+        description: Unique identifier of the package version.
+        in: path
+        required: true
+        schema: *168
+      responses:
+        '204':
+          description: Response
+        '404':
+          description: Resource not found
+          content: *15
+        '403':
+          description: Forbidden
+          content: *22
+        '401':
+          description: Requires authentication
+          content: *23
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: packages
+        subcategory: 
+  "/users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}/restore":
+    post:
+      summary: Restore package version for a user
+      description: |-
+        Restores a specific package version for a user.
+
+        You can restore a deleted package under the following conditions:
+          - The package was deleted within the last 30 days.
+          - The same package namespace and version is still available and not reused for a new package. If the same package namespace is not available, you will not be able to restore your package. In this scenario, to restore the deleted package, you must delete the new package that uses the deleted package's namespace first.
+
+        To use this endpoint, you must authenticate using an access token with the `packages:read` and `packages:write` scopes. In addition:
+        - If `package_type` is not `container`, your token must also include the `repo` scope.
+        - If `package_type` is `container`, you must also have admin permissions to the container that you want to restore.
+      tags:
+      - packages
+      operationId: packages/restore-package-version-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/packages#restore-a-package-version-for-a-user
+      parameters:
+      - name: package_type
+        description: The type of supported package. Can be one of `npm`, `maven`,
+          `rubygems`, `nuget`, `docker`, or `container`. Packages in GitHub's Gradle
+          registry have the type `maven`. Docker images pushed to GitHub's Container
+          registry (`ghcr.io`) have the type `container`. You can use the type `docker`
+          to find images that were pushed to GitHub's Docker registry (`docker.pkg.github.com`),
+          even if these have now been migrated to the Container registry.
+        in: path
+        required: true
+        schema: *164
+      - name: package_name
+        description: The name of the package.
+        in: path
+        required: true
+        schema: *165
+      - name: username
+        in: path
+        required: true
+        schema: *131
+      - name: package_version_id
+        description: Unique identifier of the package version.
+        in: path
+        required: true
+        schema: *168
+      responses:
+        '204':
+          description: Response
+        '404':
+          description: Resource not found
+          content: *15
+        '403':
+          description: Forbidden
+          content: *22
+        '401':
+          description: Requires authentication
+          content: *23
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
