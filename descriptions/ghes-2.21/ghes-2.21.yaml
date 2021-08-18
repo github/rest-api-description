@@ -2476,9 +2476,7 @@ paths:
           content:
             application/json:
               schema:
-                nullable: true
-                allOf:
-                - "$ref": "#/components/schemas/authorization"
+                "$ref": "#/components/schemas/nullable-authorization"
               examples:
                 default:
                   "$ref": "#/components/examples/authorization-with-user"
@@ -30064,7 +30062,7 @@ components:
                   type: string
         allow_downstream_configuration:
           type: boolean
-    simple-user:
+    nullable-simple-user:
       title: Simple User
       description: Simple User
       type: object
@@ -30399,7 +30397,103 @@ components:
         issues: read
         deployments: write
         single_file: read
-    scoped-installation:
+    simple-user:
+      title: Simple User
+      description: Simple User
+      type: object
+      properties:
+        name:
+          nullable: true
+          type: string
+        email:
+          nullable: true
+          type: string
+        login:
+          type: string
+          example: octocat
+        id:
+          type: integer
+          example: 1
+        node_id:
+          type: string
+          example: MDQ6VXNlcjE=
+        avatar_url:
+          type: string
+          format: uri
+          example: https://github.com/images/error/octocat_happy.gif
+        gravatar_id:
+          type: string
+          example: 41d064eb2195891e12d0413f63227ea7
+          nullable: true
+        url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/octocat
+        followers_url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat/followers
+        following_url:
+          type: string
+          example: https://api.github.com/users/octocat/following{/other_user}
+        gists_url:
+          type: string
+          example: https://api.github.com/users/octocat/gists{/gist_id}
+        starred_url:
+          type: string
+          example: https://api.github.com/users/octocat/starred{/owner}{/repo}
+        subscriptions_url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat/subscriptions
+        organizations_url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat/orgs
+        repos_url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat/repos
+        events_url:
+          type: string
+          example: https://api.github.com/users/octocat/events{/privacy}
+        received_events_url:
+          type: string
+          format: uri
+          example: https://api.github.com/users/octocat/received_events
+        type:
+          type: string
+          example: User
+        site_admin:
+          type: boolean
+        starred_at:
+          type: string
+          example: '"2020-07-09T00:17:55Z"'
+      required:
+      - avatar_url
+      - events_url
+      - followers_url
+      - following_url
+      - gists_url
+      - gravatar_id
+      - html_url
+      - id
+      - node_id
+      - login
+      - organizations_url
+      - received_events_url
+      - repos_url
+      - site_admin
+      - starred_url
+      - subscriptions_url
+      - type
+      - url
+      nullable: true
+    nullable-scoped-installation:
       title: Scoped Installation
       type: object
       properties:
@@ -30438,6 +30532,7 @@ components:
       - single_file_name
       - repositories_url
       - account
+      nullable: true
     authorization:
       title: Authorization
       description: The authorization for an OAuth app, GitHub App, or a Personal Access
@@ -30494,13 +30589,9 @@ components:
           type: string
           nullable: true
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         installation:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/scoped-installation"
+          "$ref": "#/components/schemas/nullable-scoped-installation"
       required:
       - app
       - id
@@ -30534,9 +30625,7 @@ components:
           type: string
           example: MDExOkludGVncmF0aW9uMQ==
         owner:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         name:
           description: The name of the GitHub app
           example: Probot Owners
@@ -30788,9 +30877,7 @@ components:
           type: string
           example: github-actions
         suspended_by:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         suspended_at:
           type: string
           format: date-time
@@ -30815,7 +30902,7 @@ components:
       - permissions
       - created_at
       - updated_at
-    license-simple:
+    nullable-license-simple:
       title: License Simple
       description: License Simple
       type: object
@@ -30847,6 +30934,7 @@ components:
       - url
       - spdx_id
       - node_id
+      nullable: true
     repository:
       title: Repository
       description: A git repository
@@ -30867,13 +30955,9 @@ components:
           type: string
           example: octocat/Hello-World
         license:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/license-simple"
+          "$ref": "#/components/schemas/nullable-license-simple"
         organization:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         forks:
           type: integer
         permissions:
@@ -31334,7 +31418,11 @@ components:
               properties:
                 admin:
                   type: boolean
+                maintain:
+                  type: boolean
                 push:
+                  type: boolean
+                triage:
                   type: boolean
                 pull:
                   type: boolean
@@ -31572,9 +31660,7 @@ components:
           example:
           - public_repo
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
       required:
       - app
       - id
@@ -31582,6 +31668,79 @@ components:
       - url
       - created_at
       - updated_at
+    nullable-authorization:
+      title: Authorization
+      description: The authorization for an OAuth app, GitHub App, or a Personal Access
+        Token.
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        scopes:
+          description: A list of scopes that this authorization is in.
+          type: array
+          items:
+            type: string
+          nullable: true
+        token:
+          type: string
+        token_last_eight:
+          type: string
+          nullable: true
+        hashed_token:
+          type: string
+          nullable: true
+        app:
+          type: object
+          properties:
+            client_id:
+              type: string
+            name:
+              type: string
+            url:
+              type: string
+              format: uri
+          required:
+          - client_id
+          - name
+          - url
+        note:
+          type: string
+          nullable: true
+        note_url:
+          type: string
+          format: uri
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        fingerprint:
+          type: string
+          nullable: true
+        user:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        installation:
+          "$ref": "#/components/schemas/nullable-scoped-installation"
+      required:
+      - app
+      - id
+      - note
+      - note_url
+      - scopes
+      - token
+      - hashed_token
+      - token_last_eight
+      - fingerprint
+      - url
+      - created_at
+      - updated_at
+      nullable: true
     code-of-conduct:
       title: Code Of Conduct
       description: Code Of Conduct
@@ -31919,7 +32078,7 @@ components:
       - description
       - color
       - default
-    milestone:
+    nullable-milestone:
       title: Milestone
       description: A collection of related issues and pull requests.
       type: object
@@ -31963,9 +32122,7 @@ components:
           example: Tracking milestone for version 1.0
           nullable: true
         creator:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         open_issues:
           type: integer
           example: 4
@@ -32007,6 +32164,7 @@ components:
       - url
       - created_at
       - updated_at
+      nullable: true
     author_association:
       title: author_association
       type: string
@@ -32021,6 +32179,109 @@ components:
       - MEMBER
       - NONE
       - OWNER
+    nullable-integration:
+      title: GitHub app
+      description: GitHub apps are a new way to extend GitHub. They can be installed
+        directly on organizations and user accounts and granted access to specific
+        repositories. They come with granular permissions and built-in webhooks. GitHub
+        apps are first class actors within GitHub.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the GitHub app
+          example: 37
+          type: integer
+        slug:
+          description: The slug name of the GitHub app
+          example: probot-owners
+          type: string
+        node_id:
+          type: string
+          example: MDExOkludGVncmF0aW9uMQ==
+        owner:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        name:
+          description: The name of the GitHub app
+          example: Probot Owners
+          type: string
+        description:
+          type: string
+          example: The description of the app.
+          nullable: true
+        external_url:
+          type: string
+          format: uri
+          example: https://example.com
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/apps/super-ci
+        created_at:
+          type: string
+          format: date-time
+          example: '2017-07-08T16:18:44-04:00'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2017-07-08T16:18:44-04:00'
+        permissions:
+          description: The set of permissions for the GitHub app
+          type: object
+          properties:
+            issues:
+              type: string
+            checks:
+              type: string
+            metadata:
+              type: string
+            contents:
+              type: string
+            deployments:
+              type: string
+          additionalProperties:
+            type: string
+          example:
+            issues: read
+            deployments: write
+        events:
+          description: The list of events for the GitHub app
+          example:
+          - label
+          - deployment
+          type: array
+          items:
+            type: string
+        installations_count:
+          description: The number of installations associated with the GitHub app
+          example: 5
+          type: integer
+        client_id:
+          type: string
+          example: '"Iv1.25b5d1e65ffc4022"'
+        client_secret:
+          type: string
+          example: '"1d4b2097ac622ba702d19de498f005747a8b21d3"'
+        webhook_secret:
+          type: string
+          example: '"6fba8f2fc8a7e8f2cca5577eddd82ca7586b3b6b"'
+          nullable: true
+        pem:
+          type: string
+          example: '"-----BEGIN RSA PRIVATE KEY-----\nMIIEogIBAAKCAQEArYxrNYD/iT5CZVpRJu4rBKmmze3PVmT/gCo2ATUvDvZTPTey\nxcGJ3vvrJXazKk06pN05TN29o98jrYz4cengG3YGsXPNEpKsIrEl8NhbnxapEnM9\nJCMRe0P5JcPsfZlX6hmiT7136GRWiGOUba2X9+HKh8QJVLG5rM007TBER9/z9mWm\nrJuNh+m5l320oBQY/Qq3A7wzdEfZw8qm/mIN0FCeoXH1L6B8xXWaAYBwhTEh6SSn\nZHlO1Xu1JWDmAvBCi0RO5aRSKM8q9QEkvvHP4yweAtK3N8+aAbZ7ovaDhyGz8r6r\nzhU1b8Uo0Z2ysf503WqzQgIajr7Fry7/kUwpgQIDAQABAoIBADwJp80Ko1xHPZDy\nfcCKBDfIuPvkmSW6KumbsLMaQv1aGdHDwwTGv3t0ixSay8CGlxMRtRDyZPib6SvQ\n6OH/lpfpbMdW2ErkksgtoIKBVrDilfrcAvrNZu7NxRNbhCSvN8q0s4ICecjbbVQh\nnueSdlA6vGXbW58BHMq68uRbHkP+k+mM9U0mDJ1HMch67wlg5GbayVRt63H7R2+r\nVxcna7B80J/lCEjIYZznawgiTvp3MSanTglqAYi+m1EcSsP14bJIB9vgaxS79kTu\noiSo93leJbBvuGo8QEiUqTwMw4tDksmkLsoqNKQ1q9P7LZ9DGcujtPy4EZsamSJT\ny8OJt0ECgYEA2lxOxJsQk2kI325JgKFjo92mQeUObIvPfSNWUIZQDTjniOI6Gv63\nGLWVFrZcvQBWjMEQraJA9xjPbblV8PtfO87MiJGLWCHFxmPz2dzoedN+2Coxom8m\nV95CLz8QUShuao6u/RYcvUaZEoYs5bHcTmy5sBK80JyEmafJPtCQVxMCgYEAy3ar\nZr3yv4xRPEPMat4rseswmuMooSaK3SKub19WFI5IAtB/e7qR1Rj9JhOGcZz+OQrl\nT78O2OFYlgOIkJPvRMrPpK5V9lslc7tz1FSh3BZMRGq5jSyD7ETSOQ0c8T2O/s7v\nbeEPbVbDe4mwvM24XByH0GnWveVxaDl51ABD65sCgYB3ZAspUkOA5egVCh8kNpnd\nSd6SnuQBE3ySRlT2WEnCwP9Ph6oPgn+oAfiPX4xbRqkL8q/k0BdHQ4h+zNwhk7+h\nWtPYRAP1Xxnc/F+jGjb+DVaIaKGU18MWPg7f+FI6nampl3Q0KvfxwX0GdNhtio8T\nTj1E+SnFwh56SRQuxSh2gwKBgHKjlIO5NtNSflsUYFM+hyQiPiqnHzddfhSG+/3o\nm5nNaSmczJesUYreH5San7/YEy2UxAugvP7aSY2MxB+iGsiJ9WD2kZzTUlDZJ7RV\nUzWsoqBR+eZfVJ2FUWWvy8TpSG6trh4dFxImNtKejCR1TREpSiTV3Zb1dmahK9GV\nrK9NAoGAbBxRLoC01xfxCTgt5BDiBcFVh4fp5yYKwavJPLzHSpuDOrrI9jDn1oKN\nonq5sDU1i391zfQvdrbX4Ova48BN+B7p63FocP/MK5tyyBoT8zQEk2+vWDOw7H/Z\nu5dTCPxTIsoIwUw1I+7yIxqJzLPFgR2gVBwY1ra/8iAqCj+zeBw=\n-----END
+            RSA PRIVATE KEY-----\n"'
+      required:
+      - id
+      - node_id
+      - owner
+      - name
+      - description
+      - external_url
+      - html_url
+      - created_at
+      - updated_at
+      - permissions
+      - events
+      nullable: true
     issue-simple:
       title: Issue Simple
       description: Issue Simple
@@ -32068,26 +32329,20 @@ components:
           type: string
           example: I'm having a problem with this.
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         labels:
           type: array
           items:
             "$ref": "#/components/schemas/label"
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         assignees:
           type: array
           items:
             "$ref": "#/components/schemas/simple-user"
           nullable: true
         milestone:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/milestone"
+          "$ref": "#/components/schemas/nullable-milestone"
         locked:
           type: boolean
           example: true
@@ -32150,9 +32405,7 @@ components:
         repository:
           "$ref": "#/components/schemas/repository"
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - assignee
       - closed_at
@@ -32239,9 +32492,7 @@ components:
           type: string
           format: uri
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -32256,9 +32507,7 @@ components:
         author_association:
           "$ref": "#/components/schemas/author_association"
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
         reactions:
           "$ref": "#/components/schemas/reaction-rollup"
       required:
@@ -32466,16 +32715,12 @@ components:
         comments:
           type: integer
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/simple-user"
         comments_url:
           type: string
           format: uri
         owner:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/simple-user"
         truncated:
           type: boolean
         forks:
@@ -32767,16 +33012,12 @@ components:
             comments:
               type: integer
             user:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/simple-user"
+              "$ref": "#/components/schemas/nullable-simple-user"
             comments_url:
               type: string
               format: uri
             owner:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/simple-user"
+              "$ref": "#/components/schemas/nullable-simple-user"
             truncated:
               type: boolean
             forks:
@@ -32879,9 +33120,7 @@ components:
           maxLength: 65535
           example: Body of the attachment
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -32914,9 +33153,7 @@ components:
           type: string
           example: 57a7f021a713b1c5a6a199b54cc514735d2d462f
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         change_status:
           type: object
           properties:
@@ -33016,9 +33253,7 @@ components:
           type: string
           nullable: true
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         labels:
           description: Labels to associate with this issue; pass one or more label
             names to replace the set of labels on this issue; send an empty array
@@ -33052,18 +33287,14 @@ components:
                 default:
                   type: boolean
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         assignees:
           type: array
           items:
             "$ref": "#/components/schemas/simple-user"
           nullable: true
         milestone:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/milestone"
+          "$ref": "#/components/schemas/nullable-milestone"
         locked:
           type: boolean
         active_lock_reason:
@@ -33110,9 +33341,7 @@ components:
           type: string
           format: date-time
         closed_by:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body_html:
           type: string
         body_text:
@@ -33123,9 +33352,7 @@ components:
         repository:
           "$ref": "#/components/schemas/repository"
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
         author_association:
           "$ref": "#/components/schemas/author_association"
         reactions:
@@ -33152,6 +33379,38 @@ components:
       - author_association
       - created_at
       - updated_at
+    license-simple:
+      title: License Simple
+      description: License Simple
+      type: object
+      properties:
+        key:
+          type: string
+          example: mit
+        name:
+          type: string
+          example: MIT License
+        url:
+          type: string
+          nullable: true
+          format: uri
+          example: https://api.github.com/licenses/mit
+        spdx_id:
+          type: string
+          nullable: true
+          example: MIT
+        node_id:
+          type: string
+          example: MDc6TGljZW5zZW1pdA==
+        html_url:
+          type: string
+          format: uri
+      required:
+      - key
+      - name
+      - url
+      - spdx_id
+      - node_id
     license:
       title: License
       description: License
@@ -33282,6 +33541,616 @@ components:
           example: 2.21.0
       required:
       - verifiable_password_authentication
+    nullable-repository:
+      title: Repository
+      description: A git repository
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the repository
+          example: 42
+          type: integer
+        node_id:
+          type: string
+          example: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+        name:
+          description: The name of the repository.
+          type: string
+          example: Team Environment
+        full_name:
+          type: string
+          example: octocat/Hello-World
+        license:
+          "$ref": "#/components/schemas/nullable-license-simple"
+        organization:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        forks:
+          type: integer
+        permissions:
+          type: object
+          properties:
+            admin:
+              type: boolean
+            pull:
+              type: boolean
+            triage:
+              type: boolean
+            push:
+              type: boolean
+            maintain:
+              type: boolean
+          required:
+          - admin
+          - pull
+          - push
+        owner:
+          "$ref": "#/components/schemas/simple-user"
+        private:
+          description: Whether the repository is private or public.
+          default: false
+          type: boolean
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/octocat/Hello-World
+        description:
+          type: string
+          example: This your first repo!
+          nullable: true
+        fork:
+          type: boolean
+        url:
+          type: string
+          format: uri
+          example: https://api.github.com/repos/octocat/Hello-World
+        archive_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+        assignees_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/assignees{/user}
+        blobs_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+        branches_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/branches{/branch}
+        collaborators_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+        comments_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/comments{/number}
+        commits_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/commits{/sha}
+        compare_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+        contents_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/contents/{+path}
+        contributors_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/contributors
+        deployments_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/deployments
+        downloads_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/downloads
+        events_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/events
+        forks_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/forks
+        git_commits_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+        git_refs_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+        git_tags_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+        git_url:
+          type: string
+          example: git:github.com/octocat/Hello-World.git
+        issue_comment_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+        issue_events_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+        issues_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues{/number}
+        keys_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+        labels_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/labels{/name}
+        languages_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/languages
+        merges_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/merges
+        milestones_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/milestones{/number}
+        notifications_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+        pulls_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/pulls{/number}
+        releases_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/releases{/id}
+        ssh_url:
+          type: string
+          example: git@github.com:octocat/Hello-World.git
+        stargazers_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/stargazers
+        statuses_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+        subscribers_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/subscribers
+        subscription_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/subscription
+        tags_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/tags
+        teams_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/teams
+        trees_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+        clone_url:
+          type: string
+          example: https://github.com/octocat/Hello-World.git
+        mirror_url:
+          type: string
+          format: uri
+          example: git:git.example.com/octocat/Hello-World
+          nullable: true
+        hooks_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/hooks
+        svn_url:
+          type: string
+          format: uri
+          example: https://svn.github.com/octocat/Hello-World
+        homepage:
+          type: string
+          format: uri
+          example: https://github.com
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        forks_count:
+          type: integer
+          example: 9
+        stargazers_count:
+          type: integer
+          example: 80
+        watchers_count:
+          type: integer
+          example: 80
+        size:
+          type: integer
+          example: 108
+        default_branch:
+          description: The default branch of the repository.
+          type: string
+          example: master
+        open_issues_count:
+          type: integer
+          example: 0
+        is_template:
+          description: Whether this repository acts as a template that can be used
+            to generate new repositories.
+          default: false
+          type: boolean
+          example: true
+        topics:
+          type: array
+          items:
+            type: string
+        has_issues:
+          description: Whether issues are enabled.
+          default: true
+          type: boolean
+          example: true
+        has_projects:
+          description: Whether projects are enabled.
+          default: true
+          type: boolean
+          example: true
+        has_wiki:
+          description: Whether the wiki is enabled.
+          default: true
+          type: boolean
+          example: true
+        has_pages:
+          type: boolean
+        has_downloads:
+          description: Whether downloads are enabled.
+          default: true
+          type: boolean
+          example: true
+        archived:
+          description: Whether the repository is archived.
+          default: false
+          type: boolean
+        disabled:
+          type: boolean
+          description: Returns whether or not this repository disabled.
+        visibility:
+          description: 'The repository visibility: public, private, or internal.'
+          default: public
+          type: string
+        pushed_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:06:43Z'
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:01:12Z'
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:14:43Z'
+          nullable: true
+        allow_rebase_merge:
+          description: Whether to allow rebase merges for pull requests.
+          default: true
+          type: boolean
+          example: true
+        template_repository:
+          nullable: true
+          type: object
+          properties:
+            id:
+              type: integer
+            node_id:
+              type: string
+            name:
+              type: string
+            full_name:
+              type: string
+            owner:
+              type: object
+              properties:
+                login:
+                  type: string
+                id:
+                  type: integer
+                node_id:
+                  type: string
+                avatar_url:
+                  type: string
+                gravatar_id:
+                  type: string
+                url:
+                  type: string
+                html_url:
+                  type: string
+                followers_url:
+                  type: string
+                following_url:
+                  type: string
+                gists_url:
+                  type: string
+                starred_url:
+                  type: string
+                subscriptions_url:
+                  type: string
+                organizations_url:
+                  type: string
+                repos_url:
+                  type: string
+                events_url:
+                  type: string
+                received_events_url:
+                  type: string
+                type:
+                  type: string
+                site_admin:
+                  type: boolean
+            private:
+              type: boolean
+            html_url:
+              type: string
+            description:
+              type: string
+            fork:
+              type: boolean
+            url:
+              type: string
+            archive_url:
+              type: string
+            assignees_url:
+              type: string
+            blobs_url:
+              type: string
+            branches_url:
+              type: string
+            collaborators_url:
+              type: string
+            comments_url:
+              type: string
+            commits_url:
+              type: string
+            compare_url:
+              type: string
+            contents_url:
+              type: string
+            contributors_url:
+              type: string
+            deployments_url:
+              type: string
+            downloads_url:
+              type: string
+            events_url:
+              type: string
+            forks_url:
+              type: string
+            git_commits_url:
+              type: string
+            git_refs_url:
+              type: string
+            git_tags_url:
+              type: string
+            git_url:
+              type: string
+            issue_comment_url:
+              type: string
+            issue_events_url:
+              type: string
+            issues_url:
+              type: string
+            keys_url:
+              type: string
+            labels_url:
+              type: string
+            languages_url:
+              type: string
+            merges_url:
+              type: string
+            milestones_url:
+              type: string
+            notifications_url:
+              type: string
+            pulls_url:
+              type: string
+            releases_url:
+              type: string
+            ssh_url:
+              type: string
+            stargazers_url:
+              type: string
+            statuses_url:
+              type: string
+            subscribers_url:
+              type: string
+            subscription_url:
+              type: string
+            tags_url:
+              type: string
+            teams_url:
+              type: string
+            trees_url:
+              type: string
+            clone_url:
+              type: string
+            mirror_url:
+              type: string
+            hooks_url:
+              type: string
+            svn_url:
+              type: string
+            homepage:
+              type: string
+            language:
+              type: string
+            forks_count:
+              type: integer
+            stargazers_count:
+              type: integer
+            watchers_count:
+              type: integer
+            size:
+              type: integer
+            default_branch:
+              type: string
+            open_issues_count:
+              type: integer
+            is_template:
+              type: boolean
+            topics:
+              type: array
+              items:
+                type: string
+            has_issues:
+              type: boolean
+            has_projects:
+              type: boolean
+            has_wiki:
+              type: boolean
+            has_pages:
+              type: boolean
+            has_downloads:
+              type: boolean
+            archived:
+              type: boolean
+            disabled:
+              type: boolean
+            visibility:
+              type: string
+            pushed_at:
+              type: string
+            created_at:
+              type: string
+            updated_at:
+              type: string
+            permissions:
+              type: object
+              properties:
+                admin:
+                  type: boolean
+                maintain:
+                  type: boolean
+                push:
+                  type: boolean
+                triage:
+                  type: boolean
+                pull:
+                  type: boolean
+            allow_rebase_merge:
+              type: boolean
+            allow_squash_merge:
+              type: boolean
+            delete_branch_on_merge:
+              type: boolean
+            allow_merge_commit:
+              type: boolean
+            subscribers_count:
+              type: integer
+            network_count:
+              type: integer
+            anonymous_access_enabled:
+              type: boolean
+        allow_squash_merge:
+          description: Whether to allow squash merges for pull requests.
+          default: true
+          type: boolean
+          example: true
+        delete_branch_on_merge:
+          description: Whether to delete head branches when pull requests are merged
+          default: false
+          type: boolean
+          example: false
+        allow_merge_commit:
+          description: Whether to allow merge commits for pull requests.
+          default: true
+          type: boolean
+          example: true
+        subscribers_count:
+          type: integer
+        network_count:
+          type: integer
+        open_issues:
+          type: integer
+        watchers:
+          type: integer
+        master_branch:
+          type: string
+        starred_at:
+          type: string
+          example: '"2020-07-09T00:17:42Z"'
+        anonymous_access_enabled:
+          type: boolean
+      required:
+      - archive_url
+      - assignees_url
+      - blobs_url
+      - branches_url
+      - collaborators_url
+      - comments_url
+      - commits_url
+      - compare_url
+      - contents_url
+      - contributors_url
+      - deployments_url
+      - description
+      - downloads_url
+      - events_url
+      - fork
+      - forks_url
+      - full_name
+      - git_commits_url
+      - git_refs_url
+      - git_tags_url
+      - hooks_url
+      - html_url
+      - id
+      - node_id
+      - issue_comment_url
+      - issue_events_url
+      - issues_url
+      - keys_url
+      - labels_url
+      - languages_url
+      - merges_url
+      - milestones_url
+      - name
+      - notifications_url
+      - owner
+      - private
+      - pulls_url
+      - releases_url
+      - stargazers_url
+      - statuses_url
+      - subscribers_url
+      - subscription_url
+      - tags_url
+      - teams_url
+      - trees_url
+      - url
+      - clone_url
+      - default_branch
+      - forks
+      - forks_count
+      - git_url
+      - has_downloads
+      - has_issues
+      - has_projects
+      - has_wiki
+      - has_pages
+      - homepage
+      - language
+      - archived
+      - disabled
+      - mirror_url
+      - open_issues
+      - open_issues_count
+      - license
+      - pushed_at
+      - size
+      - ssh_url
+      - stargazers_count
+      - svn_url
+      - watchers
+      - watchers_count
+      - created_at
+      - updated_at
+      nullable: true
     minimal-repository:
       title: Minimal Repository
       description: Minimal Repository
@@ -33509,19 +34378,16 @@ components:
           properties:
             admin:
               type: boolean
-            push:
-              type: boolean
-            pull:
-              type: boolean
             maintain:
+              type: boolean
+            push:
               type: boolean
             triage:
               type: boolean
+            pull:
+              type: boolean
         template_repository:
-          nullable: true
-          type: object
-          allOf:
-          - "$ref": "#/components/schemas/repository"
+          "$ref": "#/components/schemas/nullable-repository"
         delete_branch_on_merge:
           type: boolean
         subscribers_count:
@@ -33998,9 +34864,7 @@ components:
         organization:
           "$ref": "#/components/schemas/organization-simple"
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         permissions:
           type: object
           properties:
@@ -34072,9 +34936,7 @@ components:
           example: open
           type: string
         creator:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -34110,7 +34972,7 @@ components:
       - columns_url
       - created_at
       - updated_at
-    team-simple:
+    nullable-team-simple:
       title: Team Simple
       description: Groups of organization members that gives permissions on specified
         repositories.
@@ -34228,9 +35090,7 @@ components:
           type: string
           format: uri
         parent:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/team-simple"
+          "$ref": "#/components/schemas/nullable-team-simple"
       required:
       - id
       - node_id
@@ -34295,9 +35155,7 @@ components:
           format: uri
           example: https://api.github.com/organizations/1/team/1/repos
         parent:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/team-simple"
+          "$ref": "#/components/schemas/nullable-team-simple"
         members_count:
           type: integer
           example: 3
@@ -34341,9 +35199,7 @@ components:
       type: object
       properties:
         author:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           description: The main text of the discussion.
           example: Please suggest improvements to our workflow in comments.
@@ -34434,9 +35290,7 @@ components:
       type: object
       properties:
         author:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           description: The main text of the comment.
           example: I agree with this suggestion.
@@ -34509,9 +35363,7 @@ components:
           type: string
           example: MDg6UmVhY3Rpb24x
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         content:
           description: The reaction to use
           example: heart
@@ -34649,9 +35501,7 @@ components:
           type: string
           example: octocat/Hello-World
         license:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/license-simple"
+          "$ref": "#/components/schemas/nullable-license-simple"
         forks:
           type: integer
         permissions:
@@ -34672,9 +35522,7 @@ components:
           - pull
           - push
         owner:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         private:
           description: Whether the repository is private or public.
           default: false
@@ -34923,13 +35771,7 @@ components:
           type: boolean
           example: true
         template_repository:
-          type: object
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/repository"
-          properties:
-            anonymous_access_enabled:
-              type: boolean
+          "$ref": "#/components/schemas/nullable-repository"
         allow_squash_merge:
           description: Whether to allow squash merges for pull requests.
           default: true
@@ -35052,9 +35894,7 @@ components:
           example: Add payload for delete Project column
           nullable: true
         creator:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -35146,9 +35986,7 @@ components:
         permission:
           type: string
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
       required:
       - permission
       - user
@@ -35474,9 +36312,13 @@ components:
           properties:
             admin:
               type: boolean
-            pull:
+            maintain:
               type: boolean
             push:
+              type: boolean
+            triage:
+              type: boolean
+            pull:
               type: boolean
           required:
           - admin
@@ -35486,10 +36328,7 @@ components:
           type: boolean
           example: true
         template_repository:
-          nullable: true
-          type: object
-          allOf:
-          - "$ref": "#/components/schemas/repository"
+          "$ref": "#/components/schemas/nullable-repository"
         allow_squash_merge:
           type: boolean
           example: true
@@ -35506,13 +36345,9 @@ components:
           type: integer
           example: 0
         license:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/license-simple"
+          "$ref": "#/components/schemas/nullable-license-simple"
         organization:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         parent:
           "$ref": "#/components/schemas/repository"
         source:
@@ -35962,7 +36797,7 @@ components:
       - name
       - commit
       - protected
-    git-user:
+    nullable-git-user:
       title: Git User
       description: Metaproperties for Git author/committer information.
       type: object
@@ -35976,6 +36811,7 @@ components:
         date:
           type: string
           example: '"2007-10-29T02:42:39.000-07:00"'
+      nullable: true
     verification:
       title: Verification
       type: object
@@ -36026,13 +36862,9 @@ components:
               format: uri
               example: https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e
             author:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/git-user"
+              "$ref": "#/components/schemas/nullable-git-user"
             committer:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/git-user"
+              "$ref": "#/components/schemas/nullable-git-user"
             message:
               type: string
               example: Fix all the bugs
@@ -36062,13 +36894,9 @@ components:
           - tree
           - url
         author:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         committer:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         parents:
           type: array
           items:
@@ -36436,9 +37264,7 @@ components:
           example: true
           type: boolean
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - id
       - node_id
@@ -36547,9 +37373,7 @@ components:
           - id
           nullable: true
         app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
         pull_requests:
           items:
             "$ref": "#/components/schemas/pull-request-minimal"
@@ -36723,9 +37547,7 @@ components:
             "$ref": "#/components/schemas/pull-request-minimal"
           nullable: true
         app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
         repository:
           "$ref": "#/components/schemas/minimal-repository"
         created_at:
@@ -36863,7 +37685,11 @@ components:
           properties:
             pull:
               type: boolean
+            triage:
+              type: boolean
             push:
+              type: boolean
+            maintain:
               type: boolean
             admin:
               type: boolean
@@ -36902,13 +37728,9 @@ components:
         repository:
           "$ref": "#/components/schemas/minimal-repository"
         invitee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         inviter:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         permissions:
           description: The permission associated with the invitation.
           example: read
@@ -36974,9 +37796,7 @@ components:
         commit_id:
           type: string
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -37119,9 +37939,7 @@ components:
           type: string
           example: new-feature
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           type: string
           example: Please pull these awesome changes
@@ -37147,9 +37965,7 @@ components:
               default:
                 type: boolean
         milestone:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/milestone"
+          "$ref": "#/components/schemas/nullable-milestone"
         active_lock_reason:
           type: string
           example: too heated
@@ -37177,9 +37993,7 @@ components:
           example: e5bd3914e2e596debea16f433f57875b5b90bcd6
           nullable: true
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         assignees:
           type: array
           items:
@@ -37207,9 +38021,7 @@ components:
             sha:
               type: string
             user:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/simple-user"
+              "$ref": "#/components/schemas/nullable-simple-user"
           required:
           - label
           - ref
@@ -37228,9 +38040,7 @@ components:
             sha:
               type: string
             user:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/simple-user"
+              "$ref": "#/components/schemas/nullable-simple-user"
           required:
           - label
           - ref
@@ -38149,9 +38959,7 @@ components:
           example: Deploy request from hubot
           nullable: true
         creator:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         created_at:
           type: string
           format: date-time
@@ -38179,9 +38987,7 @@ components:
           example: true
           type: boolean
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - id
       - node_id
@@ -38225,9 +39031,7 @@ components:
           example: success
           type: string
         creator:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         description:
           description: A short description of the status.
           default: ''
@@ -38274,9 +39078,7 @@ components:
           format: uri
           example: https://example.com/deployment/42/output
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - id
       - node_id
@@ -38820,9 +39622,7 @@ components:
           format: uri
           example: https://api.github.com/repos/octocat/Hello-World/issues/events/1
         actor:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         event:
           type: string
           example: closed
@@ -38843,21 +39643,13 @@ components:
         label:
           "$ref": "#/components/schemas/issue-event-label"
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         assigner:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         review_requester:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         requested_reviewer:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         requested_team:
           "$ref": "#/components/schemas/team"
         dismissed_review:
@@ -38874,9 +39666,7 @@ components:
           type: string
           nullable: true
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - id
       - node_id
@@ -40302,9 +41092,7 @@ components:
           - html
           - self
         license:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/license-simple"
+          "$ref": "#/components/schemas/nullable-license-simple"
       required:
       - _links
       - git_url
@@ -40319,6 +41107,92 @@ components:
       - content
       - encoding
       - license
+    milestone:
+      title: Milestone
+      description: A collection of related issues and pull requests.
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://api.github.com/repos/octocat/Hello-World/milestones/1
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/octocat/Hello-World/milestones/v1.0
+        labels_url:
+          type: string
+          format: uri
+          example: https://api.github.com/repos/octocat/Hello-World/milestones/1/labels
+        id:
+          type: integer
+          example: 1002604
+        node_id:
+          type: string
+          example: MDk6TWlsZXN0b25lMTAwMjYwNA==
+        number:
+          description: The number of the milestone.
+          type: integer
+          example: 42
+        state:
+          description: The state of the milestone.
+          example: open
+          type: string
+          enum:
+          - open
+          - closed
+          default: open
+        title:
+          description: The title of the milestone.
+          example: v1.0
+          type: string
+        description:
+          type: string
+          example: Tracking milestone for version 1.0
+          nullable: true
+        creator:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        open_issues:
+          type: integer
+          example: 4
+        closed_issues:
+          type: integer
+          example: 8
+        created_at:
+          type: string
+          format: date-time
+          example: '2011-04-10T20:09:31Z'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2014-03-03T18:58:10Z'
+        closed_at:
+          type: string
+          format: date-time
+          example: '2013-02-12T13:22:01Z'
+          nullable: true
+        due_on:
+          type: string
+          format: date-time
+          example: '2012-10-09T23:39:01Z'
+          nullable: true
+      required:
+      - closed_issues
+      - creator
+      - description
+      - due_on
+      - closed_at
+      - id
+      - node_id
+      - labels_url
+      - html_url
+      - number
+      - open_issues
+      - state
+      - title
+      - url
+      - created_at
+      - updated_at
     pages-source-hash:
       title: Pages Source Hash
       type: object
@@ -40440,9 +41314,7 @@ components:
           required:
           - message
         pusher:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         commit:
           type: string
         duration:
@@ -40488,6 +41360,71 @@ components:
           type: string
         configuration_url:
           type: string
+    team-simple:
+      title: Team Simple
+      description: Groups of organization members that gives permissions on specified
+        repositories.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the team
+          type: integer
+          example: 1
+        node_id:
+          type: string
+          example: MDQ6VGVhbTE=
+        url:
+          description: URL for the team
+          type: string
+          format: uri
+          example: https://api.github.com/organizations/1/team/1
+        members_url:
+          type: string
+          example: https://api.github.com/organizations/1/team/1/members{/member}
+        name:
+          description: Name of the team
+          type: string
+          example: Justice League
+        description:
+          description: Description of the team
+          type: string
+          nullable: true
+          example: A great team.
+        permission:
+          description: Permission that the team will have for its repositories
+          type: string
+          example: admin
+        privacy:
+          description: The level of privacy this team should have
+          type: string
+          example: closed
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/orgs/rails/teams/core
+        repositories_url:
+          type: string
+          format: uri
+          example: https://api.github.com/organizations/1/team/1/repos
+        slug:
+          type: string
+          example: justice-league
+        ldap_dn:
+          description: Distinguished Name (DN) that team maps to within LDAP environment
+          example: uid=example,ou=users,dc=github,dc=com
+          type: string
+      required:
+      - id
+      - node_id
+      - url
+      - members_url
+      - name
+      - description
+      - permission
+      - html_url
+      - repositories_url
+      - slug
+      nullable: true
     pull-request:
       type: object
       title: Pull Request
@@ -40560,9 +41497,7 @@ components:
           example: Amazing new feature
           type: string
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           type: string
           example: Please pull these awesome changes
@@ -40589,9 +41524,7 @@ components:
               default:
                 type: boolean
         milestone:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/milestone"
+          "$ref": "#/components/schemas/nullable-milestone"
         active_lock_reason:
           type: string
           example: too heated
@@ -40619,9 +41552,7 @@ components:
           example: e5bd3914e2e596debea16f433f57875b5b90bcd6
           nullable: true
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         assignees:
           type: array
           items:
@@ -40867,9 +41798,13 @@ components:
                   properties:
                     admin:
                       type: boolean
-                    pull:
+                    maintain:
                       type: boolean
                     push:
+                      type: boolean
+                    triage:
+                      type: boolean
+                    pull:
                       type: boolean
                   required:
                   - admin
@@ -41310,9 +42245,13 @@ components:
                   properties:
                     admin:
                       type: boolean
-                    pull:
+                    maintain:
                       type: boolean
                     push:
+                      type: boolean
+                    triage:
+                      type: boolean
+                    pull:
                       type: boolean
                   required:
                   - admin
@@ -41325,9 +42264,7 @@ components:
                 allow_rebase_merge:
                   type: boolean
                 license:
-                  nullable: true
-                  allOf:
-                  - "$ref": "#/components/schemas/license-simple"
+                  "$ref": "#/components/schemas/nullable-license-simple"
                 pushed_at:
                   type: string
                   format: date-time
@@ -41553,9 +42490,7 @@ components:
           type: string
           example: clean
         merged_by:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         comments:
           type: integer
           example: 10
@@ -41664,9 +42599,7 @@ components:
           type: string
           example: MDE3OlB1bGxSZXF1ZXN0UmV2aWV3ODA=
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           description: The text of the review.
           example: This looks great.
@@ -41768,9 +42701,7 @@ components:
           type: integer
           example: 8
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         body:
           type: string
           example: Great stuff
@@ -41906,9 +42837,7 @@ components:
           type: string
           format: date-time
         uploader:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
       required:
       - id
       - name
@@ -42021,9 +42950,7 @@ components:
           type: string
           format: date-time
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
       required:
       - starred_at
       - user
@@ -42066,9 +42993,7 @@ components:
       type: object
       properties:
         author:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         total:
           type: integer
           example: 135
@@ -42300,9 +43225,7 @@ components:
               - email
               - date
             committer:
-              nullable: true
-              allOf:
-              - "$ref": "#/components/schemas/git-user"
+              "$ref": "#/components/schemas/nullable-git-user"
             comment_count:
               type: integer
             message:
@@ -42331,13 +43254,9 @@ components:
           - tree
           - url
         author:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         committer:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/git-user"
+          "$ref": "#/components/schemas/nullable-git-user"
         parents:
           type: array
           items:
@@ -42410,9 +43329,7 @@ components:
             "$ref": "#/components/schemas/simple-user"
           nullable: true
         user:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         labels:
           type: array
           items:
@@ -42437,13 +43354,9 @@ components:
         state:
           type: string
         assignee:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         milestone:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/milestone"
+          "$ref": "#/components/schemas/nullable-milestone"
         comments:
           type: integer
         created_at:
@@ -42504,9 +43417,7 @@ components:
           type: string
           format: uri
         performed_via_github_app:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/integration"
+          "$ref": "#/components/schemas/nullable-integration"
       required:
       - assignee
       - closed_at
@@ -42578,9 +43489,7 @@ components:
         full_name:
           type: string
         owner:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/simple-user"
+          "$ref": "#/components/schemas/nullable-simple-user"
         private:
           type: boolean
         html_url:
@@ -42750,17 +43659,19 @@ components:
           type: boolean
           description: Returns whether or not this repository disabled.
         license:
-          nullable: true
-          allOf:
-          - "$ref": "#/components/schemas/license-simple"
+          "$ref": "#/components/schemas/nullable-license-simple"
         permissions:
           type: object
           properties:
             admin:
               type: boolean
-            pull:
+            maintain:
               type: boolean
             push:
+              type: boolean
+            triage:
+              type: boolean
+            pull:
               type: boolean
           required:
           - admin
