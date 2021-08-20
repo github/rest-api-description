@@ -12009,6 +12009,157 @@ paths:
         previews: []
         category: issues
         subcategory: assignees
+  "/repos/{owner}/{repo}/autolinks":
+    get:
+      summary: List all autolinks of a repository
+      description: |-
+        This returns a list of autolinks configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/list-autolinks
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/v3/repos#list-autolinks
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink-items"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+    post:
+      summary: Create an autolink reference for a repository
+      description: Users with admin access to the repository can create an autolink.
+      tags:
+      - repos
+      operationId: repos/create-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/v3/repos#create-an-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key_prefix:
+                  type: string
+                  description: The prefix appended by a number will generate a link
+                    any time it is found in an issue, pull request, or commit.
+                url_template:
+                  type: string
+                  description: The URL must contain <num> for the reference number.
+              required:
+              - key_prefix
+              - url_template
+            example:
+              key_prefix: TICKET-
+              url_template: https://example.com/TICKET?query=<num>
+      responses:
+        '201':
+          description: response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink"
+          headers:
+            Location:
+              example: https://api.github.com/repos/octocat/Hello-World/autolinks/1
+              schema:
+                type: string
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+  "/repos/{owner}/{repo}/autolinks/{autolink_id}":
+    get:
+      summary: Get an autolink reference of a repository
+      description: |-
+        This returns a single autolink reference by ID that was configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/get-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/v3/repos#get-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/autolink-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/autolink"
+              examples:
+                default:
+                  "$ref": "#/components/examples/autolink"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
+    delete:
+      summary: Delete an autolink reference from a repository
+      description: |-
+        This deletes a single autolink reference by ID that was configured for the given repository.
+
+        Information about autolinks are only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/delete-autolink
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/v3/repos#delete-autolink
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/autolink-id"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: autolinks
   "/repos/{owner}/{repo}/branches":
     get:
       summary: List branches
@@ -21250,6 +21401,56 @@ paths:
         previews: []
         category: repos
         subcategory: 
+  "/repos/{owner}/{repo}/lfs":
+    put:
+      summary: Enable Git LFS for a repository
+      description: ''
+      operationId: enterprise-admin/enable-lfs-for-repo
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#enable-git-lfs-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '202':
+          "$ref": "#/components/responses/accepted"
+        '403':
+          description: |-
+            We will return a 403 with one of the following messages:
+
+            - Git LFS support not enabled because Git LFS is globally disabled.
+            - Git LFS support not enabled because Git LFS is disabled for the root repository in the network.
+            - Git LFS support not enabled because Git LFS is disabled for <owner>.
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: lfs
+    delete:
+      summary: Disable Git LFS for a repository
+      description: ''
+      operationId: enterprise-admin/disable-lfs-for-repo
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#disable-git-lfs-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: lfs
   "/repos/{owner}/{repo}/license":
     get:
       summary: Get the license for a repository
@@ -31107,6 +31308,13 @@ components:
         oneOf:
         - type: integer
         - type: string
+    autolink-id:
+      name: autolink_id
+      description: autolink_id parameter
+      in: path
+      required: true
+      schema:
+        type: integer
     branch:
       name: branch
       description: The name of the branch.
@@ -32337,6 +32545,10 @@ components:
           type: integer
           example: 123
           nullable: true
+        url:
+          description: The URL target of the delivery.
+          type: string
+          example: https://www.example.com
         request:
           type: object
           properties:
@@ -33059,7 +33271,11 @@ components:
               properties:
                 admin:
                   type: boolean
+                maintain:
+                  type: boolean
                 push:
+                  type: boolean
+                triage:
                   type: boolean
                 pull:
                   type: boolean
@@ -35007,13 +35223,13 @@ components:
           properties:
             admin:
               type: boolean
-            push:
-              type: boolean
-            pull:
-              type: boolean
             maintain:
               type: boolean
+            push:
+              type: boolean
             triage:
+              type: boolean
+            pull:
               type: boolean
         template_repository:
           nullable: true
@@ -37067,9 +37283,13 @@ components:
           properties:
             admin:
               type: boolean
-            pull:
+            maintain:
               type: boolean
             push:
+              type: boolean
+            triage:
+              type: boolean
+            pull:
               type: boolean
           required:
           - admin
@@ -37796,6 +38016,27 @@ components:
                   type: integer
       required:
       - billable
+    autolink:
+      title: Autolink reference
+      description: An autolink reference.
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        key_prefix:
+          description: The prefix of a key that is linkified.
+          example: TICKET-
+          type: string
+        url_template:
+          description: A template for the target URL that is generated if a key was
+            found.
+          example: https://example.com/TICKET?query=<num>
+          type: string
+      required:
+      - id
+      - key_prefix
+      - url_template
     protected-branch-admin-enforced:
       title: Protected Branch Admin Enforced
       description: Protected Branch Admin Enforced
@@ -39365,7 +39606,11 @@ components:
           properties:
             pull:
               type: boolean
+            triage:
+              type: boolean
             push:
+              type: boolean
+            maintain:
               type: boolean
             admin:
               type: boolean
@@ -43719,9 +43964,13 @@ components:
                   properties:
                     admin:
                       type: boolean
-                    pull:
+                    maintain:
                       type: boolean
                     push:
+                      type: boolean
+                    triage:
+                      type: boolean
+                    pull:
                       type: boolean
                   required:
                   - admin
@@ -44162,9 +44411,13 @@ components:
                   properties:
                     admin:
                       type: boolean
-                    pull:
+                    maintain:
                       type: boolean
                     push:
+                      type: boolean
+                    triage:
+                      type: boolean
+                    pull:
                       type: boolean
                   required:
                   - admin
@@ -45718,9 +45971,13 @@ components:
           properties:
             admin:
               type: boolean
-            pull:
+            maintain:
               type: boolean
             push:
+              type: boolean
+            triage:
+              type: boolean
+            pull:
               type: boolean
           required:
           - admin
@@ -46746,6 +47003,7 @@ components:
         action: opened
         installation_id: 123
         repository_id: 456
+        url: https://www.example.com
         request:
           headers:
             X-GitHub-Delivery: 0b989ba4-242f-11e5-81e1-c7b6966d2516
@@ -52143,6 +52401,16 @@ components:
             total_ms: 240000
           WINDOWS:
             total_ms: 300000
+    autolink-items:
+      value:
+      - id: 1
+        key_prefix: TICKET-
+        url_template: https://example.com/TICKET?query=<num>
+    autolink:
+      value:
+        id: 1
+        key_prefix: TICKET-
+        url_template: https://example.com/TICKET?query=<num>
     short-branch-with-protection-items:
       value:
       - name: master
