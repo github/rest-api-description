@@ -24968,6 +24968,54 @@ paths:
         previews: []
         category: licenses
         subcategory: 
+  "/repos/{owner}/{repo}/merge-upstream":
+    post:
+      summary: Sync a fork branch with the upstream repository
+      description: Sync a branch of a forked repository to keep it up-to-date with
+        the upstream repository.
+      tags:
+      - repos
+      operationId: repos/merge-upstream
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#sync-a-fork-branch-with-the-upstream-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branch:
+                  type: string
+                  description: The name of the branch which should be updated to match
+                    upstream.
+              required:
+              - branch
+            example:
+              branch: main
+      responses:
+        '200':
+          description: The branch has been successfully synced with the upstream repository
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/merged-upstream"
+              examples:
+                default:
+                  "$ref": "#/components/examples/merged-upstream"
+        '409':
+          description: The branch could not be synced because of a merge conflict
+        '422':
+          description: The branch could not be synced for some other reason
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: repos
+        subcategory: merging-upstream
   "/repos/{owner}/{repo}/merges":
     post:
       summary: Merge a branch
@@ -50776,6 +50824,21 @@ components:
       - content
       - encoding
       - license
+    merged-upstream:
+      title: Merged upstream
+      description: Results of a successful merge upstream request
+      type: object
+      properties:
+        message:
+          type: string
+        merge_type:
+          type: string
+          enum:
+          - merge
+          - fast-forward
+          - none
+        base_branch:
+          type: string
     pages-source-hash:
       title: Pages Source Hash
       type: object
@@ -67211,6 +67274,11 @@ components:
           spdx_id: MIT
           url: https://api.github.com/licenses/mit
           node_id: MDc6TGljZW5zZW1pdA==
+    merged-upstream:
+      value:
+        message: Successfully fetched and fast-forwarded from upstream defunkt:main
+        merge_type: fast-forward
+        base_branch: defunkt:main
     milestone-items:
       value:
       - url: https://api.github.com/repos/octocat/Hello-World/milestones/1
