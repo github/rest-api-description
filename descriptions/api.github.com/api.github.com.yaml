@@ -8082,13 +8082,27 @@ paths:
                     type: string
                 lock_repositories:
                   type: boolean
+                  example: true
                   description: Indicates whether repositories should be locked (to
                     prevent manipulation) while migrating data.
                   default: false
                 exclude_attachments:
                   type: boolean
+                  example: true
                   description: Indicates whether attachments should be excluded from
                     the migration (to reduce migration archive file size).
+                  default: false
+                exclude_releases:
+                  type: boolean
+                  example: true
+                  description: Indicates whether releases should be excluded from
+                    the migration (to reduce migration archive file size).
+                  default: false
+                exclude_owner_projects:
+                  type: boolean
+                  example: true
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded. from the migration.
                   default: false
                 exclude:
                   type: array
@@ -12729,6 +12743,11 @@ paths:
                   type: boolean
                   description: "`true` to archive this repository. **Note**: You cannot
                     unarchive repositories through the API."
+                  default: false
+                allow_forking:
+                  type: boolean
+                  description: Either `true` to allow private forks, or `false` to
+                    prevent private forks.
                   default: false
             example:
               name: Hello-World
@@ -35478,6 +35497,17 @@ paths:
                   example: true
                   readOnly: false
                   type: boolean
+                exclude_releases:
+                  description: Do not include releases in the migration
+                  example: true
+                  readOnly: false
+                  type: boolean
+                exclude_owner_projects:
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded.
+                  example: true
+                  readOnly: false
+                  type: boolean
                 exclude:
                   description: Exclude attributes from the API response to improve
                     performance
@@ -39598,6 +39628,9 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          type: boolean
         subscribers_count:
           type: integer
         network_count:
@@ -42024,6 +42057,10 @@ components:
               type: string
             SHA256_DSA:
               type: string
+            SHA256_ECDSA:
+              type: string
+            SHA256_ED25519:
+              type: string
         hooks:
           type: array
           items:
@@ -42615,6 +42652,9 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          type: boolean
         subscribers_count:
           type: integer
         network_count:
@@ -42973,6 +43013,8 @@ components:
         watchers:
           type: integer
           example: 0
+        allow_forking:
+          type: boolean
       required:
       - archive_url
       - assignees_url
@@ -43848,7 +43890,15 @@ components:
         lock_repositories:
           type: boolean
           example: true
+        exclude_metadata:
+          type: boolean
+        exclude_git_data:
+          type: boolean
         exclude_attachments:
+          type: boolean
+        exclude_releases:
+          type: boolean
+        exclude_owner_projects:
           type: boolean
         repositories:
           type: array
@@ -43881,7 +43931,11 @@ components:
       - guid
       - state
       - lock_repositories
+      - exclude_metadata
+      - exclude_git_data
       - exclude_attachments
+      - exclude_releases
+      - exclude_owner_projects
       - repositories
       - url
       - created_at
@@ -44156,6 +44210,8 @@ components:
         watchers:
           type: integer
           example: 0
+        allow_forking:
+          type: boolean
       required:
       - archive_url
       - assignees_url
@@ -45231,6 +45287,11 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          default: false
+          type: boolean
+          example: false
         subscribers_count:
           type: integer
         network_count:
@@ -45784,6 +45845,9 @@ components:
           type: boolean
           example: false
         allow_merge_commit:
+          type: boolean
+          example: true
+        allow_forking:
           type: boolean
           example: true
         subscribers_count:
@@ -52955,6 +53019,8 @@ components:
                 updated_at:
                   type: string
                   format: date-time
+                allow_forking:
+                  type: boolean
               required:
               - archive_url
               - assignees_url
@@ -53381,6 +53447,8 @@ components:
                 updated_at:
                   type: string
                   format: date-time
+                allow_forking:
+                  type: boolean
               required:
               - archive_url
               - assignees_url
@@ -55308,6 +55376,8 @@ components:
         allow_auto_merge:
           type: boolean
         delete_branch_on_merge:
+          type: boolean
+        allow_forking:
           type: boolean
       required:
       - archive_url
@@ -57821,6 +57891,8 @@ components:
         ssh_key_fingerprints:
           SHA256_RSA: nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
           SHA256_DSA: br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ
+          SHA256_ECDSA: p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM
+          SHA256_ED25519: "+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
         hooks:
         - 192.30.252.0/22
         web:
@@ -58961,6 +59033,8 @@ components:
         state: pending
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -59110,6 +59184,8 @@ components:
         state: pending
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -59258,6 +59334,8 @@ components:
         state: exported
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -62498,6 +62576,7 @@ components:
         allow_auto_merge: false
         delete_branch_on_merge: true
         allow_merge_commit: true
+        allow_forking: true
         subscribers_count: 42
         network_count: 0
         organization:
@@ -69152,6 +69231,7 @@ components:
             temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
             allow_squash_merge: true
             allow_merge_commit: true
+            allow_forking: true
             forks: 123
             open_issues: 123
             license:
@@ -71311,6 +71391,7 @@ components:
           allow_auto_merge: false
           delete_branch_on_merge: true
           allow_merge_commit: true
+          allow_forking: true
           subscribers_count: 42
           network_count: 0
     repository-3:
@@ -73058,6 +73139,8 @@ components:
         state: pending
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -73207,6 +73290,8 @@ components:
         state: pending
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -73355,6 +73440,8 @@ components:
         state: exported
         lock_repositories: true
         exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
         repositories:
         - id: 1296269
           node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
