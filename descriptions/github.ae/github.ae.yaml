@@ -10,7 +10,7 @@ info:
   termsOfService: https://docs.github.com/articles/github-terms-of-service
   contact:
     name: Support
-    url: https://support.github.com/contact?tags=rest-api
+    url: https://support.github.com/contact?tags=dotcom-rest-api
 tags:
 - name: actions
   description: Endpoints to manage GitHub Actions using the REST API.
@@ -10545,6 +10545,11 @@ paths:
                   description: "`true` to archive this repository. **Note**: You cannot
                     unarchive repositories through the API."
                   default: false
+                allow_forking:
+                  type: boolean
+                  description: Either `true` to allow private forks, or `false` to
+                    prevent private forks.
+                  default: false
             example:
               name: Hello-World
               description: This is your first repository
@@ -17730,7 +17735,7 @@ paths:
       description: |-
         Create a fork for the authenticated user.
 
-        **Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub AE Support](https://support.github.com/contact?tags=rest-api).
+        **Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub AE Support](https://support.github.com/contact?tags=dotcom-rest-api).
       tags:
       - repos
       operationId: repos/create-fork
@@ -24981,9 +24986,10 @@ paths:
         \  GitHub AE renames asset filenames that have special characters, non-alphanumeric
         characters, and leading or trailing periods. The \"[List assets for a release](https://docs.github.com/github-ae@latest/rest/reference/repos#list-assets-for-a-release)\"\nendpoint
         lists the renamed filenames. For more information and help, contact [GitHub
-        AE Support](https://support.github.com/contact?tags=rest-api).\n*   If you
-        upload an asset with the same filename as another uploaded asset, you'll receive
-        an error and must delete the old file before you can re-upload the new asset."
+        AE Support](https://support.github.com/contact?tags=dotcom-rest-api).\n*   If
+        you upload an asset with the same filename as another uploaded asset, you'll
+        receive an error and must delete the old file before you can re-upload the
+        new asset."
       tags:
       - repos
       operationId: repos/upload-release-asset
@@ -33556,6 +33562,9 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          type: boolean
         subscribers_count:
           type: integer
         network_count:
@@ -35363,6 +35372,10 @@ components:
               type: string
             SHA256_DSA:
               type: string
+            SHA256_ECDSA:
+              type: string
+            SHA256_ED25519:
+              type: string
         hooks:
           type: array
           items:
@@ -35954,6 +35967,9 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          type: boolean
         subscribers_count:
           type: integer
         network_count:
@@ -36312,6 +36328,8 @@ components:
         watchers:
           type: integer
           example: 0
+        allow_forking:
+          type: boolean
       required:
       - archive_url
       - assignees_url
@@ -37778,6 +37796,11 @@ components:
           default: true
           type: boolean
           example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          default: false
+          type: boolean
+          example: false
         subscribers_count:
           type: integer
         network_count:
@@ -38331,6 +38354,9 @@ components:
           type: boolean
           example: false
         allow_merge_commit:
+          type: boolean
+          example: true
+        allow_forking:
           type: boolean
           example: true
         subscribers_count:
@@ -41208,6 +41234,14 @@ components:
           example: file1.txt
         status:
           type: string
+          enum:
+          - added
+          - removed
+          - modified
+          - renamed
+          - copied
+          - changed
+          - unchanged
           example: added
         additions:
           type: integer
@@ -45180,6 +45214,8 @@ components:
                 updated_at:
                   type: string
                   format: date-time
+                allow_forking:
+                  type: boolean
               required:
               - archive_url
               - assignees_url
@@ -45606,6 +45642,8 @@ components:
                 updated_at:
                   type: string
                   format: date-time
+                allow_forking:
+                  type: boolean
               required:
               - archive_url
               - assignees_url
@@ -47111,6 +47149,8 @@ components:
         allow_auto_merge:
           type: boolean
         delete_branch_on_merge:
+          type: boolean
+        allow_forking:
           type: boolean
       required:
       - archive_url
@@ -49389,6 +49429,8 @@ components:
         ssh_key_fingerprints:
           SHA256_RSA: nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
           SHA256_DSA: br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ
+          SHA256_ECDSA: p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM
+          SHA256_ED25519: "+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
         hooks:
         - 192.30.252.0/22
         web:
@@ -52658,6 +52700,7 @@ components:
         allow_auto_merge: false
         delete_branch_on_merge: true
         allow_merge_commit: true
+        allow_forking: true
         subscribers_count: 42
         network_count: 0
         organization:
@@ -58748,6 +58791,7 @@ components:
             temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
             allow_squash_merge: true
             allow_merge_commit: true
+            allow_forking: true
             forks: 123
             open_issues: 123
             license:
@@ -60669,6 +60713,7 @@ components:
           allow_auto_merge: false
           delete_branch_on_merge: true
           allow_merge_commit: true
+          allow_forking: true
           subscribers_count: 42
           network_count: 0
     repository-3:
