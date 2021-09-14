@@ -10,7 +10,7 @@ info:
   termsOfService: https://docs.github.com/articles/github-terms-of-service
   contact:
     name: Support
-    url: https://support.github.com/contact?tags=rest-api
+    url: https://support.github.com/contact?tags=dotcom-rest-api
 tags:
 - name: actions
   description: Endpoints to manage GitHub Actions using the REST API.
@@ -2522,6 +2522,9 @@ paths:
                           default: true
                           type: boolean
                           example: true
+                        allow_forking:
+                          description: Whether to allow forking this repo
+                          type: boolean
                         subscribers_count:
                           type: integer
                         network_count:
@@ -11096,6 +11099,10 @@ paths:
                         type: string
                       SHA256_DSA:
                         type: string
+                      SHA256_ECDSA:
+                        type: string
+                      SHA256_ED25519:
+                        type: string
                   hooks:
                     type: array
                     items:
@@ -11165,6 +11172,8 @@ paths:
                     ssh_key_fingerprints:
                       SHA256_RSA: nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
                       SHA256_DSA: br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ
+                      SHA256_ECDSA: p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM
+                      SHA256_ED25519: "+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
                     hooks:
                     - 192.30.252.0/22
                     web:
@@ -11609,6 +11618,8 @@ paths:
                         watchers:
                           type: integer
                           example: 0
+                        allow_forking:
+                          type: boolean
                       required: &113
                       - archive_url
                       - assignees_url
@@ -17854,7 +17865,15 @@ paths:
                     lock_repositories:
                       type: boolean
                       example: true
+                    exclude_metadata:
+                      type: boolean
+                    exclude_git_data:
+                      type: boolean
                     exclude_attachments:
+                      type: boolean
+                    exclude_releases:
+                      type: boolean
+                    exclude_owner_projects:
                       type: boolean
                     repositories:
                       type: array
@@ -17891,7 +17910,11 @@ paths:
                   - guid
                   - state
                   - lock_repositories
+                  - exclude_metadata
+                  - exclude_git_data
                   - exclude_attachments
+                  - exclude_releases
+                  - exclude_owner_projects
                   - repositories
                   - url
                   - created_at
@@ -17923,6 +17946,8 @@ paths:
                     state: pending
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -18092,13 +18117,27 @@ paths:
                     type: string
                 lock_repositories:
                   type: boolean
+                  example: true
                   description: Indicates whether repositories should be locked (to
                     prevent manipulation) while migrating data.
                   default: false
                 exclude_attachments:
                   type: boolean
+                  example: true
                   description: Indicates whether attachments should be excluded from
                     the migration (to reduce migration archive file size).
+                  default: false
+                exclude_releases:
+                  type: boolean
+                  example: true
+                  description: Indicates whether releases should be excluded from
+                    the migration (to reduce migration archive file size).
+                  default: false
+                exclude_owner_projects:
+                  type: boolean
+                  example: true
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded. from the migration.
                   default: false
                 exclude:
                   type: array
@@ -18151,6 +18190,8 @@ paths:
                     state: pending
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -18367,6 +18408,8 @@ paths:
                     state: exported
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -24760,6 +24803,11 @@ paths:
                     default: true
                     type: boolean
                     example: true
+                  allow_forking:
+                    description: Whether to allow forking this repo
+                    default: false
+                    type: boolean
+                    example: false
                   subscribers_count:
                     type: integer
                   network_count:
@@ -27499,6 +27547,9 @@ paths:
                   allow_merge_commit:
                     type: boolean
                     example: true
+                  allow_forking:
+                    type: boolean
+                    example: true
                   subscribers_count:
                     type: integer
                     example: 42
@@ -28826,6 +28877,11 @@ paths:
                   description: "`true` to archive this repository. **Note**: You cannot
                     unarchive repositories through the API."
                   default: false
+                allow_forking:
+                  type: boolean
+                  description: Either `true` to allow private forks, or `false` to
+                    prevent private forks.
+                  default: false
             example:
               name: Hello-World
               description: This is your first repository
@@ -29079,6 +29135,7 @@ paths:
                     allow_auto_merge: false
                     delete_branch_on_merge: true
                     allow_merge_commit: true
+                    allow_forking: true
                     subscribers_count: 42
                     network_count: 0
                     organization:
@@ -32138,15 +32195,60 @@ paths:
   "/repos/{owner}/{repo}/actions/runs/{run_id}/rerun":
     post:
       summary: Re-run a workflow
-      description: Re-runs your workflow run using its `id`. You must authenticate
-        using an access token with the `repo` scope to use this endpoint. GitHub Apps
-        must have the `actions:write` permission to use this endpoint.
+      description: |-
+        **Deprecation Notice:** This endpoint is deprecated.
+        We recommend migrating your existing code to use the new [retry workflow](https://docs.github.com/rest/reference/actions#retry-a-workflow) endpoint.
+
+        Re-runs your workflow run using its `id`. You must authenticate using
+        an access token with the `repo` scope to use this endpoint. GitHub Apps must have
+        the `actions:write` permission to use this endpoint.
       tags:
       - actions
       operationId: actions/re-run-workflow
       externalDocs:
         description: API method documentation
         url: https://docs.github.com/rest/reference/actions#re-run-a-workflow
+      parameters:
+      - name: owner
+        in: path
+        required: true
+        schema: *212
+      - name: repo
+        in: path
+        required: true
+        schema: *213
+      - name: run_id
+        description: The id of the workflow run.
+        in: path
+        required: true
+        schema: *237
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                additionalProperties: false
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: actions
+        subcategory: workflow-runs
+  "/repos/{owner}/{repo}/actions/runs/{run_id}/retry":
+    post:
+      summary: Retry a workflow
+      description: Retry your workflow run using its `id`. You must authenticate using
+        an access token with the `repo` scope to use this endpoint. GitHub Apps must
+        have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/retry-workflow
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#retry-a-workflow
       parameters:
       - name: owner
         in: path
@@ -44651,6 +44753,14 @@ paths:
                           example: file1.txt
                         status:
                           type: string
+                          enum:
+                          - added
+                          - removed
+                          - modified
+                          - renamed
+                          - copied
+                          - changed
+                          - unchanged
                           example: added
                         additions:
                           type: integer
@@ -47931,7 +48041,7 @@ paths:
       description: |-
         Create a fork for the authenticated user.
 
-        **Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub Support](https://support.github.com/contact?tags=rest-api).
+        **Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub Support](https://support.github.com/contact?tags=dotcom-rest-api).
       tags:
       - repos
       operationId: repos/create-fork
@@ -50421,7 +50531,7 @@ paths:
         If there are problems, you will see one of these in the `status` field:
 
         *   `auth_failed` - the import requires authentication in order to connect to the original repository. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.
-        *   `error` - the import encountered an error. The import progress response will include the `failed_step` and an error message. Contact [GitHub Support](https://support.github.com/contact?tags=rest-api) for more information.
+        *   `error` - the import encountered an error. The import progress response will include the `failed_step` and an error message. Contact [GitHub Support](https://support.github.com/contact?tags=dotcom-rest-api) for more information.
         *   `detection_needs_auth` - the importer requires authentication for the originating repository to continue detection. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.
         *   `detection_found_nothing` - the importer didn't recognize any source control at the URL. To resolve, [Cancel the import](https://docs.github.com/rest/reference/migrations#cancel-an-import) and [retry](https://docs.github.com/rest/reference/migrations#start-an-import) with the correct URL.
         *   `detection_found_multiple` - the importer found several projects or repositories at the provided URL. When this is the case, the Import Progress response will also include a `project_choices` field with the possible project choices as values. To update project choice, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.
@@ -59922,6 +60032,8 @@ paths:
                           updated_at:
                             type: string
                             format: date-time
+                          allow_forking:
+                            type: boolean
                         required:
                         - archive_url
                         - assignees_url
@@ -60353,6 +60465,8 @@ paths:
                           updated_at:
                             type: string
                             format: date-time
+                          allow_forking:
+                            type: boolean
                         required:
                         - archive_url
                         - assignees_url
@@ -60964,6 +61078,7 @@ paths:
                         temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
                         allow_squash_merge: true
                         allow_merge_commit: true
+                        allow_forking: true
                         forks: 123
                         open_issues: 123
                         license:
@@ -65746,9 +65861,10 @@ paths:
         asset filenames that have special characters, non-alphanumeric characters,
         and leading or trailing periods. The \"[List assets for a release](https://docs.github.com/rest/reference/repos#list-assets-for-a-release)\"\nendpoint
         lists the renamed filenames. For more information and help, contact [GitHub
-        Support](https://support.github.com/contact?tags=rest-api).\n*   If you upload
-        an asset with the same filename as another uploaded asset, you'll receive
-        an error and must delete the old file before you can re-upload the new asset."
+        Support](https://support.github.com/contact?tags=dotcom-rest-api).\n*   If
+        you upload an asset with the same filename as another uploaded asset, you'll
+        receive an error and must delete the old file before you can re-upload the
+        new asset."
       tags:
       - repos
       operationId: repos/upload-release-asset
@@ -68232,6 +68348,7 @@ paths:
                       allow_auto_merge: false
                       delete_branch_on_merge: true
                       allow_merge_commit: true
+                      allow_forking: true
                       subscribers_count: 42
                       network_count: 0
       x-github:
@@ -72560,6 +72677,8 @@ paths:
                         allow_auto_merge:
                           type: boolean
                         delete_branch_on_merge:
+                          type: boolean
+                        allow_forking:
                           type: boolean
                       required:
                       - archive_url
@@ -78641,6 +78760,8 @@ paths:
                     state: pending
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -78816,6 +78937,17 @@ paths:
                   example: true
                   readOnly: false
                   type: boolean
+                exclude_releases:
+                  description: Do not include releases in the migration
+                  example: true
+                  readOnly: false
+                  type: boolean
+                exclude_owner_projects:
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded.
+                  example: true
+                  readOnly: false
+                  type: boolean
                 exclude:
                   description: Exclude attributes from the API response to improve
                     performance
@@ -78878,6 +79010,8 @@ paths:
                     state: pending
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -79086,6 +79220,8 @@ paths:
                     state: exported
                     lock_repositories: true
                     exclude_attachments: false
+                    exclude_releases: false
+                    exclude_owner_projects: false
                     repositories:
                     - id: 1296269
                       node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
