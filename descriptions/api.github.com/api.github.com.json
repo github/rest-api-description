@@ -11,7 +11,7 @@
     "termsOfService": "https://docs.github.com/articles/github-terms-of-service",
     "contact": {
       "name": "Support",
-      "url": "https://support.github.com/contact?tags=rest-api"
+      "url": "https://support.github.com/contact?tags=dotcom-rest-api"
     }
   },
   "tags": [
@@ -11516,12 +11516,26 @@
                   },
                   "lock_repositories": {
                     "type": "boolean",
+                    "example": true,
                     "description": "Indicates whether repositories should be locked (to prevent manipulation) while migrating data.",
                     "default": false
                   },
                   "exclude_attachments": {
                     "type": "boolean",
+                    "example": true,
                     "description": "Indicates whether attachments should be excluded from the migration (to reduce migration archive file size).",
+                    "default": false
+                  },
+                  "exclude_releases": {
+                    "type": "boolean",
+                    "example": true,
+                    "description": "Indicates whether releases should be excluded from the migration (to reduce migration archive file size).",
+                    "default": false
+                  },
+                  "exclude_owner_projects": {
+                    "type": "boolean",
+                    "example": true,
+                    "description": "Indicates whether projects owned by the organization or users should be excluded. from the migration.",
                     "default": false
                   },
                   "exclude": {
@@ -17789,6 +17803,11 @@
                   "archived": {
                     "type": "boolean",
                     "description": "`true` to archive this repository. **Note**: You cannot unarchive repositories through the API.",
+                    "default": false
+                  },
+                  "allow_forking": {
+                    "type": "boolean",
+                    "description": "Either `true` to allow private forks, or `false` to prevent private forks.",
                     "default": false
                   }
                 }
@@ -28720,7 +28739,7 @@
       },
       "post": {
         "summary": "Create a fork",
-        "description": "Create a fork for the authenticated user.\n\n**Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub Support](https://support.github.com/contact?tags=rest-api).",
+        "description": "Create a fork for the authenticated user.\n\n**Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub Support](https://support.github.com/contact?tags=dotcom-rest-api).",
         "tags": [
           "repos"
         ],
@@ -30737,7 +30756,7 @@
     "/repos/{owner}/{repo}/import": {
       "get": {
         "summary": "Get an import status",
-        "description": "View the progress of an import.\n\n**Import status**\n\nThis section includes details about the possible values of the `status` field of the Import Progress response.\n\nAn import that does not have errors will progress through these steps:\n\n*   `detecting` - the \"detection\" step of the import is in progress because the request did not include a `vcs` parameter. The import is identifying the type of source control present at the URL.\n*   `importing` - the \"raw\" step of the import is in progress. This is where commit data is fetched from the original repository. The import progress response will include `commit_count` (the total number of raw commits that will be imported) and `percent` (0 - 100, the current progress through the import).\n*   `mapping` - the \"rewrite\" step of the import is in progress. This is where SVN branches are converted to Git branches, and where author updates are applied. The import progress response does not include progress information.\n*   `pushing` - the \"push\" step of the import is in progress. This is where the importer updates the repository on GitHub. The import progress response will include `push_percent`, which is the percent value reported by `git push` when it is \"Writing objects\".\n*   `complete` - the import is complete, and the repository is ready on GitHub.\n\nIf there are problems, you will see one of these in the `status` field:\n\n*   `auth_failed` - the import requires authentication in order to connect to the original repository. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n*   `error` - the import encountered an error. The import progress response will include the `failed_step` and an error message. Contact [GitHub Support](https://support.github.com/contact?tags=rest-api) for more information.\n*   `detection_needs_auth` - the importer requires authentication for the originating repository to continue detection. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n*   `detection_found_nothing` - the importer didn't recognize any source control at the URL. To resolve, [Cancel the import](https://docs.github.com/rest/reference/migrations#cancel-an-import) and [retry](https://docs.github.com/rest/reference/migrations#start-an-import) with the correct URL.\n*   `detection_found_multiple` - the importer found several projects or repositories at the provided URL. When this is the case, the Import Progress response will also include a `project_choices` field with the possible project choices as values. To update project choice, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n\n**The project_choices field**\n\nWhen multiple projects are found at the provided URL, the response hash will include a `project_choices` field, the value of which is an array of hashes each representing a project choice. The exact key/value pairs of the project hashes will differ depending on the version control type.\n\n**Git LFS related fields**\n\nThis section includes details about Git LFS related fields that may be present in the Import Progress response.\n\n*   `use_lfs` - describes whether the import has been opted in or out of using Git LFS. The value can be `opt_in`, `opt_out`, or `undecided` if no action has been taken.\n*   `has_large_files` - the boolean value describing whether files larger than 100MB were found during the `importing` step.\n*   `large_files_size` - the total size in gigabytes of files larger than 100MB found in the originating repository.\n*   `large_files_count` - the total number of files larger than 100MB found in the originating repository. To see a list of these files, make a \"Get Large Files\" request.",
+        "description": "View the progress of an import.\n\n**Import status**\n\nThis section includes details about the possible values of the `status` field of the Import Progress response.\n\nAn import that does not have errors will progress through these steps:\n\n*   `detecting` - the \"detection\" step of the import is in progress because the request did not include a `vcs` parameter. The import is identifying the type of source control present at the URL.\n*   `importing` - the \"raw\" step of the import is in progress. This is where commit data is fetched from the original repository. The import progress response will include `commit_count` (the total number of raw commits that will be imported) and `percent` (0 - 100, the current progress through the import).\n*   `mapping` - the \"rewrite\" step of the import is in progress. This is where SVN branches are converted to Git branches, and where author updates are applied. The import progress response does not include progress information.\n*   `pushing` - the \"push\" step of the import is in progress. This is where the importer updates the repository on GitHub. The import progress response will include `push_percent`, which is the percent value reported by `git push` when it is \"Writing objects\".\n*   `complete` - the import is complete, and the repository is ready on GitHub.\n\nIf there are problems, you will see one of these in the `status` field:\n\n*   `auth_failed` - the import requires authentication in order to connect to the original repository. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n*   `error` - the import encountered an error. The import progress response will include the `failed_step` and an error message. Contact [GitHub Support](https://support.github.com/contact?tags=dotcom-rest-api) for more information.\n*   `detection_needs_auth` - the importer requires authentication for the originating repository to continue detection. To update authentication for the import, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n*   `detection_found_nothing` - the importer didn't recognize any source control at the URL. To resolve, [Cancel the import](https://docs.github.com/rest/reference/migrations#cancel-an-import) and [retry](https://docs.github.com/rest/reference/migrations#start-an-import) with the correct URL.\n*   `detection_found_multiple` - the importer found several projects or repositories at the provided URL. When this is the case, the Import Progress response will also include a `project_choices` field with the possible project choices as values. To update project choice, please see the [Update an import](https://docs.github.com/rest/reference/migrations#update-an-import) section.\n\n**The project_choices field**\n\nWhen multiple projects are found at the provided URL, the response hash will include a `project_choices` field, the value of which is an array of hashes each representing a project choice. The exact key/value pairs of the project hashes will differ depending on the version control type.\n\n**Git LFS related fields**\n\nThis section includes details about Git LFS related fields that may be present in the Import Progress response.\n\n*   `use_lfs` - describes whether the import has been opted in or out of using Git LFS. The value can be `opt_in`, `opt_out`, or `undecided` if no action has been taken.\n*   `has_large_files` - the boolean value describing whether files larger than 100MB were found during the `importing` step.\n*   `large_files_size` - the total size in gigabytes of files larger than 100MB found in the originating repository.\n*   `large_files_count` - the total number of files larger than 100MB found in the originating repository. To see a list of these files, make a \"Get Large Files\" request.",
         "tags": [
           "migrations"
         ],
@@ -39799,7 +39818,7 @@
       },
       "post": {
         "summary": "Upload a release asset",
-        "description": "This endpoint makes use of [a Hypermedia relation](https://docs.github.com/rest/overview/resources-in-the-rest-api#hypermedia) to determine which URL to access. The endpoint you call to upload release assets is specific to your release. Use the `upload_url` returned in\nthe response of the [Create a release endpoint](https://docs.github.com/rest/reference/repos#create-a-release) to upload a release asset.\n\nYou need to use an HTTP client which supports [SNI](http://en.wikipedia.org/wiki/Server_Name_Indication) to make calls to this endpoint.\n\nMost libraries will set the required `Content-Length` header automatically. Use the required `Content-Type` header to provide the media type of the asset. For a list of media types, see [Media Types](https://www.iana.org/assignments/media-types/media-types.xhtml). For example: \n\n`application/zip`\n\nGitHub expects the asset data in its raw binary form, rather than JSON. You will send the raw binary content of the asset as the request body. Everything else about the endpoint is the same as the rest of the API. For example,\nyou'll still need to pass your authentication to be able to upload an asset.\n\nWhen an upstream failure occurs, you will receive a `502 Bad Gateway` status. This may leave an empty asset with a state of `starter`. It can be safely deleted.\n\n**Notes:**\n*   GitHub renames asset filenames that have special characters, non-alphanumeric characters, and leading or trailing periods. The \"[List assets for a release](https://docs.github.com/rest/reference/repos#list-assets-for-a-release)\"\nendpoint lists the renamed filenames. For more information and help, contact [GitHub Support](https://support.github.com/contact?tags=rest-api).\n*   If you upload an asset with the same filename as another uploaded asset, you'll receive an error and must delete the old file before you can re-upload the new asset.",
+        "description": "This endpoint makes use of [a Hypermedia relation](https://docs.github.com/rest/overview/resources-in-the-rest-api#hypermedia) to determine which URL to access. The endpoint you call to upload release assets is specific to your release. Use the `upload_url` returned in\nthe response of the [Create a release endpoint](https://docs.github.com/rest/reference/repos#create-a-release) to upload a release asset.\n\nYou need to use an HTTP client which supports [SNI](http://en.wikipedia.org/wiki/Server_Name_Indication) to make calls to this endpoint.\n\nMost libraries will set the required `Content-Length` header automatically. Use the required `Content-Type` header to provide the media type of the asset. For a list of media types, see [Media Types](https://www.iana.org/assignments/media-types/media-types.xhtml). For example: \n\n`application/zip`\n\nGitHub expects the asset data in its raw binary form, rather than JSON. You will send the raw binary content of the asset as the request body. Everything else about the endpoint is the same as the rest of the API. For example,\nyou'll still need to pass your authentication to be able to upload an asset.\n\nWhen an upstream failure occurs, you will receive a `502 Bad Gateway` status. This may leave an empty asset with a state of `starter`. It can be safely deleted.\n\n**Notes:**\n*   GitHub renames asset filenames that have special characters, non-alphanumeric characters, and leading or trailing periods. The \"[List assets for a release](https://docs.github.com/rest/reference/repos#list-assets-for-a-release)\"\nendpoint lists the renamed filenames. For more information and help, contact [GitHub Support](https://support.github.com/contact?tags=dotcom-rest-api).\n*   If you upload an asset with the same filename as another uploaded asset, you'll receive an error and must delete the old file before you can re-upload the new asset.",
         "tags": [
           "repos"
         ],
@@ -49389,6 +49408,18 @@
                     "readOnly": false,
                     "type": "boolean"
                   },
+                  "exclude_releases": {
+                    "description": "Do not include releases in the migration",
+                    "example": true,
+                    "readOnly": false,
+                    "type": "boolean"
+                  },
+                  "exclude_owner_projects": {
+                    "description": "Indicates whether projects owned by the organization or users should be excluded.",
+                    "example": true,
+                    "readOnly": false,
+                    "type": "boolean"
+                  },
                   "exclude": {
                     "description": "Exclude attributes from the API response to improve performance",
                     "example": [
@@ -55063,6 +55094,10 @@
             "type": "boolean",
             "example": true
           },
+          "allow_forking": {
+            "description": "Whether to allow forking this repo",
+            "type": "boolean"
+          },
           "subscribers_count": {
             "type": "integer"
           },
@@ -58124,6 +58159,12 @@
               },
               "SHA256_DSA": {
                 "type": "string"
+              },
+              "SHA256_ECDSA": {
+                "type": "string"
+              },
+              "SHA256_ED25519": {
+                "type": "string"
               }
             }
           },
@@ -58946,6 +58987,10 @@
             "type": "boolean",
             "example": true
           },
+          "allow_forking": {
+            "description": "Whether to allow forking this repo",
+            "type": "boolean"
+          },
           "subscribers_count": {
             "type": "integer"
           },
@@ -59408,6 +59453,9 @@
           "watchers": {
             "type": "integer",
             "example": 0
+          },
+          "allow_forking": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -60521,7 +60569,19 @@
             "type": "boolean",
             "example": true
           },
+          "exclude_metadata": {
+            "type": "boolean"
+          },
+          "exclude_git_data": {
+            "type": "boolean"
+          },
           "exclude_attachments": {
+            "type": "boolean"
+          },
+          "exclude_releases": {
+            "type": "boolean"
+          },
+          "exclude_owner_projects": {
             "type": "boolean"
           },
           "repositories": {
@@ -60565,7 +60625,11 @@
           "guid",
           "state",
           "lock_repositories",
+          "exclude_metadata",
+          "exclude_git_data",
           "exclude_attachments",
+          "exclude_releases",
+          "exclude_owner_projects",
           "repositories",
           "url",
           "created_at",
@@ -60937,6 +61001,9 @@
           "watchers": {
             "type": "integer",
             "example": 0
+          },
+          "allow_forking": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -62289,6 +62356,12 @@
             "type": "boolean",
             "example": true
           },
+          "allow_forking": {
+            "description": "Whether to allow forking this repo",
+            "default": false,
+            "type": "boolean",
+            "example": false
+          },
           "subscribers_count": {
             "type": "integer"
           },
@@ -62997,6 +63070,10 @@
             "example": false
           },
           "allow_merge_commit": {
+            "type": "boolean",
+            "example": true
+          },
+          "allow_forking": {
             "type": "boolean",
             "example": true
           },
@@ -72565,6 +72642,9 @@
                   "updated_at": {
                     "type": "string",
                     "format": "date-time"
+                  },
+                  "allow_forking": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -73129,6 +73209,9 @@
                   "updated_at": {
                     "type": "string",
                     "format": "date-time"
+                  },
+                  "allow_forking": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -75750,6 +75833,9 @@
             "type": "boolean"
           },
           "delete_branch_on_merge": {
+            "type": "boolean"
+          },
+          "allow_forking": {
             "type": "boolean"
           }
         },
@@ -78697,7 +78783,9 @@
           "verifiable_password_authentication": true,
           "ssh_key_fingerprints": {
             "SHA256_RSA": "nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8",
-            "SHA256_DSA": "br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ"
+            "SHA256_DSA": "br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ",
+            "SHA256_ECDSA": "p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM",
+            "SHA256_ED25519": "+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
           },
           "hooks": [
             "192.30.252.0/22"
@@ -79992,6 +80080,8 @@
             "state": "pending",
             "lock_repositories": true,
             "exclude_attachments": false,
+            "exclude_releases": false,
+            "exclude_owner_projects": false,
             "repositories": [
               {
                 "id": 1296269,
@@ -80152,6 +80242,8 @@
           "state": "pending",
           "lock_repositories": true,
           "exclude_attachments": false,
+          "exclude_releases": false,
+          "exclude_owner_projects": false,
           "repositories": [
             {
               "id": 1296269,
@@ -80310,6 +80402,8 @@
           "state": "exported",
           "lock_repositories": true,
           "exclude_attachments": false,
+          "exclude_releases": false,
+          "exclude_owner_projects": false,
           "repositories": [
             {
               "id": 1296269,
@@ -83800,6 +83894,7 @@
           "allow_auto_merge": false,
           "delete_branch_on_merge": true,
           "allow_merge_commit": true,
+          "allow_forking": true,
           "subscribers_count": 42,
           "network_count": 0,
           "organization": {
@@ -91361,6 +91456,7 @@
               "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",
               "allow_squash_merge": true,
               "allow_merge_commit": true,
+              "allow_forking": true,
               "forks": 123,
               "open_issues": 123,
               "license": {
@@ -93873,6 +93969,7 @@
             "allow_auto_merge": false,
             "delete_branch_on_merge": true,
             "allow_merge_commit": true,
+            "allow_forking": true,
             "subscribers_count": 42,
             "network_count": 0
           }
@@ -95930,6 +96027,8 @@
             "state": "pending",
             "lock_repositories": true,
             "exclude_attachments": false,
+            "exclude_releases": false,
+            "exclude_owner_projects": false,
             "repositories": [
               {
                 "id": 1296269,
@@ -96090,6 +96189,8 @@
           "state": "pending",
           "lock_repositories": true,
           "exclude_attachments": false,
+          "exclude_releases": false,
+          "exclude_owner_projects": false,
           "repositories": [
             {
               "id": 1296269,
@@ -96248,6 +96349,8 @@
           "state": "exported",
           "lock_repositories": true,
           "exclude_attachments": false,
+          "exclude_releases": false,
+          "exclude_owner_projects": false,
           "repositories": [
             {
               "id": 1296269,
