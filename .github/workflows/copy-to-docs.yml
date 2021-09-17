@@ -1,0 +1,53 @@
+# For issues that should be fixed by the docs team,
+# this workflow copies the issue to the docs-content repo
+# when the `documentation` label is added
+# (we do not transfer so that the issue does not disappear for the contributor)
+
+name: Copy to docs-content
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  copy-issue:
+    name: Copy issue
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'documentation'
+    steps:
+      - name: priority
+        uses: actions/github-script@626af12fe9a53dc2972b48385e7fe7dec79145c9
+        id: priority
+        with:
+          result-encoding: string
+          script: |
+            const labels = context.payload.issue.labels;
+            let priority = "unknown"
+            for (const label of labels) {
+              if (['p0','p1','p2','p3'].includes(label.name)){
+                priority = label.name
+                break
+              }
+            }
+            return priority
+
+      - name: Create an issue in the docs-content repo
+        run: |
+          new_issue_url="$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --repo github/docs-content)"
+          echo 'NEW_ISSUE='$new_issue_url >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{secrets.PERSONAL_ACCESS_TOKEN}}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Comment on the new issue
+        run: |
+          gh issue comment $NEW_ISSUE --body "This issue was originally opened in the rest-api-description repo as $OLD_ISSUE with priority $PRIORITY. 
+          :exclamation: When you close this issue, also comment on and close the original issue.
+          :question: Was this issue something that could have been caught by a linter? If so, suggest a new rule in [#ecosystem-api](https://github.slack.com/archives/C1042T6MS)."
+        env:
+          GITHUB_TOKEN: ${{secrets.PERSONAL_ACCESS_TOKEN}}
+          NEW_ISSUE: ${{ env.NEW_ISSUE }}
+          OLD_ISSUE: ${{ github.event.issue.html_url }}
+          PRIORITY: ${{ steps.priority.outputs.result }}
