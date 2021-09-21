@@ -29607,6 +29607,11 @@ paths:
                           description: The auto incrementing run number for the workflow
                             run.
                           example: 106
+                        run_attempt:
+                          type: integer
+                          description: Attempt number of the run, 1 for first attempt
+                            and higher if the workflow was retried.
+                          example: 1
                         event:
                           type: string
                           example: push
@@ -29727,6 +29732,12 @@ paths:
                           description: The URL to rerun the workflow run.
                           type: string
                           example: https://api.github.com/repos/github/hello-world/actions/runs/5/rerun
+                        previous_attempt_url:
+                          nullable: true
+                          description: The URL to the previous attempted run of this
+                            workflow, if one exists.
+                          type: string
+                          example: https://api.github.com/repos/github/hello-world/actions/runs/5/attempts/3
                         workflow_url:
                           description: The URL to the workflow.
                           type: string
@@ -31146,8 +31157,10 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: false
         previews: []
+        deprecationDate: '2021-09-14'
         category: actions
         subcategory: workflow-runs
+      deprecated: true
   "/repos/{owner}/{repo}/actions/secrets":
     get:
       summary: List repository secrets
@@ -39570,7 +39583,9 @@ paths:
                     \ \n\\* `maintain` - Recommended for project managers who need
                     to manage the repository without access to sensitive or destructive
                     actions.  \n\\* `triage` - Recommended for contributors who need
-                    to proactively manage issues and pull requests without write access."
+                    to proactively manage issues and pull requests without write access.
+                    \n\\* custom repository role name - Can assign a custom repository
+                    role if the owning organization has defined any."
                   enum:
                   - pull
                   - push
@@ -54013,9 +54028,6 @@ paths:
         '410':
           description: Gone
           content: *176
-        '415':
-          description: Preview header missing
-          content: *36
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -54026,15 +54038,6 @@ paths:
             The API to get issue timeline events is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-23-timeline-preview-api/) for full details. To access the API you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:
             ```shell
             application/vnd.github.mockingbird-preview
-            ```
-        - required: false
-          name: starfox
-          note: |-
-            Project card details are now shown in REST API v3 responses for project-related issue and timeline events. This feature is now available for developers to preview. For details, see the [blog post](https://developer.github.com/changes/2018-09-05-project-card-events).
-
-            To receive the `project_card` attribute, project boards must be [enabled](https://help.github.com/articles/disabling-project-boards-in-a-repository) for a repository, and you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.starfox-preview+json
             ```
         category: issues
         subcategory: timeline
