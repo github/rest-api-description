@@ -44,6 +44,10 @@
       "description": "Insight into codes of conduct for your communities."
     },
     {
+      "name": "codespaces",
+      "description": "Endpoints to manage Codespaces using the REST API."
+    },
+    {
       "name": "emojis",
       "description": "List emojis available to use on GitHub."
     },
@@ -422,6 +426,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -545,6 +550,7 @@
           "url": "https://docs.github.com/rest/reference/apps#update-a-webhook-configuration-for-an-app"
         },
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -918,6 +924,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -1747,6 +1754,7 @@
 
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -2186,6 +2194,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -3074,6 +3083,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -6023,6 +6033,7 @@
 
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "text/plain": {
               "schema": {
@@ -6663,6 +6674,7 @@
 
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -6883,6 +6895,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -7143,6 +7156,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -7665,6 +7679,7 @@
           }
         },
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -9618,6 +9633,131 @@
         }
       }
     },
+    "/orgs/{org}/external-group/{group_id}": {
+      "get": {
+        "summary": "Get an external group",
+        "description": "Displays information about the specific group's usage.  Provides a list of the group's external members as well as a list of teams that this group is connected to.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/external-idp-group-info-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/teams#external-idp-group-info-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "name": "group_id",
+            "description": "External Group Id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-group"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-group"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
+    "/orgs/{org}/external-groups": {
+      "get": {
+        "summary": "List external groups in an organization",
+        "description": "Lists external groups available in an organization. You can query the groups using the `display_name` parameter, only groups with a `group_name` containing the text provided in the `display_name` parameter will be returned.  You can also limit your page results using the `per_page` parameter. GitHub generates a url-encoded `page` token using a cursor value for where the next page begins. For more information on cursor pagination, see \"[Offset and Cursor Pagination explained](https://dev.to/jackmarchant/offset-and-cursor-pagination-explained-b89).\"\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/list-external-idp-groups-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/teams#list-external-idp-groups-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "name": "page",
+            "description": "Page token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "display_name",
+            "description": "Limits the list to groups containing the text in the group name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-groups"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-groups"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "example": "<https://api.github.com/resource?per_page=2&page=url-encoded-next-page-token>; rel=\"next\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
     "/orgs/{org}/failed_invitations": {
       "get": {
         "summary": "List failed organization invitations",
@@ -9945,6 +10085,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -10139,6 +10280,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -10736,6 +10878,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -11300,6 +11443,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -13599,6 +13743,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -13925,6 +14070,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -14739,6 +14885,111 @@
         }
       }
     },
+    "/orgs/{org}/teams/{team_slug}/external-groups": {
+      "patch": {
+        "summary": "Update the connection between an external group and a team",
+        "description": "Creates a connection between a team and an external group.  Only one external group can be linked to a team.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "operations/teams/link-external-idp-group-to-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/teams#link-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "description": "External Group Id",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "group_id"
+                ]
+              },
+              "example": {
+                "group_id": 123
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-group"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-group"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": false,
+          "previews": [
+
+          ],
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      },
+      "delete": {
+        "summary": "Remove the connection between an external group and a team",
+        "description": "Deletes a connection between a team and an external group.\n\nYou can manage team membership with your IdP using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "operations/teams/unlink-external-idp-group-from-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/teams#unlink-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": false,
+          "previews": [
+
+          ],
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
     "/orgs/{org}/teams/{team_slug}/invitations": {
       "get": {
         "summary": "List pending team invitations",
@@ -14954,6 +15205,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -15179,6 +15431,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -15422,6 +15675,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -15773,6 +16027,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -16568,6 +16823,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -16843,6 +17099,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -16965,11 +17222,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/repository-collaborator-permission"
+                  "$ref": "#/components/schemas/project-collaborator-permission"
                 },
                 "examples": {
                   "default": {
-                    "$ref": "#/components/examples/repository-collaborator-permission"
+                    "$ref": "#/components/examples/project-collaborator-permission"
                   }
                 }
               }
@@ -17319,6 +17576,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -18041,6 +18299,7 @@
           }
         },
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -21178,6 +21437,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -21521,6 +21781,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -21696,6 +21957,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -21794,6 +22056,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22130,6 +22393,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22222,6 +22486,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22463,6 +22728,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22556,6 +22822,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22799,6 +23066,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -22891,6 +23159,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -23077,6 +23346,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -23551,6 +23821,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -25167,7 +25438,7 @@
       },
       "put": {
         "summary": "Add a repository collaborator",
-        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information the permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\".\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
+        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\".\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
         "tags": [
           "repos"
         ],
@@ -25188,6 +25459,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -25195,7 +25467,7 @@
                 "properties": {
                   "permission": {
                     "type": "string",
-                    "description": "The permission to grant the collaborator. **Only valid on organization-owned repositories.** Can be one of:  \n\\* `pull` - can pull, but not push to or administer this repository.  \n\\* `push` - can pull and push, but not administer this repository.  \n\\* `admin` - can pull, push and administer this repository.  \n\\* `maintain` - Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.  \n\\* `triage` - Recommended for contributors who need to proactively manage issues and pull requests without write access. \n\\* custom repository role name - Can assign a custom repository role if the owning organization has defined any.",
+                    "description": "The permission to grant the collaborator. **Only valid on organization-owned repositories.** Can be one of:  \n\\* `pull` - can pull, but not push to or administer this repository.  \n\\* `push` - can pull and push, but not administer this repository.  \n\\* `admin` - can pull, push and administer this repository.  \n\\* `maintain` - Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.  \n\\* `triage` - Recommended for contributors who need to proactively manage issues and pull requests without write access.",
                     "enum": [
                       "pull",
                       "push",
@@ -28147,6 +28419,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -28410,6 +28683,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -29679,6 +29953,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -29870,6 +30145,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -30091,6 +30367,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -30583,6 +30860,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -30773,6 +31051,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -31252,6 +31531,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -32317,6 +32597,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -32488,6 +32769,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -32930,6 +33212,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -33062,6 +33345,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -33304,6 +33588,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -34166,6 +34451,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -34891,6 +35177,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -35155,6 +35442,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -36775,6 +37063,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -37377,6 +37666,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -37581,6 +37871,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -37835,6 +38126,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -38411,6 +38703,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -38877,6 +39170,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -39241,6 +39535,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -39475,6 +39770,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "*/*": {
               "schema": {
@@ -40445,6 +40741,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -44585,6 +44882,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -45634,6 +45932,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -45865,6 +46164,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -46125,6 +46425,7 @@
           }
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -46529,6 +46830,7 @@
 
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -46989,6 +47291,7 @@
 
         ],
         "requestBody": {
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
@@ -59262,6 +59565,164 @@
           "authorized_credential_id"
         ]
       },
+      "external-group": {
+        "title": "ExternalGroup",
+        "description": "Information about an external group's usage and its members",
+        "type": "object",
+        "required": [
+          "group_id",
+          "group_name",
+          "teams",
+          "members"
+        ],
+        "properties": {
+          "group_id": {
+            "description": "The internal ID of the group",
+            "example": 1,
+            "type": "integer"
+          },
+          "group_name": {
+            "description": "The display name for the group",
+            "example": "group-azuread-test",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "The date when the group was last updated_at",
+            "example": "2021-01-03 22:27:15:000 -700",
+            "type": "string"
+          },
+          "teams": {
+            "description": "An array of teams linked to this group",
+            "example": [
+              {
+                "team_id": 1,
+                "team_name": "team-test"
+              },
+              {
+                "team_id": 2,
+                "team_name": "team-test2"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "team_id",
+                "team_name"
+              ],
+              "properties": {
+                "team_id": {
+                  "description": "The id for a team",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "team_name": {
+                  "description": "The name of the team",
+                  "example": "team-test",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "members": {
+            "description": "An array of external members linked to this group",
+            "example": [
+              {
+                "member_id": 1,
+                "member_login": "mona-lisa_eocsaxrs",
+                "member_name": "Mona Lisa",
+                "member_email": "mona_lisa@github.com"
+              },
+              {
+                "member_id": 2,
+                "member_login": "octo-lisa_eocsaxrs",
+                "member_name": "Octo Lisa",
+                "member_email": "octo_lisa@github.com"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "member_id",
+                "member_login",
+                "member_name",
+                "member_email"
+              ],
+              "properties": {
+                "member_id": {
+                  "description": "The internal user ID of the identity",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "member_login": {
+                  "description": "The handle/login for the user",
+                  "example": "mona-lisa_eocsaxrs",
+                  "type": "string"
+                },
+                "member_name": {
+                  "description": "The user display name/profile name",
+                  "example": "Mona Lisa",
+                  "type": "string"
+                },
+                "member_email": {
+                  "description": "An email attached to a user",
+                  "example": "mona_lisa@github.com",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "external-groups": {
+        "title": "ExternalGroups",
+        "description": "A list of external groups available to be connected to a team",
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "An array of external groups available to be mapped to a team",
+            "example": [
+              {
+                "group_id": 1,
+                "group_name": "group-azuread-test",
+                "updated_at": "2021-01-03 22:27:15:000 -700"
+              },
+              {
+                "group_id": 2,
+                "group_name": "group-azuread-test2",
+                "updated_at": "2021-06-03 22:27:15:000 -700"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "group_name",
+                "updated_at"
+              ],
+              "properties": {
+                "group_id": {
+                  "description": "The internal ID of the group",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "group_name": {
+                  "description": "The display name of the group",
+                  "example": "group-azuread-test",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "description": "The time of the last update for this group",
+                  "example": "2019-06-03 22:27:15:000 -700",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
       "organization-invitation": {
         "title": "Organization Invitation",
         "description": "Organization Invitation",
@@ -61740,9 +62201,9 @@
           "updated_at"
         ]
       },
-      "repository-collaborator-permission": {
-        "title": "Repository Collaborator Permission",
-        "description": "Repository Collaborator Permission",
+      "project-collaborator-permission": {
+        "title": "Project Collaborator Permission",
+        "description": "Project Collaborator Permission",
         "type": "object",
         "properties": {
           "permission": {
@@ -65779,6 +66240,23 @@
           "url",
           "html_url",
           "created_at"
+        ]
+      },
+      "repository-collaborator-permission": {
+        "title": "Repository Collaborator Permission",
+        "description": "Repository Collaborator Permission",
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/nullable-simple-user"
+          }
+        },
+        "required": [
+          "permission",
+          "user"
         ]
       },
       "commit-comment": {
@@ -79132,6 +79610,53 @@
           }
         ]
       },
+      "external-group": {
+        "value": {
+          "group_id": "123",
+          "group_name": "Octocat admins",
+          "updated_at": "2021-01-24T11:31:04-06:00",
+          "teams": [
+            {
+              "team_id": 1,
+              "team_name": "team-test"
+            },
+            {
+              "team_id": 2,
+              "team_name": "team-test2"
+            }
+          ],
+          "members": [
+            {
+              "member_id": 1,
+              "member_login": "mona-lisa_eocsaxrs",
+              "member_name": "Mona Lisa",
+              "member_email": "mona_lisa@github.com"
+            },
+            {
+              "member_id": 2,
+              "member_login": "octo-lisa_eocsaxrs",
+              "member_name": "Octo Lisa",
+              "member_email": "octo_lisa@github.com"
+            }
+          ]
+        }
+      },
+      "external-groups": {
+        "value": {
+          "groups": [
+            {
+              "group_id": "123",
+              "group_name": "Octocat admins",
+              "updated_at": "2021-01-24T11:31:04-06:00"
+            },
+            {
+              "group_id": "456",
+              "group_name": "Octocat docs members",
+              "updated_at": "2021-03-24T11:31:04-06:00"
+            }
+          ]
+        }
+      },
       "organization-invitation-items": {
         "value": [
           {
@@ -81935,7 +82460,7 @@
           "updated_at": "2014-03-03T18:58:10Z"
         }
       },
-      "repository-collaborator-permission": {
+      "project-collaborator-permission": {
         "value": {
           "permission": "admin",
           "user": {
