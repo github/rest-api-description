@@ -992,15 +992,15 @@
         "x-github": {
           "githubCloudOnly": false,
           "enabledForGitHubApps": false,
+          "category": "enterprise-admin",
+          "subcategory": "ldap",
           "previews": [
             {
               "required": false,
               "name": "hellcat",
               "note": "The Nested Teams API is currently available for developers to preview. See the [blog post](https://developer.github.com/changes/2017-08-30-preview-nested-teams) for full details. To access the API, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.hellcat-preview+json\n```"
             }
-          ],
-          "category": "enterprise-admin",
-          "subcategory": "ldap"
+          ]
         }
       }
     },
@@ -20646,15 +20646,15 @@
         "x-github": {
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
+          "category": "repos",
+          "subcategory": "branches",
           "previews": [
             {
               "required": false,
               "name": "luke-cage",
               "note": "The Protected Branches API now has a setting for requiring a specified number of approving pull request reviews before merging. This feature is currently available for developers to preview. See the [blog post](https://developer.github.com/changes/2018-03-16-protected-branches-required-approving-reviews) for full details. To access the API during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.luke-cage-preview+json\n```"
             }
-          ],
-          "category": "repos",
-          "subcategory": "branches"
+          ]
         }
       },
       "delete": {
@@ -38069,6 +38069,85 @@
           "enabledForGitHubApps": true,
           "category": "secret-scanning",
           "subcategory": null
+        }
+      },
+      "patch": {
+        "summary": "Update a secret scanning alert",
+        "description": "Updates the status of a secret scanning alert in a private repository. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` write permission to use this endpoint.",
+        "operationId": "secret-scanning/update-alert",
+        "tags": [
+          "secret-scanning"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.2/rest/reference/secret-scanning#update-a-secret-scanning-alert"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/alert-number"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "$ref": "#/components/schemas/secret-scanning-alert-state"
+                  },
+                  "resolution": {
+                    "$ref": "#/components/schemas/secret-scanning-alert-resolution"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              },
+              "example": {
+                "state": "resolved",
+                "resolution": "false_positive"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/secret-scanning-alert"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/secret-scanning-alert-resolved"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository is public, or secret scanning is disabled for the repository, or the resource is not found"
+          },
+          "422": {
+            "description": "State does not match the resolution"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": true,
+          "githubCloudOnly": false,
+          "category": "secret-scanning"
         }
       }
     },
@@ -85036,6 +85115,39 @@
           "resolution": null,
           "resolved_at": null,
           "resolved_by": null,
+          "secret_type": "mailchimp_api_key",
+          "secret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2"
+        }
+      },
+      "secret-scanning-alert-resolved": {
+        "value": {
+          "number": 42,
+          "created_at": "2020-11-06T18:18:30Z",
+          "url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42",
+          "html_url": "https://github.com/owner/private-repo/security/secret-scanning/42",
+          "state": "resolved",
+          "resolution": "used_in_tests",
+          "resolved_at": "2020-11-16T22:42:07Z",
+          "resolved_by": {
+            "login": "monalisa",
+            "id": 2,
+            "node_id": "MDQ6VXNlcjI=",
+            "avatar_url": "https://alambic.github.com/avatars/u/2?",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/monalisa",
+            "html_url": "https://github.com/monalisa",
+            "followers_url": "https://api.github.com/users/monalisa/followers",
+            "following_url": "https://api.github.com/users/monalisa/following{/other_user}",
+            "gists_url": "https://api.github.com/users/monalisa/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/monalisa/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/monalisa/subscriptions",
+            "organizations_url": "https://api.github.com/users/monalisa/orgs",
+            "repos_url": "https://api.github.com/users/monalisa/repos",
+            "events_url": "https://api.github.com/users/monalisa/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/monalisa/received_events",
+            "type": "User",
+            "site_admin": true
+          },
           "secret_type": "mailchimp_api_key",
           "secret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2"
         }
