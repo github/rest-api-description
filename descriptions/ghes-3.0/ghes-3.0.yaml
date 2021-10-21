@@ -44584,6 +44584,182 @@ components:
       - updated_at
       - last_response
       - test_url
+    nullable-issue:
+      title: Issue
+      description: Issues are a great way to keep track of tasks, enhancements, and
+        bugs for your projects.
+      type: object
+      properties:
+        id:
+          type: integer
+        node_id:
+          type: string
+        url:
+          description: URL for the issue
+          example: https://api.github.com/repositories/42/issues/1
+          type: string
+          format: uri
+        repository_url:
+          type: string
+          format: uri
+        labels_url:
+          type: string
+        comments_url:
+          type: string
+          format: uri
+        events_url:
+          type: string
+          format: uri
+        html_url:
+          type: string
+          format: uri
+        number:
+          description: Number uniquely identifying the issue within its repository
+          example: 42
+          type: integer
+        state:
+          description: State of the issue; either 'open' or 'closed'
+          example: open
+          type: string
+        title:
+          description: Title of the issue
+          example: Widget creation fails in Safari on OS X 10.8
+          type: string
+        body:
+          description: Contents of the issue
+          example: It looks like the new widget form is broken on Safari. When I try
+            and create the widget, Safari crashes. This is reproducible on 10.8, but
+            not 10.9. Maybe a browser bug?
+          type: string
+          nullable: true
+        user:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        labels:
+          description: Labels to associate with this issue; pass one or more label
+            names to replace the set of labels on this issue; send an empty array
+            to clear all labels from the issue; note that the labels are silently
+            dropped for users without push access to the repository
+          example:
+          - bug
+          - registration
+          type: array
+          items:
+            oneOf:
+            - type: string
+            - type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                node_id:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                color:
+                  type: string
+                  nullable: true
+                default:
+                  type: boolean
+        assignee:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        assignees:
+          type: array
+          items:
+            "$ref": "#/components/schemas/simple-user"
+          nullable: true
+        milestone:
+          "$ref": "#/components/schemas/nullable-milestone"
+        locked:
+          type: boolean
+        active_lock_reason:
+          type: string
+          nullable: true
+        comments:
+          type: integer
+        pull_request:
+          type: object
+          properties:
+            merged_at:
+              type: string
+              format: date-time
+              nullable: true
+            diff_url:
+              type: string
+              format: uri
+              nullable: true
+            html_url:
+              type: string
+              format: uri
+              nullable: true
+            patch_url:
+              type: string
+              format: uri
+              nullable: true
+            url:
+              type: string
+              format: uri
+              nullable: true
+          required:
+          - diff_url
+          - html_url
+          - patch_url
+          - url
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        closed_by:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        body_html:
+          type: string
+        body_text:
+          type: string
+        timeline_url:
+          type: string
+          format: uri
+        repository:
+          "$ref": "#/components/schemas/repository"
+        performed_via_github_app:
+          "$ref": "#/components/schemas/nullable-integration"
+        author_association:
+          "$ref": "#/components/schemas/author_association"
+        reactions:
+          "$ref": "#/components/schemas/reaction-rollup"
+      required:
+      - assignee
+      - closed_at
+      - comments
+      - comments_url
+      - events_url
+      - html_url
+      - id
+      - node_id
+      - labels
+      - labels_url
+      - milestone
+      - number
+      - repository_url
+      - state
+      - locked
+      - title
+      - url
+      - user
+      - author_association
+      - created_at
+      - updated_at
+      nullable: true
     issue-event-label:
       title: Issue Event Label
       description: Issue Event Label
@@ -44695,7 +44871,7 @@ components:
           format: date-time
           example: '2011-04-14T16:00:49Z'
         issue:
-          "$ref": "#/components/schemas/issue"
+          "$ref": "#/components/schemas/nullable-issue"
         label:
           "$ref": "#/components/schemas/issue-event-label"
         assignee:
