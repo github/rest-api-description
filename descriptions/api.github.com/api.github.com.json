@@ -6767,6 +6767,66 @@
         }
       }
     },
+    "/organizations/{organization_id}/custom_roles": {
+      "get": {
+        "summary": "List custom repository roles in an organization",
+        "description": "List the custom repository roles available in this organization. In order to see custom\nrepository roles in an organization, the authenticated user must be an organization owner.\n\nFor more information on custom repository roles, see \"[Managing custom repository roles for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-custom-repository-roles-for-an-organization)\".",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/list-custom-roles",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/orgs#list-custom-repository-roles-in-an-organization"
+        },
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response - list of custom role names",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "description": "The number of custom roles in this organization",
+                      "example": 3,
+                      "type": "integer"
+                    },
+                    "custom_roles": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/organization-custom-repository-role"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/organization-custom-repository-role-example"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "custom_roles"
+        }
+      }
+    },
     "/orgs/{org}": {
       "get": {
         "summary": "Get an organization",
@@ -15013,14 +15073,15 @@
                 "properties": {
                   "permission": {
                     "type": "string",
-                    "description": "The permission to grant the team on this repository. Can be one of:  \n\\* `pull` - team members can pull, but not push to or administer this repository.  \n\\* `push` - team members can pull and push, but not administer this repository.  \n\\* `admin` - team members can pull, push and administer this repository.  \n\\* `maintain` - team members can manage the repository without access to sensitive or destructive actions. Recommended for project managers. Only applies to repositories owned by organizations.  \n\\* `triage` - team members can proactively manage issues and pull requests without write access. Recommended for contributors who triage a repository. Only applies to repositories owned by organizations.  \n  \nIf no permission is specified, the team's `permission` attribute will be used to determine what permission to grant the team on this repository.",
+                    "description": "The permission to grant the team on this repository. Can be one of:  \n\\* `pull` - team members can pull, but not push to or administer this repository.  \n\\* `push` - team members can pull and push, but not administer this repository.  \n\\* `admin` - team members can pull, push and administer this repository.  \n\\* `maintain` - team members can manage the repository without access to sensitive or destructive actions. Recommended for project managers. Only applies to repositories owned by organizations.  \n\\* `triage` - team members can proactively manage issues and pull requests without write access. Recommended for contributors who triage a repository. Only applies to repositories owned by organizations.  \n\\* custom repository role name - A custom repository role if the owning organization has defined any.  \n  \nIf no permission is specified, the team's `permission` attribute will be used to determine what permission to grant the team on this repository.",
                     "enum": [
                       "pull",
                       "push",
                       "admin",
                       "maintain",
                       "triage"
-                    ]
+                    ],
+                    "default": "push"
                   }
                 }
               }
@@ -24319,6 +24380,195 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/codespaces": {
+      "post": {
+        "summary": "Create a codespace in a repository",
+        "description": "Creates a codespace owned by the authenticated user in the specified repository.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/create-with-repo-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#create-a-codespace-in-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "location"
+                ],
+                "properties": {
+                  "ref": {
+                    "description": "Git ref (typically a branch name) for this codespace",
+                    "type": "string"
+                  },
+                  "location": {
+                    "description": "Location for this codespace",
+                    "type": "string"
+                  },
+                  "machine": {
+                    "description": "Machine type to use for this codespace",
+                    "type": "string"
+                  },
+                  "working_directory": {
+                    "description": "Working directory for this codespace",
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "repository_id": 1,
+                "ref": "main"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response when the codespace was successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Response when the codespace creation partially failed but is being retried in the background",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/codespaces/machines": {
+      "get": {
+        "summary": "List available machine types for a repository",
+        "description": "List the machine types available for a given repository based on its configuration.\n\nLocation is required.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/repo-machines-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#list-available-machine-types-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "location",
+            "description": "Required. The location to check for available machines.",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "WestUs2"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "machines"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "machines": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/codespace-machine"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace-machines-list"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "machines"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/collaborators": {
       "get": {
         "summary": "List repository collaborators",
@@ -24465,7 +24715,7 @@
                 "properties": {
                   "permission": {
                     "type": "string",
-                    "description": "The permission to grant the collaborator. **Only valid on organization-owned repositories.** Can be one of:  \n\\* `pull` - can pull, but not push to or administer this repository.  \n\\* `push` - can pull and push, but not administer this repository.  \n\\* `admin` - can pull, push and administer this repository.  \n\\* `maintain` - Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.  \n\\* `triage` - Recommended for contributors who need to proactively manage issues and pull requests without write access.",
+                    "description": "The permission to grant the collaborator. **Only valid on organization-owned repositories.** Can be one of:  \n\\* `pull` - can pull, but not push to or administer this repository.  \n\\* `push` - can pull and push, but not administer this repository.  \n\\* `admin` - can pull, push and administer this repository.  \n\\* `maintain` - Recommended for project managers who need to manage the repository without access to sensitive or destructive actions.  \n\\* `triage` - Recommended for contributors who need to proactively manage issues and pull requests without write access.  \n\\* custom repository role name - A custom repository role, if the owning organization has defined any.",
                     "enum": [
                       "pull",
                       "push",
@@ -35773,6 +36023,109 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/pulls/{pull_number}/codespaces": {
+      "post": {
+        "summary": "Create a codespace from a pull request",
+        "description": "Creates a codespace owned by the authenticated user for the specified pull request.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/create-with-pr-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#create-a-codespace-from-a-pull-request"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/pull-number"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "location"
+                ],
+                "properties": {
+                  "location": {
+                    "description": "Location for this codespace",
+                    "type": "string"
+                  },
+                  "machine": {
+                    "description": "Machine type to use for this codespace",
+                    "type": "string"
+                  },
+                  "working_directory": {
+                    "description": "Working directory for this codespace",
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "repository_id": 1,
+                "ref": "main"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response when the codespace was successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Response when the codespace creation partially failed but is being retried in the background",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      }
+    },
     "/repos/{owner}/{repo}/pulls/{pull_number}/comments": {
       "get": {
         "summary": "List review comments on a pull request",
@@ -45379,6 +45732,1085 @@
           "enabledForGitHubApps": false,
           "category": "users",
           "subcategory": "blocking"
+        }
+      }
+    },
+    "/user/codespaces": {
+      "get": {
+        "summary": "List codespaces for the authenticated user",
+        "description": "Lists the authenticated user's codespaces.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/list-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#list-codespaces-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "codespaces"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "codespaces": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/codespace"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespaces-list"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      },
+      "post": {
+        "summary": "Create a codespace for the authenticated user",
+        "description": "Creates a new codespace, owned by the authenticated user.\n\nThis endpoint requires either a `repository_id` OR a `pull_request` but not both.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/create-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#create-a-codespace-for-the-authenticated-user"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "repository_id",
+                      "location"
+                    ],
+                    "properties": {
+                      "repository_id": {
+                        "description": "Repository id for this codespace",
+                        "type": "integer"
+                      },
+                      "ref": {
+                        "description": "Git ref (typically a branch name) for this codespace",
+                        "type": "string"
+                      },
+                      "location": {
+                        "description": "Location for this codespace",
+                        "type": "string"
+                      },
+                      "machine": {
+                        "description": "Machine type to use for this codespace",
+                        "type": "string"
+                      },
+                      "working_directory": {
+                        "description": "Working directory for this codespace",
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "pull_request",
+                      "location"
+                    ],
+                    "properties": {
+                      "pull_request": {
+                        "required": [
+                          "pull_request_number",
+                          "repository_id"
+                        ],
+                        "description": "Pull request number for this codespace",
+                        "type": "object",
+                        "properties": {
+                          "pull_request_number": {
+                            "description": "Pull request number",
+                            "type": "integer"
+                          },
+                          "repository_id": {
+                            "description": "Repository id for this codespace",
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "location": {
+                        "description": "Location for this codespace",
+                        "type": "string"
+                      },
+                      "machine": {
+                        "description": "Machine type to use for this codespace",
+                        "type": "string"
+                      },
+                      "working_directory": {
+                        "description": "Working directory for this codespace",
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              },
+              "example": {
+                "repository_id": 1,
+                "ref": "main",
+                "location": "WestUs2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response when the codespace was successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Response when the codespace creation partially failed but is being retried in the background",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      }
+    },
+    "/user/codespaces/secrets": {
+      "get": {
+        "summary": "List secrets for the authenticated user",
+        "description": "Lists all secrets available for a user's Codespaces without revealing their\nencrypted values.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/list-secrets-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#list-secrets-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "secrets"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "secrets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/codespaces-secret"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/minimal-repository-paginated"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      }
+    },
+    "/user/codespaces/secrets/public-key": {
+      "get": {
+        "summary": "Get public key for the authenticated user",
+        "description": "Gets your public key, which you need to encrypt secrets. You need to encrypt a secret before you can create or update secrets. Anyone with one of the 'read:user' or 'user' scopes in their personal access token. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/get-public-key-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#get-public-key-for-the-authenticated-user"
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespaces-user-public-key"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespaces-user-public-key"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      }
+    },
+    "/user/codespaces/secrets/{secret_name}": {
+      "get": {
+        "summary": "Get a secret for the authenticated user",
+        "description": "Gets a secret available to a user's codespaces without revealing its encrypted value.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/get-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#get-a-secret-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespaces-secret"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/user-codespaces-secret"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      },
+      "put": {
+        "summary": "Create or update a secret for the authenticated user",
+        "description": "Creates or updates a secret for a user's codespace with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access token with the `user` scope to use this endpoint. User must also have Codespaces access to use this endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [tweetsodium](https://github.com/github/tweetsodium) library.\n\n```\nconst sodium = require('tweetsodium');\n\nconst key = \"base64-encoded-public-key\";\nconst value = \"plain-text-secret\";\n\n// Convert the message and key to Uint8Array's (Buffer implements that interface)\nconst messageBytes = Buffer.from(value);\nconst keyBytes = Buffer.from(key, 'base64');\n\n// Encrypt using LibSodium.\nconst encryptedBytes = sodium.seal(messageBytes, keyBytes);\n\n// Base64 the encrypted secret\nconst encrypted = Buffer.from(encryptedBytes).toString('base64');\n\nconsole.log(encrypted);\n```\n\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/stable/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/create-or-update-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#create-or-update-a-secret-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "encrypted_value": {
+                    "type": "string",
+                    "description": "Value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages) using the public key retrieved from the [Get the public key for the authenticated user](https://docs.github.com/rest/reference/codespaces#get-the-public-key-for-the-authenticated-user) endpoint.",
+                    "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "ID of the key you used to encrypt the secret."
+                  },
+                  "selected_repository_ids": {
+                    "type": "array",
+                    "description": "An array of repository ids that can access the user secret. You can manage the list of selected repositories using the [List selected repositories for a user secret](https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-a-user-secret), [Set selected repositories for a user secret](https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-a-user-secret), and [Remove a selected repository from a user secret](https://docs.github.com/rest/reference/codespaces#remove-a-selected-repository-from-a-user-secret) endpoints.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "encrypted_value",
+                  "key_id"
+                ]
+              },
+              "example": {
+                "encrypted_value": "c2VjcmV0",
+                "key_id": "012345678912345678",
+                "selected_repository_ids": [
+                  "1234567",
+                  "2345678"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response after successfully creaing a secret",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Response after successfully updating a secret"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      },
+      "delete": {
+        "summary": "Delete a secret for the authenticated user",
+        "description": "Deletes a secret from a user's codespaces using the secret name. Deleting the secret will remove access from all codespaces that were allowed to access the secret. You must authenticate using an access token with the `user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/delete-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#delete-a-secret-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      }
+    },
+    "/user/codespaces/secrets/{secret_name}/repositories": {
+      "get": {
+        "summary": "List selected repositories for a user secret",
+        "description": "List the repositories that have been granted the ability to use a user's codespace secret.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/list-repositories-for-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-a-user-secret"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "repositories"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "repositories": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/minimal-repository"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/minimal-repository-paginated"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      },
+      "put": {
+        "summary": "Set selected repositories for a user secret",
+        "description": "Select the repositories that will use a user's codespace secret.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/set-repositories-for-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-a-user-secret"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "selected_repository_ids": {
+                    "type": "array",
+                    "description": "An array of repository ids for which a codespace can access the secret. You can manage the list of selected repositories using the [List selected repositories for a user secret](https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-a-user-secret), [Add a selected repository to a user secret](https://docs.github.com/rest/reference/codespaces#add-a-selected-repository-to-a-user-secret), and [Remove a selected repository from a user secret](https://docs.github.com/rest/reference/codespaces#remove-a-selected-repository-from-a-user-secret) endpoints.",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "selected_repository_ids"
+                ]
+              },
+              "example": {
+                "selected_repository_ids": [
+                  "1296269",
+                  "1296280"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content when repositories were added to the selected list"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      }
+    },
+    "/user/codespaces/secrets/{secret_name}/repositories/{repository_id}": {
+      "put": {
+        "summary": "Add a selected repository to a user secret",
+        "description": "Adds a repository to the selected repositories for a user's codespace secret.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/add-repository-for-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#add-a-selected-repository-to-a-user-secret"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          },
+          {
+            "name": "repository_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content when repository was added to the selected list"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      },
+      "delete": {
+        "summary": "Remove a selected repository from a user secret",
+        "description": "Removes a repository from the selected repositories for a user's codespace secret.\nYou must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/remove-repository-for-secret-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#remove-a-selected-repository-from-a-user-secret"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/secret-name"
+          },
+          {
+            "name": "repository_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content when repository was removed from the selected list"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "secrets"
+        }
+      }
+    },
+    "/user/codespaces/{codespace_name}": {
+      "get": {
+        "summary": "Get a codespace for the authenticated user",
+        "description": "Gets information about a user's codespace.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/get-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#get-a-codespace-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      },
+      "patch": {
+        "summary": "Update a codespace for the authenticated user",
+        "description": "Updates a codespace owned by the authenticated user. Currently only the codespace's machine type can be modified using this endpoint.\n\nOnce you specify a new machine type it will be applied the next time your codespace is started.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/update-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#update-a-codespace-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "machine": {
+                    "description": "A valid machine to transition this codespace to.",
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "machine": "standardLinux"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      },
+      "delete": {
+        "summary": "Delete a codespace for the authenticated user",
+        "description": "Deletes a user's codespace.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/delete-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#delete-a-codespace-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/accepted"
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      }
+    },
+    "/user/codespaces/{codespace_name}/machines": {
+      "get": {
+        "summary": "List machine types for a codespace",
+        "description": "List the machine types a codespace can transition to use.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/codespace-machines-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#list-machine-types-for-a-codespace"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "machines"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "machines": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/codespace-machine"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace-machines-list"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": "machines"
+        }
+      }
+    },
+    "/user/codespaces/{codespace_name}/start": {
+      "post": {
+        "summary": "Start a codespace for the authenticated user",
+        "description": "Starts a user's codespace.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/start-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#start-a-codespace-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "402": {
+            "description": "Payment required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/conflict"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
+        }
+      }
+    },
+    "/user/codespaces/{codespace_name}/stop": {
+      "post": {
+        "summary": "Stop a codespace for the authenticated user",
+        "description": "Stops a user's codespace.\n\nYou must authenticate using an access token with the `codespace` scope to use this endpoint.",
+        "tags": [
+          "codespaces"
+        ],
+        "operationId": "codespaces/stop-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/codespaces#stop-a-codespace-for-the-authenticated-user"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/codespace-name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codespace"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codespace"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/internal_error"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "codespaces",
+          "subcategory": null
         }
       }
     },
@@ -56862,6 +58294,10 @@
               }
             }
           },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
+          },
           "template_repository": {
             "$ref": "#/components/schemas/nullable-repository"
           },
@@ -57077,6 +58513,23 @@
           "reason",
           "url",
           "subscribed"
+        ]
+      },
+      "organization-custom-repository-role": {
+        "title": "Organization Custom Repository Role",
+        "description": "Custom repository roles created by organization administrators",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ]
       },
       "organization-full": {
@@ -58576,6 +60029,10 @@
               }
             }
           },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
+          },
           "template_repository": {
             "$ref": "#/components/schemas/nullable-repository"
           },
@@ -59632,6 +61089,10 @@
               "pull",
               "push"
             ]
+          },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
           },
           "owner": {
             "$ref": "#/components/schemas/nullable-simple-user"
@@ -64047,6 +65508,231 @@
           }
         }
       },
+      "codespace-machine": {
+        "type": "object",
+        "title": "Codespace machine",
+        "description": "A description of the machine powering a codespace.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the machine.",
+            "example": "standardLinux"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "The display name of the machine includes cores, memory, and storage.",
+            "example": "4 cores, 8 GB RAM, 64 GB storage"
+          },
+          "operating_system": {
+            "type": "string",
+            "description": "The operating system of the machine.",
+            "example": "linux"
+          },
+          "storage_in_bytes": {
+            "type": "integer",
+            "description": "How much storage is available to the codespace.",
+            "example": 68719476736
+          },
+          "memory_in_bytes": {
+            "type": "integer",
+            "description": "How much memory is available to the codespace.",
+            "example": 8589934592
+          },
+          "cpus": {
+            "type": "integer",
+            "description": "How many cores are available to the codespace.",
+            "example": 4
+          }
+        },
+        "required": [
+          "name",
+          "display_name",
+          "operating_system",
+          "storage_in_bytes",
+          "memory_in_bytes",
+          "cpus"
+        ]
+      },
+      "codespace": {
+        "type": "object",
+        "title": "Codespace",
+        "description": "A codespace.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "description": "Automatically generated name of this codespace.",
+            "type": "string",
+            "example": "monalisa-octocat-hello-world-g4wpq6h95q"
+          },
+          "environment_id": {
+            "description": "UUID identifying this codespace's environment.",
+            "type": "string",
+            "example": "26a7c758-7299-4a73-b978-5a92a7ae98a0",
+            "nullable": true
+          },
+          "owner": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "billable_owner": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/minimal-repository"
+          },
+          "machine": {
+            "$ref": "#/components/schemas/codespace-machine"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-01-26T19:01:12Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-01-26T19:01:12Z"
+          },
+          "last_used_at": {
+            "description": "Last known time this codespace was started.",
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-01-26T19:01:12Z"
+          },
+          "state": {
+            "description": "State of this codespace.",
+            "enum": [
+              "None",
+              "Created",
+              "Queued",
+              "Provisioning",
+              "Available",
+              "Awaiting",
+              "Unavailable",
+              "Deleted",
+              "Moved",
+              "Shutdown",
+              "Archived",
+              "Starting",
+              "ShuttingDown",
+              "Failed",
+              "Exporting",
+              "Updating",
+              "Rebuilding"
+            ],
+            "example": "Available",
+            "type": "string"
+          },
+          "url": {
+            "description": "API URL for this codespace.",
+            "type": "string",
+            "format": "uri"
+          },
+          "git_status": {
+            "description": "Details about the codespace's git repository.",
+            "type": "object",
+            "properties": {
+              "ahead": {
+                "description": "The number of commits the local repository is ahead of the remote.",
+                "type": "integer",
+                "example": 0
+              },
+              "behind": {
+                "description": "The number of commits the local repository is behind the remote.",
+                "type": "integer",
+                "example": 0
+              },
+              "has_unpushed_changes": {
+                "description": "Whether the local repository has unpushed changes.",
+                "type": "boolean"
+              },
+              "has_uncommitted_changes": {
+                "description": "Whether the local repository has uncommitted changes.",
+                "type": "boolean"
+              },
+              "ref": {
+                "description": "The current branch (or SHA if in detached HEAD state) of the local repository.",
+                "type": "string",
+                "example": "main"
+              }
+            }
+          },
+          "location": {
+            "description": "The Azure region where this codespace is located.",
+            "enum": [
+              "EastUs",
+              "SouthEastAsia",
+              "WestEurope",
+              "WestUs2"
+            ],
+            "example": "WestUs2",
+            "type": "string"
+          },
+          "auto_stop_delay_minutes": {
+            "description": "The number of minutes of inactivity after which this codespace will be automatically stopped.",
+            "type": "integer",
+            "example": 60,
+            "nullable": true
+          },
+          "web_url": {
+            "description": "URL to access this codespace on the web.",
+            "type": "string",
+            "format": "uri"
+          },
+          "machines_url": {
+            "description": "API URL to access available alternate machine types for this codespace.",
+            "type": "string",
+            "format": "uri"
+          },
+          "start_url": {
+            "description": "API URL to start this codespace.",
+            "type": "string",
+            "format": "uri"
+          },
+          "stop_url": {
+            "description": "API URL to stop this codespace.",
+            "type": "string",
+            "format": "uri"
+          },
+          "pulls_url": {
+            "description": "API URL for the Pull Request associated with this codespace, if any.",
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "recent_folders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "environment_id",
+          "owner",
+          "billable_owner",
+          "repository",
+          "machine",
+          "created_at",
+          "updated_at",
+          "last_used_at",
+          "state",
+          "url",
+          "git_status",
+          "location",
+          "auto_stop_delay_minutes",
+          "web_url",
+          "machines_url",
+          "start_url",
+          "stop_url",
+          "pulls_url",
+          "recent_folders"
+        ]
+      },
       "collaborator": {
         "title": "Collaborator",
         "description": "Collaborator",
@@ -64164,6 +65850,10 @@
               "push",
               "admin"
             ]
+          },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
           }
         },
         "required": [
@@ -64184,7 +65874,8 @@
           "starred_url",
           "subscriptions_url",
           "type",
-          "url"
+          "url",
+          "role_name"
         ]
       },
       "repository-invitation": {
@@ -64369,6 +66060,10 @@
               "push",
               "admin"
             ]
+          },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
           }
         },
         "required": [
@@ -64389,7 +66084,8 @@
           "starred_url",
           "subscriptions_url",
           "type",
-          "url"
+          "url",
+          "role_name"
         ],
         "nullable": true
       },
@@ -64401,12 +66097,17 @@
           "permission": {
             "type": "string"
           },
+          "role_name": {
+            "type": "string",
+            "example": "admin"
+          },
           "user": {
             "$ref": "#/components/schemas/nullable-collaborator"
           }
         },
         "required": [
           "permission",
+          "role_name",
           "user"
         ]
       },
@@ -74706,6 +76407,68 @@
           "two_factor_authentication"
         ]
       },
+      "codespaces-secret": {
+        "title": "Codespaces Secret",
+        "description": "Secrets for a GitHub Codespace.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The name of the secret.",
+            "example": "SECRET_NAME",
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "visibility": {
+            "description": "Visibility of a secret",
+            "enum": [
+              "all",
+              "private",
+              "selected"
+            ],
+            "type": "string"
+          },
+          "selected_repositories_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://api.github.com/user/secrets/SECRET_NAME/repositories"
+          }
+        },
+        "required": [
+          "name",
+          "created_at",
+          "updated_at",
+          "visibility",
+          "selected_repositories_url"
+        ]
+      },
+      "codespaces-user-public-key": {
+        "title": "CodespacesUserPublicKey",
+        "description": "The public key used for setting user Codespaces' Secrets.",
+        "type": "object",
+        "properties": {
+          "key_id": {
+            "description": "The identifier for the key.",
+            "type": "string",
+            "example": "1234567"
+          },
+          "key": {
+            "description": "The Base64 encoded public key.",
+            "type": "string",
+            "example": "hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs="
+          }
+        },
+        "required": [
+          "key_id",
+          "key"
+        ]
+      },
       "email": {
         "title": "Email",
         "description": "Email",
@@ -77287,6 +79050,21 @@
             "description": "A great organization"
           }
         ]
+      },
+      "organization-custom-repository-role-example": {
+        "value": {
+          "total_count": 2,
+          "custom_roles": [
+            {
+              "id": 8030,
+              "name": "Developer"
+            },
+            {
+              "id": 8031,
+              "name": "Designer"
+            }
+          ]
+        }
       },
       "organization-full-default-response": {
         "summary": "Default response",
@@ -80547,9 +82325,12 @@
           "updated_at": "2011-01-26T19:14:43Z",
           "permissions": {
             "admin": false,
+            "maintain": false,
             "push": false,
+            "triage": false,
             "pull": true
           },
+          "role_name": "read",
           "allow_rebase_merge": true,
           "template_repository": {
             "id": 1296269,
@@ -84598,6 +86379,175 @@
           "analyses_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/analyses?sarif_id=47177e22-5596-11eb-80a1-c1e54ef945c6"
         }
       },
+      "codespace": {
+        "value": {
+          "id": 1,
+          "name": "monalisa-octocat-hello-world-g4wpq6h95q",
+          "environment_id": "26a7c758-7299-4a73-b978-5a92a7ae98a0",
+          "owner": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
+          "billable_owner": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
+          "repository": {
+            "id": 1296269,
+            "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
+            "name": "Hello-World",
+            "full_name": "octocat/Hello-World",
+            "owner": {
+              "login": "octocat",
+              "id": 1,
+              "node_id": "MDQ6VXNlcjE=",
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/octocat",
+              "html_url": "https://github.com/octocat",
+              "followers_url": "https://api.github.com/users/octocat/followers",
+              "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+              "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+              "organizations_url": "https://api.github.com/users/octocat/orgs",
+              "repos_url": "https://api.github.com/users/octocat/repos",
+              "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/octocat/received_events",
+              "type": "User",
+              "site_admin": false
+            },
+            "private": false,
+            "html_url": "https://github.com/octocat/Hello-World",
+            "description": "This your first repo!",
+            "fork": false,
+            "url": "https://api.github.com/repos/octocat/Hello-World",
+            "archive_url": "https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}",
+            "assignees_url": "https://api.github.com/repos/octocat/Hello-World/assignees{/user}",
+            "blobs_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}",
+            "branches_url": "https://api.github.com/repos/octocat/Hello-World/branches{/branch}",
+            "collaborators_url": "https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}",
+            "comments_url": "https://api.github.com/repos/octocat/Hello-World/comments{/number}",
+            "commits_url": "https://api.github.com/repos/octocat/Hello-World/commits{/sha}",
+            "compare_url": "https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}",
+            "contents_url": "https://api.github.com/repos/octocat/Hello-World/contents/{+path}",
+            "contributors_url": "https://api.github.com/repos/octocat/Hello-World/contributors",
+            "deployments_url": "https://api.github.com/repos/octocat/Hello-World/deployments",
+            "downloads_url": "https://api.github.com/repos/octocat/Hello-World/downloads",
+            "events_url": "https://api.github.com/repos/octocat/Hello-World/events",
+            "forks_url": "https://api.github.com/repos/octocat/Hello-World/forks",
+            "git_commits_url": "https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}",
+            "git_refs_url": "https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}",
+            "git_tags_url": "https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}",
+            "git_url": "git:github.com/octocat/Hello-World.git",
+            "issue_comment_url": "https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}",
+            "issue_events_url": "https://api.github.com/repos/octocat/Hello-World/issues/events{/number}",
+            "issues_url": "https://api.github.com/repos/octocat/Hello-World/issues{/number}",
+            "keys_url": "https://api.github.com/repos/octocat/Hello-World/keys{/key_id}",
+            "labels_url": "https://api.github.com/repos/octocat/Hello-World/labels{/name}",
+            "languages_url": "https://api.github.com/repos/octocat/Hello-World/languages",
+            "merges_url": "https://api.github.com/repos/octocat/Hello-World/merges",
+            "milestones_url": "https://api.github.com/repos/octocat/Hello-World/milestones{/number}",
+            "notifications_url": "https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}",
+            "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls{/number}",
+            "releases_url": "https://api.github.com/repos/octocat/Hello-World/releases{/id}",
+            "ssh_url": "git@github.com:octocat/Hello-World.git",
+            "stargazers_url": "https://api.github.com/repos/octocat/Hello-World/stargazers",
+            "statuses_url": "https://api.github.com/repos/octocat/Hello-World/statuses/{sha}",
+            "subscribers_url": "https://api.github.com/repos/octocat/Hello-World/subscribers",
+            "subscription_url": "https://api.github.com/repos/octocat/Hello-World/subscription",
+            "tags_url": "https://api.github.com/repos/octocat/Hello-World/tags",
+            "teams_url": "https://api.github.com/repos/octocat/Hello-World/teams",
+            "trees_url": "https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}",
+            "hooks_url": "http://api.github.com/repos/octocat/Hello-World/hooks"
+          },
+          "machine": {
+            "name": "standardLinux",
+            "display_name": "4 cores, 8 GB RAM, 64 GB storage",
+            "operating_system": "linux",
+            "storage_in_bytes": 68719476736,
+            "memory_in_bytes": 8589934592,
+            "cpus": 4
+          },
+          "created_at": "2021-10-14T00:53:30-06:00",
+          "updated_at": "2021-10-14T00:53:32-06:00",
+          "last_used_at": "2021-10-14T00:53:30-06:00",
+          "state": "Available",
+          "url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q",
+          "git_status": {
+            "ahead": 0,
+            "behind": 0,
+            "has_unpushed_changes": false,
+            "has_uncommitted_changes": false,
+            "ref": "main"
+          },
+          "location": "WestUs2",
+          "auto_stop_delay_minutes": 60,
+          "web_url": "https://monalisa-octocat-hello-world-g4wpq6h95q.github.dev",
+          "machines_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/machines",
+          "start_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/start",
+          "stop_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/stop",
+          "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls/1",
+          "recent_folders": [
+
+          ]
+        }
+      },
+      "codespace-machines-list": {
+        "value": {
+          "total_count": 2,
+          "machines": [
+            {
+              "name": "standardLinux",
+              "display_name": "4 cores, 8 GB RAM, 64 GB storage",
+              "operating_system": "linux",
+              "storage_in_bytes": 68719476736,
+              "memory_in_bytes": 8589934592,
+              "cpus": 4
+            },
+            {
+              "name": "premiumLinux",
+              "display_name": "8 cores, 16 GB RAM, 64 GB storage",
+              "operating_system": "linux",
+              "storage_in_bytes": 68719476736,
+              "memory_in_bytes": 17179869184,
+              "cpus": 8
+            }
+          ]
+        }
+      },
       "collaborator-items": {
         "value": [
           {
@@ -84623,7 +86573,8 @@
               "pull": true,
               "push": true,
               "admin": false
-            }
+            },
+            "role_name": "write"
           }
         ]
       },
@@ -84749,6 +86700,7 @@
       "repository-collaborator-permission-response-if-user-has-admin-permissions": {
         "value": {
           "permission": "admin",
+          "role_name": "admin",
           "user": {
             "login": "octocat",
             "id": 1,
@@ -92915,9 +94867,12 @@
           "updated_at": "2011-01-26T19:14:43Z",
           "permissions": {
             "admin": false,
+            "maintain": false,
             "push": false,
+            "triage": false,
             "pull": true
           },
+          "role_name": "read",
           "allow_rebase_merge": true,
           "template_repository": {
             "id": 1296269,
@@ -93204,6 +95159,457 @@
             "private_repos": 20,
             "collaborators": 0
           }
+        }
+      },
+      "codespaces-list": {
+        "value": {
+          "total_count": 3,
+          "secrets": [
+            {
+              "id": 1,
+              "name": "monalisa-octocat-hello-world-g4wpq6h95q",
+              "environment_id": "26a7c758-7299-4a73-b978-5a92a7ae98a0",
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "billable_owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "repository": {
+                "id": 1296269,
+                "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
+                "name": "Hello-World",
+                "full_name": "octocat/Hello-World",
+                "owner": {
+                  "login": "octocat",
+                  "id": 1,
+                  "node_id": "MDQ6VXNlcjE=",
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "gravatar_id": "",
+                  "url": "https://api.github.com/users/octocat",
+                  "html_url": "https://github.com/octocat",
+                  "followers_url": "https://api.github.com/users/octocat/followers",
+                  "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                  "organizations_url": "https://api.github.com/users/octocat/orgs",
+                  "repos_url": "https://api.github.com/users/octocat/repos",
+                  "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/octocat/received_events",
+                  "type": "User",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/octocat/Hello-World",
+                "description": "This your first repo!",
+                "fork": false,
+                "url": "https://api.github.com/repos/octocat/Hello-World",
+                "archive_url": "https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}",
+                "assignees_url": "https://api.github.com/repos/octocat/Hello-World/assignees{/user}",
+                "blobs_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}",
+                "branches_url": "https://api.github.com/repos/octocat/Hello-World/branches{/branch}",
+                "collaborators_url": "https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}",
+                "comments_url": "https://api.github.com/repos/octocat/Hello-World/comments{/number}",
+                "commits_url": "https://api.github.com/repos/octocat/Hello-World/commits{/sha}",
+                "compare_url": "https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}",
+                "contents_url": "https://api.github.com/repos/octocat/Hello-World/contents/{+path}",
+                "contributors_url": "https://api.github.com/repos/octocat/Hello-World/contributors",
+                "deployments_url": "https://api.github.com/repos/octocat/Hello-World/deployments",
+                "downloads_url": "https://api.github.com/repos/octocat/Hello-World/downloads",
+                "events_url": "https://api.github.com/repos/octocat/Hello-World/events",
+                "forks_url": "https://api.github.com/repos/octocat/Hello-World/forks",
+                "git_commits_url": "https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}",
+                "git_refs_url": "https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}",
+                "git_url": "git:github.com/octocat/Hello-World.git",
+                "issue_comment_url": "https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}",
+                "issue_events_url": "https://api.github.com/repos/octocat/Hello-World/issues/events{/number}",
+                "issues_url": "https://api.github.com/repos/octocat/Hello-World/issues{/number}",
+                "keys_url": "https://api.github.com/repos/octocat/Hello-World/keys{/key_id}",
+                "labels_url": "https://api.github.com/repos/octocat/Hello-World/labels{/name}",
+                "languages_url": "https://api.github.com/repos/octocat/Hello-World/languages",
+                "merges_url": "https://api.github.com/repos/octocat/Hello-World/merges",
+                "milestones_url": "https://api.github.com/repos/octocat/Hello-World/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}",
+                "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls{/number}",
+                "releases_url": "https://api.github.com/repos/octocat/Hello-World/releases{/id}",
+                "ssh_url": "git@github.com:octocat/Hello-World.git",
+                "stargazers_url": "https://api.github.com/repos/octocat/Hello-World/stargazers",
+                "statuses_url": "https://api.github.com/repos/octocat/Hello-World/statuses/{sha}",
+                "subscribers_url": "https://api.github.com/repos/octocat/Hello-World/subscribers",
+                "subscription_url": "https://api.github.com/repos/octocat/Hello-World/subscription",
+                "tags_url": "https://api.github.com/repos/octocat/Hello-World/tags",
+                "teams_url": "https://api.github.com/repos/octocat/Hello-World/teams",
+                "trees_url": "https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}",
+                "hooks_url": "http://api.github.com/repos/octocat/Hello-World/hooks"
+              },
+              "machine": {
+                "name": "standardLinux",
+                "display_name": "4 cores, 8 GB RAM, 64 GB storage",
+                "operating_system": "linux",
+                "storage_in_bytes": 68719476736,
+                "memory_in_bytes": 8589934592,
+                "cpus": 4
+              },
+              "created_at": "2021-10-14T00:53:30-06:00",
+              "updated_at": "2021-10-14T00:53:32-06:00",
+              "last_used_at": "2021-10-14T00:53:30-06:00",
+              "state": "Available",
+              "url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q",
+              "git_status": {
+                "ahead": 0,
+                "behind": 0,
+                "has_unpushed_changes": false,
+                "has_uncommitted_changes": false,
+                "ref": "main"
+              },
+              "location": "WestUs2",
+              "auto_stop_delay_minutes": 60,
+              "web_url": "https://monalisa-octocat-hello-world-g4wpq6h95q.github.dev",
+              "machines_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/machines",
+              "start_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/start",
+              "stop_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/stop",
+              "recent_folders": [
+
+              ]
+            },
+            {
+              "id": 1,
+              "name": "monalisa-octocat-hello-world-3f89ada1j3",
+              "environment_id": "526ce4d7-46da-494f-a4f9-cfd25b818719",
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "billable_owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "repository": {
+                "id": 1296269,
+                "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
+                "name": "Hello-World",
+                "full_name": "octocat/Hello-World",
+                "owner": {
+                  "login": "octocat",
+                  "id": 1,
+                  "node_id": "MDQ6VXNlcjE=",
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "gravatar_id": "",
+                  "url": "https://api.github.com/users/octocat",
+                  "html_url": "https://github.com/octocat",
+                  "followers_url": "https://api.github.com/users/octocat/followers",
+                  "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                  "organizations_url": "https://api.github.com/users/octocat/orgs",
+                  "repos_url": "https://api.github.com/users/octocat/repos",
+                  "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/octocat/received_events",
+                  "type": "User",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/octocat/Hello-World",
+                "description": "This your first repo!",
+                "fork": false,
+                "url": "https://api.github.com/repos/octocat/Hello-World",
+                "archive_url": "https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}",
+                "assignees_url": "https://api.github.com/repos/octocat/Hello-World/assignees{/user}",
+                "blobs_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}",
+                "branches_url": "https://api.github.com/repos/octocat/Hello-World/branches{/branch}",
+                "collaborators_url": "https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}",
+                "comments_url": "https://api.github.com/repos/octocat/Hello-World/comments{/number}",
+                "commits_url": "https://api.github.com/repos/octocat/Hello-World/commits{/sha}",
+                "compare_url": "https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}",
+                "contents_url": "https://api.github.com/repos/octocat/Hello-World/contents/{+path}",
+                "contributors_url": "https://api.github.com/repos/octocat/Hello-World/contributors",
+                "deployments_url": "https://api.github.com/repos/octocat/Hello-World/deployments",
+                "downloads_url": "https://api.github.com/repos/octocat/Hello-World/downloads",
+                "events_url": "https://api.github.com/repos/octocat/Hello-World/events",
+                "forks_url": "https://api.github.com/repos/octocat/Hello-World/forks",
+                "git_commits_url": "https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}",
+                "git_refs_url": "https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}",
+                "git_url": "git:github.com/octocat/Hello-World.git",
+                "issue_comment_url": "https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}",
+                "issue_events_url": "https://api.github.com/repos/octocat/Hello-World/issues/events{/number}",
+                "issues_url": "https://api.github.com/repos/octocat/Hello-World/issues{/number}",
+                "keys_url": "https://api.github.com/repos/octocat/Hello-World/keys{/key_id}",
+                "labels_url": "https://api.github.com/repos/octocat/Hello-World/labels{/name}",
+                "languages_url": "https://api.github.com/repos/octocat/Hello-World/languages",
+                "merges_url": "https://api.github.com/repos/octocat/Hello-World/merges",
+                "milestones_url": "https://api.github.com/repos/octocat/Hello-World/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}",
+                "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls{/number}",
+                "releases_url": "https://api.github.com/repos/octocat/Hello-World/releases{/id}",
+                "ssh_url": "git@github.com:octocat/Hello-World.git",
+                "stargazers_url": "https://api.github.com/repos/octocat/Hello-World/stargazers",
+                "statuses_url": "https://api.github.com/repos/octocat/Hello-World/statuses/{sha}",
+                "subscribers_url": "https://api.github.com/repos/octocat/Hello-World/subscribers",
+                "subscription_url": "https://api.github.com/repos/octocat/Hello-World/subscription",
+                "tags_url": "https://api.github.com/repos/octocat/Hello-World/tags",
+                "teams_url": "https://api.github.com/repos/octocat/Hello-World/teams",
+                "trees_url": "https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}",
+                "hooks_url": "http://api.github.com/repos/octocat/Hello-World/hooks"
+              },
+              "machine": {
+                "name": "standardLinux",
+                "display_name": "4 cores, 8 GB RAM, 64 GB storage",
+                "operating_system": "linux",
+                "storage_in_bytes": 68719476736,
+                "memory_in_bytes": 8589934592,
+                "cpus": 4
+              },
+              "created_at": "2021-10-14T00:53:30-06:00",
+              "updated_at": "2021-10-14T00:53:32-06:00",
+              "last_used_at": "2021-10-14T00:53:30-06:00",
+              "state": "Available",
+              "url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3",
+              "git_status": {
+                "ahead": 0,
+                "behind": 0,
+                "has_unpushed_changes": false,
+                "has_uncommitted_changes": false,
+                "ref": "main"
+              },
+              "location": "WestUs2",
+              "auto_stop_delay_minutes": 60,
+              "web_url": "https://monalisa-octocat-hello-world-3f89ada1j3.github.dev",
+              "machines_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3/machines",
+              "start_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3/start",
+              "stop_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3/stop",
+              "recent_folders": [
+
+              ]
+            },
+            {
+              "id": 1,
+              "name": "monalisa-octocat-hello-world-f8adfad99a",
+              "environment_id": "6ac8cd6d-a2d0-4ae3-8cea-e135059264df",
+              "owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "billable_owner": {
+                "login": "octocat",
+                "id": 1,
+                "node_id": "MDQ6VXNlcjE=",
+                "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/octocat",
+                "html_url": "https://github.com/octocat",
+                "followers_url": "https://api.github.com/users/octocat/followers",
+                "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                "organizations_url": "https://api.github.com/users/octocat/orgs",
+                "repos_url": "https://api.github.com/users/octocat/repos",
+                "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/octocat/received_events",
+                "type": "User",
+                "site_admin": false
+              },
+              "repository": {
+                "id": 1296269,
+                "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
+                "name": "Hello-World",
+                "full_name": "octocat/Hello-World",
+                "owner": {
+                  "login": "octocat",
+                  "id": 1,
+                  "node_id": "MDQ6VXNlcjE=",
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "gravatar_id": "",
+                  "url": "https://api.github.com/users/octocat",
+                  "html_url": "https://github.com/octocat",
+                  "followers_url": "https://api.github.com/users/octocat/followers",
+                  "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                  "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                  "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                  "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                  "organizations_url": "https://api.github.com/users/octocat/orgs",
+                  "repos_url": "https://api.github.com/users/octocat/repos",
+                  "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                  "received_events_url": "https://api.github.com/users/octocat/received_events",
+                  "type": "User",
+                  "site_admin": false
+                },
+                "private": false,
+                "html_url": "https://github.com/octocat/Hello-World",
+                "description": "This your first repo!",
+                "fork": false,
+                "url": "https://api.github.com/repos/octocat/Hello-World",
+                "archive_url": "https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}",
+                "assignees_url": "https://api.github.com/repos/octocat/Hello-World/assignees{/user}",
+                "blobs_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}",
+                "branches_url": "https://api.github.com/repos/octocat/Hello-World/branches{/branch}",
+                "collaborators_url": "https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}",
+                "comments_url": "https://api.github.com/repos/octocat/Hello-World/comments{/number}",
+                "commits_url": "https://api.github.com/repos/octocat/Hello-World/commits{/sha}",
+                "compare_url": "https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}",
+                "contents_url": "https://api.github.com/repos/octocat/Hello-World/contents/{+path}",
+                "contributors_url": "https://api.github.com/repos/octocat/Hello-World/contributors",
+                "deployments_url": "https://api.github.com/repos/octocat/Hello-World/deployments",
+                "downloads_url": "https://api.github.com/repos/octocat/Hello-World/downloads",
+                "events_url": "https://api.github.com/repos/octocat/Hello-World/events",
+                "forks_url": "https://api.github.com/repos/octocat/Hello-World/forks",
+                "git_commits_url": "https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}",
+                "git_refs_url": "https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}",
+                "git_tags_url": "https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}",
+                "git_url": "git:github.com/octocat/Hello-World.git",
+                "issue_comment_url": "https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}",
+                "issue_events_url": "https://api.github.com/repos/octocat/Hello-World/issues/events{/number}",
+                "issues_url": "https://api.github.com/repos/octocat/Hello-World/issues{/number}",
+                "keys_url": "https://api.github.com/repos/octocat/Hello-World/keys{/key_id}",
+                "labels_url": "https://api.github.com/repos/octocat/Hello-World/labels{/name}",
+                "languages_url": "https://api.github.com/repos/octocat/Hello-World/languages",
+                "merges_url": "https://api.github.com/repos/octocat/Hello-World/merges",
+                "milestones_url": "https://api.github.com/repos/octocat/Hello-World/milestones{/number}",
+                "notifications_url": "https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}",
+                "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls{/number}",
+                "releases_url": "https://api.github.com/repos/octocat/Hello-World/releases{/id}",
+                "ssh_url": "git@github.com:octocat/Hello-World.git",
+                "stargazers_url": "https://api.github.com/repos/octocat/Hello-World/stargazers",
+                "statuses_url": "https://api.github.com/repos/octocat/Hello-World/statuses/{sha}",
+                "subscribers_url": "https://api.github.com/repos/octocat/Hello-World/subscribers",
+                "subscription_url": "https://api.github.com/repos/octocat/Hello-World/subscription",
+                "tags_url": "https://api.github.com/repos/octocat/Hello-World/tags",
+                "teams_url": "https://api.github.com/repos/octocat/Hello-World/teams",
+                "trees_url": "https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}",
+                "hooks_url": "http://api.github.com/repos/octocat/Hello-World/hooks"
+              },
+              "machine": {
+                "name": "standardLinux",
+                "display_name": "4 cores, 8 GB RAM, 64 GB storage",
+                "operating_system": "linux",
+                "storage_in_bytes": 68719476736,
+                "memory_in_bytes": 8589934592,
+                "cpus": 4
+              },
+              "created_at": "2021-10-14T00:53:30-06:00",
+              "updated_at": "2021-10-14T00:53:32-06:00",
+              "last_used_at": "2021-10-14T00:53:30-06:00",
+              "state": "Available",
+              "url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a",
+              "git_status": {
+                "ahead": 0,
+                "behind": 0,
+                "has_unpushed_changes": false,
+                "has_uncommitted_changes": false,
+                "ref": "main"
+              },
+              "location": "WestUs2",
+              "auto_stop_delay_minutes": 60,
+              "web_url": "https://monalisa-octocat-hello-world-f8adfad99a.github.dev",
+              "machines_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/machines",
+              "start_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/start",
+              "stop_url": "https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/stop",
+              "recent_folders": [
+
+              ]
+            }
+          ]
+        }
+      },
+      "codespaces-user-public-key": {
+        "value": {
+          "key_id": "012345678912345678",
+          "key": "2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234"
+        }
+      },
+      "user-codespaces-secret": {
+        "value": {
+          "name": "CODESPACE_GH_SECRET",
+          "created_at": "2019-08-10T14:59:22Z",
+          "updated_at": "2020-01-10T14:59:22Z",
+          "visibility": "selected",
+          "selected_repositories_url": "https://api.github.com/user/codespaces/secrets/CODESPACE_GH_SECRET/repositories"
         }
       },
       "email-items-3": {
@@ -96142,6 +98548,15 @@
         "required": true,
         "schema": {
           "type": "integer"
+        }
+      },
+      "codespace-name": {
+        "name": "codespace_name",
+        "in": "path",
+        "required": true,
+        "description": "The name of the codespace.",
+        "schema": {
+          "type": "string"
         }
       },
       "gpg-key-id": {
