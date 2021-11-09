@@ -2755,6 +2755,36 @@ paths:
         enabledForGitHubApps: false
         category: enterprise-admin
         subcategory: billing
+  "/enterprises/{enterprise}/settings/billing/advanced-security":
+    get:
+      summary: Get GitHub Advanced Security active committers for an enterprise
+      description: |-
+        Gets the GitHub Advanced Security active committers for an enterprise per repository.
+        Each distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of active_users for each repository.
+      tags:
+      - billing
+      operationId: billing/get-github-advanced-security-billing-ghe
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/billing#export-advanced-security-active-committers-data-for-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/advanced-security-active-committers"
+              examples:
+                default:
+                  "$ref": "#/components/examples/advanced-security-active-committers"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: enterprise-admin
+        subcategory: billing
   "/enterprises/{enterprise}/settings/billing/packages":
     get:
       summary: Get GitHub Packages billing for an enterprise
@@ -9211,6 +9241,37 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
+        category: billing
+        subcategory: 
+  "/orgs/{org}/settings/billing/advanced-security":
+    get:
+      summary: Get GitHub Advanced Security active committers for an organization
+      description: |-
+        Gets the GitHub Advanced Security active committers for an organization per repository.
+        Each distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of advanced_security_committers for each repository.
+        If this organization defers to an enterprise for billing, the total_advanced_security_committers returned from the organization API may include some users that are in more than one organization, so they will only consume a single Advanced Security seat at the enterprise level.
+      tags:
+      - billing
+      operationId: billing/get-github-advanced-security-billing-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/billing#get-github-advanced-security-active-committers-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/advanced-security-active-committers"
+              examples:
+                default:
+                  "$ref": "#/components/examples/advanced-security-active-committers"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
         category: billing
         subcategory: 
   "/orgs/{org}/settings/billing/packages":
@@ -39788,6 +39849,46 @@ components:
       - total_paid_minutes_used
       - included_minutes
       - minutes_used_breakdown
+    advanced-security-active-committers-user:
+      type: object
+      properties:
+        user_login:
+          type: string
+        last_pushed_date:
+          type: string
+          example: '2021-11-03'
+      required:
+      - user_login
+      - last_pushed_date
+    advanced-security-active-committers-repository:
+      type: object
+      properties:
+        name:
+          type: string
+          example: octocat/Hello-World
+        advanced_security_committers:
+          type: integer
+          example: 25
+        advanced_security_committers_breakdown:
+          type: array
+          items:
+            "$ref": "#/components/schemas/advanced-security-active-committers-user"
+      required:
+      - name
+      - advanced_security_committers
+      - advanced_security_committers_breakdown
+    advanced-security-active-committers:
+      type: object
+      properties:
+        total_advanced_security_committers:
+          type: integer
+          example: 25
+        repositories:
+          type: array
+          items:
+            "$ref": "#/components/schemas/advanced-security-active-committers-repository"
+      required:
+      - repositories
     packages-billing-usage:
       type: object
       properties:
@@ -47935,7 +48036,7 @@ components:
           - WestUs2
           example: WestUs2
           type: string
-        auto_stop_delay_minutes:
+        idle_timeout_minutes:
           description: The number of minutes of inactivity after which this codespace
             will be automatically stopped.
           type: integer
@@ -47983,7 +48084,7 @@ components:
       - url
       - git_status
       - location
-      - auto_stop_delay_minutes
+      - idle_timeout_minutes
       - web_url
       - machines_url
       - start_url
@@ -57166,6 +57267,22 @@ components:
           UBUNTU: 205
           MACOS: 10
           WINDOWS: 90
+    advanced-security-active-committers:
+      value:
+        total_advanced_security_committers: 2
+        repositories:
+        - name: octocat-org/Hello-World
+          advanced_security_committers: 2
+          advanced_security_committers_breakdown:
+          - user_login: octocat
+            last_pushed_date: '2021-11-03'
+          - user_login: octokitten
+            last_pushed_date: '2021-10-25'
+        - name: octocat-org/server
+          advanced_security_committers: 1
+          advanced_security_committers_breakdown:
+          - user_login: octokitten
+            last_pushed_date: '2021-10-26'
     packages-billing-usage:
       value:
         total_gigabytes_bandwidth_used: 50
@@ -58885,6 +59002,7 @@ components:
         credential_type: personal access token
         token_last_eight: 71c3fc11
         credential_authorized_at: '2011-01-26T19:06:43Z'
+        authorized_credential_expires_at: '2011-02-25T19:06:43Z'
         scopes:
         - user
         - repo
@@ -58893,6 +59011,7 @@ components:
         credential_type: personal access token
         token_last_eight: Ae178B4a
         credential_authorized_at: '2019-03-29T19:06:43Z'
+        authorized_credential_expires_at: '2019-04-28T19:06:43Z'
         scopes:
         - repo
     external-group:
@@ -64775,7 +64894,7 @@ components:
           has_uncommitted_changes: false
           ref: main
         location: WestUs2
-        auto_stop_delay_minutes: 60
+        idle_timeout_minutes: 60
         web_url: https://monalisa-octocat-hello-world-g4wpq6h95q.github.dev
         machines_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/machines
         start_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/start
@@ -72425,7 +72544,7 @@ components:
             has_uncommitted_changes: false
             ref: main
           location: WestUs2
-          auto_stop_delay_minutes: 60
+          idle_timeout_minutes: 60
           web_url: https://monalisa-octocat-hello-world-g4wpq6h95q.github.dev
           machines_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/machines
           start_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/start
@@ -72558,7 +72677,7 @@ components:
             has_uncommitted_changes: false
             ref: main
           location: WestUs2
-          auto_stop_delay_minutes: 60
+          idle_timeout_minutes: 60
           web_url: https://monalisa-octocat-hello-world-3f89ada1j3.github.dev
           machines_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3/machines
           start_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-3f89ada1j3/start
@@ -72691,7 +72810,7 @@ components:
             has_uncommitted_changes: false
             ref: main
           location: WestUs2
-          auto_stop_delay_minutes: 60
+          idle_timeout_minutes: 60
           web_url: https://monalisa-octocat-hello-world-f8adfad99a.github.dev
           machines_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/machines
           start_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/start
@@ -74529,9 +74648,9 @@ components:
       description: |-
         The event types to include:
 
-        - `web` - returns web (non-Git) events
-        - `git` - returns Git events
-        - `all` - returns both web and Git events
+        - `web` - returns web (non-Git) events.
+        - `git` - returns Git events.
+        - `all` - returns both web and Git events.
 
         The default is `web`.
       in: query
