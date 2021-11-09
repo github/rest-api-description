@@ -4448,6 +4448,51 @@
         }
       }
     },
+    "/enterprises/{enterprise}/settings/billing/advanced-security": {
+      "get": {
+        "summary": "Get GitHub Advanced Security active committers for an enterprise",
+        "description": "Gets the GitHub Advanced Security active committers for an enterprise per repository.\nEach distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of active_users for each repository.",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "billing/get-github-advanced-security-billing-ghe",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/billing#export-advanced-security-active-committers-data-for-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/advanced-security-active-committers"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/advanced-security-active-committers"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "enterprise-admin",
+          "subcategory": "billing"
+        }
+      }
+    },
     "/feeds": {
       "get": {
         "summary": "Get feeds",
@@ -9943,6 +9988,51 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "repos",
+          "subcategory": null
+        }
+      }
+    },
+    "/orgs/{org}/settings/billing/advanced-security": {
+      "get": {
+        "summary": "Get GitHub Advanced Security active committers for an organization",
+        "description": "Gets the GitHub Advanced Security active committers for an organization per repository.\nEach distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of advanced_security_committers for each repository.\nIf this organization defers to an enterprise for billing, the total_advanced_security_committers returned from the organization API may include some users that are in more than one organization, so they will only consume a single Advanced Security seat at the enterprise level.",
+        "tags": [
+          "billing"
+        ],
+        "operationId": "billing/get-github-advanced-security-billing-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/billing#get-github-advanced-security-active-committers-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/advanced-security-active-committers"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/advanced-security-active-committers"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "billing",
           "subcategory": null
         }
       }
@@ -44871,7 +44961,7 @@
       },
       "announcement-message": {
         "type": "string",
-        "description": "The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \"[Mastering markdown](https://guides.github.com/features/mastering-markdown/).\"",
+        "description": "The announcement text in GitHub Flavored Markdown. For more information about GitHub Flavored Markdown, see \"[Basic writing and formatting syntax](https://docs.github.com/github-ae@latest/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).\"",
         "example": "Very **important** announcement about _nothing_."
       },
       "announcement-expiration": {
@@ -45342,6 +45432,64 @@
           "status",
           "busy",
           "labels"
+        ]
+      },
+      "advanced-security-active-committers-user": {
+        "type": "object",
+        "properties": {
+          "user_login": {
+            "type": "string"
+          },
+          "last_pushed_date": {
+            "type": "string",
+            "example": "2021-11-03"
+          }
+        },
+        "required": [
+          "user_login",
+          "last_pushed_date"
+        ]
+      },
+      "advanced-security-active-committers-repository": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "octocat/Hello-World"
+          },
+          "advanced_security_committers": {
+            "type": "integer",
+            "example": 25
+          },
+          "advanced_security_committers_breakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/advanced-security-active-committers-user"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "advanced_security_committers",
+          "advanced_security_committers_breakdown"
+        ]
+      },
+      "advanced-security-active-committers": {
+        "type": "object",
+        "properties": {
+          "total_advanced_security_committers": {
+            "type": "integer",
+            "example": 25
+          },
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/advanced-security-active-committers-repository"
+            }
+          }
+        },
+        "required": [
+          "repositories"
         ]
       },
       "link-with-type": {
@@ -64712,6 +64860,37 @@
               "id": 21,
               "name": "no-gpu",
               "type": "custom"
+            }
+          ]
+        }
+      },
+      "advanced-security-active-committers": {
+        "value": {
+          "total_advanced_security_committers": 2,
+          "repositories": [
+            {
+              "name": "octocat-org/Hello-World",
+              "advanced_security_committers": 2,
+              "advanced_security_committers_breakdown": [
+                {
+                  "user_login": "octocat",
+                  "last_pushed_date": "2021-11-03"
+                },
+                {
+                  "user_login": "octokitten",
+                  "last_pushed_date": "2021-10-25"
+                }
+              ]
+            },
+            {
+              "name": "octocat-org/server",
+              "advanced_security_committers": 1,
+              "advanced_security_committers_breakdown": [
+                {
+                  "user_login": "octokitten",
+                  "last_pushed_date": "2021-10-26"
+                }
+              ]
             }
           ]
         }
