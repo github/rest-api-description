@@ -11685,6 +11685,21 @@ paths:
                         `checks` instead of `contexts` for more fine-grained control.
                       items:
                         type: string
+                    checks:
+                      type: array
+                      description: The list of status checks to require in order to
+                        merge into this branch.
+                      items:
+                        type: object
+                        properties:
+                          context:
+                            type: string
+                            description: The name of the required check
+                          app_id:
+                            type: integer
+                            description: The ID of the GitHub App that must provide
+                              this check. Set to `null` to accept the check from any
+                              source.
                   required:
                   - strict
                   - contexts
@@ -14715,7 +14730,11 @@ paths:
       description: |-
         This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)".
+        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+
+        ```
+        Cannot assign {member} permission of {role name}
+        ```
 
         Note that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see "[HTTP verbs](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#http-verbs)."
 
@@ -37838,6 +37857,19 @@ components:
               type: array
               items:
                 type: string
+            checks:
+              type: array
+              items:
+                type: object
+                properties:
+                  context:
+                    type: string
+                  app_id:
+                    type: integer
+                    nullable: true
+                required:
+                - context
+                - app_id
             contexts_url:
               type: string
             strict:
@@ -38177,6 +38209,17 @@ components:
           - continuous-integration/travis-ci
           items:
             type: string
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              context:
+                type: string
+                example: continuous-integration/travis-ci
+              app_id:
+                type: integer
+                nullable: true
         contexts_url:
           type: string
           format: uri
