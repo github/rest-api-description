@@ -8193,7 +8193,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "The rendering mode.",
+                    "description": "The rendering mode. Can be either `markdown` or `gfm`.",
                     "enum": [
                       "markdown",
                       "gfm"
@@ -8203,7 +8203,7 @@
                     "type": "string"
                   },
                   "context": {
-                    "description": "The repository context to use when creating references in `gfm` mode.",
+                    "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository.",
                     "type": "string"
                   }
                 },
@@ -19653,6 +19653,23 @@
                         "items": {
                           "type": "string"
                         }
+                      },
+                      "checks": {
+                        "type": "array",
+                        "description": "The list of status checks to require in order to merge into this branch.",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "context": {
+                              "type": "string",
+                              "description": "The name of the required check"
+                            },
+                            "app_id": {
+                              "type": "integer",
+                              "description": "The ID of the GitHub App that must provide this check. Set to `null` to accept the check from any source."
+                            }
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -23903,7 +23920,7 @@
       },
       "put": {
         "summary": "Add a repository collaborator",
-        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.1/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\".\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.1/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
+        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.1/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:\n\n```\nCannot assign {member} permission of {role name}\n```\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.1/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
         "tags": [
           "repos"
         ],
@@ -26510,7 +26527,7 @@
                 "properties": {
                   "state": {
                     "type": "string",
-                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued` `pending`, or `success`. **Note:** To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.1/rest/overview/api-previews#enhanced-deployments) custom media type. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
+                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued`, `pending`, or `success`. **Note:** To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.1/rest/overview/api-previews#enhanced-deployments) custom media type. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
                     "enum": [
                       "error",
                       "failure",
@@ -49893,6 +49910,32 @@
           "runners_url"
         ]
       },
+      "runner-label": {
+        "title": "Self hosted runner label",
+        "description": "A label for a self hosted runner",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique identifier of the label."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the label."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
+            "enum": [
+              "read-only",
+              "custom"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "runner": {
         "title": "Self hosted runners",
         "description": "A self hosted runner",
@@ -49924,25 +49967,7 @@
           "labels": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "description": "Unique identifier of the label."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Name of the label."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
-                  "enum": [
-                    "read-only",
-                    "custom"
-                  ]
-                }
-              }
+              "$ref": "#/components/schemas/runner-label"
             }
           }
         },
@@ -56886,6 +56911,25 @@
                   "type": "string"
                 }
               },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "context": {
+                      "type": "string"
+                    },
+                    "app_id": {
+                      "type": "integer",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "context",
+                    "app_id"
+                  ]
+                }
+              },
               "contexts_url": {
                 "type": "string"
               },
@@ -57349,6 +57393,22 @@
             ],
             "items": {
               "type": "string"
+            }
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "context": {
+                  "type": "string",
+                  "example": "continuous-integration/travis-ci"
+                },
+                "app_id": {
+                  "type": "integer",
+                  "nullable": true
+                }
+              }
             }
           },
           "contexts_url": {
