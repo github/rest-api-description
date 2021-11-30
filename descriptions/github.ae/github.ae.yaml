@@ -4271,7 +4271,7 @@ paths:
                   description: The Markdown text to render in HTML.
                   type: string
                 mode:
-                  description: The rendering mode.
+                  description: The rendering mode. Can be either `markdown` or `gfm`.
                   enum:
                   - markdown
                   - gfm
@@ -4280,7 +4280,9 @@ paths:
                   type: string
                 context:
                   description: The repository context to use when creating references
-                    in `gfm` mode.
+                    in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo`
+                    will change the text `#42` into an HTML link to issue 42 in the
+                    `octo-org/octo-repo` repository.
                   type: string
               required:
               - text
@@ -5821,6 +5823,84 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: secrets
+  "/orgs/{org}/external-group/{group_id}":
+    get:
+      summary: Get an external group
+      description: |-
+        Displays information about the specific group's usage.  Provides a list of the group's external members as well as a list of teams that this group is connected to.
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/external-idp-group-info-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#external-idp-group-info-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/group-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/external-group"
+              examples:
+                default:
+                  "$ref": "#/components/examples/external-group"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: teams
+        subcategory: external-groups
+  "/orgs/{org}/external-groups":
+    get:
+      summary: List external groups in an organization
+      description: |-
+        Lists external groups available in an organization. You can query the groups using the `display_name` parameter, only groups with a `group_name` containing the text provided in the `display_name` parameter will be returned.  You can also limit your page results using the `per_page` parameter. GitHub AE generates a url-encoded `page` token using a cursor value for where the next page begins. For more information on cursor pagination, see "[Offset and Cursor Pagination explained](https://dev.to/jackmarchant/offset-and-cursor-pagination-explained-b89)."
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/list-external-idp-groups-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-groups-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - name: page
+        description: Page token
+        in: query
+        schema:
+          type: integer
+      - name: display_name
+        description: Limits the list to groups containing the text in the group name
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/external-groups"
+              examples:
+                default:
+                  "$ref": "#/components/examples/external-groups"
+          headers:
+            Link:
+              example: <https://api.github.com/resource?per_page=2&page=url-encoded-next-page-token>;
+                rel="next"
+              schema:
+                type: string
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: teams
+        subcategory: external-groups
   "/orgs/{org}/hooks":
     get:
       summary: List organization webhooks
@@ -8073,6 +8153,75 @@ paths:
         enabledForGitHubApps: true
         category: reactions
         subcategory: 
+  "/orgs/{org}/teams/{team_slug}/external-groups":
+    patch:
+      summary: Update the connection between an external group and a team
+      description: |-
+        Creates a connection between a team and an external group.  Only one external group can be linked to a team.
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/link-external-idp-group-to-team-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#link-external-idp-group-team-connection
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/team-slug"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_id:
+                  type: integer
+                  description: External Group Id
+                  example: 1
+              required:
+              - group_id
+            example:
+              group_id: 123
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/external-group"
+              examples:
+                default:
+                  "$ref": "#/components/examples/external-group"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        category: teams
+        subcategory: external-groups
+    delete:
+      summary: Remove the connection between an external group and a team
+      description: |-
+        Deletes a connection between a team and an external group.
+
+        You can manage team membership with your IdP using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/unlink-external-idp-group-from-team-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#unlink-external-idp-group-team-connection
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/team-slug"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        category: teams
+        subcategory: external-groups
   "/orgs/{org}/teams/{team_slug}/members":
     get:
       summary: List team members
@@ -11678,13 +11827,33 @@ paths:
                       description: Require branches to be up to date before merging.
                     contexts:
                       type: array
-                      description: The list of status checks to require in order to
-                        merge into this branch. If any of these checks have recently
-                        been set by a particular GitHub App, they will be required
-                        to come from that app in future for the branch to merge. Use
-                        `checks` instead of `contexts` for more fine-grained control.
+                      deprecated: true
+                      description: "**Deprecated**: The list of status checks to require
+                        in order to merge into this branch. If any of these checks
+                        have recently been set by a particular GitHub App, they will
+                        be required to come from that app in future for the branch
+                        to merge. Use `checks` instead of `contexts` for more fine-grained
+                        control.\n"
                       items:
                         type: string
+                    checks:
+                      type: array
+                      description: The list of status checks to require in order to
+                        merge into this branch.
+                      items:
+                        type: object
+                        required:
+                        - context
+                        properties:
+                          context:
+                            type: string
+                            description: The name of the required check
+                          app_id:
+                            type: integer
+                            description: The ID of the GitHub App that must provide
+                              this check. Omit this field to automatically select
+                              the GitHub App that has recently provided this check,
+                              or any app if it was not set by a GitHub App.
                   required:
                   - strict
                   - contexts
@@ -11786,6 +11955,14 @@ paths:
                   description: 'Requires all conversations on code to be resolved
                     before a pull request can be merged into a branch that matches
                     this rule. Set to `false` to disable. Default: `false`.'
+                contexts:
+                  type: array
+                  description: 'The list of status checks to require in order to merge
+                    into this branch.
+
+'
+                  items:
+                    type: string
               required:
               - required_status_checks
               - enforce_admins
@@ -12234,7 +12411,7 @@ paths:
       operationId: repos/update-status-check-protection
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/repos#update-status-check-potection
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#update-status-check-protection
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -12251,6 +12428,7 @@ paths:
                   description: Require branches to be up to date before merging.
                 contexts:
                   type: array
+                  deprecated: true
                   description: The list of status checks to require in order to merge
                     into this branch
                   items:
@@ -14715,7 +14893,11 @@ paths:
       description: |-
         This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)".
+        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+
+        ```
+        Cannot assign {member} permission of {role name}
+        ```
 
         Note that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see "[HTTP verbs](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#http-verbs)."
 
@@ -15789,97 +15971,6 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: commits
-  "/repos/{owner}/{repo}/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: owner
-        description: The owner of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: repo
-        description: The name of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: content_reference_id
-        description: The `id` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/content-reference-attachment"
-              examples:
-                default:
-                  "$ref": "#/components/examples/content-reference-attachment"
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '410':
-          "$ref": "#/components/responses/gone"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
-        '304':
-          "$ref": "#/components/responses/not_modified"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
   "/repos/{owner}/{repo}/contents/{path}":
     get:
       summary: Get repository content
@@ -16602,9 +16693,9 @@ paths:
                 state:
                   type: string
                   description: The state of the status. Can be one of `error`, `failure`,
-                    `inactive`, `in_progress`, `queued` `pending`, or `success`. When
-                    you set a transient deployment to `inactive`, the deployment will
-                    be shown as `destroyed` in GitHub.
+                    `inactive`, `in_progress`, `queued`, `pending`, or `success`.
+                    When you set a transient deployment to `inactive`, the deployment
+                    will be shown as `destroyed` in GitHub.
                   enum:
                   - error
                   - failure
@@ -20141,7 +20232,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
               required:
               - name
             example:
@@ -20244,7 +20336,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
             example:
               new_name: 'bug :bug:'
               description: Small bug fix required
@@ -29688,6 +29781,13 @@ components:
       required: true
       schema:
         type: string
+    group-id:
+      name: group_id
+      description: group_id parameter
+      in: path
+      required: true
+      schema:
+        type: integer
     team-slug:
       name: team_slug
       description: team_slug parameter
@@ -32526,6 +32626,26 @@ components:
       - allows_public_repositories
       - default
       - runners_url
+    runner-label:
+      title: Self hosted runner label
+      description: A label for a self hosted runner
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the label.
+        name:
+          type: string
+          description: Name of the label.
+        type:
+          type: string
+          description: The type of label. Read-only labels are applied automatically
+            when the runner is configured.
+          enum:
+          - read-only
+          - custom
+      required:
+      - name
     runner:
       title: Self hosted runners
       description: A self hosted runner
@@ -32552,21 +32672,7 @@ components:
         labels:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: Unique identifier of the label.
-              name:
-                type: string
-                description: Name of the label.
-              type:
-                type: string
-                description: The type of label. Read-only labels are applied automatically
-                  when the runner is configured.
-                enum:
-                - read-only
-                - custom
+            "$ref": "#/components/schemas/runner-label"
       required:
       - id
       - name
@@ -35169,6 +35275,120 @@ components:
       type: object
       properties: {}
       additionalProperties: false
+    external-group:
+      title: ExternalGroup
+      description: Information about an external group's usage and its members
+      type: object
+      required:
+      - group_id
+      - group_name
+      - teams
+      - members
+      properties:
+        group_id:
+          description: The internal ID of the group
+          example: 1
+          type: integer
+        group_name:
+          description: The display name for the group
+          example: group-azuread-test
+          type: string
+        updated_at:
+          description: The date when the group was last updated_at
+          example: 2021-01-03 22:27:15:000 -700
+          type: string
+        teams:
+          description: An array of teams linked to this group
+          example:
+          - team_id: 1
+            team_name: team-test
+          - team_id: 2
+            team_name: team-test2
+          type: array
+          items:
+            type: object
+            required:
+            - team_id
+            - team_name
+            properties:
+              team_id:
+                description: The id for a team
+                example: 1
+                type: integer
+              team_name:
+                description: The name of the team
+                example: team-test
+                type: string
+        members:
+          description: An array of external members linked to this group
+          example:
+          - member_id: 1
+            member_login: mona-lisa_eocsaxrs
+            member_name: Mona Lisa
+            member_email: mona_lisa@github.com
+          - member_id: 2
+            member_login: octo-lisa_eocsaxrs
+            member_name: Octo Lisa
+            member_email: octo_lisa@github.com
+          type: array
+          items:
+            type: object
+            required:
+            - member_id
+            - member_login
+            - member_name
+            - member_email
+            properties:
+              member_id:
+                description: The internal user ID of the identity
+                example: 1
+                type: integer
+              member_login:
+                description: The handle/login for the user
+                example: mona-lisa_eocsaxrs
+                type: string
+              member_name:
+                description: The user display name/profile name
+                example: Mona Lisa
+                type: string
+              member_email:
+                description: An email attached to a user
+                example: mona_lisa@github.com
+                type: string
+    external-groups:
+      title: ExternalGroups
+      description: A list of external groups available to be connected to a team
+      type: object
+      properties:
+        groups:
+          description: An array of external groups available to be mapped to a team
+          example:
+          - group_id: 1
+            group_name: group-azuread-test
+            updated_at: 2021-01-03 22:27:15:000 -700
+          - group_id: 2
+            group_name: group-azuread-test2
+            updated_at: 2021-06-03 22:27:15:000 -700
+          type: array
+          items:
+            type: object
+            required:
+            - group_id
+            - group_name
+            - updated_at
+            properties:
+              group_id:
+                description: The internal ID of the group
+                example: 1
+                type: integer
+              group_name:
+                description: The display name of the group
+                example: group-azuread-test
+                type: string
+              updated_at:
+                description: The time of the last update for this group
+                example: 2019-06-03 22:27:15:000 -700
+                type: string
     org-hook:
       title: Org Hook
       description: Org Hook
@@ -37563,6 +37783,39 @@ components:
       - id
       - key_prefix
       - url_template
+    protected-branch-required-status-check:
+      title: Protected Branch Required Status Check
+      description: Protected Branch Required Status Check
+      type: object
+      properties:
+        url:
+          type: string
+        enforcement_level:
+          type: string
+        contexts:
+          type: array
+          items:
+            type: string
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              context:
+                type: string
+              app_id:
+                type: integer
+                nullable: true
+            required:
+            - context
+            - app_id
+        contexts_url:
+          type: string
+        strict:
+          type: boolean
+      required:
+      - contexts
+      - checks
     protected-branch-admin-enforced:
       title: Protected Branch Admin Enforced
       description: Protected Branch Admin Enforced
@@ -37828,22 +38081,7 @@ components:
         enabled:
           type: boolean
         required_status_checks:
-          type: object
-          properties:
-            url:
-              type: string
-            enforcement_level:
-              type: string
-            contexts:
-              type: array
-              items:
-                type: string
-            contexts_url:
-              type: string
-            strict:
-              type: boolean
-          required:
-          - contexts
+          "$ref": "#/components/schemas/protected-branch-required-status-check"
         enforce_admins:
           "$ref": "#/components/schemas/protected-branch-admin-enforced"
         required_pull_request_reviews:
@@ -38655,6 +38893,10 @@ components:
           type: integer
         check_runs_url:
           type: string
+        rerequestable:
+          type: boolean
+        runs_rerequestable:
+          type: boolean
       required:
       - id
       - node_id
@@ -39940,34 +40182,6 @@ components:
       - behind_by
       - total_commits
       - commits
-    content-reference-attachment:
-      title: ContentReferenceAttachment
-      description: Content Reference attachments allow you to provide context around
-        URLs posted in comments
-      type: object
-      properties:
-        id:
-          description: The ID of the attachment
-          example: 21
-          type: integer
-        title:
-          description: The title of the attachment
-          example: Title of the attachment
-          type: string
-          maxLength: 1024
-        body:
-          description: The body of the attachment
-          example: Body of the attachment
-          type: string
-          maxLength: 262144
-        node_id:
-          description: The node_id of the content attachment
-          example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-          type: string
-      required:
-      - id
-      - title
-      - body
     content-tree:
       title: Content Tree
       description: Content Tree
@@ -48691,6 +48905,34 @@ components:
           teams_url: https://api.github.com/repos/octocat/Hello-World/teams
           trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
           hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
+    external-group:
+      value:
+        group_id: '123'
+        group_name: Octocat admins
+        updated_at: '2021-01-24T11:31:04-06:00'
+        teams:
+        - team_id: 1
+          team_name: team-test
+        - team_id: 2
+          team_name: team-test2
+        members:
+        - member_id: 1
+          member_login: mona-lisa_eocsaxrs
+          member_name: Mona Lisa
+          member_email: mona_lisa@github.com
+        - member_id: 2
+          member_login: octo-lisa_eocsaxrs
+          member_name: Octo Lisa
+          member_email: octo_lisa@github.com
+    external-groups:
+      value:
+        groups:
+        - group_id: '123'
+          group_name: Octocat admins
+          updated_at: '2021-01-24T11:31:04-06:00'
+        - group_id: '456'
+          group_name: Octocat docs members
+          updated_at: '2021-03-24T11:31:04-06:00'
     org-hook-items:
       value:
       - id: 1
@@ -49864,9 +50106,11 @@ components:
           created_at: '2011-01-26T19:01:12Z'
           updated_at: '2011-01-26T19:14:43Z'
           permissions:
-            admin: false
-            push: false
             pull: true
+            triage: false
+            push: false
+            maintain: false
+            admin: false
           allow_rebase_merge: true
           temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
           allow_squash_merge: true
@@ -54514,19 +54758,6 @@ components:
           raw_url: https://github.com/octocat/Hello-World/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/file1.txt
           contents_url: https://api.github.com/repos/octocat/Hello-World/contents/file1.txt?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e
           patch: "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@ module Test"
-    content-reference-attachment:
-      value:
-        id: 101
-        title: "[A-1234] Error found in core/models.py file'"
-        body: |-
-          You have used an email that already exists for the user_email_uniq field.
-           ## DETAILS:
-
-          The (email)=(Octocat@github.com) already exists.
-
-           The error was found in core/models.py in get_or_create_user at line 62.
-
-           self.save()
     content-file-response-if-content-is-a-file:
       summary: Response if content is a file
       value:
@@ -59710,9 +59941,11 @@ components:
           created_at: '2011-01-26T19:01:12Z'
           updated_at: '2011-01-26T19:14:43Z'
           permissions:
-            admin: false
-            push: false
             pull: true
+            triage: false
+            push: false
+            maintain: false
+            admin: false
           allow_rebase_merge: true
           temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
           allow_squash_merge: true
