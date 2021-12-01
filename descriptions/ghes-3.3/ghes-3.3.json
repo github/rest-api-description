@@ -8211,7 +8211,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "The rendering mode.",
+                    "description": "The rendering mode. Can be either `markdown` or `gfm`.",
                     "enum": [
                       "markdown",
                       "gfm"
@@ -8221,7 +8221,7 @@
                     "type": "string"
                   },
                   "context": {
-                    "description": "The repository context to use when creating references in `gfm` mode.",
+                    "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository.",
                     "type": "string"
                   }
                 },
@@ -20139,9 +20139,30 @@
                       },
                       "contexts": {
                         "type": "array",
-                        "description": "The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.",
+                        "deprecated": true,
+                        "description": "**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\n",
                         "items": {
                           "type": "string"
+                        }
+                      },
+                      "checks": {
+                        "type": "array",
+                        "description": "The list of status checks to require in order to merge into this branch.",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "context"
+                          ],
+                          "properties": {
+                            "context": {
+                              "type": "string",
+                              "description": "The name of the required check"
+                            },
+                            "app_id": {
+                              "type": "integer",
+                              "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App."
+                            }
+                          }
                         }
                       }
                     },
@@ -20242,6 +20263,13 @@
                   "required_conversation_resolution": {
                     "type": "boolean",
                     "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
+                  },
+                  "contexts": {
+                    "type": "array",
+                    "description": "The list of status checks to require in order to merge into this branch.",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -20875,7 +20903,7 @@
         "operationId": "repos/update-status-check-protection",
         "externalDocs": {
           "description": "API method documentation",
-          "url": "https://docs.github.com/enterprise-server@3.3/rest/reference/repos#update-status-check-potection"
+          "url": "https://docs.github.com/enterprise-server@3.3/rest/reference/repos#update-status-check-protection"
         },
         "parameters": [
           {
@@ -20901,6 +20929,7 @@
                   },
                   "contexts": {
                     "type": "array",
+                    "deprecated": true,
                     "description": "The list of status checks to require in order to merge into this branch",
                     "items": {
                       "type": "string"
@@ -24427,7 +24456,7 @@
       },
       "put": {
         "summary": "Add a repository collaborator",
-        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.3/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.3/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\".\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.3/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
+        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.3/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.3/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:\n\n```\nCannot assign {member} permission of {role name}\n```\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.3/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
         "tags": [
           "repos"
         ],
@@ -26949,7 +26978,7 @@
                 "properties": {
                   "state": {
                     "type": "string",
-                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued` `pending`, or `success`. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
+                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued`, `pending`, or `success`. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
                     "enum": [
                       "error",
                       "failure",
@@ -32322,7 +32351,7 @@
                   },
                   "description": {
                     "type": "string",
-                    "description": "A short description of the label."
+                    "description": "A short description of the label. Must be 100 characters or fewer."
                   }
                 },
                 "required": [
@@ -32475,7 +32504,7 @@
                   },
                   "description": {
                     "type": "string",
-                    "description": "A short description of the label."
+                    "description": "A short description of the label. Must be 100 characters or fewer."
                   }
                 }
               },
@@ -38073,6 +38102,75 @@
           "enabledForGitHubApps": true,
           "githubCloudOnly": false,
           "category": "secret-scanning"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations": {
+      "get": {
+        "summary": "List locations for a secret scanning alert",
+        "description": "Lists all locations for a given secret scanning alert for a private repository. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
+        "tags": [
+          "secret-scanning"
+        ],
+        "operationId": "secret-scanning/list-locations-for-alert",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.3/rest/reference/secret-scanning#list-locations-for-a-secret-scanning-alert"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/alert-number"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of locations where the secret was detected",
+                  "items": {
+                    "$ref": "#/components/schemas/secret-scanning-location"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/secret-scanning-location-list"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          },
+          "404": {
+            "description": "Repository is public, or secret scanning is disabled for the repository, or the resource is not found"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "secret-scanning",
+          "subcategory": null
         }
       }
     },
@@ -51189,6 +51287,32 @@
           "runners_url"
         ]
       },
+      "runner-label": {
+        "title": "Self hosted runner label",
+        "description": "A label for a self hosted runner",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique identifier of the label."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the label."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
+            "enum": [
+              "read-only",
+              "custom"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "runner": {
         "title": "Self hosted runners",
         "description": "A self hosted runner",
@@ -51220,25 +51344,7 @@
           "labels": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "description": "Unique identifier of the label."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Name of the label."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
-                  "enum": [
-                    "read-only",
-                    "custom"
-                  ]
-                }
-              }
+              "$ref": "#/components/schemas/runner-label"
             }
           }
         },
@@ -58278,6 +58384,34 @@
           "url_template"
         ]
       },
+      "protected-branch-required-status-check": {
+        "title": "Protected Branch Required Status Check",
+        "description": "Protected Branch Required Status Check",
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "enforcement_level": {
+            "type": "string"
+          },
+          "contexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contexts_url": {
+            "type": "string"
+          },
+          "strict": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "contexts"
+        ]
+      },
       "protected-branch-admin-enforced": {
         "title": "Protected Branch Admin Enforced",
         "description": "Protected Branch Admin Enforced",
@@ -58654,30 +58788,7 @@
             "type": "boolean"
           },
           "required_status_checks": {
-            "type": "object",
-            "properties": {
-              "url": {
-                "type": "string"
-              },
-              "enforcement_level": {
-                "type": "string"
-              },
-              "contexts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "contexts_url": {
-                "type": "string"
-              },
-              "strict": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "contexts"
-            ]
+            "$ref": "#/components/schemas/protected-branch-required-status-check"
           },
           "enforce_admins": {
             "$ref": "#/components/schemas/protected-branch-admin-enforced"
@@ -59759,6 +59870,12 @@
           },
           "check_runs_url": {
             "type": "string"
+          },
+          "rerequestable": {
+            "type": "boolean"
+          },
+          "runs_rerequestable": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -68039,6 +68156,86 @@
           }
         }
       },
+      "secret-scanning-location-commit": {
+        "description": "Represents a 'commit' secret scanning location type. This location type shows that a secret was detected inside a commit to a repository.",
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The file path in the repository",
+            "example": "/example/secrets.txt"
+          },
+          "start_line": {
+            "type": "number",
+            "description": "Line number at which the secret starts in the file"
+          },
+          "end_line": {
+            "type": "number",
+            "description": "Line number at which the secret ends in the file"
+          },
+          "start_column": {
+            "type": "number",
+            "description": "The column at which the secret starts within the start line when the file is interpreted as 8BIT ASCII"
+          },
+          "end_column": {
+            "type": "number",
+            "description": "The column at which the secret ends within the end line when the file is interpreted as 8BIT ASCII"
+          },
+          "blob_sha": {
+            "type": "string",
+            "description": "SHA-1 hash ID of the associated blob",
+            "example": "af5626b4a114abcb82d63db7c8082c3c4756e51b"
+          },
+          "blob_url": {
+            "type": "string",
+            "description": "The API URL to get the associated blob resource"
+          },
+          "commit_sha": {
+            "type": "string",
+            "description": "SHA-1 hash ID of the associated commit",
+            "example": "af5626b4a114abcb82d63db7c8082c3c4756e51b"
+          },
+          "commit_url": {
+            "type": "string",
+            "description": "The API URL to get the associated commit resource"
+          }
+        },
+        "required": [
+          "path",
+          "start_line",
+          "end_line",
+          "start_column",
+          "end_column",
+          "blob_sha",
+          "blob_url",
+          "commit_sha",
+          "commit_url"
+        ]
+      },
+      "secret-scanning-location": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "commit"
+            ],
+            "description": "The location type. Because secrets may be found in different types of resources (ie. code, comments, issues), this field identifies the type of resource where the secret was found.",
+            "example": "commit"
+          },
+          "details": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/secret-scanning-location-commit"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "details"
+        ]
+      },
       "stargazer": {
         "title": "Stargazer",
         "description": "Stargazer",
@@ -75550,9 +75747,11 @@
             "created_at": "2011-01-26T19:01:12Z",
             "updated_at": "2011-01-26T19:14:43Z",
             "permissions": {
-              "admin": false,
+              "pull": true,
+              "triage": false,
               "push": false,
-              "pull": true
+              "maintain": false,
+              "admin": false
             },
             "allow_rebase_merge": true,
             "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",
@@ -85421,6 +85620,52 @@
           "secret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2"
         }
       },
+      "secret-scanning-location-list": {
+        "value": [
+          {
+            "type": "commit",
+            "details": {
+              "path": "/example/secrets.txt",
+              "start_line": 1,
+              "end_line": 1,
+              "start_column": 1,
+              "end_column": 64,
+              "blob_sha": "af5626b4a114abcb82d63db7c8082c3c4756e51b",
+              "blob_url": "https://api.github.com/repos/octocat/hello-world/git/blobs/af5626b4a114abcb82d63db7c8082c3c4756e51b",
+              "commit_sha": "f14d7debf9775f957cf4f1e8176da0786431f72b",
+              "commit_url": "https://api.github.com/repos/octocat/hello-world/git/commits/f14d7debf9775f957cf4f1e8176da0786431f72b"
+            }
+          },
+          {
+            "type": "commit",
+            "details": {
+              "path": "/example/secrets.txt",
+              "start_line": 5,
+              "end_line": 5,
+              "start_column": 1,
+              "end_column": 64,
+              "blob_sha": "9def38117ab2d8355b982429aa924e268b4b0065",
+              "blob_url": "https://api.github.com/repos/octocat/hello-world/git/blobs/9def38117ab2d8355b982429aa924e268b4b0065",
+              "commit_sha": "588483b99a46342501d99e3f10630cfc1219ea32",
+              "commit_url": "https://api.github.com/repos/octocat/hello-world/git/commits/588483b99a46342501d99e3f10630cfc1219ea32"
+            }
+          },
+          {
+            "type": "commit",
+            "details": {
+              "path": "/example/secrets.txt",
+              "start_line": 12,
+              "end_line": 12,
+              "start_column": 1,
+              "end_column": 64,
+              "blob_sha": "0b33e9c66e19f7fb15137a82ff1c04c10cba6caf",
+              "blob_url": "https://api.github.com/repos/octocat/hello-world/git/blobs/0b33e9c66e19f7fb15137a82ff1c04c10cba6caf",
+              "commit_sha": "9def38117ab2d8355b982429aa924e268b4b0065",
+              "commit_url": "https://api.github.com/repos/octocat/hello-world/git/commits/9def38117ab2d8355b982429aa924e268b4b0065"
+            }
+          }
+        ]
+      },
       "simple-user-items-default-response": {
         "summary": "Default response",
         "value": [
@@ -87158,9 +87403,11 @@
             "created_at": "2011-01-26T19:01:12Z",
             "updated_at": "2011-01-26T19:14:43Z",
             "permissions": {
-              "admin": false,
+              "pull": true,
+              "triage": false,
               "push": false,
-              "pull": true
+              "maintain": false,
+              "admin": false
             },
             "allow_rebase_merge": true,
             "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",
