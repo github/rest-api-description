@@ -5858,7 +5858,7 @@ paths:
                   description: The Markdown text to render in HTML.
                   type: string
                 mode:
-                  description: The rendering mode.
+                  description: The rendering mode. Can be either `markdown` or `gfm`.
                   enum:
                   - markdown
                   - gfm
@@ -5867,7 +5867,9 @@ paths:
                   type: string
                 context:
                   description: The repository context to use when creating references
-                    in `gfm` mode.
+                    in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo`
+                    will change the text `#42` into an HTML link to issue 42 in the
+                    `octo-org/octo-repo` repository.
                   type: string
               required:
               - text
@@ -14304,10 +14306,33 @@ paths:
                       description: Require branches to be up to date before merging.
                     contexts:
                       type: array
-                      description: The list of status checks to require in order to
-                        merge into this branch
+                      deprecated: true
+                      description: "**Deprecated**: The list of status checks to require
+                        in order to merge into this branch. If any of these checks
+                        have recently been set by a particular GitHub App, they will
+                        be required to come from that app in future for the branch
+                        to merge. Use `checks` instead of `contexts` for more fine-grained
+                        control.\n"
                       items:
                         type: string
+                    checks:
+                      type: array
+                      description: The list of status checks to require in order to
+                        merge into this branch.
+                      items:
+                        type: object
+                        required:
+                        - context
+                        properties:
+                          context:
+                            type: string
+                            description: The name of the required check
+                          app_id:
+                            type: integer
+                            description: The ID of the GitHub App that must provide
+                              this check. Omit this field to automatically select
+                              the GitHub App that has recently provided this check,
+                              or any app if it was not set by a GitHub App.
                   required:
                   - strict
                   - contexts
@@ -14409,6 +14434,12 @@ paths:
                   description: 'Requires all conversations on code to be resolved
                     before a pull request can be merged into a branch that matches
                     this rule. Set to `false` to disable. Default: `false`.'
+                contexts:
+                  type: array
+                  description: The list of status checks to require in order to merge
+                    into this branch.
+                  items:
+                    type: string
               required:
               - required_status_checks
               - enforce_admins
@@ -14905,7 +14936,7 @@ paths:
       operationId: repos/update-status-check-protection
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.0/rest/reference/repos#update-status-check-potection
+        url: https://docs.github.com/enterprise-server@3.0/rest/reference/repos#update-status-check-protection
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -14922,6 +14953,7 @@ paths:
                   description: Require branches to be up to date before merging.
                 contexts:
                   type: array
+                  deprecated: true
                   description: The list of status checks to require in order to merge
                     into this branch
                   items:
@@ -17192,7 +17224,11 @@ paths:
       description: |-
         This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)".
+        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+
+        ```
+        Cannot assign {member} permission of {role name}
+        ```
 
         Note that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see "[HTTP verbs](https://docs.github.com/enterprise-server@3.0/rest/overview/resources-in-the-rest-api#http-verbs)."
 
@@ -19219,8 +19255,8 @@ paths:
                 state:
                   type: string
                   description: The state of the status. Can be one of `error`, `failure`,
-                    `inactive`, `in_progress`, `queued` `pending`, or `success`. **Note:**
-                    To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.0/rest/overview/api-previews#enhanced-deployments)
+                    `inactive`, `in_progress`, `queued`, `pending`, or `success`.
+                    **Note:** To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.0/rest/overview/api-previews#enhanced-deployments)
                     custom media type. When you set a transient deployment to `inactive`,
                     the deployment will be shown as `destroyed` in GitHub.
                   enum:
@@ -22937,7 +22973,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
               required:
               - name
             example:
@@ -23040,7 +23077,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
             example:
               new_name: 'bug :bug:'
               description: Small bug fix required
@@ -25151,6 +25189,10 @@ paths:
                 in_reply_to:
                   type: integer
                   example: 2
+                  description: The ID of the review comment to reply to. To find the
+                    ID of a review comment with ["List review comments on a pull request"](#list-review-comments-on-a-pull-request).
+                    When specified, all parameters other than `body` in the request
+                    body are ignored.
               required:
               - body
             examples:
@@ -35537,6 +35579,8 @@ components:
               type: boolean
             delete_branch_on_merge:
               type: boolean
+            allow_update_branch:
+              type: boolean
             allow_merge_commit:
               type: boolean
             subscribers_count:
@@ -36219,6 +36263,26 @@ components:
       - allows_public_repositories
       - default
       - runners_url
+    runner-label:
+      title: Self hosted runner label
+      description: A label for a self hosted runner
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the label.
+        name:
+          type: string
+          description: Name of the label.
+        type:
+          type: string
+          description: The type of label. Read-only labels are applied automatically
+            when the runner is configured.
+          enum:
+          - read-only
+          - custom
+      required:
+      - name
     runner:
       title: Self hosted runners
       description: A self hosted runner
@@ -36245,21 +36309,7 @@ components:
         labels:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: Unique identifier of the label.
-              name:
-                type: string
-                description: Name of the label.
-              type:
-                type: string
-                description: The type of label. Read-only labels are applied automatically
-                  when the runner is configured.
-                enum:
-                - read-only
-                - custom
+            "$ref": "#/components/schemas/runner-label"
       required:
       - id
       - name
@@ -36731,6 +36781,8 @@ components:
         updated_at:
           type: string
           format: date-time
+        draft:
+          type: boolean
         closed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         body_html:
@@ -38170,6 +38222,8 @@ components:
             allow_squash_merge:
               type: boolean
             delete_branch_on_merge:
+              type: boolean
+            allow_update_branch:
               type: boolean
             allow_merge_commit:
               type: boolean
@@ -40272,6 +40326,8 @@ components:
               "$ref": "#/components/schemas/rate-limit"
             actions_runner_registration:
               "$ref": "#/components/schemas/rate-limit"
+            scim:
+              "$ref": "#/components/schemas/rate-limit"
           required:
           - core
           - search
@@ -41215,6 +41271,25 @@ components:
       - badge_url
       - created_at
       - updated_at
+    protected-branch-required-status-check:
+      title: Protected Branch Required Status Check
+      description: Protected Branch Required Status Check
+      type: object
+      properties:
+        url:
+          type: string
+        enforcement_level:
+          type: string
+        contexts:
+          type: array
+          items:
+            type: string
+        contexts_url:
+          type: string
+        strict:
+          type: boolean
+      required:
+      - contexts
     protected-branch-admin-enforced:
       title: Protected Branch Admin Enforced
       description: Protected Branch Admin Enforced
@@ -41480,22 +41555,7 @@ components:
         enabled:
           type: boolean
         required_status_checks:
-          type: object
-          properties:
-            url:
-              type: string
-            enforcement_level:
-              type: string
-            contexts:
-              type: array
-              items:
-                type: string
-            contexts_url:
-              type: string
-            strict:
-              type: boolean
-          required:
-          - contexts
+          "$ref": "#/components/schemas/protected-branch-required-status-check"
         enforce_admins:
           "$ref": "#/components/schemas/protected-branch-admin-enforced"
         required_pull_request_reviews:
@@ -42307,6 +42367,10 @@ components:
           type: integer
         check_runs_url:
           type: string
+        rerequestable:
+          type: boolean
+        runs_rerequestable:
+          type: boolean
       required:
       - id
       - node_id
@@ -42375,31 +42439,26 @@ components:
       type: integer
       description: The security alert number.
       readOnly: true
-      nullable: false
     alert-created-at:
       type: string
       description: 'The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
       format: date-time
       readOnly: true
-      nullable: false
     alert-url:
       type: string
       description: The REST API URL of the alert resource.
       format: uri
       readOnly: true
-      nullable: false
     alert-html-url:
       type: string
       description: The GitHub URL of the alert resource.
       format: uri
       readOnly: true
-      nullable: false
     alert-instances-url:
       type: string
       description: The REST API URL for fetching the list of instances for an alert.
       format: uri
       readOnly: true
-      nullable: false
     code-scanning-alert-dismissed-at:
       type: string
       description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -42650,7 +42709,6 @@ components:
       type: string
       description: An identifier for the upload.
       example: 6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53
-      nullable: false
     code-scanning-analysis-commit-sha:
       description: The SHA of the commit to which the analysis you are uploading relates.
       type: string
@@ -42666,13 +42724,11 @@ components:
       description: 'The time that the analysis was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
       format: date-time
       readOnly: true
-      nullable: false
     code-scanning-analysis-url:
       type: string
       description: The REST API URL of the analysis resource.
       format: uri
       readOnly: true
-      nullable: false
     code-scanning-analysis:
       type: object
       properties:
@@ -42745,7 +42801,6 @@ components:
           description: The REST API URL for checking the status of the upload.
           format: uri
           readOnly: true
-          nullable: false
     collaborator:
       title: Collaborator
       description: Collaborator
@@ -44882,6 +44937,8 @@ components:
         updated_at:
           type: string
           format: date-time
+        draft:
+          type: boolean
         closed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         body_html:
@@ -54072,9 +54129,11 @@ components:
           created_at: '2011-01-26T19:01:12Z'
           updated_at: '2011-01-26T19:14:43Z'
           permissions:
-            admin: false
-            push: false
             pull: true
+            triage: false
+            push: false
+            maintain: false
+            admin: false
           allow_rebase_merge: true
           temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
           allow_squash_merge: true
@@ -64324,9 +64383,11 @@ components:
           created_at: '2011-01-26T19:01:12Z'
           updated_at: '2011-01-26T19:14:43Z'
           permissions:
-            admin: false
-            push: false
             pull: true
+            triage: false
+            push: false
+            maintain: false
+            admin: false
           allow_rebase_merge: true
           temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
           allow_squash_merge: true

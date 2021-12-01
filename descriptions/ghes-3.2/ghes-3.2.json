@@ -8331,7 +8331,7 @@
                     "type": "string"
                   },
                   "mode": {
-                    "description": "The rendering mode.",
+                    "description": "The rendering mode. Can be either `markdown` or `gfm`.",
                     "enum": [
                       "markdown",
                       "gfm"
@@ -8341,7 +8341,7 @@
                     "type": "string"
                   },
                   "context": {
-                    "description": "The repository context to use when creating references in `gfm` mode.",
+                    "description": "The repository context to use when creating references in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo` will change the text `#42` into an HTML link to issue 42 in the `octo-org/octo-repo` repository.",
                     "type": "string"
                   }
                 },
@@ -20152,9 +20152,30 @@
                       },
                       "contexts": {
                         "type": "array",
-                        "description": "The list of status checks to require in order to merge into this branch",
+                        "deprecated": true,
+                        "description": "**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\n",
                         "items": {
                           "type": "string"
+                        }
+                      },
+                      "checks": {
+                        "type": "array",
+                        "description": "The list of status checks to require in order to merge into this branch.",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "context"
+                          ],
+                          "properties": {
+                            "context": {
+                              "type": "string",
+                              "description": "The name of the required check"
+                            },
+                            "app_id": {
+                              "type": "integer",
+                              "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App."
+                            }
+                          }
                         }
                       }
                     },
@@ -20255,6 +20276,13 @@
                   "required_conversation_resolution": {
                     "type": "boolean",
                     "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
+                  },
+                  "contexts": {
+                    "type": "array",
+                    "description": "The list of status checks to require in order to merge into this branch.",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -20930,7 +20958,7 @@
         "operationId": "repos/update-status-check-protection",
         "externalDocs": {
           "description": "API method documentation",
-          "url": "https://docs.github.com/enterprise-server@3.2/rest/reference/repos#update-status-check-potection"
+          "url": "https://docs.github.com/enterprise-server@3.2/rest/reference/repos#update-status-check-protection"
         },
         "parameters": [
           {
@@ -20956,6 +20984,7 @@
                   },
                   "contexts": {
                     "type": "array",
+                    "deprecated": true,
                     "description": "The list of status checks to require in order to merge into this branch",
                     "items": {
                       "type": "string"
@@ -24406,7 +24435,7 @@
       },
       "put": {
         "summary": "Add a repository collaborator",
-        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.2/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.2/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\".\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.2/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.2/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
+        "description": "This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/enterprise-server@3.2/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.2/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)\" for details.\n\nFor more information on permission levels, see \"[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)\". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:\n\n```\nCannot assign {member} permission of {role name}\n```\n\nNote that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see \"[HTTP verbs](https://docs.github.com/enterprise-server@3.2/rest/overview/resources-in-the-rest-api#http-verbs).\"\n\nThe invitee will receive a notification that they have been invited to the repository, which they must accept or decline. They may do this via the notifications page, the email they receive, or by using the [repository invitations API endpoints](https://docs.github.com/enterprise-server@3.2/rest/reference/repos#invitations).\n\n**Rate limits**\n\nYou are limited to sending 50 invitations to a repository per 24 hour period. Note there is no limit if you are inviting organization members to an organization repository.",
         "tags": [
           "repos"
         ],
@@ -27019,7 +27048,7 @@
                 "properties": {
                   "state": {
                     "type": "string",
-                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued` `pending`, or `success`. **Note:** To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.2/rest/overview/api-previews#enhanced-deployments) custom media type. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
+                    "description": "The state of the status. Can be one of `error`, `failure`, `inactive`, `in_progress`, `queued`, `pending`, or `success`. **Note:** To use the `inactive` state, you must provide the [`application/vnd.github.ant-man-preview+json`](https://docs.github.com/enterprise-server@3.2/rest/overview/api-previews#enhanced-deployments) custom media type. When you set a transient deployment to `inactive`, the deployment will be shown as `destroyed` in GitHub.",
                     "enum": [
                       "error",
                       "failure",
@@ -32528,7 +32557,7 @@
                   },
                   "description": {
                     "type": "string",
-                    "description": "A short description of the label."
+                    "description": "A short description of the label. Must be 100 characters or fewer."
                   }
                 },
                 "required": [
@@ -32681,7 +32710,7 @@
                   },
                   "description": {
                     "type": "string",
-                    "description": "A short description of the label."
+                    "description": "A short description of the label. Must be 100 characters or fewer."
                   }
                 }
               },
@@ -35547,7 +35576,8 @@
                   },
                   "in_reply_to": {
                     "type": "integer",
-                    "example": 2
+                    "example": 2,
+                    "description": "The ID of the review comment to reply to. To find the ID of a review comment with [\"List review comments on a pull request\"](#list-review-comments-on-a-pull-request). When specified, all parameters other than `body` in the request body are ignored."
                   }
                 },
                 "required": [
@@ -50645,6 +50675,9 @@
               "delete_branch_on_merge": {
                 "type": "boolean"
               },
+              "allow_update_branch": {
+                "type": "boolean"
+              },
               "allow_merge_commit": {
                 "type": "boolean"
               },
@@ -51449,6 +51482,32 @@
           "runners_url"
         ]
       },
+      "runner-label": {
+        "title": "Self hosted runner label",
+        "description": "A label for a self hosted runner",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique identifier of the label."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the label."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
+            "enum": [
+              "read-only",
+              "custom"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "runner": {
         "title": "Self hosted runners",
         "description": "A self hosted runner",
@@ -51480,25 +51539,7 @@
           "labels": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "description": "Unique identifier of the label."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Name of the label."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "The type of label. Read-only labels are applied automatically when the runner is configured.",
-                  "enum": [
-                    "read-only",
-                    "custom"
-                  ]
-                }
-              }
+              "$ref": "#/components/schemas/runner-label"
             }
           }
         },
@@ -52104,6 +52145,9 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "draft": {
+            "type": "boolean"
           },
           "closed_by": {
             "$ref": "#/components/schemas/nullable-simple-user"
@@ -54014,6 +54058,9 @@
                 "type": "boolean"
               },
               "delete_branch_on_merge": {
+                "type": "boolean"
+              },
+              "allow_update_branch": {
                 "type": "boolean"
               },
               "allow_merge_commit": {
@@ -56856,6 +56903,9 @@
               },
               "actions_runner_registration": {
                 "$ref": "#/components/schemas/rate-limit"
+              },
+              "scim": {
+                "$ref": "#/components/schemas/rate-limit"
               }
             },
             "required": [
@@ -58371,6 +58421,34 @@
           "updated_at"
         ]
       },
+      "protected-branch-required-status-check": {
+        "title": "Protected Branch Required Status Check",
+        "description": "Protected Branch Required Status Check",
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "enforcement_level": {
+            "type": "string"
+          },
+          "contexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contexts_url": {
+            "type": "string"
+          },
+          "strict": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "contexts"
+        ]
+      },
       "protected-branch-admin-enforced": {
         "title": "Protected Branch Admin Enforced",
         "description": "Protected Branch Admin Enforced",
@@ -58747,30 +58825,7 @@
             "type": "boolean"
           },
           "required_status_checks": {
-            "type": "object",
-            "properties": {
-              "url": {
-                "type": "string"
-              },
-              "enforcement_level": {
-                "type": "string"
-              },
-              "contexts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "contexts_url": {
-                "type": "string"
-              },
-              "strict": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "contexts"
-            ]
+            "$ref": "#/components/schemas/protected-branch-required-status-check"
           },
           "enforce_admins": {
             "$ref": "#/components/schemas/protected-branch-admin-enforced"
@@ -59852,6 +59907,12 @@
           },
           "check_runs_url": {
             "type": "string"
+          },
+          "rerequestable": {
+            "type": "boolean"
+          },
+          "runs_rerequestable": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -59937,36 +59998,31 @@
       "alert-number": {
         "type": "integer",
         "description": "The security alert number.",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "alert-created-at": {
         "type": "string",
         "description": "The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
         "format": "date-time",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "alert-url": {
         "type": "string",
         "description": "The REST API URL of the alert resource.",
         "format": "uri",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "alert-html-url": {
         "type": "string",
         "description": "The GitHub URL of the alert resource.",
         "format": "uri",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "alert-instances-url": {
         "type": "string",
         "description": "The REST API URL for fetching the list of instances for an alert.",
         "format": "uri",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "code-scanning-alert-dismissed-at": {
         "type": "string",
@@ -60303,8 +60359,7 @@
       "code-scanning-analysis-sarif-id": {
         "type": "string",
         "description": "An identifier for the upload.",
-        "example": "6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53",
-        "nullable": false
+        "example": "6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53"
       },
       "code-scanning-analysis-commit-sha": {
         "description": "The SHA of the commit to which the analysis you are uploading relates.",
@@ -60321,15 +60376,13 @@
         "type": "string",
         "description": "The time that the analysis was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
         "format": "date-time",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "code-scanning-analysis-url": {
         "type": "string",
         "description": "The REST API URL of the analysis resource.",
         "format": "uri",
-        "readOnly": true,
-        "nullable": false
+        "readOnly": true
       },
       "code-scanning-analysis": {
         "type": "object",
@@ -60445,8 +60498,7 @@
             "type": "string",
             "description": "The REST API URL for checking the status of the upload.",
             "format": "uri",
-            "readOnly": true,
-            "nullable": false
+            "readOnly": true
           }
         }
       },
@@ -63363,6 +63415,9 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "draft": {
+            "type": "boolean"
           },
           "closed_by": {
             "$ref": "#/components/schemas/nullable-simple-user"
@@ -75055,9 +75110,11 @@
             "created_at": "2011-01-26T19:01:12Z",
             "updated_at": "2011-01-26T19:14:43Z",
             "permissions": {
-              "admin": false,
+              "pull": true,
+              "triage": false,
               "push": false,
-              "pull": true
+              "maintain": false,
+              "admin": false
             },
             "allow_rebase_merge": true,
             "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",
@@ -87132,9 +87189,11 @@
             "created_at": "2011-01-26T19:01:12Z",
             "updated_at": "2011-01-26T19:14:43Z",
             "permissions": {
-              "admin": false,
+              "pull": true,
+              "triage": false,
               "push": false,
-              "pull": true
+              "maintain": false,
+              "admin": false
             },
             "allow_rebase_merge": true,
             "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",

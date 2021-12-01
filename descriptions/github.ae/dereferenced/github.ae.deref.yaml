@@ -4009,6 +4009,8 @@ paths:
                               type: boolean
                             delete_branch_on_merge:
                               type: boolean
+                            allow_update_branch:
+                              type: boolean
                             allow_merge_commit:
                               type: boolean
                             subscribers_count:
@@ -6467,6 +6469,8 @@ paths:
                         labels:
                           type: array
                           items:
+                            title: Self hosted runner label
+                            description: A label for a self hosted runner
                             type: object
                             properties:
                               id:
@@ -6482,6 +6486,8 @@ paths:
                                 enum:
                                 - read-only
                                 - custom
+                            required:
+                            - name
                       required: &77
                       - id
                       - name
@@ -6821,89 +6827,6 @@ paths:
         githubCloudOnly: false
         category: enterprise-admin
         subcategory: actions
-  "/enterprises/{enterprise}/settings/billing/advanced-security":
-    get:
-      summary: Get GitHub Advanced Security active committers for an enterprise
-      description: |-
-        Gets the GitHub Advanced Security active committers for an enterprise per repository.
-        Each distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of active_users for each repository.
-      tags:
-      - billing
-      operationId: billing/get-github-advanced-security-billing-ghe
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/billing#export-advanced-security-active-committers-data-for-enterprise
-      parameters:
-      - name: enterprise
-        description: The slug version of the enterprise name. You can also substitute
-          this value with the enterprise id.
-        in: path
-        required: true
-        schema: *63
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: &141
-                  total_advanced_security_committers:
-                    type: integer
-                    example: 25
-                  repositories:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          example: octocat/Hello-World
-                        advanced_security_committers:
-                          type: integer
-                          example: 25
-                        advanced_security_committers_breakdown:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              user_login:
-                                type: string
-                              last_pushed_date:
-                                type: string
-                                example: '2021-11-03'
-                            required:
-                            - user_login
-                            - last_pushed_date
-                      required:
-                      - name
-                      - advanced_security_committers
-                      - advanced_security_committers_breakdown
-                required: &142
-                - repositories
-              examples:
-                default:
-                  value: &143
-                    total_advanced_security_committers: 2
-                    repositories:
-                    - name: octocat-org/Hello-World
-                      advanced_security_committers: 2
-                      advanced_security_committers_breakdown:
-                      - user_login: octocat
-                        last_pushed_date: '2021-11-03'
-                      - user_login: octokitten
-                        last_pushed_date: '2021-10-25'
-                    - name: octocat-org/server
-                      advanced_security_committers: 1
-                      advanced_security_committers_breakdown:
-                      - user_login: octokitten
-                        last_pushed_date: '2021-10-26'
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews: []
-        category: enterprise-admin
-        subcategory: billing
   "/feeds":
     get:
       summary: Get feeds
@@ -9526,6 +9449,8 @@ paths:
                     updated_at:
                       type: string
                       format: date-time
+                    draft:
+                      type: boolean
                     closed_by:
                       title: Simple User
                       description: Simple User
@@ -9566,7 +9491,7 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: &150
+                      properties: &147
                         url:
                           type: string
                           format: uri
@@ -9588,7 +9513,7 @@ paths:
                           type: integer
                         rocket:
                           type: integer
-                      required: &151
+                      required: &148
                       - url
                       - total_count
                       - "+1"
@@ -10176,7 +10101,7 @@ paths:
                   description: The Markdown text to render in HTML.
                   type: string
                 mode:
-                  description: The rendering mode.
+                  description: The rendering mode. Can be either `markdown` or `gfm`.
                   enum:
                   - markdown
                   - gfm
@@ -10185,7 +10110,9 @@ paths:
                   type: string
                 context:
                   description: The repository context to use when creating references
-                    in `gfm` mode.
+                    in `gfm` mode.  For example, setting `context` to `octo-org/octo-repo`
+                    will change the text `#42` into an HTML link to issue 42 in the
+                    `octo-org/octo-repo` repository.
                   type: string
               required:
               - text
@@ -13325,6 +13252,234 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: secrets
+  "/orgs/{org}/external-group/{group_id}":
+    get:
+      summary: Get an external group
+      description: |-
+        Displays information about the specific group's usage.  Provides a list of the group's external members as well as a list of teams that this group is connected to.
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/external-idp-group-info-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#external-idp-group-info-for-an-organization
+      parameters:
+      - name: org
+        in: path
+        required: true
+        schema: *106
+      - name: group_id
+        description: group_id parameter
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: ExternalGroup
+                description: Information about an external group's usage and its members
+                type: object
+                required: &162
+                - group_id
+                - group_name
+                - teams
+                - members
+                properties: &163
+                  group_id:
+                    description: The internal ID of the group
+                    example: 1
+                    type: integer
+                  group_name:
+                    description: The display name for the group
+                    example: group-azuread-test
+                    type: string
+                  updated_at:
+                    description: The date when the group was last updated_at
+                    example: 2021-01-03 22:27:15:000 -700
+                    type: string
+                  teams:
+                    description: An array of teams linked to this group
+                    example:
+                    - team_id: 1
+                      team_name: team-test
+                    - team_id: 2
+                      team_name: team-test2
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - team_id
+                      - team_name
+                      properties:
+                        team_id:
+                          description: The id for a team
+                          example: 1
+                          type: integer
+                        team_name:
+                          description: The name of the team
+                          example: team-test
+                          type: string
+                  members:
+                    description: An array of external members linked to this group
+                    example:
+                    - member_id: 1
+                      member_login: mona-lisa_eocsaxrs
+                      member_name: Mona Lisa
+                      member_email: mona_lisa@github.com
+                    - member_id: 2
+                      member_login: octo-lisa_eocsaxrs
+                      member_name: Octo Lisa
+                      member_email: octo_lisa@github.com
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - member_id
+                      - member_login
+                      - member_name
+                      - member_email
+                      properties:
+                        member_id:
+                          description: The internal user ID of the identity
+                          example: 1
+                          type: integer
+                        member_login:
+                          description: The handle/login for the user
+                          example: mona-lisa_eocsaxrs
+                          type: string
+                        member_name:
+                          description: The user display name/profile name
+                          example: Mona Lisa
+                          type: string
+                        member_email:
+                          description: An email attached to a user
+                          example: mona_lisa@github.com
+                          type: string
+              examples:
+                default:
+                  value: &164
+                    group_id: '123'
+                    group_name: Octocat admins
+                    updated_at: '2021-01-24T11:31:04-06:00'
+                    teams:
+                    - team_id: 1
+                      team_name: team-test
+                    - team_id: 2
+                      team_name: team-test2
+                    members:
+                    - member_id: 1
+                      member_login: mona-lisa_eocsaxrs
+                      member_name: Mona Lisa
+                      member_email: mona_lisa@github.com
+                    - member_id: 2
+                      member_login: octo-lisa_eocsaxrs
+                      member_name: Octo Lisa
+                      member_email: octo_lisa@github.com
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: teams
+        subcategory: external-groups
+  "/orgs/{org}/external-groups":
+    get:
+      summary: List external groups in an organization
+      description: |-
+        Lists external groups available in an organization. You can query the groups using the `display_name` parameter, only groups with a `group_name` containing the text provided in the `display_name` parameter will be returned.  You can also limit your page results using the `per_page` parameter. GitHub AE generates a url-encoded `page` token using a cursor value for where the next page begins. For more information on cursor pagination, see "[Offset and Cursor Pagination explained](https://dev.to/jackmarchant/offset-and-cursor-pagination-explained-b89)."
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/list-external-idp-groups-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-groups-for-an-organization
+      parameters:
+      - name: org
+        in: path
+        required: true
+        schema: *106
+      - name: per_page
+        description: Results per page (max 100)
+        in: query
+        schema: *4
+      - name: page
+        description: Page token
+        in: query
+        schema:
+          type: integer
+      - name: display_name
+        description: Limits the list to groups containing the text in the group name
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: ExternalGroups
+                description: A list of external groups available to be connected to
+                  a team
+                type: object
+                properties:
+                  groups:
+                    description: An array of external groups available to be mapped
+                      to a team
+                    example:
+                    - group_id: 1
+                      group_name: group-azuread-test
+                      updated_at: 2021-01-03 22:27:15:000 -700
+                    - group_id: 2
+                      group_name: group-azuread-test2
+                      updated_at: 2021-06-03 22:27:15:000 -700
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - group_id
+                      - group_name
+                      - updated_at
+                      properties:
+                        group_id:
+                          description: The internal ID of the group
+                          example: 1
+                          type: integer
+                        group_name:
+                          description: The display name of the group
+                          example: group-azuread-test
+                          type: string
+                        updated_at:
+                          description: The time of the last update for this group
+                          example: 2019-06-03 22:27:15:000 -700
+                          type: string
+              examples:
+                default:
+                  value:
+                    groups:
+                    - group_id: '123'
+                      group_name: Octocat admins
+                      updated_at: '2021-01-24T11:31:04-06:00'
+                    - group_id: '456'
+                      group_name: Octocat docs members
+                      updated_at: '2021-03-24T11:31:04-06:00'
+          headers:
+            Link:
+              example: <https://api.github.com/resource?per_page=2&page=url-encoded-next-page-token>;
+                rel="next"
+              schema:
+                type: string
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: teams
+        subcategory: external-groups
   "/orgs/{org}/hooks":
     get:
       summary: List organization webhooks
@@ -15622,42 +15777,6 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: 
-  "/orgs/{org}/settings/billing/advanced-security":
-    get:
-      summary: Get GitHub Advanced Security active committers for an organization
-      description: |-
-        Gets the GitHub Advanced Security active committers for an organization per repository.
-        Each distinct user login across all repositories is counted as a single Advanced Security seat, so the total_advanced_security_committers is not the sum of advanced_security_committers for each repository.
-        If this organization defers to an enterprise for billing, the total_advanced_security_committers returned from the organization API may include some users that are in more than one organization, so they will only consume a single Advanced Security seat at the enterprise level.
-      tags:
-      - billing
-      operationId: billing/get-github-advanced-security-billing-org
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/billing#get-github-advanced-security-active-committers-for-an-organization
-      parameters:
-      - name: org
-        in: path
-        required: true
-        schema: *106
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: *141
-                required: *142
-              examples:
-                default:
-                  value: *143
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews: []
-        category: billing
-        subcategory: 
   "/orgs/{org}/teams":
     get:
       summary: List teams
@@ -15746,7 +15865,7 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: &144
+                      properties: &141
                         id:
                           description: Unique identifier of the team
                           type: integer
@@ -15796,7 +15915,7 @@ paths:
                             LDAP environment
                           example: uid=example,ou=users,dc=github,dc=com
                           type: string
-                      required: &145
+                      required: &142
                       - id
                       - node_id
                       - url
@@ -15936,7 +16055,7 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: &146
+                properties: &143
                   id:
                     description: Unique identifier of the team
                     example: 42
@@ -15987,8 +16106,8 @@ paths:
                     description: Groups of organization members that gives permissions
                       on specified repositories.
                     type: object
-                    properties: *144
-                    required: *145
+                    properties: *141
+                    required: *142
                     nullable: true
                   members_count:
                     type: integer
@@ -16015,7 +16134,7 @@ paths:
                       LDAP environment
                     example: uid=example,ou=users,dc=github,dc=com
                     type: string
-                required: &147
+                required: &144
                 - id
                 - node_id
                 - url
@@ -16033,7 +16152,7 @@ paths:
                 - organization
               examples:
                 default:
-                  value: &148
+                  value: &145
                     id: 1
                     node_id: MDQ6VGVhbTE=
                     url: https://api.github.com/teams/1
@@ -16112,7 +16231,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: &149
+        schema: &146
           type: string
       responses:
         '200':
@@ -16124,11 +16243,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *146
-                required: *147
+                properties: *143
+                required: *144
               examples:
                 default:
-                  value: *148
+                  value: *145
         '404':
           description: Resource not found
           content: *30
@@ -16158,7 +16277,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       requestBody:
         required: false
         content:
@@ -16217,11 +16336,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *146
-                required: *147
+                properties: *143
+                required: *144
               examples:
                 default:
-                  value: *148
+                  value: *145
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -16250,7 +16369,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       responses:
         '204':
           description: Response
@@ -16281,7 +16400,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -16313,7 +16432,7 @@ paths:
                   description: A team discussion is a persistent record of a free-form
                     conversation within a team.
                   type: object
-                  properties: &152
+                  properties: &149
                     author:
                       title: Simple User
                       description: Simple User
@@ -16390,9 +16509,9 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *150
-                      required: *151
-                  required: &153
+                      properties: *147
+                      required: *148
+                  required: &150
                   - author
                   - body
                   - body_html
@@ -16493,7 +16612,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       requestBody:
         required: true
         content:
@@ -16530,11 +16649,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
-                  value: &154
+                  value: &151
                     author:
                       login: octocat
                       id: 1
@@ -16610,11 +16729,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: &155
+        schema: &152
           type: integer
       responses:
         '200':
@@ -16626,11 +16745,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
-                  value: *154
+                  value: *151
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -16657,11 +16776,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: false
         content:
@@ -16687,8 +16806,8 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
                   value: &426
@@ -16765,11 +16884,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       responses:
         '204':
           description: Response
@@ -16800,11 +16919,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -16829,7 +16948,7 @@ paths:
                   title: Team Discussion Comment
                   description: A reply to a discussion within a team.
                   type: object
-                  properties: &156
+                  properties: &153
                     author:
                       title: Simple User
                       description: Simple User
@@ -16885,9 +17004,9 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *150
-                      required: *151
-                  required: &157
+                      properties: *147
+                      required: *148
+                  required: &154
                   - author
                   - body
                   - body_html
@@ -16977,11 +17096,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: true
         content:
@@ -17005,11 +17124,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
-                  value: &158
+                  value: &155
                     author:
                       login: octocat
                       id: 1
@@ -17079,15 +17198,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: &159
+        schema: &156
           type: integer
       responses:
         '200':
@@ -17098,11 +17217,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
-                  value: *158
+                  value: *155
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17129,15 +17248,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       requestBody:
         required: true
         content:
@@ -17161,8 +17280,8 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
                   value: &428
@@ -17233,15 +17352,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       responses:
         '204':
           description: Response
@@ -17272,15 +17391,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion comment.
@@ -17317,7 +17436,7 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: &160
+                  properties: &157
                     id:
                       type: integer
                       example: 1
@@ -17348,7 +17467,7 @@ paths:
                       type: string
                       format: date-time
                       example: '2016-05-20T20:09:31Z'
-                  required: &161
+                  required: &158
                   - id
                   - node_id
                   - user
@@ -17356,7 +17475,7 @@ paths:
                   - created_at
               examples:
                 default:
-                  value: &163
+                  value: &160
                   - id: 1
                     node_id: MDg6UmVhY3Rpb24x
                     user:
@@ -17411,15 +17530,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       requestBody:
         required: true
         content:
@@ -17454,11 +17573,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: &162
+                  value: &159
                     id: 1
                     node_id: MDg6UmVhY3Rpb24x
                     user:
@@ -17491,11 +17610,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17523,19 +17642,19 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       - name: reaction_id
         in: path
         required: true
-        schema: &164
+        schema: &161
           type: integer
       responses:
         '204':
@@ -17567,11 +17686,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion.
@@ -17608,11 +17727,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -17644,11 +17763,11 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: true
         content:
@@ -17683,11 +17802,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Response
           content:
@@ -17697,11 +17816,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -17729,15 +17848,15 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -17746,6 +17865,93 @@ paths:
         enabledForGitHubApps: true
         category: reactions
         subcategory: 
+  "/orgs/{org}/teams/{team_slug}/external-groups":
+    patch:
+      summary: Update the connection between an external group and a team
+      description: |-
+        Creates a connection between a team and an external group.  Only one external group can be linked to a team.
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/link-external-idp-group-to-team-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#link-external-idp-group-team-connection
+      parameters:
+      - name: org
+        in: path
+        required: true
+        schema: *106
+      - name: team_slug
+        description: team_slug parameter
+        in: path
+        required: true
+        schema: *146
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group_id:
+                  type: integer
+                  description: External Group Id
+                  example: 1
+              required:
+              - group_id
+            example:
+              group_id: 123
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: ExternalGroup
+                description: Information about an external group's usage and its members
+                type: object
+                required: *162
+                properties: *163
+              examples:
+                default:
+                  value: *164
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        category: teams
+        subcategory: external-groups
+    delete:
+      summary: Remove the connection between an external group and a team
+      description: |-
+        Deletes a connection between a team and an external group.
+
+        You can manage team membership with your IdP using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/unlink-external-idp-group-from-team-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#unlink-external-idp-group-team-connection
+      parameters:
+      - name: org
+        in: path
+        required: true
+        schema: *106
+      - name: team_slug
+        description: team_slug parameter
+        in: path
+        required: true
+        schema: *146
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        category: teams
+        subcategory: external-groups
   "/orgs/{org}/teams/{team_slug}/members":
     get:
       summary: List team members
@@ -17768,7 +17974,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: role
         description: "Filters members returned by their role in the team. Can be one
           of:  \n\\* `member` - normal members of the team.  \n\\* `maintainer` -
@@ -17845,7 +18051,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: username
         in: path
         required: true
@@ -17924,7 +18130,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: username
         in: path
         required: true
@@ -18000,7 +18206,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: username
         in: path
         required: true
@@ -18037,7 +18243,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: per_page
         description: Results per page (max 100)
         in: query
@@ -18197,7 +18403,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: project_id
         in: path
         required: true
@@ -18282,7 +18488,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: project_id
         in: path
         required: true
@@ -18356,7 +18562,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: project_id
         in: path
         required: true
@@ -18391,7 +18597,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: per_page
         description: Results per page (max 100)
         in: query
@@ -18452,7 +18658,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: owner
         in: path
         required: true
@@ -19095,9 +19301,11 @@ paths:
                       created_at: '2011-01-26T19:01:12Z'
                       updated_at: '2011-01-26T19:14:43Z'
                       permissions:
-                        admin: false
-                        push: false
                         pull: true
+                        triage: false
+                        push: false
+                        maintain: false
+                        admin: false
                       allow_rebase_merge: true
                       temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
                       allow_squash_merge: true
@@ -19157,7 +19365,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: owner
         in: path
         required: true
@@ -19225,7 +19433,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: owner
         in: path
         required: true
@@ -19264,7 +19472,7 @@ paths:
         description: team_slug parameter
         in: path
         required: true
-        schema: *149
+        schema: *146
       - name: per_page
         description: Results per page (max 100)
         in: query
@@ -20810,6 +21018,11 @@ paths:
                         type: object
                         properties: *185
                         required: *186
+                      scim:
+                        title: Rate Limit
+                        type: object
+                        properties: *185
+                        required: *186
                     required:
                     - core
                     - search
@@ -20896,7 +21109,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -26289,6 +26502,8 @@ paths:
                         enabled:
                           type: boolean
                         required_status_checks:
+                          title: Protected Branch Required Status Check
+                          description: Protected Branch Required Status Check
                           type: object
                           properties:
                             url:
@@ -26299,12 +26514,26 @@ paths:
                               type: array
                               items:
                                 type: string
+                            checks:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  context:
+                                    type: string
+                                  app_id:
+                                    type: integer
+                                    nullable: true
+                                required:
+                                - context
+                                - app_id
                             contexts_url:
                               type: string
                             strict:
                               type: boolean
                           required:
                           - contexts
+                          - checks
                         enforce_admins:
                           title: Protected Branch Admin Enforced
                           description: Protected Branch Admin Enforced
@@ -27167,10 +27396,33 @@ paths:
                       description: Require branches to be up to date before merging.
                     contexts:
                       type: array
-                      description: The list of status checks to require in order to
-                        merge into this branch
+                      deprecated: true
+                      description: "**Deprecated**: The list of status checks to require
+                        in order to merge into this branch. If any of these checks
+                        have recently been set by a particular GitHub App, they will
+                        be required to come from that app in future for the branch
+                        to merge. Use `checks` instead of `contexts` for more fine-grained
+                        control.\n"
                       items:
                         type: string
+                    checks:
+                      type: array
+                      description: The list of status checks to require in order to
+                        merge into this branch.
+                      items:
+                        type: object
+                        required:
+                        - context
+                        properties:
+                          context:
+                            type: string
+                            description: The name of the required check
+                          app_id:
+                            type: integer
+                            description: The ID of the GitHub App that must provide
+                              this check. Omit this field to automatically select
+                              the GitHub App that has recently provided this check,
+                              or any app if it was not set by a GitHub App.
                   required:
                   - strict
                   - contexts
@@ -27272,6 +27524,12 @@ paths:
                   description: 'Requires all conversations on code to be resolved
                     before a pull request can be merged into a branch that matches
                     this rule. Set to `false` to disable. Default: `false`.'
+                contexts:
+                  type: array
+                  description: The list of status checks to require in order to merge
+                    into this branch.
+                  items:
+                    type: string
               required:
               - required_status_checks
               - enforce_admins
@@ -28074,7 +28332,7 @@ paths:
       operationId: repos/update-status-check-protection
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/repos#update-status-check-potection
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#update-status-check-protection
       parameters:
       - name: owner
         in: path
@@ -28102,6 +28360,7 @@ paths:
                   description: Require branches to be up to date before merging.
                 contexts:
                   type: array
+                  deprecated: true
                   description: The list of status checks to require in order to merge
                     into this branch
                   items:
@@ -30821,6 +31080,10 @@ paths:
                     type: integer
                   check_runs_url:
                     type: string
+                  rerequestable:
+                    type: boolean
+                  runs_rerequestable:
+                    type: boolean
                 required: &249
                 - id
                 - node_id
@@ -31826,33 +32089,28 @@ paths:
                       type: integer
                       description: The security alert number.
                       readOnly: true
-                      nullable: false
                     created_at:
                       type: string
                       description: 'The time that the alert was created in ISO 8601
                         format: `YYYY-MM-DDTHH:MM:SSZ`.'
                       format: date-time
                       readOnly: true
-                      nullable: false
                     url:
                       type: string
                       description: The REST API URL of the alert resource.
                       format: uri
                       readOnly: true
-                      nullable: false
                     html_url:
                       type: string
                       description: The GitHub URL of the alert resource.
                       format: uri
                       readOnly: true
-                      nullable: false
                     instances_url:
                       type: string
                       description: The REST API URL for fetching the list of instances
                         for an alert.
                       format: uri
                       readOnly: true
-                      nullable: false
                     state:
                       type: string
                       description: State of a code scanning alert.
@@ -32156,7 +32414,6 @@ paths:
           type: integer
           description: The security alert number.
           readOnly: true
-          nullable: false
       responses:
         '200':
           description: Response
@@ -32169,33 +32426,28 @@ paths:
                     type: integer
                     description: The security alert number.
                     readOnly: true
-                    nullable: false
                   created_at:
                     type: string
                     description: 'The time that the alert was created in ISO 8601
                       format: `YYYY-MM-DDTHH:MM:SSZ`.'
                     format: date-time
                     readOnly: true
-                    nullable: false
                   url:
                     type: string
                     description: The REST API URL of the alert resource.
                     format: uri
                     readOnly: true
-                    nullable: false
                   html_url:
                     type: string
                     description: The GitHub URL of the alert resource.
                     format: uri
                     readOnly: true
-                    nullable: false
                   instances_url:
                     type: string
                     description: The REST API URL for fetching the list of instances
                       for an alert.
                     format: uri
                     readOnly: true
-                    nullable: false
                   state:
                     type: string
                     description: State of a code scanning alert.
@@ -32705,7 +32957,6 @@ paths:
           type: string
           description: An identifier for the upload.
           example: 6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53
-          nullable: false
       responses:
         '200':
           description: Response
@@ -32752,7 +33003,6 @@ paths:
                         8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
                       format: date-time
                       readOnly: true
-                      nullable: false
                     results_count:
                       type: integer
                       description: The total number of results in the analysis.
@@ -32767,12 +33017,10 @@ paths:
                       description: The REST API URL of the analysis resource.
                       format: uri
                       readOnly: true
-                      nullable: false
                     sarif_id:
                       type: string
                       description: An identifier for the upload.
                       example: 6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53
-                      nullable: false
                     tool:
                       type: object
                       properties: *254
@@ -33039,13 +33287,11 @@ paths:
                     type: string
                     description: An identifier for the upload.
                     example: 6c81cd8e-b078-4ac3-a3be-1dad7dbd0b53
-                    nullable: false
                   url:
                     type: string
                     description: The REST API URL for checking the status of the upload.
                     format: uri
                     readOnly: true
-                    nullable: false
               examples:
                 default:
                   summary: Default response
@@ -33114,13 +33360,24 @@ paths:
                     enum:
                     - pending
                     - complete
+                    - failed
                     description: "`pending` files have not yet been processed, while
-                      `complete` means all results in the SARIF have been stored."
+                      `complete` means results from the SARIF have been stored. `failed`
+                      files have either not been processed at all, or could only be
+                      partially processed."
                   analyses_url:
                     type: string
                     description: The REST API URL for getting the analyses associated
                       with the upload.
                     format: uri
+                    readOnly: true
+                    nullable: true
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                    description: Any errors that ocurred during processing of the
+                      delivery.
                     readOnly: true
                     nullable: true
               examples:
@@ -33384,7 +33641,11 @@ paths:
       description: |-
         This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)".
+        For more information on permission levels, see "[Repository permission levels for an organization](https://help.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+
+        ```
+        Cannot assign {member} permission of {role name}
+        ```
 
         Note that, if you choose not to pass any parameters, you'll need to set `Content-Length` to zero when calling out to this endpoint. For more information, see "[HTTP verbs](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#http-verbs)."
 
@@ -33833,8 +34094,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *150
-                      required: *151
+                      properties: *147
+                      required: *148
                   required: &270
                   - url
                   - html_url
@@ -34154,11 +34415,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -34231,11 +34492,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Reaction created
           content:
@@ -34245,11 +34506,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '415':
           description: Preview header missing
           content: *32
@@ -34291,7 +34552,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -36907,139 +37168,6 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: commits
-  "/repos/{owner}/{repo}/content_references/{content_reference_id}/attachments":
-    post:
-      summary: Create a content attachment
-      description: |-
-        Creates an attachment under a content reference URL in the body or comment of an issue or pull request. Use the `id` and `repository` `full_name` of the content reference from the [`content_reference` event](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#content_reference) to create an attachment.
-
-        The app must create a content attachment within six hours of the content reference URL being posted. See "[Using content attachments](https://docs.github.com/github-ae@latest/apps/using-content-attachments/)" for details about content attachments.
-
-        You must use an [installation access token](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-an-installation) to access this endpoint.
-      tags:
-      - apps
-      operationId: apps/create-content-attachment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#create-a-content-attachment
-      parameters:
-      - name: owner
-        description: The owner of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: repo
-        description: The name of the repository. Determined from the `repository`
-          `full_name` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: content_reference_id
-        description: The `id` of the `content_reference` event.
-        in: path
-        required: true
-        schema:
-          type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                title:
-                  description: The title of the attachment
-                  example: Title of the attachment
-                  type: string
-                  maxLength: 1024
-                body:
-                  description: The body of the attachment
-                  example: Body of the attachment
-                  type: string
-                  maxLength: 262144
-              required:
-              - title
-              - body
-              type: object
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                title: ContentReferenceAttachment
-                description: Content Reference attachments allow you to provide context
-                  around URLs posted in comments
-                type: object
-                properties:
-                  id:
-                    description: The ID of the attachment
-                    example: 21
-                    type: integer
-                  title:
-                    description: The title of the attachment
-                    example: Title of the attachment
-                    type: string
-                    maxLength: 1024
-                  body:
-                    description: The body of the attachment
-                    example: Body of the attachment
-                    type: string
-                    maxLength: 262144
-                  node_id:
-                    description: The node_id of the content attachment
-                    example: MDE3OkNvbnRlbnRBdHRhY2htZW50MjE=
-                    type: string
-                required:
-                - id
-                - title
-                - body
-              examples:
-                default:
-                  value:
-                    id: 101
-                    title: "[A-1234] Error found in core/models.py file'"
-                    body: |-
-                      You have used an email that already exists for the user_email_uniq field.
-                       ## DETAILS:
-
-                      The (email)=(Octocat@github.com) already exists.
-
-                       The error was found in core/models.py in get_or_create_user at line 62.
-
-                       self.save()
-        '422':
-          description: Validation failed
-          content: *24
-        '404':
-          description: Resource not found
-          content: *30
-        '410':
-          description: Gone
-          content: *184
-        '415':
-          description: Preview header missing
-          content: *32
-        '304':
-          description: Not modified
-        '403':
-          description: Forbidden
-          content: *37
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        previews:
-        - required: true
-          name: corsair
-          note: |-
-            To access the Content Attachments API during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.corsair-preview+json
-            ```
-        category: apps
-        subcategory: installations
   "/repos/{owner}/{repo}/contents/{path}":
     get:
       summary: Get repository content
@@ -38962,9 +39090,9 @@ paths:
                 state:
                   type: string
                   description: The state of the status. Can be one of `error`, `failure`,
-                    `inactive`, `in_progress`, `queued` `pending`, or `success`. When
-                    you set a transient deployment to `inactive`, the deployment will
-                    be shown as `destroyed` in GitHub.
+                    `inactive`, `in_progress`, `queued`, `pending`, or `success`.
+                    When you set a transient deployment to `inactive`, the deployment
+                    will be shown as `destroyed` in GitHub.
                   enum:
                   - error
                   - failure
@@ -39301,8 +39429,8 @@ paths:
                             reactions:
                               title: Reaction Rollup
                               type: object
-                              properties: *150
-                              required: *151
+                              properties: *147
+                              required: *148
                           required: &322
                           - id
                           - node_id
@@ -43291,11 +43419,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -43368,11 +43496,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Reaction created
           content:
@@ -43382,11 +43510,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '422':
           description: Validation failed
           content: *24
@@ -43425,7 +43553,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -46134,11 +46262,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -46214,11 +46342,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Response
           content:
@@ -46228,11 +46356,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '422':
           description: Validation failed
           content: *24
@@ -46271,7 +46399,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -46461,8 +46589,8 @@ paths:
                       reactions:
                         title: Reaction Rollup
                         type: object
-                        properties: *150
-                        required: *151
+                        properties: *147
+                        required: *148
                     required:
                     - event
                     - actor
@@ -46904,8 +47032,8 @@ paths:
                             reactions:
                               title: Reaction Rollup
                               type: object
-                              properties: *150
-                              required: *151
+                              properties: *147
+                              required: *148
                             body_html:
                               type: string
                               example: '"<p>comment body</p>"'
@@ -47408,7 +47536,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
               required:
               - name
             example:
@@ -47543,7 +47672,8 @@ paths:
                     for the label, without the leading `#`.
                 description:
                   type: string
-                  description: A short description of the label.
+                  description: A short description of the label. Must be 100 characters
+                    or fewer.
             example:
               new_name: 'bug :bug:'
               description: Small bug fix required
@@ -49819,8 +49949,8 @@ paths:
                       description: Groups of organization members that gives permissions
                         on specified repositories.
                       type: object
-                      properties: *144
-                      required: *145
+                      properties: *141
+                      required: *142
                     nullable: true
                   head:
                     type: object
@@ -51765,11 +51895,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -51842,11 +51972,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Reaction created
           content:
@@ -51856,11 +51986,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '422':
           description: Validation failed
           content: *24
@@ -51899,7 +52029,7 @@ paths:
       - name: reaction_id
         in: path
         required: true
-        schema: *164
+        schema: *161
       responses:
         '204':
           description: Response
@@ -52196,40 +52326,48 @@ paths:
                   description: The relative path to the file that necessitates a comment.
                 position:
                   type: integer
-                  description: The position in the diff where you want to add a review
-                    comment. Note this value is not the same as the line number in
-                    the file. For help finding the position value, read the note above.
+                  description: "**Required without `comfort-fade` preview unless using
+                    `in_reply_to`**. The position in the diff where you want to add
+                    a review comment. Note this value is not the same as the line
+                    number in the file. For help finding the position value, read
+                    the note above."
                 side:
                   type: string
-                  description: In a split diff view, the side of the diff that the
-                    pull request's changes appear on. Can be `LEFT` or `RIGHT`. Use
-                    `LEFT` for deletions that appear in red. Use `RIGHT` for additions
+                  description: '**Required with `comfort-fade` preview unless using
+                    `in_reply_to`**. In a split diff view, the side of the diff that
+                    the pull request''s changes appear on. Can be `LEFT` or `RIGHT`.
+                    Use `LEFT` for deletions that appear in red. Use `RIGHT` for additions
                     that appear in green or unchanged lines that appear in white and
                     are shown for context. For a multi-line comment, side represents
                     whether the last line of the comment range is a deletion or addition.
                     For more information, see "[Diff view options](https://help.github.com/en/articles/about-comparing-branches-in-pull-requests#diff-view-options)"
-                    in the GitHub Help documentation.
+                    in the GitHub Help documentation.'
                   enum:
                   - LEFT
                   - RIGHT
                 line:
                   type: integer
-                  description: The line of the blob in the pull request diff that
-                    the comment applies to. For a multi-line comment, the last line
-                    of the range that your comment applies to.
+                  description: "**Required with `comfort-fade` preview unless using
+                    `in_reply_to`**. The line of the blob in the pull request diff
+                    that the comment applies to. For a multi-line comment, the last
+                    line of the range that your comment applies to."
                 start_line:
                   type: integer
-                  description: '**Required when using multi-line comments**. The `start_line`
-                    is the first line in the pull request diff that your multi-line
-                    comment applies to. To learn more about multi-line comments, see
-                    "[Commenting on a pull request](https://help.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
+                  description: '**Required when using multi-line comments unless using
+                    `in_reply_to`**. To create multi-line comments, you must use the
+                    `comfort-fade` preview header. The `start_line` is the first line
+                    in the pull request diff that your multi-line comment applies
+                    to. To learn more about multi-line comments, see "[Commenting
+                    on a pull request](https://help.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
                     in the GitHub Help documentation.'
                 start_side:
                   type: string
-                  description: '**Required when using multi-line comments**. The `start_side`
-                    is the starting side of the diff that the comment applies to.
-                    Can be `LEFT` or `RIGHT`. To learn more about multi-line comments,
-                    see "[Commenting on a pull request](https://help.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
+                  description: '**Required when using multi-line comments unless using
+                    `in_reply_to`**. To create multi-line comments, you must use the
+                    `comfort-fade` preview header. The `start_side` is the starting
+                    side of the diff that the comment applies to. Can be `LEFT` or
+                    `RIGHT`. To learn more about multi-line comments, see "[Commenting
+                    on a pull request](https://help.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
                     in the GitHub Help documentation. See `side` in this table for
                     additional context.'
                   enum:
@@ -52239,6 +52377,10 @@ paths:
                 in_reply_to:
                   type: integer
                   example: 2
+                  description: The ID of the review comment to reply to. To find the
+                    ID of a review comment with ["List review comments on a pull request"](#list-review-comments-on-a-pull-request).
+                    When specified, all parameters other than `body` in the request
+                    body are ignored.
               required:
               - body
             examples:
@@ -54229,8 +54371,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *150
-                      required: *151
+                      properties: *147
+                      required: *148
                     side:
                       description: The side of the first line of the range for a multi-line
                         comment.
@@ -54908,8 +55050,8 @@ paths:
                     reactions:
                       title: Reaction Rollup
                       type: object
-                      properties: *150
-                      required: *151
+                      properties: *147
+                      required: *148
                   required: &400
                   - assets_url
                   - upload_url
@@ -55868,11 +56010,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '201':
           description: Reaction created
           content:
@@ -55882,11 +56024,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
         '422':
           description: Validation failed
           content: *24
@@ -55965,26 +56107,22 @@ paths:
                       type: integer
                       description: The security alert number.
                       readOnly: true
-                      nullable: false
                     created_at:
                       type: string
                       description: 'The time that the alert was created in ISO 8601
                         format: `YYYY-MM-DDTHH:MM:SSZ`.'
                       format: date-time
                       readOnly: true
-                      nullable: false
                     url:
                       type: string
                       description: The REST API URL of the alert resource.
                       format: uri
                       readOnly: true
-                      nullable: false
                     html_url:
                       type: string
                       description: The GitHub URL of the alert resource.
                       format: uri
                       readOnly: true
-                      nullable: false
                     locations_url:
                       type: string
                       format: uri
@@ -59370,8 +59508,8 @@ paths:
                         reactions:
                           title: Reaction Rollup
                           type: object
-                          properties: *150
-                          required: *151
+                          properties: *147
+                          required: *148
                       required:
                       - assignee
                       - closed_at
@@ -60666,11 +60804,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *146
-                required: *147
+                properties: *143
+                required: *144
               examples:
                 default:
-                  value: *148
+                  value: *145
         '404':
           description: Resource not found
           content: *30
@@ -60760,11 +60898,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *146
-                required: *147
+                properties: *143
+                required: *144
               examples:
                 default:
-                  value: *148
+                  value: *145
         '201':
           description: Response
           content:
@@ -60774,11 +60912,11 @@ paths:
                 description: Groups of organization members that gives permissions
                   on specified repositories.
                 type: object
-                properties: *146
-                required: *147
+                properties: *143
+                required: *144
               examples:
                 default:
-                  value: *148
+                  value: *145
         '404':
           description: Resource not found
           content: *30
@@ -60875,8 +61013,8 @@ paths:
                   description: A team discussion is a persistent record of a free-form
                     conversation within a team.
                   type: object
-                  properties: *152
-                  required: *153
+                  properties: *149
+                  required: *150
               examples:
                 default:
                   value: *425
@@ -60948,11 +61086,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
-                  value: *154
+                  value: *151
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -60983,7 +61121,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       responses:
         '200':
           description: Response
@@ -60994,11 +61132,11 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
-                  value: *154
+                  value: *151
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61027,7 +61165,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: false
         content:
@@ -61053,8 +61191,8 @@ paths:
                 description: A team discussion is a persistent record of a free-form
                   conversation within a team.
                 type: object
-                properties: *152
-                required: *153
+                properties: *149
+                required: *150
               examples:
                 default:
                   value: *426
@@ -61086,7 +61224,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       responses:
         '204':
           description: Response
@@ -61119,7 +61257,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: direction
         description: One of `asc` (ascending) or `desc` (descending).
         in: query
@@ -61144,8 +61282,8 @@ paths:
                   title: Team Discussion Comment
                   description: A reply to a discussion within a team.
                   type: object
-                  properties: *156
-                  required: *157
+                  properties: *153
+                  required: *154
               examples:
                 default:
                   value: *427
@@ -61184,7 +61322,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: true
         content:
@@ -61208,11 +61346,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
-                  value: *158
+                  value: *155
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -61243,11 +61381,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       responses:
         '200':
           description: Response
@@ -61257,11 +61395,11 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
-                  value: *158
+                  value: *155
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61290,11 +61428,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       requestBody:
         required: true
         content:
@@ -61318,8 +61456,8 @@ paths:
                 title: Team Discussion Comment
                 description: A reply to a discussion within a team.
                 type: object
-                properties: *156
-                required: *157
+                properties: *153
+                required: *154
               examples:
                 default:
                   value: *428
@@ -61351,11 +61489,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       responses:
         '204':
           description: Response
@@ -61388,11 +61526,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion comment.
@@ -61429,11 +61567,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -61467,11 +61605,11 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: comment_number
         in: path
         required: true
-        schema: *159
+        schema: *156
       requestBody:
         required: true
         content:
@@ -61506,11 +61644,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61540,7 +61678,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a team discussion.
@@ -61577,11 +61715,11 @@ paths:
                   description: Reactions to conversations provide a way to help people
                     express their feelings more simply and effectively.
                   type: object
-                  properties: *160
-                  required: *161
+                  properties: *157
+                  required: *158
               examples:
                 default:
-                  value: *163
+                  value: *160
           headers:
             Link:
               example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
@@ -61615,7 +61753,7 @@ paths:
       - name: discussion_number
         in: path
         required: true
-        schema: *155
+        schema: *152
       requestBody:
         required: true
         content:
@@ -61650,11 +61788,11 @@ paths:
                 description: Reactions to conversations provide a way to help people
                   express their feelings more simply and effectively.
                 type: object
-                properties: *160
-                required: *161
+                properties: *157
+                required: *158
               examples:
                 default:
-                  value: *162
+                  value: *159
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -62559,9 +62697,11 @@ paths:
                       created_at: '2011-01-26T19:01:12Z'
                       updated_at: '2011-01-26T19:14:43Z'
                       permissions:
-                        admin: false
-                        push: false
                         pull: true
+                        triage: false
+                        push: false
+                        maintain: false
+                        admin: false
                       allow_rebase_merge: true
                       temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
                       allow_squash_merge: true
@@ -65876,8 +66016,8 @@ paths:
                   description: Groups of organization members that gives permissions
                     on specified repositories.
                   type: object
-                  properties: *146
-                  required: *147
+                  properties: *143
+                  required: *144
               examples:
                 default:
                   value:
