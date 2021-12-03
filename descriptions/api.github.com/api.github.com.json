@@ -3784,6 +3784,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to add to the runner.",
                     "items": {
                       "type": "string"
@@ -3850,6 +3851,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 0,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to set for the runner. You can pass an empty array to remove all custom labels.",
                     "items": {
                       "type": "string"
@@ -8781,6 +8783,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to add to the runner.",
                     "items": {
                       "type": "string"
@@ -8847,6 +8850,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 0,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to set for the runner. You can pass an empty array to remove all custom labels.",
                     "items": {
                       "type": "string"
@@ -18646,6 +18650,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to add to the runner.",
                     "items": {
                       "type": "string"
@@ -18715,6 +18720,7 @@
                   "labels": {
                     "type": "array",
                     "minItems": 0,
+                    "maxItems": 100,
                     "description": "The names of the custom labels to set for the runner. You can pass an empty array to remove all custom labels.",
                     "items": {
                       "type": "string"
@@ -24629,7 +24635,7 @@
     "/repos/{owner}/{repo}/code-scanning/alerts": {
       "get": {
         "summary": "List code scanning alerts for a repository",
-        "description": "Lists all open code scanning alerts for the default branch (usually `main`\nor `master`). You must use an access token with the `security_events` scope to use\nthis endpoint. GitHub Apps must have the `security_events` read permission to use\nthis endpoint.\n\nThe response includes a `most_recent_instance` object.\nThis provides details of the most recent instance of this alert\nfor the default branch or for the specified Git reference\n(if you used `ref` in the request).",
+        "description": "Lists all open code scanning alerts for the default branch (usually `main`\nor `master`). You must use an access token with the `security_events` scope to use\nthis endpoint with private repos, the `public_repo` scope also grants permission to read\nsecurity events on public repos only. GitHub Apps must have the `security_events` read\npermission to use this endpoint.\n\nThe response includes a `most_recent_instance` object.\nThis provides details of the most recent instance of this alert\nfor the default branch or for the specified Git reference\n(if you used `ref` in the request).",
         "tags": [
           "code-scanning"
         ],
@@ -24689,6 +24695,9 @@
               }
             }
           },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
           "403": {
             "$ref": "#/components/responses/code_scanning_forbidden_read"
           },
@@ -24710,7 +24719,7 @@
     "/repos/{owner}/{repo}/code-scanning/alerts/{alert_number}": {
       "get": {
         "summary": "Get a code scanning alert",
-        "description": "Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.",
+        "description": "Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint with private repos, the `public_repo` scope also grants permission to read security events on public repos only. GitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.",
         "tags": [
           "code-scanning"
         ],
@@ -24745,6 +24754,9 @@
                 }
               }
             }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
           },
           "403": {
             "$ref": "#/components/responses/code_scanning_forbidden_read"
@@ -24846,7 +24858,7 @@
     "/repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances": {
       "get": {
         "summary": "List instances of a code scanning alert",
-        "description": "Lists all instances of the specified code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.",
+        "description": "Lists all instances of the specified code scanning alert.\nYou must use an access token with the `security_events` scope to use this endpoint with private repos,\nthe `public_repo` scope also grants permission to read security events on public repos only.\nGitHub Apps must have the `security_events` read permission to use this endpoint.",
         "tags": [
           "code-scanning"
         ],
@@ -24915,7 +24927,7 @@
     "/repos/{owner}/{repo}/code-scanning/analyses": {
       "get": {
         "summary": "List code scanning analyses for a repository",
-        "description": "Lists the details of all code scanning analyses for a repository,\nstarting with the most recent.\nThe response is paginated and you can use the `page` and `per_page` parameters\nto list the analyses you're interested in.\nBy default 30 analyses are listed per page.\n\nThe `rules_count` field in the response give the number of rules\nthat were run in the analysis.\nFor very old analyses this data is not available,\nand `0` is returned in this field.\n\nYou must use an access token with the `security_events` scope to use this endpoint.\nGitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe `tool_name` field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The tool name can now be found inside the `tool` field.",
+        "description": "Lists the details of all code scanning analyses for a repository,\nstarting with the most recent.\nThe response is paginated and you can use the `page` and `per_page` parameters\nto list the analyses you're interested in.\nBy default 30 analyses are listed per page.\n\nThe `rules_count` field in the response give the number of rules\nthat were run in the analysis.\nFor very old analyses this data is not available,\nand `0` is returned in this field.\n\nYou must use an access token with the `security_events` scope to use this endpoint with private repos,\nthe `public_repo` scope also grants permission to read security events on public repos only.\nGitHub Apps must have the `security_events` read permission to use this endpoint.\n\n**Deprecation notice**:\nThe `tool_name` field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The tool name can now be found inside the `tool` field.",
         "operationId": "code-scanning/list-recent-analyses",
         "tags": [
           "code-scanning"
@@ -25001,7 +25013,7 @@
     "/repos/{owner}/{repo}/code-scanning/analyses/{analysis_id}": {
       "get": {
         "summary": "Get a code scanning analysis for a repository",
-        "description": "Gets a specified code scanning analysis for a repository.\nYou must use an access token with the `security_events` scope to use this endpoint.\nGitHub Apps must have the `security_events` read permission to use this endpoint.\n\nThe default JSON response contains fields that describe the analysis.\nThis includes the Git reference and commit SHA to which the analysis relates,\nthe datetime of the analysis, the name of the code scanning tool,\nand the number of alerts.\n\nThe `rules_count` field in the default response give the number of rules\nthat were run in the analysis.\nFor very old analyses this data is not available,\nand `0` is returned in this field.\n\nIf you use the Accept header `application/sarif+json`,\nthe response contains the analysis data that was uploaded.\nThis is formatted as\n[SARIF version 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html).",
+        "description": "Gets a specified code scanning analysis for a repository.\nYou must use an access token with the `security_events` scope to use this endpoint with private repos,\nthe `public_repo` scope also grants permission to read security events on public repos only.\nGitHub Apps must have the `security_events` read permission to use this endpoint.\n\nThe default JSON response contains fields that describe the analysis.\nThis includes the Git reference and commit SHA to which the analysis relates,\nthe datetime of the analysis, the name of the code scanning tool,\nand the number of alerts.\n\nThe `rules_count` field in the default response give the number of rules\nthat were run in the analysis.\nFor very old analyses this data is not available,\nand `0` is returned in this field.\n\nIf you use the Accept header `application/sarif+json`,\nthe response contains the analysis data that was uploaded.\nThis is formatted as\n[SARIF version 2.1.0](https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html).",
         "operationId": "code-scanning/get-analysis",
         "tags": [
           "code-scanning"
@@ -25241,7 +25253,7 @@
     "/repos/{owner}/{repo}/code-scanning/sarifs/{sarif_id}": {
       "get": {
         "summary": "Get information about a SARIF upload",
-        "description": "Gets information about a SARIF upload, including the status and the URL of the analysis that was uploaded so that you can retrieve details of the analysis. For more information, see \"[Get a code scanning analysis for a repository](/rest/reference/code-scanning#get-a-code-scanning-analysis-for-a-repository).\" You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.",
+        "description": "Gets information about a SARIF upload, including the status and the URL of the analysis that was uploaded so that you can retrieve details of the analysis. For more information, see \"[Get a code scanning analysis for a repository](/rest/reference/code-scanning#get-a-code-scanning-analysis-for-a-repository).\" You must use an access token with the `security_events` scope to use this endpoint with private repos, the `public_repo` scope also grants permission to read security events on public repos only. GitHub Apps must have the `security_events` read permission to use this endpoint.",
         "operationId": "code-scanning/get-sarif",
         "tags": [
           "code-scanning"
