@@ -11956,12 +11956,6 @@ paths:
                   description: 'Requires all conversations on code to be resolved
                     before a pull request can be merged into a branch that matches
                     this rule. Set to `false` to disable. Default: `false`.'
-                contexts:
-                  type: array
-                  description: The list of status checks to require in order to merge
-                    into this branch.
-                  items:
-                    type: string
               required:
               - required_status_checks
               - enforce_admins
@@ -12428,10 +12422,32 @@ paths:
                 contexts:
                   type: array
                   deprecated: true
-                  description: The list of status checks to require in order to merge
-                    into this branch
+                  description: "**Deprecated**: The list of status checks to require
+                    in order to merge into this branch. If any of these checks have
+                    recently been set by a particular GitHub App, they will be required
+                    to come from that app in future for the branch to merge. Use `checks`
+                    instead of `contexts` for more fine-grained control.\n"
                   items:
                     type: string
+                checks:
+                  type: array
+                  description: The list of status checks to require in order to merge
+                    into this branch.
+                  items:
+                    type: object
+                    required:
+                    - context
+                    properties:
+                      context:
+                        type: string
+                        description: The name of the required check
+                      app_id:
+                        type: integer
+                        description: The ID of the GitHub App that must provide this
+                          check. Omit this field to automatically select the GitHub
+                          App that has recently provided this check, or any app if
+                          it was not set by a GitHub App. Pass -1 to explicitly allow
+                          any app to set the status.
             example:
               strict: true
               contexts:
@@ -14667,6 +14683,124 @@ paths:
         enabledForGitHubApps: true
         githubCloudOnly: false
         category: code-scanning
+    delete:
+      summary: Delete a code scanning analysis from a repository
+      description: |-
+        Deletes a specified code scanning analysis from a repository. For
+        private repositories, you must use an access token with the `repo` scope. For public repositories,
+        you must use an access token with `public_repo` and `repo:security_events` scopes.
+        GitHub Apps must have the `security_events` write permission to use this endpoint.
+
+        You can delete one analysis at a time.
+        To delete a series of analyses, start with the most recent analysis and work backwards.
+        Conceptually, the process is similar to the undo function in a text editor.
+
+        When you list the analyses for a repository,
+        one or more will be identified as deletable in the response:
+
+        ```
+        "deletable": true
+        ```
+
+        An analysis is deletable when it's the most recent in a set of analyses.
+        Typically, a repository will have multiple sets of analyses
+        for each enabled code scanning tool,
+        where a set is determined by a unique combination of analysis values:
+
+        * `ref`
+        * `tool`
+        * `analysis_key`
+        * `environment`
+
+        If you attempt to delete an analysis that is not the most recent in a set,
+        you'll get a 400 response with the message:
+
+        ```
+        Analysis specified is not deletable.
+        ```
+
+        The response from a successful `DELETE` operation provides you with
+        two alternative URLs for deleting the next analysis in the set:
+        `next_analysis_url` and `confirm_delete_url`.
+        Use the `next_analysis_url` URL if you want to avoid accidentally deleting the final analysis
+        in a set. This is a useful option if you want to preserve at least one analysis
+        for the specified tool in your repository.
+        Use the `confirm_delete_url` URL if you are content to remove all analyses for a tool.
+        When you delete the last analysis in a set, the value of `next_analysis_url` and `confirm_delete_url`
+        in the 200 response is `null`.
+
+        As an example of the deletion process,
+        let's imagine that you added a workflow that configured a particular code scanning tool
+        to analyze the code in a repository. This tool has added 15 analyses:
+        10 on the default branch, and another 5 on a topic branch.
+        You therefore have two separate sets of analyses for this tool.
+        You've now decided that you want to remove all of the analyses for the tool.
+        To do this you must make 15 separate deletion requests.
+        To start, you must find an analysis that's identified as deletable.
+        Each set of analyses always has one that's identified as deletable.
+        Having found the deletable analysis for one of the two sets,
+        delete this analysis and then continue deleting the next analysis in the set until they're all deleted.
+        Then repeat the process for the second set.
+        The procedure therefore consists of a nested loop:
+
+        **Outer loop**:
+        * List the analyses for the repository, filtered by tool.
+        * Parse this list to find a deletable analysis. If found:
+
+          **Inner loop**:
+          * Delete the identified analysis.
+          * Parse the response for the value of `confirm_delete_url` and, if found, use this in the next iteration.
+
+        The above process assumes that you want to remove all trace of the tool's analyses from the GitHub user interface, for the specified repository, and it therefore uses the `confirm_delete_url` value. Alternatively, you could use the `next_analysis_url` value, which would leave the last analysis in each set undeleted to avoid removing a tool's analysis entirely.
+      operationId: code-scanning/delete-analysis
+      tags:
+      - code-scanning
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/code-scanning#delete-a-code-scanning-analysis-from-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - name: analysis_id
+        in: path
+        description: The ID of the analysis, as returned from the `GET /repos/{owner}/{repo}/code-scanning/analyses`
+          operation.
+        required: true
+        schema:
+          type: integer
+      - name: confirm_delete
+        in: query
+        description: 'Allow deletion if the specified analysis is the last in a set.
+          If you attempt to delete the final analysis in a set without setting this
+          parameter to `true`, you''ll get a 400 response with the message: `Analysis
+          is last of its type and deletion may result in the loss of historical alert
+          data. Please specify confirm_delete.`'
+        required: false
+        schema:
+          type: string
+          nullable: true
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/code-scanning-analysis-deletion"
+              examples:
+                default-response:
+                  "$ref": "#/components/examples/code-scanning-analysis-deletion"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_write"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        category: code-scanning
   "/repos/{owner}/{repo}/code-scanning/sarifs":
     post:
       summary: Upload an analysis as SARIF data
@@ -14683,7 +14817,7 @@ paths:
         gzip -c analysis-data.sarif | base64 -w0
         ```
 
-        SARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.
+        SARIF upload supports a maximum of 5000 results per analysis run. Any results over this limit are ignored and any SARIF uploads with more than 25,000 results are rejected. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.
 
         The `202 Accepted`, response includes an `id` value.
         You can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.
@@ -38406,6 +38540,20 @@ components:
           - continuous-integration/travis-ci
           items:
             type: string
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              context:
+                type: string
+                example: continuous-integration/travis-ci
+              app_id:
+                type: integer
+                nullable: true
+            required:
+            - context
+            - app_id
         contexts_url:
           type: string
           format: uri
@@ -38415,6 +38563,7 @@ components:
       - contexts_url
       - strict
       - contexts
+      - checks
     protected-branch:
       title: Protected Branch
       description: Branch protections protect branches
@@ -39307,6 +39456,28 @@ components:
       - tool
       - deletable
       - warning
+    code-scanning-analysis-deletion:
+      title: Analysis deletion
+      description: Successful deletion of a code scanning analysis
+      type: object
+      properties:
+        next_analysis_url:
+          type: string
+          description: Next deletable analysis in chain, without last analysis deletion
+            confirmation
+          format: uri
+          readOnly: true
+          nullable: true
+        confirm_delete_url:
+          type: string
+          description: Next deletable analysis in chain, with last analysis deletion
+            confirmation
+          format: uri
+          readOnly: true
+          nullable: true
+      required:
+      - next_analysis_url
+      - confirm_delete_url
     code-scanning-analysis-sarif-file:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -53325,6 +53496,11 @@ components:
           version: 2.4.0
         deletable: true
         warning: ''
+    code-scanning-analysis-deletion:
+      summary: Default response
+      value:
+        next_analysis_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41
+        confirm_delete_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41?confirm_delete
     code-scanning-sarif-upload:
       summary: Default response
       value:
