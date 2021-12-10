@@ -2968,7 +2968,7 @@ paths:
           "$ref": "#/components/responses/code_scanning_forbidden_read"
       x-github:
         githubCloudOnly: false
-        enabledForGitHubApps: true
+        enabledForGitHubApps: false
         previews: []
         category: enterprise-admin
         subcategory: billing
@@ -17714,6 +17714,18 @@ paths:
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/git-ref"
+      - "$ref": "#/components/parameters/direction"
+      - name: sort
+        description: Can be one of `created`, `updated`, `number`.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - created
+          - updated
+          - number
+          default: number
       - name: state
         description: Set to `open`, `fixed`, or `dismissed` to list code scanning
           alerts in a specific state.
@@ -17790,8 +17802,10 @@ paths:
     patch:
       summary: Update a code scanning alert
       description: Updates the status of a single code scanning alert. You must use
-        an access token with the `security_events` scope to use this endpoint. GitHub
-        Apps must have the `security_events` write permission to use this endpoint.
+        an access token with the `security_events` scope to use this endpoint with
+        private repositories. You can also use tokens with the `public_repo` scope
+        for public repositories only. GitHub Apps must have the `security_events`
+        write permission to use this endpoint.
       operationId: code-scanning/update-alert
       tags:
       - code-scanning
@@ -18019,7 +18033,7 @@ paths:
       description: |-
         Deletes a specified code scanning analysis from a repository. For
         private repositories, you must use an access token with the `repo` scope. For public repositories,
-        you must use an access token with `public_repo` and `repo:security_events` scopes.
+        you must use an access token with `public_repo` scope.
         GitHub Apps must have the `security_events` write permission to use this endpoint.
 
         You can delete one analysis at a time.
@@ -18136,7 +18150,7 @@ paths:
     post:
       summary: Upload an analysis as SARIF data
       description: |-
-        Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.
+        Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint for private repositories. You can also use tokens with the `public_repo` scope for public repositories only. GitHub Apps must have the `security_events` write permission to use this endpoint.
 
         There are two places where you can upload code scanning results.
          - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests)."
@@ -24823,8 +24837,7 @@ paths:
   "/repos/{owner}/{repo}/lfs":
     put:
       summary: Enable Git LFS for a repository
-      description: "**Note:** The Git LFS API endpoints are currently in beta and
-        are subject to change."
+      description: ''
       operationId: repos/enable-lfs-for-repo
       tags:
       - repos
@@ -24851,8 +24864,7 @@ paths:
         subcategory: lfs
     delete:
       summary: Disable Git LFS for a repository
-      description: "**Note:** The Git LFS API endpoints are currently in beta and
-        are subject to change."
+      description: ''
       operationId: repos/disable-lfs-for-repo
       tags:
       - repos
@@ -24904,10 +24916,8 @@ paths:
   "/repos/{owner}/{repo}/merge-upstream":
     post:
       summary: Sync a fork branch with the upstream repository
-      description: |-
-        **Note:** This endpoint is currently in beta and subject to change.
-
-        Sync a branch of a forked repository to keep it up-to-date with the upstream repository.
+      description: Sync a branch of a forked repository to keep it up-to-date with
+        the upstream repository.
       tags:
       - repos
       operationId: repos/merge-upstream
@@ -48199,11 +48209,23 @@ components:
       - closed
       - dismissed
       - fixed
+    alert-updated-at:
+      type: string
+      description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
     alert-instances-url:
       type: string
       description: The REST API URL for fetching the list of instances for an alert.
       format: uri
       readOnly: true
+    code-scanning-alert-fixed-at:
+      type: string
+      description: 'The time that the alert was no longer detected and was considered
+        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
     code-scanning-alert-dismissed-at:
       type: string
       description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -48332,6 +48354,8 @@ components:
           "$ref": "#/components/schemas/alert-number"
         created_at:
           "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
         url:
           "$ref": "#/components/schemas/alert-url"
         html_url:
@@ -48340,6 +48364,8 @@ components:
           "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
+        fixed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
         dismissed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         dismissed_at:
@@ -48416,6 +48442,8 @@ components:
           "$ref": "#/components/schemas/alert-number"
         created_at:
           "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
         url:
           "$ref": "#/components/schemas/alert-url"
         html_url:
@@ -48424,6 +48452,8 @@ components:
           "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
+        fixed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
         dismissed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         dismissed_at:
@@ -65251,6 +65281,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4
         html_url: https://github.com/octocat/hello-world/code-scanning/4
         state: open
+        fixed_at: 
         dismissed_by: 
         dismissed_at: 
         dismissed_reason: 
@@ -65285,6 +65316,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
         html_url: https://github.com/octocat/hello-world/code-scanning/3
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 1
@@ -65338,6 +65370,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42
         html_url: https://github.com/octocat/hello-world/code-scanning/42
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 54933897
@@ -65403,6 +65436,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42
         html_url: https://github.com/octocat/hello-world/code-scanning/42
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 1
@@ -65467,6 +65501,7 @@ components:
         analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
         environment: ''
         state: open
+        fixed_at: 
         commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
         message:
           text: This path depends on a user-provided value.
@@ -65483,6 +65518,7 @@ components:
         environment: ''
         category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
         state: fixed
+        fixed_at: '2020-02-14T12:29:18Z'
         commit_sha: b09da05606e27f463a2b49287684b4ae777092f2
         message:
           text: This suffix check is missing a length comparison to correctly handle
