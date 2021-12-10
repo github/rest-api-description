@@ -24667,6 +24667,24 @@
             "$ref": "#/components/parameters/git-ref"
           },
           {
+            "$ref": "#/components/parameters/direction"
+          },
+          {
+            "name": "sort",
+            "description": "Can be one of `created`, `updated`, `number`.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "created",
+                "updated",
+                "number"
+              ],
+              "default": "number"
+            }
+          },
+          {
             "name": "state",
             "description": "Set to `open`, `fixed`, or `dismissed` to list code scanning alerts in a specific state.",
             "in": "query",
@@ -34471,7 +34489,7 @@
     "/repos/{owner}/{repo}/lfs": {
       "put": {
         "summary": "Enable Git LFS for a repository",
-        "description": "**Note:** The Git LFS API endpoints are currently in beta and are subject to change.",
+        "description": "",
         "operationId": "repos/enable-lfs-for-repo",
         "tags": [
           "repos"
@@ -34505,7 +34523,7 @@
       },
       "delete": {
         "summary": "Disable Git LFS for a repository",
-        "description": "**Note:** The Git LFS API endpoints are currently in beta and are subject to change.",
+        "description": "",
         "operationId": "repos/disable-lfs-for-repo",
         "tags": [
           "repos"
@@ -34583,7 +34601,7 @@
     "/repos/{owner}/{repo}/merge-upstream": {
       "post": {
         "summary": "Sync a fork branch with the upstream repository",
-        "description": "**Note:** This endpoint is currently in beta and subject to change.\n\nSync a branch of a forked repository to keep it up-to-date with the upstream repository.",
+        "description": "Sync a branch of a forked repository to keep it up-to-date with the upstream repository.",
         "tags": [
           "repos"
         ],
@@ -66147,11 +66165,24 @@
           "fixed"
         ]
       },
+      "alert-updated-at": {
+        "type": "string",
+        "description": "The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "format": "date-time",
+        "readOnly": true
+      },
       "alert-instances-url": {
         "type": "string",
         "description": "The REST API URL for fetching the list of instances for an alert.",
         "format": "uri",
         "readOnly": true
+      },
+      "code-scanning-alert-fixed-at": {
+        "type": "string",
+        "description": "The time that the alert was no longer detected and was considered fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "format": "date-time",
+        "readOnly": true,
+        "nullable": true
       },
       "code-scanning-alert-dismissed-at": {
         "type": "string",
@@ -66316,6 +66347,9 @@
           "created_at": {
             "$ref": "#/components/schemas/alert-created-at"
           },
+          "updated_at": {
+            "$ref": "#/components/schemas/alert-updated-at"
+          },
           "url": {
             "$ref": "#/components/schemas/alert-url"
           },
@@ -66327,6 +66361,9 @@
           },
           "state": {
             "$ref": "#/components/schemas/code-scanning-alert-state"
+          },
+          "fixed_at": {
+            "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
           },
           "dismissed_by": {
             "$ref": "#/components/schemas/nullable-simple-user"
@@ -66428,6 +66465,9 @@
           "created_at": {
             "$ref": "#/components/schemas/alert-created-at"
           },
+          "updated_at": {
+            "$ref": "#/components/schemas/alert-updated-at"
+          },
           "url": {
             "$ref": "#/components/schemas/alert-url"
           },
@@ -66439,6 +66479,9 @@
           },
           "state": {
             "$ref": "#/components/schemas/code-scanning-alert-state"
+          },
+          "fixed_at": {
+            "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
           },
           "dismissed_by": {
             "$ref": "#/components/schemas/nullable-simple-user"
@@ -87171,6 +87214,7 @@
             "url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4",
             "html_url": "https://github.com/octocat/hello-world/code-scanning/4",
             "state": "open",
+            "fixed_at": null,
             "dismissed_by": null,
             "dismissed_at": null,
             "dismissed_reason": null,
@@ -87213,6 +87257,7 @@
             "url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3",
             "html_url": "https://github.com/octocat/hello-world/code-scanning/3",
             "state": "dismissed",
+            "fixed_at": null,
             "dismissed_by": {
               "login": "octocat",
               "id": 1,
@@ -87277,6 +87322,7 @@
           "url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42",
           "html_url": "https://github.com/octocat/hello-world/code-scanning/42",
           "state": "dismissed",
+          "fixed_at": null,
           "dismissed_by": {
             "login": "octocat",
             "id": 54933897,
@@ -87347,6 +87393,7 @@
           "url": "https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42",
           "html_url": "https://github.com/octocat/hello-world/code-scanning/42",
           "state": "dismissed",
+          "fixed_at": null,
           "dismissed_by": {
             "login": "octocat",
             "id": 1,
@@ -87417,6 +87464,7 @@
             "analysis_key": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
             "environment": "",
             "state": "open",
+            "fixed_at": null,
             "commit_sha": "39406e42cb832f683daa691dd652a8dc36ee8930",
             "message": {
               "text": "This path depends on a user-provided value."
@@ -87438,6 +87486,7 @@
             "environment": "",
             "category": ".github/workflows/codeql-analysis.yml:CodeQL-Build",
             "state": "fixed",
+            "fixed_at": "2020-02-14T12:29:18Z",
             "commit_sha": "b09da05606e27f463a2b49287684b4ae777092f2",
             "message": {
               "text": "This suffix check is missing a length comparison to correctly handle lastIndexOf returning -1."
