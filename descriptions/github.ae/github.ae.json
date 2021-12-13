@@ -13909,6 +13909,33 @@
                       "internal"
                     ]
                   },
+                  "security_and_analysis": {
+                    "type": "object",
+                    "description": "Specify which security and analysis features to enable or disable. For example, to enable GitHub Advanced Security, use this data in the body of the PATCH request: `{\"security_and_analysis\": {\"advanced_security\": {\"status\": \"enabled\"}}}`. If you have admin permissions for a private repository covered by an Advanced Security license, you can check which security and analysis features are currently enabled by using a `GET /repos/{owner}/{repo}` request.",
+                    "nullable": true,
+                    "properties": {
+                      "advanced_security": {
+                        "type": "object",
+                        "description": "Use the `status` property to enable or disable GitHub Advanced Security for this repository. For more information, see \"[About GitHub Advanced Security](/github/getting-started-with-github/learning-about-github/about-github-advanced-security).\"",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "description": "Can be `enabled` or `disabled`."
+                          }
+                        }
+                      },
+                      "secret_scanning": {
+                        "type": "object",
+                        "description": "Use the `status` property to enable or disable secret scanning for this repository. For more information, see \"[About secret scanning](/code-security/secret-security/about-secret-scanning).\"",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "description": "Can be `enabled` or `disabled`."
+                          }
+                        }
+                      }
+                    }
+                  },
                   "has_issues": {
                     "type": "boolean",
                     "description": "Either `true` to enable issues for this repository or `false` to disable them.",
@@ -16647,7 +16674,7 @@
                             },
                             "app_id": {
                               "type": "integer",
-                              "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App."
+                              "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App. Pass -1 to explicitly allow any app to set the status."
                             }
                           }
                         }
@@ -16750,13 +16777,6 @@
                   "required_conversation_resolution": {
                     "type": "boolean",
                     "description": "Requires all conversations on code to be resolved before a pull request can be merged into a branch that matches this rule. Set to `false` to disable. Default: `false`."
-                  },
-                  "contexts": {
-                    "type": "array",
-                    "description": "The list of status checks to require in order to merge into this branch.",
-                    "items": {
-                      "type": "string"
-                    }
                   }
                 },
                 "required": [
@@ -17417,9 +17437,29 @@
                   "contexts": {
                     "type": "array",
                     "deprecated": true,
-                    "description": "The list of status checks to require in order to merge into this branch",
+                    "description": "**Deprecated**: The list of status checks to require in order to merge into this branch. If any of these checks have recently been set by a particular GitHub App, they will be required to come from that app in future for the branch to merge. Use `checks` instead of `contexts` for more fine-grained control.\n",
                     "items": {
                       "type": "string"
+                    }
+                  },
+                  "checks": {
+                    "type": "array",
+                    "description": "The list of status checks to require in order to merge into this branch.",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "context"
+                      ],
+                      "properties": {
+                        "context": {
+                          "type": "string",
+                          "description": "The name of the required check"
+                        },
+                        "app_id": {
+                          "type": "integer",
+                          "description": "The ID of the GitHub App that must provide this check. Omit this field to automatically select the GitHub App that has recently provided this check, or any app if it was not set by a GitHub App. Pass -1 to explicitly allow any app to set the status."
+                        }
+                      }
                     }
                   }
                 }
@@ -20503,12 +20543,85 @@
           "githubCloudOnly": false,
           "category": "code-scanning"
         }
+      },
+      "delete": {
+        "summary": "Delete a code scanning analysis from a repository",
+        "description": "Deletes a specified code scanning analysis from a repository. For\nprivate repositories, you must use an access token with the `repo` scope. For public repositories,\nyou must use an access token with `public_repo` and `repo:security_events` scopes.\nGitHub Apps must have the `security_events` write permission to use this endpoint.\n\nYou can delete one analysis at a time.\nTo delete a series of analyses, start with the most recent analysis and work backwards.\nConceptually, the process is similar to the undo function in a text editor.\n\nWhen you list the analyses for a repository,\none or more will be identified as deletable in the response:\n\n```\n\"deletable\": true\n```\n\nAn analysis is deletable when it's the most recent in a set of analyses.\nTypically, a repository will have multiple sets of analyses\nfor each enabled code scanning tool,\nwhere a set is determined by a unique combination of analysis values:\n\n* `ref`\n* `tool`\n* `analysis_key`\n* `environment`\n\nIf you attempt to delete an analysis that is not the most recent in a set,\nyou'll get a 400 response with the message:\n\n```\nAnalysis specified is not deletable.\n```\n\nThe response from a successful `DELETE` operation provides you with\ntwo alternative URLs for deleting the next analysis in the set:\n`next_analysis_url` and `confirm_delete_url`.\nUse the `next_analysis_url` URL if you want to avoid accidentally deleting the final analysis\nin a set. This is a useful option if you want to preserve at least one analysis\nfor the specified tool in your repository.\nUse the `confirm_delete_url` URL if you are content to remove all analyses for a tool.\nWhen you delete the last analysis in a set, the value of `next_analysis_url` and `confirm_delete_url`\nin the 200 response is `null`.\n\nAs an example of the deletion process,\nlet's imagine that you added a workflow that configured a particular code scanning tool\nto analyze the code in a repository. This tool has added 15 analyses:\n10 on the default branch, and another 5 on a topic branch.\nYou therefore have two separate sets of analyses for this tool.\nYou've now decided that you want to remove all of the analyses for the tool.\nTo do this you must make 15 separate deletion requests.\nTo start, you must find an analysis that's identified as deletable.\nEach set of analyses always has one that's identified as deletable.\nHaving found the deletable analysis for one of the two sets,\ndelete this analysis and then continue deleting the next analysis in the set until they're all deleted.\nThen repeat the process for the second set.\nThe procedure therefore consists of a nested loop:\n\n**Outer loop**:\n* List the analyses for the repository, filtered by tool.\n* Parse this list to find a deletable analysis. If found:\n  **Inner loop**:\n  * Delete the identified analysis.\n  * Parse the response for the value of `confirm_delete_url` and, if found, use this in the next iteration.\nThe above process assumes that you want to remove all trace of the tool's analyses from the GitHub user interface, for the specified repository, and it therefore uses the `confirm_delete_url` value. Alternatively, you could use the `next_analysis_url` value, which would leave the last analysis in each set undeleted to avoid removing a tool's analysis entirely.",
+        "operationId": "code-scanning/delete-analysis",
+        "tags": [
+          "code-scanning"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/code-scanning#delete-a-code-scanning-analysis-from-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "description": "The ID of the analysis, as returned from the `GET /repos/{owner}/{repo}/code-scanning/analyses` operation.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "confirm_delete",
+            "in": "query",
+            "description": "Allow deletion if the specified analysis is the last in a set. If you attempt to delete the final analysis in a set without setting this parameter to `true`, you'll get a 400 response with the message: `Analysis is last of its type and deletion may result in the loss of historical alert data. Please specify confirm_delete.`",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/code-scanning-analysis-deletion"
+                },
+                "examples": {
+                  "default-response": {
+                    "$ref": "#/components/examples/code-scanning-analysis-deletion"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
+          "403": {
+            "$ref": "#/components/responses/code_scanning_forbidden_write"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": true,
+          "githubCloudOnly": false,
+          "category": "code-scanning"
+        }
       }
     },
     "/repos/{owner}/{repo}/code-scanning/sarifs": {
       "post": {
         "summary": "Upload an analysis as SARIF data",
-        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/code-security/secure-coding/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64 -w0\n```\n\nSARIF upload supports a maximum of 1000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
+        "description": "Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.\n\nThere are two places where you can upload code scanning results.\n - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see \"[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests).\"\n - If you upload to a branch, for example `--ref refs/heads/my-branch`, then the results appear in the **Security** tab for your repository. For more information, see \"[Managing code scanning alerts for your repository](/code-security/secure-coding/managing-code-scanning-alerts-for-your-repository#viewing-the-alerts-for-a-repository).\"\n\nYou must compress the SARIF-formatted analysis data that you want to upload, using `gzip`, and then encode it as a Base64 format string. For example:\n\n```\ngzip -c analysis-data.sarif | base64 -w0\n```\n\nSARIF upload supports a maximum of 5000 results per analysis run. Any results over this limit are ignored. Typically, but not necessarily, a SARIF file contains a single run of a single tool. If a code scanning tool generates too many results, you should update the analysis configuration to run only the most important rules or queries.\n\nThe `202 Accepted`, response includes an `id` value.\nYou can use this ID to check the status of the upload by using this for the `/sarifs/{sarif_id}` endpoint.\nFor more information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\"",
         "operationId": "code-scanning/upload-sarif",
         "tags": [
           "code-scanning"
@@ -28533,7 +28646,7 @@
     "/repos/{owner}/{repo}/lfs": {
       "put": {
         "summary": "Enable Git LFS for a repository",
-        "description": "**Note:** The Git LFS API endpoints are currently in beta and are subject to change.",
+        "description": "",
         "operationId": "repos/enable-lfs-for-repo",
         "tags": [
           "repos"
@@ -28567,7 +28680,7 @@
       },
       "delete": {
         "summary": "Disable Git LFS for a repository",
-        "description": "**Note:** The Git LFS API endpoints are currently in beta and are subject to change.",
+        "description": "",
         "operationId": "repos/disable-lfs-for-repo",
         "tags": [
           "repos"
@@ -28645,7 +28758,7 @@
     "/repos/{owner}/{repo}/merge-upstream": {
       "post": {
         "summary": "Sync a fork branch with the upstream repository",
-        "description": "**Note:** This endpoint is currently in beta and subject to change.\n\nSync a branch of a forked repository to keep it up-to-date with the upstream repository.",
+        "description": "Sync a branch of a forked repository to keep it up-to-date with the upstream repository.",
         "tags": [
           "repos"
         ],
@@ -33475,7 +33588,7 @@
     "/repos/{owner}/{repo}/secret-scanning/alerts": {
       "get": {
         "summary": "List secret scanning alerts for a repository",
-        "description": "Lists all secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
+        "description": "Lists secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
         "tags": [
           "secret-scanning"
         ],
@@ -33492,35 +33605,13 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "state",
-            "in": "query",
-            "description": "Set to `open` or `resolved` to only list secret scanning alerts in a specific state.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "open",
-                "resolved"
-              ]
-            }
+            "$ref": "#/components/parameters/secret-scanning-alert-state"
           },
           {
-            "name": "secret_type",
-            "in": "query",
-            "description": "A comma-separated list of secret types to return. By default all secret types are returned. See \"[About secret scanning for private repositories](https://docs.github.com/github-ae@latest/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)\" for a complete list of secret types (API slug).",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/secret-scanning-alert-secret-type"
           },
           {
-            "name": "resolution",
-            "in": "query",
-            "description": "A comma-separated list of resolutions. Only secret scanning alerts with one of these resolutions are listed. Valid resolutions are `false_positive`, `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/secret-scanning-alert-resolution"
           },
           {
             "$ref": "#/components/parameters/page"
@@ -42216,6 +42307,37 @@
           "type": "integer"
         }
       },
+      "secret-scanning-alert-state": {
+        "name": "state",
+        "in": "query",
+        "description": "Set to `open` or `resolved` to only list secret scanning alerts in a specific state.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        }
+      },
+      "secret-scanning-alert-secret-type": {
+        "name": "secret_type",
+        "in": "query",
+        "description": "A comma-separated list of secret types to return. By default all secret types are returned.\nSee \"[About secret scanning for private repositories](https://docs.github.com/github-ae@latest/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)\"\nfor a complete list of secret types (API slug).",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "secret-scanning-alert-resolution": {
+        "name": "resolution",
+        "in": "query",
+        "description": "A comma-separated list of resolutions. Only secret scanning alerts with one of these resolutions are listed. Valid resolutions are `false_positive`, `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
       "start-index": {
         "name": "startIndex",
         "description": "Used for pagination: the index of the first result to return.",
@@ -42722,14 +42844,6 @@
           "checks": {
             "type": "string",
             "description": "The level of permission to grant the access token for checks on code. Can be one of: `read` or `write`.",
-            "enum": [
-              "read",
-              "write"
-            ]
-          },
-          "content_references": {
-            "type": "string",
-            "description": "The level of permission to grant the access token for notification of content references and creation content attachments. Can be one of: `read` or `write`.",
             "enum": [
               "read",
               "write"
@@ -52960,6 +53074,26 @@
               "type": "string"
             }
           },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "context": {
+                  "type": "string",
+                  "example": "continuous-integration/travis-ci"
+                },
+                "app_id": {
+                  "type": "integer",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "context",
+                "app_id"
+              ]
+            }
+          },
           "contexts_url": {
             "type": "string",
             "format": "uri",
@@ -52970,7 +53104,8 @@
           "url",
           "contexts_url",
           "strict",
-          "contexts"
+          "contexts",
+          "checks"
         ]
       },
       "protected-branch": {
@@ -54130,6 +54265,31 @@
           "tool",
           "deletable",
           "warning"
+        ]
+      },
+      "code-scanning-analysis-deletion": {
+        "title": "Analysis deletion",
+        "description": "Successful deletion of a code scanning analysis",
+        "type": "object",
+        "properties": {
+          "next_analysis_url": {
+            "type": "string",
+            "description": "Next deletable analysis in chain, without last analysis deletion confirmation",
+            "format": "uri",
+            "readOnly": true,
+            "nullable": true
+          },
+          "confirm_delete_url": {
+            "type": "string",
+            "description": "Next deletable analysis in chain, with last analysis deletion confirmation",
+            "format": "uri",
+            "readOnly": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "next_analysis_url",
+          "confirm_delete_url"
         ]
       },
       "code-scanning-analysis-sarif-file": {
@@ -71440,6 +71600,13 @@
           "warning": ""
         }
       },
+      "code-scanning-analysis-deletion": {
+        "summary": "Default response",
+        "value": {
+          "next_analysis_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41",
+          "confirm_delete_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41?confirm_delete"
+        }
+      },
       "code-scanning-sarif-upload": {
         "summary": "Default response",
         "value": {
@@ -77233,6 +77400,7 @@
             "created_at": "2020-11-06T18:48:51Z",
             "url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2",
             "html_url": "https://github.com/owner/private-repo/security/secret-scanning/2",
+            "locations_url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations",
             "state": "resolved",
             "resolution": "false_positive",
             "resolved_at": "2020-11-07T02:47:13Z",
@@ -77264,6 +77432,7 @@
             "created_at": "2020-11-06T18:18:30Z",
             "url": "https://api.github.com/repos/owner/repo/secret-scanning/alerts/1",
             "html_url": "https://github.com/owner/repo/security/secret-scanning/1",
+            "locations_url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations",
             "state": "open",
             "resolution": null,
             "resolved_at": null,
@@ -77279,6 +77448,7 @@
           "created_at": "2020-11-06T18:18:30Z",
           "url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42",
           "html_url": "https://github.com/owner/private-repo/security/secret-scanning/42",
+          "locations_url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations",
           "state": "open",
           "resolution": null,
           "resolved_at": null,
@@ -77293,6 +77463,7 @@
           "created_at": "2020-11-06T18:18:30Z",
           "url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42",
           "html_url": "https://github.com/owner/private-repo/security/secret-scanning/42",
+          "locations_url": "https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations",
           "state": "resolved",
           "resolution": "used_in_tests",
           "resolved_at": "2020-11-16T22:42:07Z",

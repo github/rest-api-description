@@ -14370,7 +14370,8 @@ paths:
                             description: The ID of the GitHub App that must provide
                               this check. Omit this field to automatically select
                               the GitHub App that has recently provided this check,
-                              or any app if it was not set by a GitHub App.
+                              or any app if it was not set by a GitHub App. Pass -1
+                              to explicitly allow any app to set the status.
                   required:
                   - strict
                   - contexts
@@ -27144,7 +27145,7 @@ paths:
     get:
       summary: List secret scanning alerts for a repository
       description: |-
-        Lists all secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.
+        Lists secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.
 
         GitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.
       tags:
@@ -27156,32 +27157,9 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: state
-        in: query
-        description: Set to `open` or `resolved` to only list secret scanning alerts
-          in a specific state.
-        required: false
-        schema:
-          type: string
-          enum:
-          - open
-          - resolved
-      - name: secret_type
-        in: query
-        description: A comma-separated list of secret types to return. By default
-          all secret types are returned. See "[About secret scanning for private repositories](https://docs.github.com/enterprise-server@3.1/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
-          for a complete list of secret types (API slug).
-        required: false
-        schema:
-          type: string
-      - name: resolution
-        in: query
-        description: A comma-separated list of resolutions. Only secret scanning alerts
-          with one of these resolutions are listed. Valid resolutions are `false_positive`,
-          `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
-        required: false
-        schema:
-          type: string
+      - "$ref": "#/components/parameters/secret-scanning-alert-state"
+      - "$ref": "#/components/parameters/secret-scanning-alert-secret-type"
+      - "$ref": "#/components/parameters/secret-scanning-alert-resolution"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
       responses:
@@ -34221,6 +34199,36 @@ components:
       required: true
       schema:
         type: integer
+    secret-scanning-alert-state:
+      name: state
+      in: query
+      description: Set to `open` or `resolved` to only list secret scanning alerts
+        in a specific state.
+      required: false
+      schema:
+        type: string
+        enum:
+        - open
+        - resolved
+    secret-scanning-alert-secret-type:
+      name: secret_type
+      in: query
+      description: |-
+        A comma-separated list of secret types to return. By default all secret types are returned.
+        See "[About secret scanning for private repositories](https://docs.github.com/enterprise-server@3.1/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
+        for a complete list of secret types (API slug).
+      required: false
+      schema:
+        type: string
+    secret-scanning-alert-resolution:
+      name: resolution
+      in: query
+      description: A comma-separated list of resolutions. Only secret scanning alerts
+        with one of these resolutions are listed. Valid resolutions are `false_positive`,
+        `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
+      required: false
+      schema:
+        type: string
     since-repo:
       name: since
       description: A repository ID. Only return repositories with an ID greater than
@@ -34874,14 +34882,6 @@ components:
           enum:
           - read
           - write
-        content_references:
-          type: string
-          description: 'The level of permission to grant the access token for notification
-            of content references and creation content attachments. Can be one of:
-            `read` or `write`.'
-          enum:
-          - read
-          - write
         contents:
           type: string
           description: 'The level of permission to grant the access token for repository
@@ -35078,6 +35078,14 @@ components:
           type: string
           description: 'The level of permission to grant the access token to manage
             team discussions and related comments. Can be one of: `read` or `write`.'
+          enum:
+          - read
+          - write
+        content_references:
+          type: string
+          description: 'The level of permission to grant the access token for notification
+            of content references and creation content attachments. Can be one of:
+            `read` or `write`.'
           enum:
           - read
           - write
@@ -63827,6 +63835,7 @@ components:
         created_at: '2020-11-06T18:48:51Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
         html_url: https://github.com/owner/private-repo/security/secret-scanning/2
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
         state: resolved
         resolution: false_positive
         resolved_at: '2020-11-07T02:47:13Z'
@@ -63855,6 +63864,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
         html_url: https://github.com/owner/repo/security/secret-scanning/1
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
         state: open
         resolution: 
         resolved_at: 
@@ -63867,6 +63877,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42
         html_url: https://github.com/owner/private-repo/security/secret-scanning/42
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations
         state: open
         resolution: 
         resolved_at: 
@@ -63879,6 +63890,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42
         html_url: https://github.com/owner/private-repo/security/secret-scanning/42
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations
         state: resolved
         resolution: used_in_tests
         resolved_at: '2020-11-16T22:42:07Z'

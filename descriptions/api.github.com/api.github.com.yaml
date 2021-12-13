@@ -2689,8 +2689,6 @@ paths:
     get:
       summary: List labels for a self-hosted runner for an enterprise
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Lists all labels for a self-hosted runner configured in an enterprise.
 
         You must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.
@@ -2716,8 +2714,6 @@ paths:
     post:
       summary: Add custom labels to a self-hosted runner for an enterprise
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Add custom labels to a self-hosted runner configured in an enterprise.
 
         You must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.
@@ -2742,6 +2738,7 @@ paths:
                 labels:
                   type: array
                   minItems: 1
+                  maxItems: 100
                   description: The names of the custom labels to add to the runner.
                   items:
                     type: string
@@ -2764,8 +2761,6 @@ paths:
     put:
       summary: Set custom labels for a self-hosted runner for an enterprise
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all previous custom labels and set the new custom labels for a specific
         self-hosted runner configured in an enterprise.
 
@@ -2791,6 +2786,7 @@ paths:
                 labels:
                   type: array
                   minItems: 0
+                  maxItems: 100
                   description: The names of the custom labels to set for the runner.
                     You can pass an empty array to remove all custom labels.
                   items:
@@ -2814,8 +2810,6 @@ paths:
     delete:
       summary: Remove all custom labels from a self-hosted runner for an enterprise
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all custom labels from a self-hosted runner configured in an
         enterprise. Returns the remaining read-only labels from the runner.
 
@@ -2845,8 +2839,6 @@ paths:
     delete:
       summary: Remove a custom label from a self-hosted runner for an enterprise
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove a custom label from a self-hosted runner configured
         in an enterprise. Returns the remaining labels from the runner.
 
@@ -2976,7 +2968,7 @@ paths:
           "$ref": "#/components/responses/code_scanning_forbidden_read"
       x-github:
         githubCloudOnly: false
-        enabledForGitHubApps: true
+        enabledForGitHubApps: false
         previews: []
         category: enterprise-admin
         subcategory: billing
@@ -6251,8 +6243,6 @@ paths:
     get:
       summary: List labels for a self-hosted runner for an organization
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Lists all labels for a self-hosted runner configured in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -6278,8 +6268,6 @@ paths:
     post:
       summary: Add custom labels to a self-hosted runner for an organization
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Add custom labels to a self-hosted runner configured in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -6304,6 +6292,7 @@ paths:
                 labels:
                   type: array
                   minItems: 1
+                  maxItems: 100
                   description: The names of the custom labels to add to the runner.
                   items:
                     type: string
@@ -6326,8 +6315,6 @@ paths:
     put:
       summary: Set custom labels for a self-hosted runner for an organization
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all previous custom labels and set the new custom labels for a specific
         self-hosted runner configured in an organization.
 
@@ -6353,6 +6340,7 @@ paths:
                 labels:
                   type: array
                   minItems: 0
+                  maxItems: 100
                   description: The names of the custom labels to set for the runner.
                     You can pass an empty array to remove all custom labels.
                   items:
@@ -6376,8 +6364,6 @@ paths:
     delete:
       summary: Remove all custom labels from a self-hosted runner for an organization
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all custom labels from a self-hosted runner configured in an
         organization. Returns the remaining read-only labels from the runner.
 
@@ -6405,8 +6391,6 @@ paths:
     delete:
       summary: Remove a custom label from a self-hosted runner for an organization
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove a custom label from a self-hosted runner configured
         in an organization. Returns the remaining labels from the runner.
 
@@ -9532,9 +9516,9 @@ paths:
         subcategory: 
   "/orgs/{org}/secret-scanning/alerts":
     get:
-      summary: List secret scanning alerts by organization
+      summary: List secret scanning alerts for an organization
       description: |-
-        Lists all secret scanning alerts for all eligible repositories in an organization, from newest to oldest.
+        Lists secret scanning alerts for eligible repositories in an organization, from newest to oldest.
         To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.
 
         GitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.
@@ -9543,34 +9527,12 @@ paths:
       operationId: secret-scanning/list-alerts-for-org
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/rest/reference/secret-scanning#list-secret-scanning-alerts-by-organization
+        url: https://docs.github.com/rest/reference/secret-scanning#list-secret-scanning-alerts-for-an-organization
       parameters:
       - "$ref": "#/components/parameters/org"
-      - name: state
-        in: query
-        description: Set to `open` or `resolved` to only list secret scanning alerts
-          in a specific state.
-        required: false
-        schema:
-          type: string
-          enum:
-          - open
-          - resolved
-      - name: secret_type
-        in: query
-        description: A comma-separated list of secret types to return. By default
-          all secret types are returned.
-        required: false
-        schema:
-          type: string
-      - name: resolution
-        in: query
-        description: A comma-separated list of resolutions. Only secret scanning alerts
-          with one of these resolutions are listed. Valid resolutions are `false_positive`,
-          `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
-        required: false
-        schema:
-          type: string
+      - "$ref": "#/components/parameters/secret-scanning-alert-state"
+      - "$ref": "#/components/parameters/secret-scanning-alert-secret-type"
+      - "$ref": "#/components/parameters/secret-scanning-alert-resolution"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
       responses:
@@ -13321,8 +13283,6 @@ paths:
     get:
       summary: List labels for a self-hosted runner for a repository
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Lists all labels for a self-hosted runner configured in a repository.
 
         You must authenticate using an access token with the `repo` scope to use this
@@ -13350,8 +13310,6 @@ paths:
     post:
       summary: Add custom labels to a self-hosted runner for a repository
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Add custom labels to a self-hosted runner configured in a repository.
 
         You must authenticate using an access token with the `repo` scope to use this
@@ -13378,6 +13336,7 @@ paths:
                 labels:
                   type: array
                   minItems: 1
+                  maxItems: 100
                   description: The names of the custom labels to add to the runner.
                   items:
                     type: string
@@ -13400,8 +13359,6 @@ paths:
     put:
       summary: Set custom labels for a self-hosted runner for a repository
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all previous custom labels and set the new custom labels for a specific
         self-hosted runner configured in a repository.
 
@@ -13429,6 +13386,7 @@ paths:
                 labels:
                   type: array
                   minItems: 0
+                  maxItems: 100
                   description: The names of the custom labels to set for the runner.
                     You can pass an empty array to remove all custom labels.
                   items:
@@ -13452,8 +13410,6 @@ paths:
     delete:
       summary: Remove all custom labels from a self-hosted runner for a repository
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove all custom labels from a self-hosted runner configured in a
         repository. Returns the remaining read-only labels from the runner.
 
@@ -13483,8 +13439,6 @@ paths:
     delete:
       summary: Remove a custom label from a self-hosted runner for a repository
       description: |-
-        **Note:** The Actions Runner Labels API endpoints are currently in beta and are subject to change.
-
         Remove a custom label from a self-hosted runner configured
         in a repository. Returns the remaining labels from the runner.
 
@@ -15135,7 +15089,8 @@ paths:
                             description: The ID of the GitHub App that must provide
                               this check. Omit this field to automatically select
                               the GitHub App that has recently provided this check,
-                              or any app if it was not set by a GitHub App.
+                              or any app if it was not set by a GitHub App. Pass -1
+                              to explicitly allow any app to set the status.
                   required:
                   - strict
                   - contexts
@@ -15727,7 +15682,8 @@ paths:
                         description: The ID of the GitHub App that must provide this
                           check. Omit this field to automatically select the GitHub
                           App that has recently provided this check, or any app if
-                          it was not set by a GitHub App.
+                          it was not set by a GitHub App. Pass -1 to explicitly allow
+                          any app to set the status.
             example:
               strict: true
               contexts:
@@ -17714,8 +17670,9 @@ paths:
       description: |-
         Lists all open code scanning alerts for the default branch (usually `main`
         or `master`). You must use an access token with the `security_events` scope to use
-        this endpoint. GitHub Apps must have the `security_events` read permission to use
-        this endpoint.
+        this endpoint with private repos, the `public_repo` scope also grants permission to read
+        security events on public repos only. GitHub Apps must have the `security_events` read
+        permission to use this endpoint.
 
         The response includes a `most_recent_instance` object.
         This provides details of the most recent instance of this alert
@@ -17735,6 +17692,18 @@ paths:
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/git-ref"
+      - "$ref": "#/components/parameters/direction"
+      - name: sort
+        description: Can be one of `created`, `updated`, `number`.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - created
+          - updated
+          - number
+          default: number
       - name: state
         description: Set to `open`, `fixed`, or `dismissed` to list code scanning
           alerts in a specific state.
@@ -17754,6 +17723,8 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert-items"
+        '304':
+          "$ref": "#/components/responses/not_modified"
         '403':
           "$ref": "#/components/responses/code_scanning_forbidden_read"
         '404':
@@ -17769,7 +17740,7 @@ paths:
     get:
       summary: Get a code scanning alert
       description: |-
-        Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` read permission to use this endpoint.
+        Gets a single code scanning alert. You must use an access token with the `security_events` scope to use this endpoint with private repos, the `public_repo` scope also grants permission to read security events on public repos only. GitHub Apps must have the `security_events` read permission to use this endpoint.
 
         **Deprecation notice**:
         The instances field is deprecated and will, in future, not be included in the response for this endpoint. The example response reflects this change. The same information can now be retrieved via a GET request to the URL specified by `instances_url`.
@@ -17793,6 +17764,8 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/code-scanning-alert"
+        '304':
+          "$ref": "#/components/responses/not_modified"
         '403':
           "$ref": "#/components/responses/code_scanning_forbidden_read"
         '404':
@@ -17807,8 +17780,10 @@ paths:
     patch:
       summary: Update a code scanning alert
       description: Updates the status of a single code scanning alert. You must use
-        an access token with the `security_events` scope to use this endpoint. GitHub
-        Apps must have the `security_events` write permission to use this endpoint.
+        an access token with the `security_events` scope to use this endpoint with
+        private repositories. You can also use tokens with the `public_repo` scope
+        for public repositories only. GitHub Apps must have the `security_events`
+        write permission to use this endpoint.
       operationId: code-scanning/update-alert
       tags:
       - code-scanning
@@ -17858,8 +17833,10 @@ paths:
   "/repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances":
     get:
       summary: List instances of a code scanning alert
-      description: Lists all instances of the specified code scanning alert. You must
-        use an access token with the `security_events` scope to use this endpoint.
+      description: |-
+        Lists all instances of the specified code scanning alert.
+        You must use an access token with the `security_events` scope to use this endpoint with private repos,
+        the `public_repo` scope also grants permission to read security events on public repos only.
         GitHub Apps must have the `security_events` read permission to use this endpoint.
       tags:
       - code-scanning
@@ -17912,7 +17889,8 @@ paths:
         For very old analyses this data is not available,
         and `0` is returned in this field.
 
-        You must use an access token with the `security_events` scope to use this endpoint.
+        You must use an access token with the `security_events` scope to use this endpoint with private repos,
+        the `public_repo` scope also grants permission to read security events on public repos only.
         GitHub Apps must have the `security_events` read permission to use this endpoint.
 
         **Deprecation notice**:
@@ -17971,7 +17949,8 @@ paths:
       summary: Get a code scanning analysis for a repository
       description: |-
         Gets a specified code scanning analysis for a repository.
-        You must use an access token with the `security_events` scope to use this endpoint.
+        You must use an access token with the `security_events` scope to use this endpoint with private repos,
+        the `public_repo` scope also grants permission to read security events on public repos only.
         GitHub Apps must have the `security_events` read permission to use this endpoint.
 
         The default JSON response contains fields that describe the analysis.
@@ -18032,7 +18011,7 @@ paths:
       description: |-
         Deletes a specified code scanning analysis from a repository. For
         private repositories, you must use an access token with the `repo` scope. For public repositories,
-        you must use an access token with `public_repo` and `repo:security_events` scopes.
+        you must use an access token with `public_repo` scope.
         GitHub Apps must have the `security_events` write permission to use this endpoint.
 
         You can delete one analysis at a time.
@@ -18149,7 +18128,7 @@ paths:
     post:
       summary: Upload an analysis as SARIF data
       description: |-
-        Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint. GitHub Apps must have the `security_events` write permission to use this endpoint.
+        Uploads SARIF data containing the results of a code scanning analysis to make the results available in a repository. You must use an access token with the `security_events` scope to use this endpoint for private repositories. You can also use tokens with the `public_repo` scope for public repositories only. GitHub Apps must have the `security_events` write permission to use this endpoint.
 
         There are two places where you can upload code scanning results.
          - If you upload to a pull request, for example `--ref refs/pull/42/merge` or `--ref refs/pull/42/head`, then the results appear as alerts in a pull request check. For more information, see "[Triaging code scanning alerts in pull requests](/code-security/secure-coding/triaging-code-scanning-alerts-in-pull-requests)."
@@ -18244,8 +18223,9 @@ paths:
         of the analysis. For more information, see "[Get a code scanning analysis
         for a repository](/rest/reference/code-scanning#get-a-code-scanning-analysis-for-a-repository)."
         You must use an access token with the `security_events` scope to use this
-        endpoint. GitHub Apps must have the `security_events` read permission to use
-        this endpoint.
+        endpoint with private repos, the `public_repo` scope also grants permission
+        to read security events on public repos only. GitHub Apps must have the `security_events`
+        read permission to use this endpoint.
       operationId: code-scanning/get-sarif
       tags:
       - code-scanning
@@ -18368,6 +18348,9 @@ paths:
                 working_directory:
                   description: Working directory for this codespace
                   type: string
+                idle_timeout_minutes:
+                  description: Time in minutes before codespace stops from inactivity
+                  type: integer
             example:
               repository_id: 1
               ref: main
@@ -24832,8 +24815,7 @@ paths:
   "/repos/{owner}/{repo}/lfs":
     put:
       summary: Enable Git LFS for a repository
-      description: "**Note:** The Git LFS API endpoints are currently in beta and
-        are subject to change."
+      description: ''
       operationId: repos/enable-lfs-for-repo
       tags:
       - repos
@@ -24860,8 +24842,7 @@ paths:
         subcategory: lfs
     delete:
       summary: Disable Git LFS for a repository
-      description: "**Note:** The Git LFS API endpoints are currently in beta and
-        are subject to change."
+      description: ''
       operationId: repos/disable-lfs-for-repo
       tags:
       - repos
@@ -24913,10 +24894,8 @@ paths:
   "/repos/{owner}/{repo}/merge-upstream":
     post:
       summary: Sync a fork branch with the upstream repository
-      description: |-
-        **Note:** This endpoint is currently in beta and subject to change.
-
-        Sync a branch of a forked repository to keep it up-to-date with the upstream repository.
+      description: Sync a branch of a forked repository to keep it up-to-date with
+        the upstream repository.
       tags:
       - repos
       operationId: repos/merge-upstream
@@ -26536,6 +26515,9 @@ paths:
                 working_directory:
                   description: Working directory for this codespace
                   type: string
+                idle_timeout_minutes:
+                  description: Time in minutes before codespace stops from inactivity
+                  type: integer
             example:
               repository_id: 1
               ref: main
@@ -28427,7 +28409,7 @@ paths:
     get:
       summary: List secret scanning alerts for a repository
       description: |-
-        Lists all secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.
+        Lists secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.
 
         GitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.
       tags:
@@ -28439,32 +28421,9 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: state
-        in: query
-        description: Set to `open` or `resolved` to only list secret scanning alerts
-          in a specific state.
-        required: false
-        schema:
-          type: string
-          enum:
-          - open
-          - resolved
-      - name: secret_type
-        in: query
-        description: A comma-separated list of secret types to return. By default
-          all secret types are returned. See "[About secret scanning for private repositories](https://docs.github.com/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
-          for a complete list of secret types (API slug).
-        required: false
-        schema:
-          type: string
-      - name: resolution
-        in: query
-        description: A comma-separated list of resolutions. Only secret scanning alerts
-          with one of these resolutions are listed. Valid resolutions are `false_positive`,
-          `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
-        required: false
-        schema:
-          type: string
+      - "$ref": "#/components/parameters/secret-scanning-alert-state"
+      - "$ref": "#/components/parameters/secret-scanning-alert-secret-type"
+      - "$ref": "#/components/parameters/secret-scanning-alert-resolution"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
       responses:
@@ -33666,6 +33625,9 @@ paths:
                   working_directory:
                     description: Working directory for this codespace
                     type: string
+                  idle_timeout_minutes:
+                    description: Time in minutes before codespace stops from inactivity
+                    type: integer
               - type: object
                 required:
                 - pull_request
@@ -33693,6 +33655,9 @@ paths:
                   working_directory:
                     description: Working directory for this codespace
                     type: string
+                  idle_timeout_minutes:
+                    description: Time in minutes before codespace stops from inactivity
+                    type: integer
             example:
               repository_id: 1
               ref: main
@@ -38873,14 +38838,6 @@ components:
           type: string
           description: 'The level of permission to grant the access token for checks
             on code. Can be one of: `read` or `write`.'
-          enum:
-          - read
-          - write
-        content_references:
-          type: string
-          description: 'The level of permission to grant the access token for notification
-            of content references and creation content attachments. Can be one of:
-            `read` or `write`.'
           enum:
           - read
           - write
@@ -48207,11 +48164,23 @@ components:
       - closed
       - dismissed
       - fixed
+    alert-updated-at:
+      type: string
+      description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
     alert-instances-url:
       type: string
       description: The REST API URL for fetching the list of instances for an alert.
       format: uri
       readOnly: true
+    code-scanning-alert-fixed-at:
+      type: string
+      description: 'The time that the alert was no longer detected and was considered
+        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
     code-scanning-alert-dismissed-at:
       type: string
       description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -48340,6 +48309,8 @@ components:
           "$ref": "#/components/schemas/alert-number"
         created_at:
           "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
         url:
           "$ref": "#/components/schemas/alert-url"
         html_url:
@@ -48348,6 +48319,8 @@ components:
           "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
+        fixed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
         dismissed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         dismissed_at:
@@ -48424,6 +48397,8 @@ components:
           "$ref": "#/components/schemas/alert-number"
         created_at:
           "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
         url:
           "$ref": "#/components/schemas/alert-url"
         html_url:
@@ -48432,6 +48407,8 @@ components:
           "$ref": "#/components/schemas/alert-instances-url"
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
+        fixed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
         dismissed_by:
           "$ref": "#/components/schemas/nullable-simple-user"
         dismissed_at:
@@ -60978,6 +60955,7 @@ components:
         created_at: '2020-11-06T18:48:51Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
         html_url: https://github.com/owner/private-repo/security/secret-scanning/2
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
         state: resolved
         resolution: false_positive
         resolved_at: '2020-11-07T02:47:13Z'
@@ -61222,6 +61200,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
         html_url: https://github.com/owner/repo/security/secret-scanning/1
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
         state: open
         resolution: 
         resolved_at: 
@@ -65257,6 +65236,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4
         html_url: https://github.com/octocat/hello-world/code-scanning/4
         state: open
+        fixed_at: 
         dismissed_by: 
         dismissed_at: 
         dismissed_reason: 
@@ -65291,6 +65271,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
         html_url: https://github.com/octocat/hello-world/code-scanning/3
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 1
@@ -65344,6 +65325,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42
         html_url: https://github.com/octocat/hello-world/code-scanning/42
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 54933897
@@ -65409,6 +65391,7 @@ components:
         url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/42
         html_url: https://github.com/octocat/hello-world/code-scanning/42
         state: dismissed
+        fixed_at: 
         dismissed_by:
           login: octocat
           id: 1
@@ -65473,6 +65456,7 @@ components:
         analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
         environment: ''
         state: open
+        fixed_at: 
         commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
         message:
           text: This path depends on a user-provided value.
@@ -65489,6 +65473,7 @@ components:
         environment: ''
         category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
         state: fixed
+        fixed_at: '2020-02-14T12:29:18Z'
         commit_sha: b09da05606e27f463a2b49287684b4ae777092f2
         message:
           text: This suffix check is missing a length comparison to correctly handle
@@ -71431,6 +71416,7 @@ components:
         created_at: '2020-11-06T18:48:51Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
         html_url: https://github.com/owner/private-repo/security/secret-scanning/2
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
         state: resolved
         resolution: false_positive
         resolved_at: '2020-11-07T02:47:13Z'
@@ -71459,6 +71445,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
         html_url: https://github.com/owner/repo/security/secret-scanning/1
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
         state: open
         resolution: 
         resolved_at: 
@@ -71471,6 +71458,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42
         html_url: https://github.com/owner/private-repo/security/secret-scanning/42
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations
         state: open
         resolution: 
         resolved_at: 
@@ -71483,6 +71471,7 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42
         html_url: https://github.com/owner/private-repo/security/secret-scanning/42
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations
         state: resolved
         resolution: used_in_tests
         resolved_at: '2020-11-16T22:42:07Z'
@@ -76066,6 +76055,36 @@ components:
       required: true
       schema:
         type: integer
+    secret-scanning-alert-state:
+      name: state
+      in: query
+      description: Set to `open` or `resolved` to only list secret scanning alerts
+        in a specific state.
+      required: false
+      schema:
+        type: string
+        enum:
+        - open
+        - resolved
+    secret-scanning-alert-secret-type:
+      name: secret_type
+      in: query
+      description: |-
+        A comma-separated list of secret types to return. By default all secret types are returned.
+        See "[About secret scanning for private repositories](https://docs.github.com/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
+        for a complete list of secret types (API slug).
+      required: false
+      schema:
+        type: string
+    secret-scanning-alert-resolution:
+      name: resolution
+      in: query
+      description: A comma-separated list of resolutions. Only secret scanning alerts
+        with one of these resolutions are listed. Valid resolutions are `false_positive`,
+        `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
+      required: false
+      schema:
+        type: string
     team-slug:
       name: team_slug
       description: team_slug parameter
