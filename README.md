@@ -10,7 +10,9 @@ From the [OpenAPI Specification](https://github.com/OAI/OpenAPI-Specification):
 
 ## Project Status
 
-This project is currently in **BETA**. We expect this description to be accurate but it is in **active development**. If you've identified a mismatch between GitHub API's behavior and these descriptions, [please open an issue.](https://github.com/github/rest-api-description/issues/new?template=schema-inaccuracy.md)
+As of the 1.1.4 release, this description is considered **stable** and generally available.  
+
+The 1.1.4 release is the final release that is OpenAPI 3.0.x compatible.  Any additional features and fixes will only be available in our 2.0.x release and above. 
 
 ## Description Formats
 
@@ -33,6 +35,8 @@ We use various vendor extensions for concepts that are harder to express with Op
 ## Contributing
 
 Because this description is used across GitHub's whole API development experience, we don't currently accept pull requests that directly modify the description. This repository is automatically kept up to date with the description used to validate GitHub API requests as well as powering contract tests. See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+If you've identified a mismatch between GitHub API's behavior and these descriptions, or found an issue with the format of a schema, [please open an issue.](https://github.com/github/rest-api-description/issues/new?template=schema-inaccuracy.md)
 
 ## License
 
