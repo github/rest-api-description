@@ -12,7 +12,8 @@ From the [OpenAPI Specification](https://github.com/OAI/OpenAPI-Specification):
 
 As of the 1.1.4 release, this description is considered **stable** and generally available.  
 
-The 1.1.4 release is the final release that is OpenAPI 3.0.x compatible.  Any additional features and fixes will only be available in our 2.0.x release and above. 
+The `descriptions` folder contains the 3.0 version of the description.
+The `descriptions-next` folder contains the 3.1 version of the description, and is subject to breaking changes on the `main` branch.
 
 ## Description Formats
 
