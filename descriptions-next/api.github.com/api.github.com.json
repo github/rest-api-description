@@ -21288,6 +21288,29 @@
                       "required_approving_review_count": {
                         "type": "integer",
                         "description": "Specify the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+                      },
+                      "bypass_pull_request_allowances": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
+                        "properties": {
+                          "users": {
+                            "type": "array",
+                            "description": "The list of user `login`s allowed to bypass pull request requirements.",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "teams": {
+                            "type": "array",
+                            "description": "The list of team `slug`s allowed to bypass pull request requirements.",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
                       }
                     }
                   },
@@ -21371,7 +21394,15 @@
                   },
                   "dismiss_stale_reviews": true,
                   "require_code_owner_reviews": true,
-                  "required_approving_review_count": 2
+                  "required_approving_review_count": 2,
+                  "bypass_pull_request_allowances": {
+                    "users": [
+                      "octocat"
+                    ],
+                    "teams": [
+                      "justice-league"
+                    ]
+                  }
                 },
                 "restrictions": {
                   "users": [
@@ -21696,11 +21727,42 @@
                   "required_approving_review_count": {
                     "type": "integer",
                     "description": "Specifies the number of reviewers required to approve pull requests. Use a number between 1 and 6 or 0 to not require reviewers."
+                  },
+                  "bypass_pull_request_allowances": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
+                    "properties": {
+                      "users": {
+                        "type": "array",
+                        "description": "The list of user `login`s allowed to bypass pull request requirements.",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "teams": {
+                        "type": "array",
+                        "description": "The list of team `slug`s allowed to bypass pull request requirements.",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
                   }
                 }
               },
               "example": {
                 "dismissal_restrictions": {
+                  "users": [
+                    "octocat"
+                  ],
+                  "teams": [
+                    "justice-league"
+                  ]
+                },
+                "bypass_pull_request_allowances": {
                   "users": [
                     "octocat"
                   ],
@@ -65628,6 +65690,29 @@
               }
             }
           },
+          "bypass_pull_request_allowances": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
+            "properties": {
+              "users": {
+                "description": "The list of users allowed to bypass pull request requirements.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/simple-user"
+                }
+              },
+              "teams": {
+                "description": "The list of teams allowed to bypass pull request requirements.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/team"
+                }
+              }
+            }
+          },
           "dismiss_stale_reviews": {
             "type": "boolean",
             "examples": [
@@ -66632,6 +66717,27 @@
                   "url",
                   "users_url",
                   "teams_url",
+                  "users",
+                  "teams"
+                ]
+              },
+              "bypass_pull_request_allowances": {
+                "type": "object",
+                "properties": {
+                  "users": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/simple-user"
+                    }
+                  },
+                  "teams": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/team"
+                    }
+                  }
+                },
+                "required": [
                   "users",
                   "teams"
                 ]
@@ -68126,7 +68232,7 @@
           "state": {
             "description": "State of this codespace.",
             "enum": [
-              "None",
+              "Unknown",
               "Created",
               "Queued",
               "Provisioning",
