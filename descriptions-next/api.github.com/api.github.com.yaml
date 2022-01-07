@@ -7092,6 +7092,443 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: 
+  "/orgs/{org}/dependabot/secrets":
+    get:
+      summary: List organization secrets
+      description: Lists all secrets available in an organization without revealing
+        their encrypted values. You must authenticate using an access token with the
+        `admin:org` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets`
+        organization permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/list-org-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#list-organization-secrets
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/organization-dependabot-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/organization-dependabot-secret-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/orgs/{org}/dependabot/secrets/public-key":
+    get:
+      summary: Get an organization public key
+      description: Gets your public key, which you need to encrypt secrets. You need
+        to encrypt a secret before you can create or update secrets. You must authenticate
+        using an access token with the `admin:org` scope to use this endpoint. GitHub
+        Apps must have the `dependabot_secrets` organization permission to use this
+        endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/get-org-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#get-an-organization-public-key
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dependabot-public-key"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-public-key"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/orgs/{org}/dependabot/secrets/{secret_name}":
+    get:
+      summary: Get an organization secret
+      description: Gets a single organization secret without revealing its encrypted
+        value. You must authenticate using an access token with the `admin:org` scope
+        to use this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/get-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#get-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/organization-dependabot-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/organization-dependabot-secret"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    put:
+      summary: Create or update an organization secret
+      description: |-
+        Creates or updates an organization secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+
+        #### Example encrypting a secret using Node.js
+
+        Encrypt your secret using the [tweetsodium](https://github.com/github/tweetsodium) library.
+
+        ```
+        const sodium = require('tweetsodium');
+
+        const key = "base64-encoded-public-key";
+        const value = "plain-text-secret";
+
+        // Convert the message and key to Uint8Array's (Buffer implements that interface)
+        const messageBytes = Buffer.from(value);
+        const keyBytes = Buffer.from(key, 'base64');
+
+        // Encrypt using LibSodium.
+        const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+
+        // Base64 the encrypted secret
+        const encrypted = Buffer.from(encryptedBytes).toString('base64');
+
+        console.log(encrypted);
+        ```
+
+
+        #### Example encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/stable/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - dependabot
+      operationId: dependabot/create-or-update-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#create-or-update-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: Value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get an organization public
+                    key](https://docs.github.com/rest/reference/dependabot#get-an-organization-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: ID of the key you used to encrypt the secret.
+                visibility:
+                  type: string
+                  description: "Configures the access that repositories have to the
+                    organization secret. Can be one of:  \n\\- `all` - All repositories
+                    in an organization can access the secret.  \n\\- `private` - Private
+                    repositories in an organization can access the secret.  \n\\-
+                    `selected` - Only specific repositories can access the secret."
+                  enum:
+                  - all
+                  - private
+                  - selected
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository ids that can access the organization
+                    secret. You can only provide a list of repository ids when the
+                    `visibility` is set to `selected`. You can manage the list of
+                    selected repositories using the [List selected repositories for
+                    an organization secret](https://docs.github.com/rest/reference/dependabot#list-selected-repositories-for-an-organization-secret),
+                    [Set selected repositories for an organization secret](https://docs.github.com/rest/reference/dependabot#set-selected-repositories-for-an-organization-secret),
+                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/dependabot#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: string
+              required:
+              - visibility
+            example:
+              encrypted_value: c2VjcmV0
+              key_id: '012345678912345678'
+              visibility: selected
+              selected_repository_ids:
+              - '1296269'
+              - '1296280'
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/empty-object"
+        '204':
+          description: Response when updating a secret
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    delete:
+      summary: Delete an organization secret
+      description: Deletes a secret in an organization using the secret name. You
+        must authenticate using an access token with the `admin:org` scope to use
+        this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/delete-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#delete-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/orgs/{org}/dependabot/secrets/{secret_name}/repositories":
+    get:
+      summary: List selected repositories for an organization secret
+      description: Lists all repositories that have been selected when the `visibility`
+        for repository access to a secret is set to `selected`. You must authenticate
+        using an access token with the `admin:org` scope to use this endpoint. GitHub
+        Apps must have the `dependabot_secrets` organization permission to use this
+        endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/list-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#list-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - repositories
+                properties:
+                  total_count:
+                    type: integer
+                  repositories:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/minimal-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/public-repository-paginated"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    put:
+      summary: Set selected repositories for an organization secret
+      description: Replaces all repositories for an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/dependabot#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/set-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#set-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository ids that can access the organization
+                    secret. You can only provide a list of repository ids when the
+                    `visibility` is set to `selected`. You can add and remove individual
+                    repositories using the [Set selected repositories for an organization
+                    secret](https://docs.github.com/rest/reference/dependabot#set-selected-repositories-for-an-organization-secret)
+                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/dependabot#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: integer
+              required:
+              - selected_repository_ids
+            example:
+              selected_repository_ids:
+              - 64780797
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}":
+    put:
+      summary: Add selected repository to an organization secret
+      description: Adds a repository to an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/dependabot#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/add-selected-repo-to-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#add-selected-repository-to-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: No Content when repository was added to the selected list
+        '409':
+          description: Conflict when visibility type is not set to selected
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    delete:
+      summary: Remove selected repository from an organization secret
+      description: Removes a repository from an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/dependabot#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint. GitHub Apps must have the `dependabot_secrets` organization
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/remove-selected-repo-from-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#remove-selected-repository-from-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Response when repository was removed from the selected list
+        '409':
+          description: Conflict when visibility type not set to selected
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
   "/orgs/{org}/events":
     get:
       summary: List public organization events
@@ -20149,6 +20586,264 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: 
+  "/repos/{owner}/{repo}/dependabot/secrets":
+    get:
+      summary: List repository secrets
+      description: Lists all secrets available in a repository without revealing their
+        encrypted values. You must authenticate using an access token with the `repo`
+        scope to use this endpoint. GitHub Apps must have the `dependabot_secrets`
+        repository permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/list-repo-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#list-repository-secrets
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/dependabot-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-secret-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/repos/{owner}/{repo}/dependabot/secrets/public-key":
+    get:
+      summary: Get a repository public key
+      description: Gets your public key, which you need to encrypt secrets. You need
+        to encrypt a secret before you can create or update secrets. Anyone with read
+        access to the repository can use this endpoint. If the repository is private
+        you must use an access token with the `repo` scope. GitHub Apps must have
+        the `dependabot_secrets` repository permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/get-repo-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#get-a-repository-public-key
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dependabot-public-key"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-public-key"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+  "/repos/{owner}/{repo}/dependabot/secrets/{secret_name}":
+    get:
+      summary: Get a repository secret
+      description: Gets a single repository secret without revealing its encrypted
+        value. You must authenticate using an access token with the `repo` scope to
+        use this endpoint. GitHub Apps must have the `dependabot_secrets` repository
+        permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/get-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#get-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dependabot-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-secret"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    put:
+      summary: Create or update a repository secret
+      description: |-
+        Creates or updates a repository secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `repo` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` repository
+        permission to use this endpoint.
+
+        #### Example encrypting a secret using Node.js
+
+        Encrypt your secret using the [tweetsodium](https://github.com/github/tweetsodium) library.
+
+        ```
+        const sodium = require('tweetsodium');
+
+        const key = "base64-encoded-public-key";
+        const value = "plain-text-secret";
+
+        // Convert the message and key to Uint8Array's (Buffer implements that interface)
+        const messageBytes = Buffer.from(value);
+        const keyBytes = Buffer.from(key, 'base64');
+
+        // Encrypt using LibSodium.
+        const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+
+        // Base64 the encrypted secret
+        const encrypted = Buffer.from(encryptedBytes).toString('base64');
+
+        console.log(encrypted);
+        ```
+
+
+        #### Example encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/stable/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - dependabot
+      operationId: dependabot/create-or-update-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#create-or-update-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: Value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get a repository public
+                    key](https://docs.github.com/rest/reference/dependabot#get-a-repository-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: ID of the key you used to encrypt the secret.
+            example:
+              encrypted_value: c2VjcmV0
+              key_id: '012345678912345678'
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                additionalProperties: false
+        '204':
+          description: Response when updating a secret
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
+    delete:
+      summary: Delete a repository secret
+      description: Deletes a secret in a repository using the secret name. You must
+        authenticate using an access token with the `repo` scope to use this endpoint.
+        GitHub Apps must have the `dependabot_secrets` repository permission to use
+        this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/delete-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependabot#delete-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: dependabot
+        subcategory: secrets
   "/repos/{owner}/{repo}/deployments":
     get:
       summary: List deployments
@@ -43419,6 +44114,57 @@ components:
       - credential_authorized_at
       - credential_accessed_at
       - authorized_credential_id
+    organization-dependabot-secret:
+      title: Dependabot Secret for an Organization
+      description: Secrets for GitHub Dependabot for an organization.
+      type: object
+      properties:
+        name:
+          description: The name of the secret.
+          type: string
+          examples:
+          - SECRET_TOKEN
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        visibility:
+          description: Visibility of a secret
+          enum:
+          - all
+          - private
+          - selected
+          type: string
+        selected_repositories_url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/organizations/org/dependabot/secrets/my_secret/repositories
+      required:
+      - name
+      - created_at
+      - updated_at
+      - visibility
+    dependabot-public-key:
+      title: DependabotPublicKey
+      description: The public key used for setting Dependabot Secrets.
+      type: object
+      properties:
+        key_id:
+          description: The identifier for the key.
+          type: string
+          examples:
+          - '1234567'
+        key:
+          description: The Base64 encoded public key.
+          type: string
+          examples:
+          - hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
+      required:
+      - key_id
+      - key
     external-group:
       title: ExternalGroup
       description: Information about an external group's usage and its members
@@ -50576,6 +51322,26 @@ components:
       required:
       - contributions
       - type
+    dependabot-secret:
+      title: Dependabot Secret
+      description: Set secrets for Dependabot.
+      type: object
+      properties:
+        name:
+          description: The name of the secret.
+          type: string
+          examples:
+          - MY_ARTIFACTORY_PASSWORD
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - name
+      - created_at
+      - updated_at
     deployment-status:
       title: Deployment Status
       description: The status of a deployment.
@@ -60348,6 +61114,34 @@ components:
         authorized_credential_expires_at: '2019-04-28T19:06:43Z'
         scopes:
         - repo
+    organization-dependabot-secret-paginated:
+      value:
+        total_count: 3
+        secrets:
+        - name: MY_ARTIFACTORY_PASSWORD
+          created_at: '2021-08-10T14:59:22Z'
+          updated_at: '2021-12-10T14:59:22Z'
+          visibility: private
+        - name: NPM_TOKEN
+          created_at: '2021-08-10T14:59:22Z'
+          updated_at: '2021-12-10T14:59:22Z'
+          visibility: all
+        - name: GH_TOKEN
+          created_at: '2021-08-10T14:59:22Z'
+          updated_at: '2021-12-10T14:59:22Z'
+          visibility: selected
+          selected_repositories_url: https://api.github.com/orgs/octo-org/dependabot/secrets/SUPER_SECRET/repositories
+    dependabot-public-key:
+      value:
+        key_id: '012345678912345678'
+        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
+    organization-dependabot-secret:
+      value:
+        name: NPM_TOKEN
+        created_at: '2019-08-10T14:59:22Z'
+        updated_at: '2020-01-10T14:59:22Z'
+        visibility: selected
+        selected_repositories_url: https://api.github.com/orgs/octo-org/dependabot/secrets/NPM_TOKEN/repositories
     external-group:
       value:
         group_id: '123'
@@ -68208,6 +69002,21 @@ components:
         type: User
         site_admin: false
         contributions: 32
+    dependabot-secret-paginated:
+      value:
+        total_count: 2
+        secrets:
+        - name: AZURE_DEVOPS_PAT
+          created_at: '2019-08-10T14:59:22Z'
+          updated_at: '2020-01-10T14:59:22Z'
+        - name: MY_ARTIFACTORY_PASSWORD
+          created_at: '2020-01-10T10:59:22Z'
+          updated_at: '2020-01-11T11:59:22Z'
+    dependabot-secret:
+      value:
+        name: MY_ARTIFACTORY_PASSWORD
+        created_at: '2019-08-10T14:59:22Z'
+        updated_at: '2020-01-10T14:59:22Z'
     deployment-simple-example:
       summary: Simple example
       value:
