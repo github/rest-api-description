@@ -6714,6 +6714,54 @@
         }
       }
     },
+    "/organizations/{org}/team/{team_slug}/external-groups": {
+      "get": {
+        "summary": "List a connection between an external group and a team",
+        "description": "Lists a connection between a team and an external group.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/list-linked-external-idp-groups-to-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-groups"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-groups"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
     "/orgs/{org}": {
       "get": {
         "summary": "Get an organization",
@@ -41832,6 +41880,15 @@
           "type": "integer"
         }
       },
+      "team-slug": {
+        "name": "team_slug",
+        "description": "team_slug parameter",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "repository-id": {
         "name": "repository_id",
         "in": "path",
@@ -41856,15 +41913,6 @@
         "required": true,
         "schema": {
           "type": "integer"
-        }
-      },
-      "team-slug": {
-        "name": "team_slug",
-        "description": "team_slug parameter",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
         }
       },
       "discussion-number": {
@@ -48423,6 +48471,54 @@
           "subscribed"
         ]
       },
+      "external-groups": {
+        "title": "ExternalGroups",
+        "description": "A list of external groups available to be connected to a team",
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "An array of external groups available to be mapped to a team",
+            "example": [
+              {
+                "group_id": 1,
+                "group_name": "group-azuread-test",
+                "updated_at": "2021-01-03 22:27:15:000 -700"
+              },
+              {
+                "group_id": 2,
+                "group_name": "group-azuread-test2",
+                "updated_at": "2021-06-03 22:27:15:000 -700"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "group_name",
+                "updated_at"
+              ],
+              "properties": {
+                "group_id": {
+                  "description": "The internal ID of the group",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "group_name": {
+                  "description": "The display name of the group",
+                  "example": "group-azuread-test",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "description": "The time of the last update for this group",
+                  "example": "2019-06-03 22:27:15:000 -700",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
       "organization-full": {
         "title": "Organization Full",
         "description": "Organization Full",
@@ -48940,54 +49036,6 @@
                 "member_email": {
                   "description": "An email attached to a user",
                   "example": "mona_lisa@github.com",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "external-groups": {
-        "title": "ExternalGroups",
-        "description": "A list of external groups available to be connected to a team",
-        "type": "object",
-        "properties": {
-          "groups": {
-            "description": "An array of external groups available to be mapped to a team",
-            "example": [
-              {
-                "group_id": 1,
-                "group_name": "group-azuread-test",
-                "updated_at": "2021-01-03 22:27:15:000 -700"
-              },
-              {
-                "group_id": 2,
-                "group_name": "group-azuread-test2",
-                "updated_at": "2021-06-03 22:27:15:000 -700"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "group_id",
-                "group_name",
-                "updated_at"
-              ],
-              "properties": {
-                "group_id": {
-                  "description": "The internal ID of the group",
-                  "example": 1,
-                  "type": "integer"
-                },
-                "group_name": {
-                  "description": "The display name of the group",
-                  "example": "group-azuread-test",
-                  "type": "string"
-                },
-                "updated_at": {
-                  "description": "The time of the last update for this group",
-                  "example": "2019-06-03 22:27:15:000 -700",
                   "type": "string"
                 }
               }
@@ -66117,6 +66165,22 @@
           }
         ]
       },
+      "external-groups": {
+        "value": {
+          "groups": [
+            {
+              "group_id": "123",
+              "group_name": "Octocat admins",
+              "updated_at": "2021-01-24T11:31:04-06:00"
+            },
+            {
+              "group_id": "456",
+              "group_name": "Octocat docs members",
+              "updated_at": "2021-03-24T11:31:04-06:00"
+            }
+          ]
+        }
+      },
       "organization-full-default-response": {
         "summary": "Default response",
         "value": {
@@ -66521,22 +66585,6 @@
               "member_login": "octo-lisa_eocsaxrs",
               "member_name": "Octo Lisa",
               "member_email": "octo_lisa@github.com"
-            }
-          ]
-        }
-      },
-      "external-groups": {
-        "value": {
-          "groups": [
-            {
-              "group_id": "123",
-              "group_name": "Octocat admins",
-              "updated_at": "2021-01-24T11:31:04-06:00"
-            },
-            {
-              "group_id": "456",
-              "group_name": "Octocat docs members",
-              "updated_at": "2021-03-24T11:31:04-06:00"
             }
           ]
         }
