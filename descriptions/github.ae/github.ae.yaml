@@ -32,6 +32,8 @@ tags:
   description: List emojis available to use on GitHub.
 - name: enterprise-admin
   description: Administer a GitHub enterprise.
+- name: dependabot
+  description: Endpoints to manage Dependabot.
 - name: gists
   description: View, modify your gists.
 - name: git
@@ -1670,35 +1672,6 @@ paths:
         enabledForGitHubApps: false
         category: apps
         subcategory: oauth-applications
-  "/applications/{client_id}/grants/{access_token}":
-    delete:
-      summary: Revoke a grant for an application
-      description: |-
-        **Deprecation Notice:** GitHub AE will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
-
-        OAuth application owners can revoke a grant for their OAuth application and a specific user. You must use [Basic Authentication](https://docs.github.com/github-ae@latest/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid token as `:access_token` and the grant for the token's owner will be deleted.
-
-        Deleting an OAuth application's grant will also delete all OAuth tokens associated with the application for the user. Once deleted, the application will have no access to the user's account and will no longer be listed on [the Applications settings page under "Authorized OAuth Apps" on GitHub AE](https://github.com/settings/applications#authorized).
-      tags:
-      - apps
-      operationId: apps/revoke-grant-for-application
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#revoke-a-grant-for-an-application
-      parameters:
-      - "$ref": "#/components/parameters/client-id"
-      - "$ref": "#/components/parameters/access-token"
-      responses:
-        '204':
-          description: Response
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        removalDate: '2021-05-05'
-        deprecationDate: '2020-02-14'
-        category: apps
-        subcategory: oauth-applications
-      deprecated: true
   "/applications/{client_id}/token":
     post:
       summary: Check a token
@@ -1834,41 +1807,6 @@ paths:
         category: apps
         subcategory: oauth-applications
   "/applications/{client_id}/tokens/{access_token}":
-    get:
-      summary: Check an authorization
-      description: |-
-        **Deprecation Notice:** GitHub AE will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
-
-        OAuth applications can use a special API method for checking OAuth token validity without exceeding the normal rate limits for failed login attempts. Authentication works differently with this particular endpoint. You must use [Basic Authentication](https://docs.github.com/github-ae@latest/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. Invalid tokens will return `404 NOT FOUND`.
-      tags:
-      - apps
-      operationId: apps/check-authorization
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#check-an-authorization
-      parameters:
-      - "$ref": "#/components/parameters/client-id"
-      - "$ref": "#/components/parameters/access-token"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/nullable-authorization"
-              examples:
-                default:
-                  "$ref": "#/components/examples/authorization-with-user"
-        '404':
-          "$ref": "#/components/responses/not_found"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        removalDate: '2021-05-05'
-        deprecationDate: '2020-02-14'
-        category: apps
-        subcategory: oauth-applications
-      deprecated: true
     post:
       summary: Reset an authorization
       description: |-
@@ -1894,32 +1832,6 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/authorization-with-user"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        removalDate: '2021-05-05'
-        deprecationDate: '2020-02-14'
-        category: apps
-        subcategory: oauth-applications
-      deprecated: true
-    delete:
-      summary: Revoke an authorization for an application
-      description: |-
-        **Deprecation Notice:** GitHub AE will discontinue OAuth endpoints that contain `access_token` in the path parameter. We have introduced new endpoints that allow you to securely manage tokens for OAuth Apps by moving `access_token` to the request body. For more information, see the [blog post](https://developer.github.com/changes/2020-02-14-deprecating-oauth-app-endpoint/).
-
-        OAuth application owners can revoke a single token for an OAuth application. You must use [Basic Authentication](https://docs.github.com/github-ae@latest/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password.
-      tags:
-      - apps
-      operationId: apps/revoke-authorization-for-application
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/apps#revoke-an-authorization-for-an-application
-      parameters:
-      - "$ref": "#/components/parameters/client-id"
-      - "$ref": "#/components/parameters/access-token"
-      responses:
-        '204':
-          description: Response
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -4718,6 +4630,38 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: 
+  "/organizations/{org}/team/{team_slug}/external-groups":
+    get:
+      summary: List a connection between an external group and a team
+      description: |-
+        Lists a connection between a team and an external group.
+
+        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
+      tags:
+      - teams
+      operationId: teams/list-linked-external-idp-groups-to-team-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-group-team-connection
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/team-slug"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/external-groups"
+              examples:
+                default:
+                  "$ref": "#/components/examples/external-groups"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: teams
+        subcategory: external-groups
   "/orgs/{org}":
     get:
       summary: Get an organization
@@ -4895,6 +4839,14 @@ paths:
                     - no organization members can create private GitHub Pages sites.
                     Existing published sites will not be impacted."
                   default: true
+                members_can_fork_private_repositories:
+                  type: boolean
+                  description: "Toggles whether organization members can fork private
+                    organization repositories. Can be one of:  \n\\* `true` - all
+                    organization members can fork private repositories within the
+                    organization.  \n\\* `false` - no organization members can fork
+                    private repositories within the organization."
+                  default: false
                 blog:
                   type: string
                   example: '"http://github.blog"'
@@ -11928,7 +11880,26 @@ paths:
                     required_approving_review_count:
                       type: integer
                       description: Specify the number of reviewers required to approve
-                        pull requests. Use a number between 1 and 6.
+                        pull requests. Use a number between 1 and 6 or 0 to not require
+                        reviewers.
+                    bypass_pull_request_allowances:
+                      type: object
+                      description: Allow specific users or teams to bypass pull request
+                        requirements. Set to `null` to disable.
+                      nullable: true
+                      properties:
+                        users:
+                          type: array
+                          description: The list of user `login`s allowed to bypass
+                            pull request requirements.
+                          items:
+                            type: string
+                        teams:
+                          type: array
+                          description: The list of team `slug`s allowed to bypass
+                            pull request requirements.
+                          items:
+                            type: string
                 restrictions:
                   type: object
                   description: Restrict who can push to the protected branch. User,
@@ -12005,6 +11976,11 @@ paths:
                 dismiss_stale_reviews: true
                 require_code_owner_reviews: true
                 required_approving_review_count: 2
+                bypass_pull_request_allowances:
+                  users:
+                  - octocat
+                  teams:
+                  - justice-league
               restrictions:
                 users:
                 - octocat
@@ -12238,9 +12214,33 @@ paths:
                 required_approving_review_count:
                   type: integer
                   description: Specifies the number of reviewers required to approve
-                    pull requests. Use a number between 1 and 6.
+                    pull requests. Use a number between 1 and 6 or 0 to not require
+                    reviewers.
+                bypass_pull_request_allowances:
+                  type: object
+                  description: Allow specific users or teams to bypass pull request
+                    requirements. Set to `null` to disable.
+                  nullable: true
+                  properties:
+                    users:
+                      type: array
+                      description: The list of user `login`s allowed to bypass pull
+                        request requirements.
+                      items:
+                        type: string
+                    teams:
+                      type: array
+                      description: The list of team `slug`s allowed to bypass pull
+                        request requirements.
+                      items:
+                        type: string
             example:
               dismissal_restrictions:
+                users:
+                - octocat
+                teams:
+                - justice-league
+              bypass_pull_request_allowances:
                 users:
                 - octocat
                 teams:
@@ -29901,6 +29901,13 @@ components:
       required: false
       schema:
         type: integer
+    team-slug:
+      name: team_slug
+      description: team_slug parameter
+      in: path
+      required: true
+      schema:
+        type: string
     repository-id:
       name: repository_id
       in: path
@@ -29921,13 +29928,6 @@ components:
       required: true
       schema:
         type: integer
-    team-slug:
-      name: team_slug
-      description: team_slug parameter
-      in: path
-      required: true
-      schema:
-        type: string
     discussion-number:
       name: discussion_number
       in: path
@@ -32330,84 +32330,6 @@ components:
       required:
       - token
       - expires_at
-    nullable-authorization:
-      title: Authorization
-      description: The authorization for an OAuth app, GitHub App, or a Personal Access
-        Token.
-      type: object
-      properties:
-        id:
-          type: integer
-        url:
-          type: string
-          format: uri
-        scopes:
-          description: A list of scopes that this authorization is in.
-          type: array
-          items:
-            type: string
-          nullable: true
-        token:
-          type: string
-        token_last_eight:
-          type: string
-          nullable: true
-        hashed_token:
-          type: string
-          nullable: true
-        app:
-          type: object
-          properties:
-            client_id:
-              type: string
-            name:
-              type: string
-            url:
-              type: string
-              format: uri
-          required:
-          - client_id
-          - name
-          - url
-        note:
-          type: string
-          nullable: true
-        note_url:
-          type: string
-          format: uri
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-        created_at:
-          type: string
-          format: date-time
-        fingerprint:
-          type: string
-          nullable: true
-        user:
-          "$ref": "#/components/schemas/nullable-simple-user"
-        installation:
-          "$ref": "#/components/schemas/nullable-scoped-installation"
-        expires_at:
-          type: string
-          format: date-time
-          nullable: true
-      required:
-      - app
-      - id
-      - note
-      - note_url
-      - scopes
-      - token
-      - hashed_token
-      - token_last_eight
-      - fingerprint
-      - url
-      - created_at
-      - updated_at
-      - expires_at
-      nullable: true
     code-of-conduct:
       title: Code Of Conduct
       description: Code Of Conduct
@@ -35114,6 +35036,40 @@ components:
       - reason
       - url
       - subscribed
+    external-groups:
+      title: ExternalGroups
+      description: A list of external groups available to be connected to a team
+      type: object
+      properties:
+        groups:
+          description: An array of external groups available to be mapped to a team
+          example:
+          - group_id: 1
+            group_name: group-azuread-test
+            updated_at: 2021-01-03 22:27:15:000 -700
+          - group_id: 2
+            group_name: group-azuread-test2
+            updated_at: 2021-06-03 22:27:15:000 -700
+          type: array
+          items:
+            type: object
+            required:
+            - group_id
+            - group_name
+            - updated_at
+            properties:
+              group_id:
+                description: The internal ID of the group
+                example: 1
+                type: integer
+              group_name:
+                description: The display name of the group
+                example: group-azuread-test
+                type: string
+              updated_at:
+                description: The time of the last update for this group
+                example: 2019-06-03 22:27:15:000 -700
+                type: string
     organization-full:
       title: Organization Full
       description: Organization Full
@@ -35284,6 +35240,10 @@ components:
         members_can_create_private_pages:
           type: boolean
           example: true
+        members_can_fork_private_repositories:
+          type: boolean
+          example: false
+          nullable: true
         updated_at:
           type: string
           format: date-time
@@ -35509,40 +35469,6 @@ components:
               member_email:
                 description: An email attached to a user
                 example: mona_lisa@github.com
-                type: string
-    external-groups:
-      title: ExternalGroups
-      description: A list of external groups available to be connected to a team
-      type: object
-      properties:
-        groups:
-          description: An array of external groups available to be mapped to a team
-          example:
-          - group_id: 1
-            group_name: group-azuread-test
-            updated_at: 2021-01-03 22:27:15:000 -700
-          - group_id: 2
-            group_name: group-azuread-test2
-            updated_at: 2021-06-03 22:27:15:000 -700
-          type: array
-          items:
-            type: object
-            required:
-            - group_id
-            - group_name
-            - updated_at
-            properties:
-              group_id:
-                description: The internal ID of the group
-                example: 1
-                type: integer
-              group_name:
-                description: The display name of the group
-                example: group-azuread-test
-                type: string
-              updated_at:
-                description: The time of the last update for this group
-                example: 2019-06-03 22:27:15:000 -700
                 type: string
     org-hook:
       title: Org Hook
@@ -38017,6 +37943,22 @@ components:
             teams_url:
               type: string
               example: '"https://api.github.com/repos/the-org/an-org-repo/branches/master/protection/dismissal_restrictions/teams"'
+        bypass_pull_request_allowances:
+          type: object
+          description: Allow specific users or teams to bypass pull request requirements.
+            Set to `null` to disable.
+          nullable: true
+          properties:
+            users:
+              description: The list of users allowed to bypass pull request requirements.
+              type: array
+              items:
+                "$ref": "#/components/schemas/simple-user"
+            teams:
+              description: The list of teams allowed to bypass pull request requirements.
+              type: array
+              items:
+                "$ref": "#/components/schemas/team"
         dismiss_stale_reviews:
           type: boolean
           example: true
@@ -38025,7 +37967,7 @@ components:
           example: true
         required_approving_review_count:
           type: integer
-          minimum: 1
+          minimum: 0
           maximum: 6
           example: 2
       required:
@@ -38640,6 +38582,20 @@ components:
               - url
               - users_url
               - teams_url
+              - users
+              - teams
+            bypass_pull_request_allowances:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/simple-user"
+                teams:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/team"
+              required:
               - users
               - teams
           required:
@@ -48760,6 +48716,15 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
+    external-groups:
+      value:
+        groups:
+        - group_id: '123'
+          group_name: Octocat admins
+          updated_at: '2021-01-24T11:31:04-06:00'
+        - group_id: '456'
+          group_name: Octocat docs members
+          updated_at: '2021-03-24T11:31:04-06:00'
     organization-full-default-response:
       summary: Default response
       value:
@@ -48812,6 +48777,7 @@ components:
         members_can_create_private_repositories: false
         members_can_create_internal_repositories: false
         members_can_create_pages: true
+        members_can_fork_private_repositories: false
     organization-full:
       value:
         login: github
@@ -48862,6 +48828,7 @@ components:
         members_can_create_pages: true
         members_can_create_public_pages: true
         members_can_create_private_pages: true
+        members_can_fork_private_repositories: false
         updated_at: '2014-03-03T18:58:10Z'
     actions-organization-permissions:
       value:
@@ -49116,15 +49083,6 @@ components:
           member_login: octo-lisa_eocsaxrs
           member_name: Octo Lisa
           member_email: octo_lisa@github.com
-    external-groups:
-      value:
-        groups:
-        - group_id: '123'
-          group_name: Octocat admins
-          updated_at: '2021-01-24T11:31:04-06:00'
-        - group_id: '456'
-          group_name: Octocat docs members
-          updated_at: '2021-03-24T11:31:04-06:00'
     org-hook-items:
       value:
       - id: 1
