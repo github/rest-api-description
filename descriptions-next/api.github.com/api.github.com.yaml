@@ -2922,6 +2922,50 @@ paths:
         enabledForGitHubApps: false
         category: enterprise-admin
         subcategory: audit-log
+  "/enterprises/{enterprise}/secret-scanning/alerts":
+    get:
+      summary: List secret scanning alerts for an enterprise
+      description: |-
+        Lists secret scanning alerts for eligible repositories in an enterprise, from newest to oldest.
+        To use this endpoint, you must be a member of the enterprise, and you must use an access token with the `repo` scope or `security_events` scope. Alerts are only returned for organizations in the enterprise for which you are an organization owner or a [security manager](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).
+      tags:
+      - secret-scanning
+      operationId: secret-scanning/list-alerts-for-enterprise
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/secret-scanning#list-secret-scanning-alerts-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/secret-scanning-alert-state"
+      - "$ref": "#/components/parameters/secret-scanning-alert-secret-type"
+      - "$ref": "#/components/parameters/secret-scanning-alert-resolution"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/organization-secret-scanning-alert"
+              examples:
+                default:
+                  "$ref": "#/components/examples/organization-secret-scanning-alert-list"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: secret-scanning
+        subcategory: 
   "/enterprises/{enterprise}/settings/billing/actions":
     get:
       summary: Get GitHub Actions billing for an enterprise
@@ -41556,6 +41600,463 @@ components:
         visibility:
           type: string
           description: The repository visibility, for example `public` or `private`.
+    alert-number:
+      type: integer
+      description: The security alert number.
+      readOnly: true
+    alert-created-at:
+      type: string
+      description: 'The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+    alert-url:
+      type: string
+      description: The REST API URL of the alert resource.
+      format: uri
+      readOnly: true
+    alert-html-url:
+      type: string
+      description: The GitHub URL of the alert resource.
+      format: uri
+      readOnly: true
+    secret-scanning-alert-state:
+      description: Sets the state of the secret scanning alert. Can be either `open`
+        or `resolved`. You must provide `resolution` when you set the state to `resolved`.
+      type: string
+      enum:
+      - open
+      - resolved
+    secret-scanning-alert-resolution:
+      type:
+      - string
+      - 'null'
+      description: "**Required when the `state` is `resolved`.** The reason for resolving
+        the alert. Can be one of `false_positive`, `wont_fix`, `revoked`, or `used_in_tests`."
+      enum:
+      - 
+      - false_positive
+      - wont_fix
+      - revoked
+      - used_in_tests
+    minimal-repository:
+      title: Minimal Repository
+      description: Minimal Repository
+      type: object
+      properties:
+        id:
+          type: integer
+          examples:
+          - 1296269
+        node_id:
+          type: string
+          examples:
+          - MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+        name:
+          type: string
+          examples:
+          - Hello-World
+        full_name:
+          type: string
+          examples:
+          - octocat/Hello-World
+        owner:
+          "$ref": "#/components/schemas/simple-user"
+        private:
+          type: boolean
+        html_url:
+          type: string
+          format: uri
+          examples:
+          - https://github.com/octocat/Hello-World
+        description:
+          type:
+          - string
+          - 'null'
+          examples:
+          - This your first repo!
+        fork:
+          type: boolean
+        url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/repos/octocat/Hello-World
+        archive_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+        assignees_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/assignees{/user}
+        blobs_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+        branches_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/branches{/branch}
+        collaborators_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+        comments_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/comments{/number}
+        commits_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/commits{/sha}
+        compare_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+        contents_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/contents/{+path}
+        contributors_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/contributors
+        deployments_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/deployments
+        downloads_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/downloads
+        events_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/events
+        forks_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/forks
+        git_commits_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+        git_refs_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+        git_tags_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+        git_url:
+          type: string
+        issue_comment_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+        issue_events_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+        issues_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/issues{/number}
+        keys_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+        labels_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/labels{/name}
+        languages_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/languages
+        merges_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/merges
+        milestones_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/milestones{/number}
+        notifications_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+        pulls_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/pulls{/number}
+        releases_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/releases{/id}
+        ssh_url:
+          type: string
+        stargazers_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/stargazers
+        statuses_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+        subscribers_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/subscribers
+        subscription_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/subscription
+        tags_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/tags
+        teams_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/teams
+        trees_url:
+          type: string
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+        clone_url:
+          type: string
+        mirror_url:
+          type:
+          - string
+          - 'null'
+        hooks_url:
+          type: string
+          format: uri
+          examples:
+          - http://api.github.com/repos/octocat/Hello-World/hooks
+        svn_url:
+          type: string
+        homepage:
+          type:
+          - string
+          - 'null'
+        language:
+          type:
+          - string
+          - 'null'
+        forks_count:
+          type: integer
+        stargazers_count:
+          type: integer
+        watchers_count:
+          type: integer
+        size:
+          type: integer
+        default_branch:
+          type: string
+        open_issues_count:
+          type: integer
+        is_template:
+          type: boolean
+        topics:
+          type: array
+          items:
+            type: string
+        has_issues:
+          type: boolean
+        has_projects:
+          type: boolean
+        has_wiki:
+          type: boolean
+        has_pages:
+          type: boolean
+        has_downloads:
+          type: boolean
+        archived:
+          type: boolean
+        disabled:
+          type: boolean
+        visibility:
+          type: string
+        pushed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          examples:
+          - '2011-01-26T19:06:43Z'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          examples:
+          - '2011-01-26T19:01:12Z'
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          examples:
+          - '2011-01-26T19:14:43Z'
+        permissions:
+          type: object
+          properties:
+            admin:
+              type: boolean
+            maintain:
+              type: boolean
+            push:
+              type: boolean
+            triage:
+              type: boolean
+            pull:
+              type: boolean
+        role_name:
+          type: string
+          examples:
+          - admin
+        template_repository:
+          anyOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/repository"
+        temp_clone_token:
+          type: string
+        delete_branch_on_merge:
+          type: boolean
+        subscribers_count:
+          type: integer
+        network_count:
+          type: integer
+        code_of_conduct:
+          "$ref": "#/components/schemas/code-of-conduct"
+        license:
+          type:
+          - object
+          - 'null'
+          properties:
+            key:
+              type: string
+            name:
+              type: string
+            spdx_id:
+              type: string
+            url:
+              type: string
+            node_id:
+              type: string
+        forks:
+          type: integer
+          examples:
+          - 0
+        open_issues:
+          type: integer
+          examples:
+          - 0
+        watchers:
+          type: integer
+          examples:
+          - 0
+        allow_forking:
+          type: boolean
+      required:
+      - archive_url
+      - assignees_url
+      - blobs_url
+      - branches_url
+      - collaborators_url
+      - comments_url
+      - commits_url
+      - compare_url
+      - contents_url
+      - contributors_url
+      - deployments_url
+      - description
+      - downloads_url
+      - events_url
+      - fork
+      - forks_url
+      - full_name
+      - git_commits_url
+      - git_refs_url
+      - git_tags_url
+      - hooks_url
+      - html_url
+      - id
+      - node_id
+      - issue_comment_url
+      - issue_events_url
+      - issues_url
+      - keys_url
+      - labels_url
+      - languages_url
+      - merges_url
+      - milestones_url
+      - name
+      - notifications_url
+      - owner
+      - private
+      - pulls_url
+      - releases_url
+      - stargazers_url
+      - statuses_url
+      - subscribers_url
+      - subscription_url
+      - tags_url
+      - teams_url
+      - trees_url
+      - url
+    organization-secret-scanning-alert:
+      type: object
+      properties:
+        number:
+          "$ref": "#/components/schemas/alert-number"
+        created_at:
+          "$ref": "#/components/schemas/alert-created-at"
+        url:
+          "$ref": "#/components/schemas/alert-url"
+        html_url:
+          "$ref": "#/components/schemas/alert-html-url"
+        locations_url:
+          type: string
+          format: uri
+          description: The REST API URL of the code locations for this alert.
+        state:
+          "$ref": "#/components/schemas/secret-scanning-alert-state"
+        resolution:
+          "$ref": "#/components/schemas/secret-scanning-alert-resolution"
+        resolved_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'The time that the alert was resolved in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+        resolved_by:
+          anyOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/simple-user"
+        secret_type:
+          type: string
+          description: The type of secret that secret scanning detected.
+        secret:
+          type: string
+          description: The secret that was detected.
+        repository:
+          "$ref": "#/components/schemas/minimal-repository"
     actions-billing-usage:
       type: object
       properties:
@@ -43137,6 +43638,12 @@ components:
               type: string
             SHA256_ED25519:
               type: string
+        ssh_keys:
+          type: array
+          items:
+            type: string
+          examples:
+          - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
         hooks:
           type: array
           items:
@@ -43199,388 +43706,6 @@ components:
           - 192.168.7.16/32
       required:
       - verifiable_password_authentication
-    minimal-repository:
-      title: Minimal Repository
-      description: Minimal Repository
-      type: object
-      properties:
-        id:
-          type: integer
-          examples:
-          - 1296269
-        node_id:
-          type: string
-          examples:
-          - MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-        name:
-          type: string
-          examples:
-          - Hello-World
-        full_name:
-          type: string
-          examples:
-          - octocat/Hello-World
-        owner:
-          "$ref": "#/components/schemas/simple-user"
-        private:
-          type: boolean
-        html_url:
-          type: string
-          format: uri
-          examples:
-          - https://github.com/octocat/Hello-World
-        description:
-          type:
-          - string
-          - 'null'
-          examples:
-          - This your first repo!
-        fork:
-          type: boolean
-        url:
-          type: string
-          format: uri
-          examples:
-          - https://api.github.com/repos/octocat/Hello-World
-        archive_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-        assignees_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/assignees{/user}
-        blobs_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-        branches_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/branches{/branch}
-        collaborators_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-        comments_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/comments{/number}
-        commits_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/commits{/sha}
-        compare_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-        contents_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/contents/{+path}
-        contributors_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/contributors
-        deployments_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/deployments
-        downloads_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/downloads
-        events_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/events
-        forks_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/forks
-        git_commits_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-        git_refs_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-        git_tags_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-        git_url:
-          type: string
-        issue_comment_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-        issue_events_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-        issues_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/issues{/number}
-        keys_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-        labels_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/labels{/name}
-        languages_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/languages
-        merges_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/merges
-        milestones_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/milestones{/number}
-        notifications_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-        pulls_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/pulls{/number}
-        releases_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/releases{/id}
-        ssh_url:
-          type: string
-        stargazers_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/stargazers
-        statuses_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-        subscribers_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/subscribers
-        subscription_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/subscription
-        tags_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/tags
-        teams_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/teams
-        trees_url:
-          type: string
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-        clone_url:
-          type: string
-        mirror_url:
-          type:
-          - string
-          - 'null'
-        hooks_url:
-          type: string
-          format: uri
-          examples:
-          - http://api.github.com/repos/octocat/Hello-World/hooks
-        svn_url:
-          type: string
-        homepage:
-          type:
-          - string
-          - 'null'
-        language:
-          type:
-          - string
-          - 'null'
-        forks_count:
-          type: integer
-        stargazers_count:
-          type: integer
-        watchers_count:
-          type: integer
-        size:
-          type: integer
-        default_branch:
-          type: string
-        open_issues_count:
-          type: integer
-        is_template:
-          type: boolean
-        topics:
-          type: array
-          items:
-            type: string
-        has_issues:
-          type: boolean
-        has_projects:
-          type: boolean
-        has_wiki:
-          type: boolean
-        has_pages:
-          type: boolean
-        has_downloads:
-          type: boolean
-        archived:
-          type: boolean
-        disabled:
-          type: boolean
-        visibility:
-          type: string
-        pushed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          examples:
-          - '2011-01-26T19:06:43Z'
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          examples:
-          - '2011-01-26T19:01:12Z'
-        updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          examples:
-          - '2011-01-26T19:14:43Z'
-        permissions:
-          type: object
-          properties:
-            admin:
-              type: boolean
-            maintain:
-              type: boolean
-            push:
-              type: boolean
-            triage:
-              type: boolean
-            pull:
-              type: boolean
-        role_name:
-          type: string
-          examples:
-          - admin
-        template_repository:
-          anyOf:
-          - type: 'null'
-          - "$ref": "#/components/schemas/repository"
-        temp_clone_token:
-          type: string
-        delete_branch_on_merge:
-          type: boolean
-        subscribers_count:
-          type: integer
-        network_count:
-          type: integer
-        code_of_conduct:
-          "$ref": "#/components/schemas/code-of-conduct"
-        license:
-          type:
-          - object
-          - 'null'
-          properties:
-            key:
-              type: string
-            name:
-              type: string
-            spdx_id:
-              type: string
-            url:
-              type: string
-            node_id:
-              type: string
-        forks:
-          type: integer
-          examples:
-          - 0
-        open_issues:
-          type: integer
-          examples:
-          - 0
-        watchers:
-          type: integer
-          examples:
-          - 0
-        allow_forking:
-          type: boolean
-      required:
-      - archive_url
-      - assignees_url
-      - blobs_url
-      - branches_url
-      - collaborators_url
-      - comments_url
-      - commits_url
-      - compare_url
-      - contents_url
-      - contributors_url
-      - deployments_url
-      - description
-      - downloads_url
-      - events_url
-      - fork
-      - forks_url
-      - full_name
-      - git_commits_url
-      - git_refs_url
-      - git_tags_url
-      - hooks_url
-      - html_url
-      - id
-      - node_id
-      - issue_comment_url
-      - issue_events_url
-      - issues_url
-      - keys_url
-      - labels_url
-      - languages_url
-      - merges_url
-      - milestones_url
-      - name
-      - notifications_url
-      - owner
-      - private
-      - pulls_url
-      - releases_url
-      - stargazers_url
-      - statuses_url
-      - subscribers_url
-      - subscription_url
-      - tags_url
-      - teams_url
-      - trees_url
-      - url
     thread:
       title: Thread
       description: Thread
@@ -45056,81 +45181,6 @@ components:
       - columns_url
       - created_at
       - updated_at
-    alert-number:
-      type: integer
-      description: The security alert number.
-      readOnly: true
-    alert-created-at:
-      type: string
-      description: 'The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
-    alert-url:
-      type: string
-      description: The REST API URL of the alert resource.
-      format: uri
-      readOnly: true
-    alert-html-url:
-      type: string
-      description: The GitHub URL of the alert resource.
-      format: uri
-      readOnly: true
-    secret-scanning-alert-state:
-      description: Sets the state of the secret scanning alert. Can be either `open`
-        or `resolved`. You must provide `resolution` when you set the state to `resolved`.
-      type: string
-      enum:
-      - open
-      - resolved
-    secret-scanning-alert-resolution:
-      type:
-      - string
-      - 'null'
-      description: "**Required when the `state` is `resolved`.** The reason for resolving
-        the alert. Can be one of `false_positive`, `wont_fix`, `revoked`, or `used_in_tests`."
-      enum:
-      - 
-      - false_positive
-      - wont_fix
-      - revoked
-      - used_in_tests
-    organization-secret-scanning-alert:
-      type: object
-      properties:
-        number:
-          "$ref": "#/components/schemas/alert-number"
-        created_at:
-          "$ref": "#/components/schemas/alert-created-at"
-        url:
-          "$ref": "#/components/schemas/alert-url"
-        html_url:
-          "$ref": "#/components/schemas/alert-html-url"
-        locations_url:
-          type: string
-          format: uri
-          description: The REST API URL of the code locations for this alert.
-        state:
-          "$ref": "#/components/schemas/secret-scanning-alert-state"
-        resolution:
-          "$ref": "#/components/schemas/secret-scanning-alert-resolution"
-        resolved_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: 'The time that the alert was resolved in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-        resolved_by:
-          anyOf:
-          - type: 'null'
-          - "$ref": "#/components/schemas/simple-user"
-        secret_type:
-          type: string
-          description: The type of secret that secret scanning detected.
-        secret:
-          type: string
-          description: The secret that was detected.
-        repository:
-          "$ref": "#/components/schemas/minimal-repository"
     group-mapping:
       title: GroupMapping
       description: External Groups to be mapped to a team for membership
@@ -59402,6 +59452,480 @@ components:
         org: mona-org
         repo: mona-org/mona-test-repo
         visibility: private
+    organization-secret-scanning-alert-list:
+      value:
+      - number: 2
+        created_at: '2020-11-06T18:48:51Z'
+        url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
+        html_url: https://github.com/owner/private-repo/security/secret-scanning/2
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
+        state: resolved
+        resolution: false_positive
+        resolved_at: '2020-11-07T02:47:13Z'
+        resolved_by:
+          login: monalisa
+          id: 2
+          node_id: MDQ6VXNlcjI=
+          avatar_url: https://alambic.github.com/avatars/u/2?
+          gravatar_id: ''
+          url: https://api.github.com/users/monalisa
+          html_url: https://github.com/monalisa
+          followers_url: https://api.github.com/users/monalisa/followers
+          following_url: https://api.github.com/users/monalisa/following{/other_user}
+          gists_url: https://api.github.com/users/monalisa/gists{/gist_id}
+          starred_url: https://api.github.com/users/monalisa/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/monalisa/subscriptions
+          organizations_url: https://api.github.com/users/monalisa/orgs
+          repos_url: https://api.github.com/users/monalisa/repos
+          events_url: https://api.github.com/users/monalisa/events{/privacy}
+          received_events_url: https://api.github.com/users/monalisa/received_events
+          type: User
+          site_admin: true
+        secret_type: adafruit_io_key
+        secret: aio_XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        repository:
+          id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: false
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          template_repository:
+            id: 1296269
+            node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+            name: Hello-World-Template
+            full_name: octocat/Hello-World-Template
+            owner:
+              login: octocat
+              id: 1
+              node_id: MDQ6VXNlcjE=
+              avatar_url: https://github.com/images/error/octocat_happy.gif
+              gravatar_id: ''
+              url: https://api.github.com/users/octocat
+              html_url: https://github.com/octocat
+              followers_url: https://api.github.com/users/octocat/followers
+              following_url: https://api.github.com/users/octocat/following{/other_user}
+              gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+              starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+              subscriptions_url: https://api.github.com/users/octocat/subscriptions
+              organizations_url: https://api.github.com/users/octocat/orgs
+              repos_url: https://api.github.com/users/octocat/repos
+              events_url: https://api.github.com/users/octocat/events{/privacy}
+              received_events_url: https://api.github.com/users/octocat/received_events
+              type: User
+              site_admin: false
+            private: false
+            html_url: https://github.com/octocat/Hello-World-Template
+            description: This your first repo!
+            fork: false
+            url: https://api.github.com/repos/octocat/Hello-World-Template
+            archive_url: https://api.github.com/repos/octocat/Hello-World-Template/{archive_format}{/ref}
+            assignees_url: https://api.github.com/repos/octocat/Hello-World-Template/assignees{/user}
+            blobs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/blobs{/sha}
+            branches_url: https://api.github.com/repos/octocat/Hello-World-Template/branches{/branch}
+            collaborators_url: https://api.github.com/repos/octocat/Hello-World-Template/collaborators{/collaborator}
+            comments_url: https://api.github.com/repos/octocat/Hello-World-Template/comments{/number}
+            commits_url: https://api.github.com/repos/octocat/Hello-World-Template/commits{/sha}
+            compare_url: https://api.github.com/repos/octocat/Hello-World-Template/compare/{base}...{head}
+            contents_url: https://api.github.com/repos/octocat/Hello-World-Template/contents/{+path}
+            contributors_url: https://api.github.com/repos/octocat/Hello-World-Template/contributors
+            deployments_url: https://api.github.com/repos/octocat/Hello-World-Template/deployments
+            downloads_url: https://api.github.com/repos/octocat/Hello-World-Template/downloads
+            events_url: https://api.github.com/repos/octocat/Hello-World-Template/events
+            forks_url: https://api.github.com/repos/octocat/Hello-World-Template/forks
+            git_commits_url: https://api.github.com/repos/octocat/Hello-World-Template/git/commits{/sha}
+            git_refs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/refs{/sha}
+            git_tags_url: https://api.github.com/repos/octocat/Hello-World-Template/git/tags{/sha}
+            git_url: git:github.com/octocat/Hello-World-Template.git
+            issue_comment_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/comments{/number}
+            issue_events_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/events{/number}
+            issues_url: https://api.github.com/repos/octocat/Hello-World-Template/issues{/number}
+            keys_url: https://api.github.com/repos/octocat/Hello-World-Template/keys{/key_id}
+            labels_url: https://api.github.com/repos/octocat/Hello-World-Template/labels{/name}
+            languages_url: https://api.github.com/repos/octocat/Hello-World-Template/languages
+            merges_url: https://api.github.com/repos/octocat/Hello-World-Template/merges
+            milestones_url: https://api.github.com/repos/octocat/Hello-World-Template/milestones{/number}
+            notifications_url: https://api.github.com/repos/octocat/Hello-World-Template/notifications{?since,all,participating}
+            pulls_url: https://api.github.com/repos/octocat/Hello-World-Template/pulls{/number}
+            releases_url: https://api.github.com/repos/octocat/Hello-World-Template/releases{/id}
+            ssh_url: git@github.com:octocat/Hello-World-Template.git
+            stargazers_url: https://api.github.com/repos/octocat/Hello-World-Template/stargazers
+            statuses_url: https://api.github.com/repos/octocat/Hello-World-Template/statuses/{sha}
+            subscribers_url: https://api.github.com/repos/octocat/Hello-World-Template/subscribers
+            subscription_url: https://api.github.com/repos/octocat/Hello-World-Template/subscription
+            tags_url: https://api.github.com/repos/octocat/Hello-World-Template/tags
+            teams_url: https://api.github.com/repos/octocat/Hello-World-Template/teams
+            trees_url: https://api.github.com/repos/octocat/Hello-World-Template/git/trees{/sha}
+            clone_url: https://github.com/octocat/Hello-World-Template.git
+            mirror_url: git:git.example.com/octocat/Hello-World-Template
+            hooks_url: https://api.github.com/repos/octocat/Hello-World-Template/hooks
+            svn_url: https://svn.github.com/octocat/Hello-World-Template
+            homepage: https://github.com
+            language: 
+            forks: 9
+            forks_count: 9
+            stargazers_count: 80
+            watchers_count: 80
+            watchers: 80
+            size: 108
+            default_branch: master
+            open_issues: 0
+            open_issues_count: 0
+            is_template: true
+            license:
+              key: mit
+              name: MIT License
+              url: https://api.github.com/licenses/mit
+              spdx_id: MIT
+              node_id: MDc6TGljZW5zZW1pdA==
+              html_url: https://api.github.com/licenses/mit
+            topics:
+            - octocat
+            - atom
+            - electron
+            - api
+            has_issues: true
+            has_projects: true
+            has_wiki: true
+            has_pages: false
+            has_downloads: true
+            archived: false
+            disabled: false
+            visibility: public
+            pushed_at: '2011-01-26T19:06:43Z'
+            created_at: '2011-01-26T19:01:12Z'
+            updated_at: '2011-01-26T19:14:43Z'
+            permissions:
+              admin: false
+              push: false
+              pull: true
+            allow_rebase_merge: true
+            temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+            allow_squash_merge: true
+            allow_auto_merge: false
+            delete_branch_on_merge: true
+            allow_merge_commit: true
+            subscribers_count: 42
+            network_count: 0
+      - number: 1
+        created_at: '2020-11-06T18:18:30Z'
+        url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
+        html_url: https://github.com/owner/repo/security/secret-scanning/1
+        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
+        state: open
+        resolution: 
+        resolved_at: 
+        resolved_by: 
+        secret_type: mailchimp_api_key
+        secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2
+        repository:
+          id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: false
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          template_repository:
+            id: 1296269
+            node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+            name: Hello-World-Template
+            full_name: octocat/Hello-World-Template
+            owner:
+              login: octocat
+              id: 1
+              node_id: MDQ6VXNlcjE=
+              avatar_url: https://github.com/images/error/octocat_happy.gif
+              gravatar_id: ''
+              url: https://api.github.com/users/octocat
+              html_url: https://github.com/octocat
+              followers_url: https://api.github.com/users/octocat/followers
+              following_url: https://api.github.com/users/octocat/following{/other_user}
+              gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+              starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+              subscriptions_url: https://api.github.com/users/octocat/subscriptions
+              organizations_url: https://api.github.com/users/octocat/orgs
+              repos_url: https://api.github.com/users/octocat/repos
+              events_url: https://api.github.com/users/octocat/events{/privacy}
+              received_events_url: https://api.github.com/users/octocat/received_events
+              type: User
+              site_admin: false
+            private: false
+            html_url: https://github.com/octocat/Hello-World-Template
+            description: This your first repo!
+            fork: false
+            url: https://api.github.com/repos/octocat/Hello-World-Template
+            archive_url: https://api.github.com/repos/octocat/Hello-World-Template/{archive_format}{/ref}
+            assignees_url: https://api.github.com/repos/octocat/Hello-World-Template/assignees{/user}
+            blobs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/blobs{/sha}
+            branches_url: https://api.github.com/repos/octocat/Hello-World-Template/branches{/branch}
+            collaborators_url: https://api.github.com/repos/octocat/Hello-World-Template/collaborators{/collaborator}
+            comments_url: https://api.github.com/repos/octocat/Hello-World-Template/comments{/number}
+            commits_url: https://api.github.com/repos/octocat/Hello-World-Template/commits{/sha}
+            compare_url: https://api.github.com/repos/octocat/Hello-World-Template/compare/{base}...{head}
+            contents_url: https://api.github.com/repos/octocat/Hello-World-Template/contents/{+path}
+            contributors_url: https://api.github.com/repos/octocat/Hello-World-Template/contributors
+            deployments_url: https://api.github.com/repos/octocat/Hello-World-Template/deployments
+            downloads_url: https://api.github.com/repos/octocat/Hello-World-Template/downloads
+            events_url: https://api.github.com/repos/octocat/Hello-World-Template/events
+            forks_url: https://api.github.com/repos/octocat/Hello-World-Template/forks
+            git_commits_url: https://api.github.com/repos/octocat/Hello-World-Template/git/commits{/sha}
+            git_refs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/refs{/sha}
+            git_tags_url: https://api.github.com/repos/octocat/Hello-World-Template/git/tags{/sha}
+            git_url: git:github.com/octocat/Hello-World-Template.git
+            issue_comment_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/comments{/number}
+            issue_events_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/events{/number}
+            issues_url: https://api.github.com/repos/octocat/Hello-World-Template/issues{/number}
+            keys_url: https://api.github.com/repos/octocat/Hello-World-Template/keys{/key_id}
+            labels_url: https://api.github.com/repos/octocat/Hello-World-Template/labels{/name}
+            languages_url: https://api.github.com/repos/octocat/Hello-World-Template/languages
+            merges_url: https://api.github.com/repos/octocat/Hello-World-Template/merges
+            milestones_url: https://api.github.com/repos/octocat/Hello-World-Template/milestones{/number}
+            notifications_url: https://api.github.com/repos/octocat/Hello-World-Template/notifications{?since,all,participating}
+            pulls_url: https://api.github.com/repos/octocat/Hello-World-Template/pulls{/number}
+            releases_url: https://api.github.com/repos/octocat/Hello-World-Template/releases{/id}
+            ssh_url: git@github.com:octocat/Hello-World-Template.git
+            stargazers_url: https://api.github.com/repos/octocat/Hello-World-Template/stargazers
+            statuses_url: https://api.github.com/repos/octocat/Hello-World-Template/statuses/{sha}
+            subscribers_url: https://api.github.com/repos/octocat/Hello-World-Template/subscribers
+            subscription_url: https://api.github.com/repos/octocat/Hello-World-Template/subscription
+            tags_url: https://api.github.com/repos/octocat/Hello-World-Template/tags
+            teams_url: https://api.github.com/repos/octocat/Hello-World-Template/teams
+            trees_url: https://api.github.com/repos/octocat/Hello-World-Template/git/trees{/sha}
+            clone_url: https://github.com/octocat/Hello-World-Template.git
+            mirror_url: git:git.example.com/octocat/Hello-World-Template
+            hooks_url: https://api.github.com/repos/octocat/Hello-World-Template/hooks
+            svn_url: https://svn.github.com/octocat/Hello-World-Template
+            homepage: https://github.com
+            language: 
+            forks: 9
+            forks_count: 9
+            stargazers_count: 80
+            watchers_count: 80
+            watchers: 80
+            size: 108
+            default_branch: master
+            open_issues: 0
+            open_issues_count: 0
+            is_template: true
+            license:
+              key: mit
+              name: MIT License
+              url: https://api.github.com/licenses/mit
+              spdx_id: MIT
+              node_id: MDc6TGljZW5zZW1pdA==
+              html_url: https://api.github.com/licenses/mit
+            topics:
+            - octocat
+            - atom
+            - electron
+            - api
+            has_issues: true
+            has_projects: true
+            has_wiki: true
+            has_pages: false
+            has_downloads: true
+            archived: false
+            disabled: false
+            visibility: public
+            pushed_at: '2011-01-26T19:06:43Z'
+            created_at: '2011-01-26T19:01:12Z'
+            updated_at: '2011-01-26T19:14:43Z'
+            permissions:
+              admin: false
+              push: false
+              pull: true
+            allow_rebase_merge: true
+            temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+            allow_squash_merge: true
+            allow_auto_merge: false
+            delete_branch_on_merge: true
+            allow_merge_commit: true
+            subscribers_count: 42
+            network_count: 0
     actions-billing-usage:
       value:
         total_minutes_used: 305
@@ -60297,6 +60821,10 @@ components:
           SHA256_DSA: br9IjFspm1vxR3iA35FWE+4VTyz1hYVLIE2t1/CeyWQ
           SHA256_ECDSA: p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM
           SHA256_ED25519: "+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
+        ssh_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+        - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+        - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
         hooks:
         - 192.30.252.0/22
         web:
@@ -62338,480 +62866,6 @@ components:
         allow_merge_commit: true
         subscribers_count: 42
         network_count: 0
-    organization-secret-scanning-alert-list:
-      value:
-      - number: 2
-        created_at: '2020-11-06T18:48:51Z'
-        url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
-        html_url: https://github.com/owner/private-repo/security/secret-scanning/2
-        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
-        state: resolved
-        resolution: false_positive
-        resolved_at: '2020-11-07T02:47:13Z'
-        resolved_by:
-          login: monalisa
-          id: 2
-          node_id: MDQ6VXNlcjI=
-          avatar_url: https://alambic.github.com/avatars/u/2?
-          gravatar_id: ''
-          url: https://api.github.com/users/monalisa
-          html_url: https://github.com/monalisa
-          followers_url: https://api.github.com/users/monalisa/followers
-          following_url: https://api.github.com/users/monalisa/following{/other_user}
-          gists_url: https://api.github.com/users/monalisa/gists{/gist_id}
-          starred_url: https://api.github.com/users/monalisa/starred{/owner}{/repo}
-          subscriptions_url: https://api.github.com/users/monalisa/subscriptions
-          organizations_url: https://api.github.com/users/monalisa/orgs
-          repos_url: https://api.github.com/users/monalisa/repos
-          events_url: https://api.github.com/users/monalisa/events{/privacy}
-          received_events_url: https://api.github.com/users/monalisa/received_events
-          type: User
-          site_admin: true
-        secret_type: adafruit_io_key
-        secret: aio_XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        repository:
-          id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          git_url: git:github.com/octocat/Hello-World.git
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          ssh_url: git@github.com:octocat/Hello-World.git
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          clone_url: https://github.com/octocat/Hello-World.git
-          mirror_url: git:git.example.com/octocat/Hello-World
-          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
-          svn_url: https://svn.github.com/octocat/Hello-World
-          homepage: https://github.com
-          language: 
-          forks_count: 9
-          stargazers_count: 80
-          watchers_count: 80
-          size: 108
-          default_branch: master
-          open_issues_count: 0
-          is_template: false
-          topics:
-          - octocat
-          - atom
-          - electron
-          - api
-          has_issues: true
-          has_projects: true
-          has_wiki: true
-          has_pages: false
-          has_downloads: true
-          archived: false
-          disabled: false
-          visibility: public
-          pushed_at: '2011-01-26T19:06:43Z'
-          created_at: '2011-01-26T19:01:12Z'
-          updated_at: '2011-01-26T19:14:43Z'
-          permissions:
-            admin: false
-            push: false
-            pull: true
-          template_repository:
-            id: 1296269
-            node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-            name: Hello-World-Template
-            full_name: octocat/Hello-World-Template
-            owner:
-              login: octocat
-              id: 1
-              node_id: MDQ6VXNlcjE=
-              avatar_url: https://github.com/images/error/octocat_happy.gif
-              gravatar_id: ''
-              url: https://api.github.com/users/octocat
-              html_url: https://github.com/octocat
-              followers_url: https://api.github.com/users/octocat/followers
-              following_url: https://api.github.com/users/octocat/following{/other_user}
-              gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-              starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-              subscriptions_url: https://api.github.com/users/octocat/subscriptions
-              organizations_url: https://api.github.com/users/octocat/orgs
-              repos_url: https://api.github.com/users/octocat/repos
-              events_url: https://api.github.com/users/octocat/events{/privacy}
-              received_events_url: https://api.github.com/users/octocat/received_events
-              type: User
-              site_admin: false
-            private: false
-            html_url: https://github.com/octocat/Hello-World-Template
-            description: This your first repo!
-            fork: false
-            url: https://api.github.com/repos/octocat/Hello-World-Template
-            archive_url: https://api.github.com/repos/octocat/Hello-World-Template/{archive_format}{/ref}
-            assignees_url: https://api.github.com/repos/octocat/Hello-World-Template/assignees{/user}
-            blobs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/blobs{/sha}
-            branches_url: https://api.github.com/repos/octocat/Hello-World-Template/branches{/branch}
-            collaborators_url: https://api.github.com/repos/octocat/Hello-World-Template/collaborators{/collaborator}
-            comments_url: https://api.github.com/repos/octocat/Hello-World-Template/comments{/number}
-            commits_url: https://api.github.com/repos/octocat/Hello-World-Template/commits{/sha}
-            compare_url: https://api.github.com/repos/octocat/Hello-World-Template/compare/{base}...{head}
-            contents_url: https://api.github.com/repos/octocat/Hello-World-Template/contents/{+path}
-            contributors_url: https://api.github.com/repos/octocat/Hello-World-Template/contributors
-            deployments_url: https://api.github.com/repos/octocat/Hello-World-Template/deployments
-            downloads_url: https://api.github.com/repos/octocat/Hello-World-Template/downloads
-            events_url: https://api.github.com/repos/octocat/Hello-World-Template/events
-            forks_url: https://api.github.com/repos/octocat/Hello-World-Template/forks
-            git_commits_url: https://api.github.com/repos/octocat/Hello-World-Template/git/commits{/sha}
-            git_refs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/refs{/sha}
-            git_tags_url: https://api.github.com/repos/octocat/Hello-World-Template/git/tags{/sha}
-            git_url: git:github.com/octocat/Hello-World-Template.git
-            issue_comment_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/comments{/number}
-            issue_events_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/events{/number}
-            issues_url: https://api.github.com/repos/octocat/Hello-World-Template/issues{/number}
-            keys_url: https://api.github.com/repos/octocat/Hello-World-Template/keys{/key_id}
-            labels_url: https://api.github.com/repos/octocat/Hello-World-Template/labels{/name}
-            languages_url: https://api.github.com/repos/octocat/Hello-World-Template/languages
-            merges_url: https://api.github.com/repos/octocat/Hello-World-Template/merges
-            milestones_url: https://api.github.com/repos/octocat/Hello-World-Template/milestones{/number}
-            notifications_url: https://api.github.com/repos/octocat/Hello-World-Template/notifications{?since,all,participating}
-            pulls_url: https://api.github.com/repos/octocat/Hello-World-Template/pulls{/number}
-            releases_url: https://api.github.com/repos/octocat/Hello-World-Template/releases{/id}
-            ssh_url: git@github.com:octocat/Hello-World-Template.git
-            stargazers_url: https://api.github.com/repos/octocat/Hello-World-Template/stargazers
-            statuses_url: https://api.github.com/repos/octocat/Hello-World-Template/statuses/{sha}
-            subscribers_url: https://api.github.com/repos/octocat/Hello-World-Template/subscribers
-            subscription_url: https://api.github.com/repos/octocat/Hello-World-Template/subscription
-            tags_url: https://api.github.com/repos/octocat/Hello-World-Template/tags
-            teams_url: https://api.github.com/repos/octocat/Hello-World-Template/teams
-            trees_url: https://api.github.com/repos/octocat/Hello-World-Template/git/trees{/sha}
-            clone_url: https://github.com/octocat/Hello-World-Template.git
-            mirror_url: git:git.example.com/octocat/Hello-World-Template
-            hooks_url: https://api.github.com/repos/octocat/Hello-World-Template/hooks
-            svn_url: https://svn.github.com/octocat/Hello-World-Template
-            homepage: https://github.com
-            language: 
-            forks: 9
-            forks_count: 9
-            stargazers_count: 80
-            watchers_count: 80
-            watchers: 80
-            size: 108
-            default_branch: master
-            open_issues: 0
-            open_issues_count: 0
-            is_template: true
-            license:
-              key: mit
-              name: MIT License
-              url: https://api.github.com/licenses/mit
-              spdx_id: MIT
-              node_id: MDc6TGljZW5zZW1pdA==
-              html_url: https://api.github.com/licenses/mit
-            topics:
-            - octocat
-            - atom
-            - electron
-            - api
-            has_issues: true
-            has_projects: true
-            has_wiki: true
-            has_pages: false
-            has_downloads: true
-            archived: false
-            disabled: false
-            visibility: public
-            pushed_at: '2011-01-26T19:06:43Z'
-            created_at: '2011-01-26T19:01:12Z'
-            updated_at: '2011-01-26T19:14:43Z'
-            permissions:
-              admin: false
-              push: false
-              pull: true
-            allow_rebase_merge: true
-            temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
-            allow_squash_merge: true
-            allow_auto_merge: false
-            delete_branch_on_merge: true
-            allow_merge_commit: true
-            subscribers_count: 42
-            network_count: 0
-      - number: 1
-        created_at: '2020-11-06T18:18:30Z'
-        url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
-        html_url: https://github.com/owner/repo/security/secret-scanning/1
-        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
-        state: open
-        resolution: 
-        resolved_at: 
-        resolved_by: 
-        secret_type: mailchimp_api_key
-        secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2
-        repository:
-          id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          git_url: git:github.com/octocat/Hello-World.git
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          ssh_url: git@github.com:octocat/Hello-World.git
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          clone_url: https://github.com/octocat/Hello-World.git
-          mirror_url: git:git.example.com/octocat/Hello-World
-          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
-          svn_url: https://svn.github.com/octocat/Hello-World
-          homepage: https://github.com
-          language: 
-          forks_count: 9
-          stargazers_count: 80
-          watchers_count: 80
-          size: 108
-          default_branch: master
-          open_issues_count: 0
-          is_template: false
-          topics:
-          - octocat
-          - atom
-          - electron
-          - api
-          has_issues: true
-          has_projects: true
-          has_wiki: true
-          has_pages: false
-          has_downloads: true
-          archived: false
-          disabled: false
-          visibility: public
-          pushed_at: '2011-01-26T19:06:43Z'
-          created_at: '2011-01-26T19:01:12Z'
-          updated_at: '2011-01-26T19:14:43Z'
-          permissions:
-            admin: false
-            push: false
-            pull: true
-          template_repository:
-            id: 1296269
-            node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-            name: Hello-World-Template
-            full_name: octocat/Hello-World-Template
-            owner:
-              login: octocat
-              id: 1
-              node_id: MDQ6VXNlcjE=
-              avatar_url: https://github.com/images/error/octocat_happy.gif
-              gravatar_id: ''
-              url: https://api.github.com/users/octocat
-              html_url: https://github.com/octocat
-              followers_url: https://api.github.com/users/octocat/followers
-              following_url: https://api.github.com/users/octocat/following{/other_user}
-              gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-              starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-              subscriptions_url: https://api.github.com/users/octocat/subscriptions
-              organizations_url: https://api.github.com/users/octocat/orgs
-              repos_url: https://api.github.com/users/octocat/repos
-              events_url: https://api.github.com/users/octocat/events{/privacy}
-              received_events_url: https://api.github.com/users/octocat/received_events
-              type: User
-              site_admin: false
-            private: false
-            html_url: https://github.com/octocat/Hello-World-Template
-            description: This your first repo!
-            fork: false
-            url: https://api.github.com/repos/octocat/Hello-World-Template
-            archive_url: https://api.github.com/repos/octocat/Hello-World-Template/{archive_format}{/ref}
-            assignees_url: https://api.github.com/repos/octocat/Hello-World-Template/assignees{/user}
-            blobs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/blobs{/sha}
-            branches_url: https://api.github.com/repos/octocat/Hello-World-Template/branches{/branch}
-            collaborators_url: https://api.github.com/repos/octocat/Hello-World-Template/collaborators{/collaborator}
-            comments_url: https://api.github.com/repos/octocat/Hello-World-Template/comments{/number}
-            commits_url: https://api.github.com/repos/octocat/Hello-World-Template/commits{/sha}
-            compare_url: https://api.github.com/repos/octocat/Hello-World-Template/compare/{base}...{head}
-            contents_url: https://api.github.com/repos/octocat/Hello-World-Template/contents/{+path}
-            contributors_url: https://api.github.com/repos/octocat/Hello-World-Template/contributors
-            deployments_url: https://api.github.com/repos/octocat/Hello-World-Template/deployments
-            downloads_url: https://api.github.com/repos/octocat/Hello-World-Template/downloads
-            events_url: https://api.github.com/repos/octocat/Hello-World-Template/events
-            forks_url: https://api.github.com/repos/octocat/Hello-World-Template/forks
-            git_commits_url: https://api.github.com/repos/octocat/Hello-World-Template/git/commits{/sha}
-            git_refs_url: https://api.github.com/repos/octocat/Hello-World-Template/git/refs{/sha}
-            git_tags_url: https://api.github.com/repos/octocat/Hello-World-Template/git/tags{/sha}
-            git_url: git:github.com/octocat/Hello-World-Template.git
-            issue_comment_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/comments{/number}
-            issue_events_url: https://api.github.com/repos/octocat/Hello-World-Template/issues/events{/number}
-            issues_url: https://api.github.com/repos/octocat/Hello-World-Template/issues{/number}
-            keys_url: https://api.github.com/repos/octocat/Hello-World-Template/keys{/key_id}
-            labels_url: https://api.github.com/repos/octocat/Hello-World-Template/labels{/name}
-            languages_url: https://api.github.com/repos/octocat/Hello-World-Template/languages
-            merges_url: https://api.github.com/repos/octocat/Hello-World-Template/merges
-            milestones_url: https://api.github.com/repos/octocat/Hello-World-Template/milestones{/number}
-            notifications_url: https://api.github.com/repos/octocat/Hello-World-Template/notifications{?since,all,participating}
-            pulls_url: https://api.github.com/repos/octocat/Hello-World-Template/pulls{/number}
-            releases_url: https://api.github.com/repos/octocat/Hello-World-Template/releases{/id}
-            ssh_url: git@github.com:octocat/Hello-World-Template.git
-            stargazers_url: https://api.github.com/repos/octocat/Hello-World-Template/stargazers
-            statuses_url: https://api.github.com/repos/octocat/Hello-World-Template/statuses/{sha}
-            subscribers_url: https://api.github.com/repos/octocat/Hello-World-Template/subscribers
-            subscription_url: https://api.github.com/repos/octocat/Hello-World-Template/subscription
-            tags_url: https://api.github.com/repos/octocat/Hello-World-Template/tags
-            teams_url: https://api.github.com/repos/octocat/Hello-World-Template/teams
-            trees_url: https://api.github.com/repos/octocat/Hello-World-Template/git/trees{/sha}
-            clone_url: https://github.com/octocat/Hello-World-Template.git
-            mirror_url: git:git.example.com/octocat/Hello-World-Template
-            hooks_url: https://api.github.com/repos/octocat/Hello-World-Template/hooks
-            svn_url: https://svn.github.com/octocat/Hello-World-Template
-            homepage: https://github.com
-            language: 
-            forks: 9
-            forks_count: 9
-            stargazers_count: 80
-            watchers_count: 80
-            watchers: 80
-            size: 108
-            default_branch: master
-            open_issues: 0
-            open_issues_count: 0
-            is_template: true
-            license:
-              key: mit
-              name: MIT License
-              url: https://api.github.com/licenses/mit
-              spdx_id: MIT
-              node_id: MDc6TGljZW5zZW1pdA==
-              html_url: https://api.github.com/licenses/mit
-            topics:
-            - octocat
-            - atom
-            - electron
-            - api
-            has_issues: true
-            has_projects: true
-            has_wiki: true
-            has_pages: false
-            has_downloads: true
-            archived: false
-            disabled: false
-            visibility: public
-            pushed_at: '2011-01-26T19:06:43Z'
-            created_at: '2011-01-26T19:01:12Z'
-            updated_at: '2011-01-26T19:14:43Z'
-            permissions:
-              admin: false
-              push: false
-              pull: true
-            allow_rebase_merge: true
-            temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
-            allow_squash_merge: true
-            allow_auto_merge: false
-            delete_branch_on_merge: true
-            allow_merge_commit: true
-            subscribers_count: 42
-            network_count: 0
     group-mapping-3:
       value:
         groups:
@@ -76961,12 +77015,6 @@ components:
           examples:
             default:
               "$ref": "#/components/examples/runner-labels-readonly"
-    code_scanning_forbidden_read:
-      description: Response if GitHub Advanced Security is not enabled for this repository
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
     service_unavailable:
       description: Service unavailable
       content:
@@ -76980,6 +77028,12 @@ components:
                 type: string
               documentation_url:
                 type: string
+    code_scanning_forbidden_read:
+      description: Response if GitHub Advanced Security is not enabled for this repository
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     forbidden_gist:
       description: Forbidden Gist
       content:
@@ -77247,6 +77301,52 @@ components:
         enum:
         - desc
         - asc
+    secret-scanning-alert-state:
+      name: state
+      in: query
+      description: Set to `open` or `resolved` to only list secret scanning alerts
+        in a specific state.
+      required: false
+      schema:
+        type: string
+        enum:
+        - open
+        - resolved
+    secret-scanning-alert-secret-type:
+      name: secret_type
+      in: query
+      description: |-
+        A comma-separated list of secret types to return. By default all secret types are returned.
+        See "[About secret scanning for private repositories](https://docs.github.com/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
+        for a complete list of secret types (API slug).
+      required: false
+      schema:
+        type: string
+    secret-scanning-alert-resolution:
+      name: resolution
+      in: query
+      description: A comma-separated list of resolutions. Only secret scanning alerts
+        with one of these resolutions are listed. Valid resolutions are `false_positive`,
+        `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
+      required: false
+      schema:
+        type: string
+    pagination-before:
+      name: before
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events before this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    pagination-after:
+      name: after
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events after this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
     gist-id:
       name: gist_id
       description: gist_id parameter
@@ -77473,36 +77573,6 @@ components:
       required: true
       schema:
         type: integer
-    secret-scanning-alert-state:
-      name: state
-      in: query
-      description: Set to `open` or `resolved` to only list secret scanning alerts
-        in a specific state.
-      required: false
-      schema:
-        type: string
-        enum:
-        - open
-        - resolved
-    secret-scanning-alert-secret-type:
-      name: secret_type
-      in: query
-      description: |-
-        A comma-separated list of secret types to return. By default all secret types are returned.
-        See "[About secret scanning for private repositories](https://docs.github.com/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)"
-        for a complete list of secret types (API slug).
-      required: false
-      schema:
-        type: string
-    secret-scanning-alert-resolution:
-      name: resolution
-      in: query
-      description: A comma-separated list of resolutions. Only secret scanning alerts
-        with one of these resolutions are listed. Valid resolutions are `false_positive`,
-        `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
-      required: false
-      schema:
-        type: string
     discussion-number:
       name: discussion_number
       in: path
