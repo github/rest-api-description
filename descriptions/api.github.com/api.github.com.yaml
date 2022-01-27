@@ -5582,6 +5582,69 @@ paths:
         githubCloudOnly: false
         category: actions
         subcategory: permissions
+  "/orgs/{org}/actions/permissions/workflow":
+    get:
+      summary: Get default workflow permissions
+      description: |-
+        Gets the default workflow permissions granted to the `GITHUB_TOKEN` when running workflows in an organization,
+        as well if GitHub Actions can submit approving pull request reviews.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      tags:
+      - actions
+      operationId: actions/get-github-actions-default-workflow-permissions-organization
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#get-default-workflow-permissions
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-get-default-workflow-permissions"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-default-workflow-permissions"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: permissions
+    put:
+      summary: Set default workflow permissions
+      description: |-
+        Sets the default workflow permissions granted to the `GITHUB_TOKEN` when running workflows in an organization, and sets if GitHub Actions
+        can submit approving pull request reviews.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint. GitHub Apps must have the `administration` organization permission to use this API.
+      tags:
+      - actions
+      operationId: actions/set-github-actions-default-workflow-permissions-organization
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#set-default-workflow-permissions
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '204':
+          description: Response
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/actions-set-default-workflow-permissions"
+            examples:
+              default:
+                "$ref": "#/components/examples/actions-default-workflow-permissions"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: permissions
   "/orgs/{org}/actions/runner-groups":
     get:
       summary: List self-hosted runner groups for an organization
@@ -20940,7 +21003,7 @@ paths:
         the API will return a successful merge commit. If merge conflicts prevent the merge from succeeding, the API will
         return a failure response.
 
-        By default, [commit statuses](https://docs.github.com/rest/reference/repos#statuses) for every submitted context must be in a `success`
+        By default, [commit statuses](https://docs.github.com/rest/reference/commits#commit-statuses) for every submitted context must be in a `success`
         state. The `required_contexts` parameter allows you to specify a subset of contexts that must be `success`, or to
         specify contexts that have not yet been submitted. You are not required to use commit statuses to deploy. If you do
         not require any contexts or create any commit statuses, the deployment will always succeed.
@@ -21001,7 +21064,7 @@ paths:
                   default: true
                 required_contexts:
                   type: array
-                  description: The [status](https://docs.github.com/rest/reference/repos#statuses)
+                  description: The [status](https://docs.github.com/rest/reference/commits#commit-statuses)
                     contexts to verify against commit status checks. If you omit this
                     parameter, GitHub verifies all unique contexts before creating
                     a deployment. To bypass checking entirely, pass an empty array.
@@ -35008,9 +35071,9 @@ paths:
     patch:
       summary: Update a codespace for the authenticated user
       description: |-
-        Updates a codespace owned by the authenticated user. Currently only the codespace's machine type can be modified using this endpoint.
+        Updates a codespace owned by the authenticated user. Currently only the codespace's machine type and recent folders can be modified using this endpoint.
 
-        Once you specify a new machine type it will be applied the next time your codespace is started.
+        If you specify a new machine type it will be applied the next time your codespace is started.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
       tags:
@@ -35031,6 +35094,13 @@ paths:
                 machine:
                   description: A valid machine to transition this codespace to.
                   type: string
+                recent_folders:
+                  description: Recently opened folders inside the codespace. It is
+                    currently used by the clients to determine the folder path to
+                    load the codespace in.
+                  type: array
+                  items:
+                    type: string
             example:
               machine: standardLinux
       responses:
@@ -44288,6 +44358,33 @@ components:
           "$ref": "#/components/schemas/selected-actions-url"
       required:
       - enabled_repositories
+    actions-default-workflow-permissions:
+      type: string
+      description: The default workflow permissions granted to the GITHUB_TOKEN when
+        running workflows in an organization.
+      enum:
+      - read
+      - write
+    actions-can-approve-pull-request-reviews:
+      type: boolean
+      description: Whether GitHub Actions can submit approving pull request reviews.
+    actions-get-default-workflow-permissions:
+      type: object
+      properties:
+        default_workflow_permissions:
+          "$ref": "#/components/schemas/actions-default-workflow-permissions"
+        can_approve_pull_request_reviews:
+          "$ref": "#/components/schemas/actions-can-approve-pull-request-reviews"
+      required:
+      - default_workflow_permissions
+      - can_approve_pull_request_reviews
+    actions-set-default-workflow-permissions:
+      type: object
+      properties:
+        default_workflow_permissions:
+          "$ref": "#/components/schemas/actions-default-workflow-permissions"
+        can_approve_pull_request_reviews:
+          "$ref": "#/components/schemas/actions-can-approve-pull-request-reviews"
     runner-groups-org:
       type: object
       properties:
@@ -60833,6 +60930,10 @@ components:
           forks: 1
           open_issues: 1
           watchers: 1
+    actions-default-workflow-permissions:
+      value:
+        default_workflow_permissions: read
+        can_approve_pull_request_reviews: true
     runner-groups-org:
       value:
         total_count: 3
