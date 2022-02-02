@@ -2043,7 +2043,7 @@ paths:
     get:
       summary: Get an installation for the authenticated app
       description: |-
-        Enables an authenticated GitHub App to find an installation's information using the installation id. The installation's account type (`target_type`) will be either an organization or a user account, depending which account the repository belongs to.
+        Enables an authenticated GitHub App to find an installation's information using the installation id.
 
         You must use a [JWT](https://docs.github.com/enterprise-server@3.0/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.
       tags:
@@ -7674,7 +7674,7 @@ paths:
 
         #### Example encrypting a secret using Python
 
-        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/stable/public/#nacl-public-sealedbox) with Python 3.
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
 
         ```
         from base64 import b64encode
@@ -13552,6 +13552,10 @@ paths:
       responses:
         '204':
           description: Response
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '500':
+          "$ref": "#/components/responses/internal_error"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -13733,7 +13737,7 @@ paths:
 
         #### Example encrypting a secret using Python
 
-        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/stable/public/#nacl-public-sealedbox) with Python 3.
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
 
         ```
         from base64 import b64encode
@@ -18948,7 +18952,7 @@ paths:
         the API will return a successful merge commit. If merge conflicts prevent the merge from succeeding, the API will
         return a failure response.
 
-        By default, [commit statuses](https://docs.github.com/enterprise-server@3.0/rest/reference/repos#statuses) for every submitted context must be in a `success`
+        By default, [commit statuses](https://docs.github.com/enterprise-server@3.0/rest/reference/commits#commit-statuses) for every submitted context must be in a `success`
         state. The `required_contexts` parameter allows you to specify a subset of contexts that must be `success`, or to
         specify contexts that have not yet been submitted. You are not required to use commit statuses to deploy. If you do
         not require any contexts or create any commit statuses, the deployment will always succeed.
@@ -19009,7 +19013,7 @@ paths:
                   default: true
                 required_contexts:
                   type: array
-                  description: The [status](https://docs.github.com/enterprise-server@3.0/rest/reference/repos#statuses)
+                  description: The [status](https://docs.github.com/enterprise-server@3.0/rest/reference/commits#commit-statuses)
                     contexts to verify against commit status checks. If you omit this
                     parameter, GitHub verifies all unique contexts before creating
                     a deployment. To bypass checking entirely, pass an empty array.
@@ -19163,7 +19167,7 @@ paths:
     delete:
       summary: Delete a deployment
       description: |-
-        To ensure there can always be an active deployment, you can only delete an _inactive_ deployment. Anyone with `repo` or `repo_deployment` scopes can delete an inactive deployment.
+        If the repository only has one deployment, you can delete the deployment regardless of its status. If the repository has more than one deployment, you can only delete inactive deployments. This ensures that repositories with multiple deployments will always have an active deployment. Anyone with `repo` or `repo_deployment` scopes can delete a deployment.
 
         To set a deployment as inactive, you must:
 
@@ -21218,7 +21222,7 @@ paths:
       description: |-
         Any user with pull access to a repository can create an issue. If [issues are disabled in the repository](https://help.github.com/articles/disabling-issues/), the API returns a `410 Gone` status.
 
-        This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
+        This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.0/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
       tags:
       - issues
       operationId: issues/create
@@ -22095,7 +22099,7 @@ paths:
             The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@3.0/rest/reference/reactions) reactions.
     post:
       summary: Create an issue comment
-      description: This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications).
+      description: This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.0/github/managing-subscriptions-and-notifications-on-github/about-notifications).
         Creating content too quickly using this endpoint may result in secondary rate
         limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/overview/resources-in-the-rest-api#secondary-rate-limits)"
         and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.0/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)"
@@ -57588,7 +57592,6 @@ components:
         rule:
           id: js/zipslip
           severity: error
-          security_severity_level: high
           description: Arbitrary file write during zip extraction ("Zip Slip")
           name: js/zipslip
           full_description: Extracting files from a malicious zip archive without
@@ -57653,7 +57656,6 @@ components:
         rule:
           id: js/zipslip
           severity: error
-          security_severity_level: high
           description: Arbitrary file write during zip extraction ("Zip Slip")
           name: js/zipslip
           full_description: Extracting files from a malicious zip archive without
@@ -65479,6 +65481,12 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
+    internal_error:
+      description: Internal Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     code_scanning_forbidden_read:
       description: Response if GitHub Advanced Security is not enabled for this repository
       content:
@@ -65488,12 +65496,6 @@ components:
     code_scanning_forbidden_write:
       description: Response if the repository is archived or if github advanced security
         is not enabled for this repository
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
-    internal_error:
-      description: Internal Error
       content:
         application/json:
           schema:
