@@ -552,7 +552,7 @@ paths:
     get:
       summary: Get an installation for the authenticated app
       description: |-
-        Enables an authenticated GitHub App to find an installation's information using the installation id. The installation's account type (`target_type`) will be either an organization or a user account, depending which account the repository belongs to.
+        Enables an authenticated GitHub App to find an installation's information using the installation id.
 
         You must use a [JWT](https://docs.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.
       tags:
@@ -14547,6 +14547,10 @@ paths:
       responses:
         '204':
           description: Response
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '500':
+          "$ref": "#/components/responses/internal_error"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -35149,6 +35153,73 @@ paths:
           "$ref": "#/components/responses/requires_authentication"
         '403':
           "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: 
+  "/user/codespaces/{codespace_name}/exports":
+    post:
+      summary: Export a codespace for the authenticated user
+      description: |-
+        Triggers an export of the specified codespace and returns a URL and ID where the status of the export can be monitored.
+
+        You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/export-for-authenticated-user
+      parameters:
+      - "$ref": "#/components/parameters/codespace-name"
+      responses:
+        '202':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespace-export-details"
+              examples:
+                default:
+                  "$ref": "#/components/examples/user-export-details"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: 
+  "/user/codespaces/{codespace_name}/exports/{export_id}":
+    get:
+      summary: Get details about a codespace export
+      description: |-
+        Gets information about an export of a codespace.
+
+        You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-export-details-for-authenticated-user
+      parameters:
+      - "$ref": "#/components/parameters/codespace-name"
+      - "$ref": "#/components/parameters/export-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespace-export-details"
+              examples:
+                default:
+                  "$ref": "#/components/examples/user-export-details"
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -57915,6 +57986,41 @@ components:
       required:
       - key_id
       - key
+    codespace-export-details:
+      type: object
+      title: Fetches information about an export of a codespace.
+      description: An export of a codespace. Also, latest export details for a codespace
+        can be fetched with id = latest
+      properties:
+        state:
+          type: string
+          description: State of the latest export
+          nullable: true
+          example: succeeded | failed | in_progress
+        completed_at:
+          description: Completion time of the last export operation
+          type: string
+          format: date-time
+          nullable: true
+          example: '2021-01-01T19:01:12Z'
+        branch:
+          type: string
+          description: Name of the exported branch
+          nullable: true
+          example: codespace-monalisa-octocat-hello-world-g4wpq6h95q
+        sha:
+          type: string
+          description: Git commit SHA of the exported branch
+          nullable: true
+          example: fd95a81ca01e48ede9f39c799ecbcef817b8a3b2
+        id:
+          type: string
+          description: Id for the export details
+          example: latest
+        export_url:
+          type: string
+          description: Url for fetching export details
+          example: https://api.github.com/user/codespaces/:name/exports/latest
     email:
       title: Email
       description: Email
@@ -75052,6 +75158,14 @@ components:
         updated_at: '2020-01-10T14:59:22Z'
         visibility: selected
         selected_repositories_url: https://api.github.com/user/codespaces/secrets/CODESPACE_GH_SECRET/repositories
+    user-export-details:
+      value:
+        state: succeeded
+        completed_at: '2022-01-01T14:59:22Z'
+        branch: codespace-monalisa-octocat-hello-world-g4wpq6h95q
+        sha: fd95a81ca01e48ede9f39c799ecbcef817b8a3b2
+        id: latest
+        export_url: https://api.github.com/user/codespaces/:name/exports/latest
     email-items-3:
       value:
       - email: octocat@github.com
@@ -76733,15 +76847,15 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
-    code_scanning_forbidden_write:
-      description: Response if the repository is archived or if github advanced security
-        is not enabled for this repository
+    internal_error:
+      description: Internal Error
       content:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
-    internal_error:
-      description: Internal Error
+    code_scanning_forbidden_write:
+      description: Response if the repository is archived or if github advanced security
+        is not enabled for this repository
       content:
         application/json:
           schema:
@@ -77620,6 +77734,14 @@ components:
       in: path
       required: true
       description: The name of the codespace.
+      schema:
+        type: string
+    export-id:
+      name: export_id
+      in: path
+      required: true
+      description: The ID of the export operation, or `latest`. Currently only `latest`
+        is currently supported.
       schema:
         type: string
     gpg-key-id:
