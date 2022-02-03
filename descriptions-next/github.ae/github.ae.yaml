@@ -1467,7 +1467,7 @@ paths:
     get:
       summary: Get an installation for the authenticated app
       description: |-
-        Enables an authenticated GitHub App to find an installation's information using the installation id. The installation's account type (`target_type`) will be either an organization or a user account, depending which account the repository belongs to.
+        Enables an authenticated GitHub App to find an installation's information using the installation id.
 
         You must use a [JWT](https://docs.github.com/github-ae@latest/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.
       tags:
@@ -6700,6 +6700,189 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: members
+  "/orgs/{org}/migrations":
+    get:
+      summary: List organization migrations
+      description: Lists the most recent migrations.
+      tags:
+      - migrations
+      operationId: migrations/list-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#list-organization-migrations
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      - name: exclude
+        description: Exclude attributes from the API response to improve performance
+        in: query
+        schema:
+          type: array
+          items:
+            description: Allowed values that can be passed to the exclude param.
+            enum:
+            - repositories
+            type: string
+            examples:
+            - repositories
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/migration"
+              examples:
+                default:
+                  "$ref": "#/components/examples/migration-with-short-org-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+    post:
+      summary: Start an organization migration
+      description: Initiates the generation of a migration archive.
+      tags:
+      - migrations
+      operationId: migrations/start-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#start-an-organization-migration
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repositories:
+                  type: array
+                  description: A list of arrays indicating which repositories should
+                    be migrated.
+                  items:
+                    type: string
+                lock_repositories:
+                  type: boolean
+                  description: Indicates whether repositories should be locked (to
+                    prevent manipulation) while migrating data.
+                  default: false
+                  examples:
+                  - true
+                exclude_attachments:
+                  type: boolean
+                  description: Indicates whether attachments should be excluded from
+                    the migration (to reduce migration archive file size).
+                  default: false
+                  examples:
+                  - true
+                exclude_releases:
+                  type: boolean
+                  description: Indicates whether releases should be excluded from
+                    the migration (to reduce migration archive file size).
+                  default: false
+                  examples:
+                  - true
+                exclude_owner_projects:
+                  type: boolean
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded. from the migration.
+                  default: false
+                  examples:
+                  - true
+                exclude:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                    - repositories
+              required:
+              - repositories
+            example:
+              repositories:
+              - github/Hello-World
+              lock_repositories: true
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/migration"
+              examples:
+                default:
+                  "$ref": "#/components/examples/migration-with-short-org-2"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+  "/orgs/{org}/migrations/{migration_id}":
+    get:
+      summary: Get an organization migration status
+      description: |-
+        Fetches the status of a migration.
+
+        The `state` of a migration can be one of the following values:
+
+        *   `pending`, which means the migration hasn't started yet.
+        *   `exporting`, which means the migration is in progress.
+        *   `exported`, which means the migration finished successfully.
+        *   `failed`, which means the migration failed.
+      tags:
+      - migrations
+      operationId: migrations/get-status-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#get-an-organization-migration-status
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/migration-id"
+      - name: exclude
+        description: Exclude attributes from the API response to improve performance
+        in: query
+        schema:
+          type: array
+          items:
+            description: Allowed values that can be passed to the exclude param.
+            enum:
+            - repositories
+            type: string
+            examples:
+            - repositories
+      responses:
+        '200':
+          description: |-
+            *   `pending`, which means the migration hasn't started yet.
+            *   `exporting`, which means the migration is in progress.
+            *   `exported`, which means the migration finished successfully.
+            *   `failed`, which means the migration failed.
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/migration"
+              examples:
+                default:
+                  "$ref": "#/components/examples/migration-with-short-org"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
   "/orgs/{org}/outside_collaborators":
     get:
       summary: List outside collaborators for an organization
@@ -10877,6 +11060,10 @@ paths:
       responses:
         '204':
           description: Response
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '500':
+          "$ref": "#/components/responses/internal_error"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -28371,6 +28558,218 @@ paths:
         enabledForGitHubApps: false
         category: orgs
         subcategory: members
+  "/user/migrations":
+    get:
+      summary: List user migrations
+      description: Lists all migrations a user has started.
+      tags:
+      - migrations
+      operationId: migrations/list-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#list-user-migrations
+      parameters:
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/migration"
+              examples:
+                default:
+                  "$ref": "#/components/examples/migration-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: users
+    post:
+      summary: Start a user migration
+      description: Initiates the generation of a user migration archive.
+      tags:
+      - migrations
+      operationId: migrations/start-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#start-a-user-migration
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                lock_repositories:
+                  description: Lock the repositories being migrated at the start of
+                    the migration
+                  readOnly: false
+                  type: boolean
+                  examples:
+                  - true
+                exclude_attachments:
+                  description: Do not include attachments in the migration
+                  readOnly: false
+                  type: boolean
+                  examples:
+                  - true
+                exclude_releases:
+                  description: Do not include releases in the migration
+                  readOnly: false
+                  type: boolean
+                  examples:
+                  - true
+                exclude_owner_projects:
+                  description: Indicates whether projects owned by the organization
+                    or users should be excluded.
+                  readOnly: false
+                  type: boolean
+                  examples:
+                  - true
+                exclude:
+                  description: Exclude attributes from the API response to improve
+                    performance
+                  readOnly: false
+                  type: array
+                  items:
+                    description: Allowed values that can be passed to the exclude
+                      param.
+                    enum:
+                    - repositories
+                    type: string
+                    examples:
+                    - repositories
+                  examples:
+                  - repositories
+                repositories:
+                  type: array
+                  items:
+                    description: Repository path, owner and name
+                    type: string
+                    examples:
+                    - acme/widgets
+              required:
+              - repositories
+              type: object
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/migration"
+              examples:
+                default:
+                  "$ref": "#/components/examples/migration-2"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: users
+  "/user/migrations/{migration_id}/archive":
+    get:
+      summary: Download a user migration archive
+      description: |-
+        Fetches the URL to download the migration archive as a `tar.gz` file. Depending on the resources your repository uses, the migration archive can contain JSON files with data for these objects:
+
+        *   attachments
+        *   bases
+        *   commit\_comments
+        *   issue\_comments
+        *   issue\_events
+        *   issues
+        *   milestones
+        *   organizations
+        *   projects
+        *   protected\_branches
+        *   pull\_request\_reviews
+        *   pull\_requests
+        *   releases
+        *   repositories
+        *   review\_comments
+        *   schema
+        *   users
+
+        The archive will also contain an `attachments` directory that includes all attachment files uploaded to GitHub.com and a `repositories` directory that contains the repository's Git data.
+      tags:
+      - migrations
+      operationId: migrations/get-archive-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#download-a-user-migration-archive
+      parameters:
+      - "$ref": "#/components/parameters/migration-id"
+      responses:
+        '302':
+          description: Response
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: users
+  "/user/migrations/{migration_id}/repositories":
+    get:
+      summary: List repositories for a user migration
+      description: Lists all the repositories for this user migration.
+      tags:
+      - migrations
+      operationId: migrations/list-repos-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/migrations#list-repositories-for-a-user-migration
+      parameters:
+      - "$ref": "#/components/parameters/migration-id"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/minimal-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/minimal-repository-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: users
   "/user/orgs":
     get:
       summary: List organizations for the authenticated user
@@ -30038,6 +30437,13 @@ components:
     group-id:
       name: group_id
       description: group_id parameter
+      in: path
+      required: true
+      schema:
+        type: integer
+    migration-id:
+      name: migration_id
+      description: migration_id parameter
       in: path
       required: true
       schema:
@@ -35365,6 +35771,84 @@ components:
       - url
       - organization
       - user
+    migration:
+      title: Migration
+      description: A migration.
+      type: object
+      properties:
+        id:
+          type: integer
+          examples:
+          - 79
+        owner:
+          anyOf:
+          - type: 'null'
+          - "$ref": "#/components/schemas/simple-user"
+        guid:
+          type: string
+          examples:
+          - 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state:
+          type: string
+          examples:
+          - pending
+        lock_repositories:
+          type: boolean
+          examples:
+          - true
+        exclude_metadata:
+          type: boolean
+        exclude_git_data:
+          type: boolean
+        exclude_attachments:
+          type: boolean
+        exclude_releases:
+          type: boolean
+        exclude_owner_projects:
+          type: boolean
+        repositories:
+          type: array
+          items:
+            "$ref": "#/components/schemas/repository"
+        url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/orgs/octo-org/migrations/79
+        created_at:
+          type: string
+          format: date-time
+          examples:
+          - '2015-07-06T15:33:38-07:00'
+        updated_at:
+          type: string
+          format: date-time
+          examples:
+          - '2015-07-06T15:33:38-07:00'
+        node_id:
+          type: string
+        archive_url:
+          type: string
+          format: uri
+        exclude:
+          type: array
+          items: {}
+      required:
+      - id
+      - node_id
+      - owner
+      - guid
+      - state
+      - lock_repositories
+      - exclude_metadata
+      - exclude_git_data
+      - exclude_attachments
+      - exclude_releases
+      - exclude_owner_projects
+      - repositories
+      - url
+      - created_at
+      - updated_at
     project:
       title: Project
       description: Projects are a way to organize columns and cards of work.
@@ -49799,6 +50283,456 @@ components:
           received_events_url: https://api.github.com/users/octocat/received_events
           type: User
           site_admin: false
+    migration-with-short-org-items:
+      value:
+      - id: 79
+        owner:
+          login: github
+          id: 1
+          node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+          url: https://api.github.com/orgs/github
+          repos_url: https://api.github.com/orgs/github/repos
+          events_url: https://api.github.com/orgs/github/events
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: true
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state: pending
+        lock_repositories: true
+        exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: true
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          allow_rebase_merge: true
+          template_repository: 
+          temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+          allow_squash_merge: true
+          allow_auto_merge: false
+          delete_branch_on_merge: true
+          allow_merge_commit: true
+          subscribers_count: 42
+          network_count: 0
+          license:
+            key: mit
+            name: MIT License
+            url: https://api.github.com/licenses/mit
+            spdx_id: MIT
+            node_id: MDc6TGljZW5zZW1pdA==
+            html_url: https://api.github.com/licenses/mit
+          forks: 1
+          open_issues: 1
+          watchers: 1
+        url: https://api.github.com/orgs/octo-org/migrations/79
+        created_at: '2015-07-06T15:33:38-07:00'
+        updated_at: '2015-07-06T15:33:38-07:00'
+        node_id: MDQ6VXNlcjE=
+    migration-with-short-org-2:
+      value:
+        id: 79
+        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+        owner:
+          login: github
+          id: 1
+          node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+          url: https://api.github.com/orgs/github
+          repos_url: https://api.github.com/orgs/github/repos
+          events_url: https://api.github.com/orgs/github/events
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: true
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state: pending
+        lock_repositories: true
+        exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: true
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          allow_rebase_merge: true
+          template_repository: 
+          temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+          allow_squash_merge: true
+          allow_auto_merge: false
+          delete_branch_on_merge: true
+          allow_merge_commit: true
+          subscribers_count: 42
+          network_count: 0
+          license:
+            key: mit
+            name: MIT License
+            url: https://api.github.com/licenses/mit
+            spdx_id: MIT
+            node_id: MDc6TGljZW5zZW1pdA==
+            html_url: https://api.github.com/licenses/mit
+          forks: 1
+          open_issues: 1
+          watchers: 1
+        url: https://api.github.com/orgs/octo-org/migrations/79
+        created_at: '2015-07-06T15:33:38-07:00'
+        updated_at: '2015-07-06T15:33:38-07:00'
+    migration-with-short-org:
+      value:
+        id: 79
+        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+        owner:
+          login: github
+          id: 1
+          node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+          url: https://api.github.com/orgs/github
+          repos_url: https://api.github.com/orgs/github/repos
+          events_url: https://api.github.com/orgs/github/events
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: true
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state: exported
+        lock_repositories: true
+        exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: true
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          allow_rebase_merge: true
+          template_repository: 
+          temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+          allow_squash_merge: true
+          allow_auto_merge: false
+          delete_branch_on_merge: true
+          allow_merge_commit: true
+          subscribers_count: 42
+          network_count: 0
+          license:
+            key: mit
+            name: MIT License
+            url: https://api.github.com/licenses/mit
+            spdx_id: MIT
+            node_id: MDc6TGljZW5zZW1pdA==
+            html_url: https://api.github.com/licenses/mit
+          forks: 1
+          open_issues: 1
+          watchers: 1
+        url: https://api.github.com/orgs/octo-org/migrations/79
+        created_at: '2015-07-06T15:33:38-07:00'
+        updated_at: '2015-07-06T15:33:38-07:00'
     project-items:
       value:
       - owner_url: https://api.github.com/orgs/octocat
@@ -61094,6 +62028,306 @@ components:
           received_events_url: https://api.github.com/users/octocat/received_events
           type: User
           site_admin: false
+    migration-items:
+      value:
+      - id: 79
+        owner:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state: pending
+        lock_repositories: true
+        exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: true
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          allow_rebase_merge: true
+          template_repository: 
+          temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+          allow_squash_merge: true
+          allow_auto_merge: false
+          delete_branch_on_merge: true
+          allow_merge_commit: true
+          subscribers_count: 42
+          network_count: 0
+          license:
+            key: mit
+            name: MIT License
+            url: https://api.github.com/licenses/mit
+            spdx_id: MIT
+            node_id: MDc6TGljZW5zZW1pdA==
+            html_url: https://api.github.com/licenses/mit
+          forks: 1
+          open_issues: 1
+          watchers: 1
+        url: https://api.github.com/orgs/octo-org/migrations/79
+        created_at: '2015-07-06T15:33:38-07:00'
+        updated_at: '2015-07-06T15:33:38-07:00'
+        node_id: MDQ6VXNlcjE=
+    migration-2:
+      value:
+        id: 79
+        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+        owner:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        guid: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        state: pending
+        lock_repositories: true
+        exclude_attachments: false
+        exclude_releases: false
+        exclude_owner_projects: false
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          clone_url: https://github.com/octocat/Hello-World.git
+          mirror_url: git:git.example.com/octocat/Hello-World
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+          svn_url: https://svn.github.com/octocat/Hello-World
+          homepage: https://github.com
+          language: 
+          forks_count: 9
+          stargazers_count: 80
+          watchers_count: 80
+          size: 108
+          default_branch: master
+          open_issues_count: 0
+          is_template: true
+          topics:
+          - octocat
+          - atom
+          - electron
+          - api
+          has_issues: true
+          has_projects: true
+          has_wiki: true
+          has_pages: false
+          has_downloads: true
+          archived: false
+          disabled: false
+          visibility: public
+          pushed_at: '2011-01-26T19:06:43Z'
+          created_at: '2011-01-26T19:01:12Z'
+          updated_at: '2011-01-26T19:14:43Z'
+          permissions:
+            admin: false
+            push: false
+            pull: true
+          allow_rebase_merge: true
+          template_repository: 
+          temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
+          allow_squash_merge: true
+          allow_auto_merge: false
+          delete_branch_on_merge: true
+          allow_merge_commit: true
+          subscribers_count: 42
+          network_count: 0
+          license:
+            key: mit
+            name: MIT License
+            url: https://api.github.com/licenses/mit
+            spdx_id: MIT
+            node_id: MDc6TGljZW5zZW1pdA==
+            html_url: https://api.github.com/licenses/mit
+          forks: 1
+          open_issues: 1
+          watchers: 1
+        url: https://api.github.com/orgs/octo-org/migrations/79
+        created_at: '2015-07-06T15:33:38-07:00'
+        updated_at: '2015-07-06T15:33:38-07:00'
     project:
       value:
         owner_url: https://api.github.com/users/octocat
@@ -61672,6 +62906,12 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
+    internal_error:
+      description: Internal Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     code_scanning_forbidden_read:
       description: Response if GitHub Advanced Security is not enabled for this repository
       content:
@@ -61694,12 +62934,6 @@ components:
     code_scanning_forbidden_write:
       description: Response if the repository is archived or if github advanced security
         is not enabled for this repository
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
-    internal_error:
-      description: Internal Error
       content:
         application/json:
           schema:

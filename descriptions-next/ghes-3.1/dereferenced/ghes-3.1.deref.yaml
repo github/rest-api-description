@@ -3855,7 +3855,7 @@ paths:
     get:
       summary: Get an installation for the authenticated app
       description: |-
-        Enables an authenticated GitHub App to find an installation's information using the installation id. The installation's account type (`target_type`) will be either an organization or a user account, depending which account the repository belongs to.
+        Enables an authenticated GitHub App to find an installation's information using the installation id.
 
         You must use a [JWT](https://docs.github.com/enterprise-server@3.1/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.
       tags:
@@ -8536,7 +8536,7 @@ paths:
                             milestone:
                               anyOf:
                               - type: 'null'
-                              - &244
+                              - &245
                                 title: Milestone
                                 description: A collection of related issues and pull
                                   requests.
@@ -13251,7 +13251,7 @@ paths:
                 oneOf:
                 - *101
                 - *102
-        '409': &240
+        '409': &241
           description: Conflict
           content:
             application/json:
@@ -15244,208 +15244,6 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: secrets
-  "/orgs/{org}/audit-log":
-    get:
-      summary: Get the audit log for an organization
-      description: |-
-        Gets the audit log for an organization. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/enterprise-server@3.1/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization)."
-
-        To use this endpoint, you must be an organization owner, and you must use an access token with the `admin:org` scope. GitHub Apps must have the `organization_administration` read permission to use this endpoint.
-      operationId: orgs/get-audit-log
-      tags:
-      - orgs
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.1/rest/reference/orgs#get-audit-log
-      parameters:
-      - *99
-      - name: phrase
-        description: A search phrase. For more information, see [Searching the audit
-          log](https://docs.github.com/enterprise-server@3.1/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: after
-        description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#link-header).
-          If specified, the query only searches for events after this cursor.
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: before
-        description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.1/rest/overview/resources-in-the-rest-api#link-header).
-          If specified, the query only searches for events before this cursor.
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: order
-        description: |-
-          The order of audit log events. To list newest events first, specify `desc`. To list oldest events first, specify `asc`.
-
-          The default is `desc`.
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - desc
-          - asc
-      - *5
-      - *6
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    "@timestamp":
-                      type: integer
-                      description: The time the audit log event occurred, given as
-                        a [Unix timestamp](http://en.wikipedia.org/wiki/Unix_time).
-                    action:
-                      type: string
-                      description: The name of the action that was performed, for
-                        example `user.login` or `repo.create`.
-                    active:
-                      type: boolean
-                    active_was:
-                      type: boolean
-                    actor:
-                      type: string
-                      description: The actor who performed the action.
-                    actor_id:
-                      type: integer
-                      description: The id of the actor who performed the action.
-                    actor_location:
-                      type: object
-                      properties:
-                        country_name:
-                          type: string
-                    data:
-                      type: object
-                      additionalProperties: true
-                    org_id:
-                      type: integer
-                    blocked_user:
-                      type: string
-                      description: The username of the account being blocked.
-                    business:
-                      type: string
-                    config:
-                      type: array
-                      items:
-                        type: object
-                    config_was:
-                      type: array
-                      items:
-                        type: object
-                    content_type:
-                      type: string
-                    created_at:
-                      type: integer
-                      description: The time the audit log event was recorded, given
-                        as a [Unix timestamp](http://en.wikipedia.org/wiki/Unix_time).
-                    deploy_key_fingerprint:
-                      type: string
-                    _document_id:
-                      type: string
-                      description: A unique identifier for an audit event.
-                    emoji:
-                      type: string
-                    events:
-                      type: array
-                      items:
-                        type: object
-                    events_were:
-                      type: array
-                      items:
-                        type: object
-                    explanation:
-                      type: string
-                    fingerprint:
-                      type: string
-                    hook_id:
-                      type: integer
-                    limited_availability:
-                      type: boolean
-                    message:
-                      type: string
-                    name:
-                      type: string
-                    old_user:
-                      type: string
-                    openssh_public_key:
-                      type: string
-                    org:
-                      type: string
-                    previous_visibility:
-                      type: string
-                    read_only:
-                      type: boolean
-                    repo:
-                      type: string
-                      description: The name of the repository.
-                    repository:
-                      type: string
-                      description: The name of the repository.
-                    repository_public:
-                      type: boolean
-                    target_login:
-                      type: string
-                    team:
-                      type: string
-                    transport_protocol:
-                      type: integer
-                      description: The type of protocol (for example, HTTP or SSH)
-                        used to transfer Git data.
-                    transport_protocol_name:
-                      type: string
-                      description: A human readable name for the protocol (for example,
-                        HTTP or SSH) used to transfer Git data.
-                    user:
-                      type: string
-                      description: The user that was affected by the action performed
-                        (if available).
-                    visibility:
-                      type: string
-                      description: The repository visibility, for example `public`
-                        or `private`.
-              examples:
-                default:
-                  value:
-                  - "@timestamp": 1606929874512
-                    action: team.add_member
-                    actor: octocat
-                    created_at: 1606929874512
-                    _document_id: xJJFlFOhQ6b-5vaAFy9Rjw
-                    org: octo-corp
-                    team: octo-corp/example-team
-                    user: monalisa
-                  - "@timestamp": 1606507117008
-                    action: org.create
-                    actor: octocat
-                    created_at: 1606507117008
-                    _document_id: Vqvg6kZ4MYqwWRKFDzlMoQ
-                    org: octocat-test-org
-                  - "@timestamp": 1605719148837
-                    action: repo.destroy
-                    actor: monalisa
-                    created_at: 1605719148837
-                    _document_id: LwW2vpJZCDS-WUmo9Z-ifw
-                    org: mona-org
-                    repo: mona-org/mona-test-repo
-                    visibility: private
-      x-github:
-        githubCloudOnly: true
-        enabledForGitHubApps: true
-        category: orgs
-        subcategory: 
   "/orgs/{org}/events":
     get:
       summary: List public organization events
@@ -26306,6 +26104,12 @@ paths:
       responses:
         '204':
           description: Response
+        '403': *34
+        '500': &239
+          description: Internal Error
+          content:
+            application/json:
+              schema: *32
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -32523,7 +32327,6 @@ paths:
                     rule:
                       id: js/zipslip
                       severity: error
-                      security_severity_level: high
                       description: Arbitrary file write during zip extraction ("Zip
                         Slip")
                       name: js/zipslip
@@ -32642,7 +32445,6 @@ paths:
                     rule:
                       id: js/zipslip
                       severity: error
-                      security_severity_level: high
                       description: Arbitrary file write during zip extraction ("Zip
                         Slip")
                       name: js/zipslip
@@ -33146,7 +32948,7 @@ paths:
                   value:
                     next_analysis_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41
                     confirm_delete_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41?confirm_delete
-        '400': &239
+        '400': &240
           description: Bad Request
           content:
             application/json:
@@ -33993,7 +33795,7 @@ paths:
                   - created_at
                   - updated_at
               examples:
-                default: &242
+                default: &243
                   value:
                   - html_url: https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e#commitcomment-1
                     url: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -34056,7 +33858,7 @@ paths:
             application/json:
               schema: *237
               examples:
-                default: &243
+                default: &244
                   value:
                     html_url: https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e#commitcomment-1
                     url: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -34482,14 +34284,10 @@ paths:
                       sha: 6dcb09b5b57875f334f61aebed695e2e4193db5e
           headers:
             Link: *7
-        '500': &247
-          description: Internal Error
-          content:
-            application/json:
-              schema: *32
-        '400': *239
+        '500': *239
+        '400': *240
         '404': *30
-        '409': *240
+        '409': *241
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -34511,7 +34309,7 @@ paths:
       parameters:
       - *152
       - *153
-      - &241
+      - &242
         name: commit_sha
         description: commit_sha parameter
         in: path
@@ -34564,7 +34362,7 @@ paths:
         category: repos
         subcategory: commits
         previews:
-        - &246
+        - &247
           name: groot
           note: |-
             Listing branches or pull requests for a commit in the Commits API is currently available for developers to preview. See the [blog post](https://developer.github.com/changes/2019-04-11-pulls-branches-for-commit/) for more details. To access the new endpoints during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.1/rest/overview/media-types) in the `Accept` header:
@@ -34585,7 +34383,7 @@ paths:
       parameters:
       - *152
       - *153
-      - *241
+      - *242
       - *5
       - *6
       responses:
@@ -34597,7 +34395,7 @@ paths:
                 type: array
                 items: *237
               examples:
-                default: *242
+                default: *243
           headers:
             Link: *7
       x-github:
@@ -34622,7 +34420,7 @@ paths:
       parameters:
       - *152
       - *153
-      - *241
+      - *242
       requestBody:
         required: true
         content:
@@ -34657,7 +34455,7 @@ paths:
             application/json:
               schema: *237
               examples:
-                default: *243
+                default: *244
           headers:
             Location:
               example: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -34691,7 +34489,7 @@ paths:
       parameters:
       - *152
       - *153
-      - *241
+      - *242
       - *5
       - *6
       responses:
@@ -34820,7 +34618,7 @@ paths:
                     milestone:
                       anyOf:
                       - type: 'null'
-                      - *244
+                      - *245
                     active_lock_reason:
                       type:
                       - string
@@ -34919,7 +34717,7 @@ paths:
                     _links:
                       type: object
                       properties:
-                        comments: &245
+                        comments: &246
                           title: Link
                           description: Hypermedia Link
                           type: object
@@ -34928,13 +34726,13 @@ paths:
                               type: string
                           required:
                           - href
-                        commits: *245
-                        statuses: *245
-                        html: *245
-                        issue: *245
-                        review_comments: *245
-                        review_comment: *245
-                        self: *245
+                        commits: *246
+                        statuses: *246
+                        html: *246
+                        issue: *246
+                        review_comments: *246
+                        review_comment: *246
+                        self: *246
                       required:
                       - comments
                       - commits
@@ -35493,7 +35291,7 @@ paths:
         category: repos
         subcategory: commits
         previews:
-        - *246
+        - *247
   "/repos/{owner}/{repo}/commits/{ref}":
     get:
       summary: Get a commit
@@ -35644,7 +35442,7 @@ paths:
                         .....
         '422': *39
         '404': *30
-        '500': *247
+        '500': *239
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -36638,7 +36436,7 @@ paths:
                       contents_url: https://api.github.com/repos/octocat/Hello-World/contents/file1.txt?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e
                       patch: "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@
                         module Test"
-        '500': *247
+        '500': *239
         '404': *30
       x-github:
         githubCloudOnly: false
@@ -37640,7 +37438,7 @@ paths:
                         payload: 
         '404': *30
         '422': *39
-        '409': *240
+        '409': *241
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -37756,7 +37554,7 @@ paths:
                         payload: 
         '422': *39
         '404': *30
-        '409': *240
+        '409': *241
         '503': *214
       x-github:
         githubCloudOnly: false
@@ -39014,7 +38812,7 @@ paths:
                       node_id: MDc6TGljZW5zZW1pdA==
           headers:
             Link: *7
-        '400': *239
+        '400': *240
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -39056,7 +38854,7 @@ paths:
               schema: *164
               examples:
                 default: *259
-        '400': *239
+        '400': *240
         '422': *39
         '403': *34
         '404': *30
@@ -39126,7 +38924,7 @@ paths:
               schema:
                 type: string
         '404': *30
-        '409': *240
+        '409': *241
         '403': *34
         '422': *39
       x-github:
@@ -39573,7 +39371,7 @@ paths:
       parameters:
       - *152
       - *153
-      - *241
+      - *242
       responses:
         '200':
           description: Response
@@ -45855,7 +45653,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *244
+                items: *245
               examples:
                 default:
                   value:
@@ -45950,7 +45748,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *244
+              schema: *245
               examples:
                 default: &299
                   value:
@@ -46025,7 +45823,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *244
+              schema: *245
               examples:
                 default: *299
         '404': *30
@@ -46082,7 +45880,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *244
+              schema: *245
               examples:
                 default: *299
       x-github:
@@ -46468,7 +46266,7 @@ paths:
               examples:
                 default: *306
         '422': *39
-        '409': *240
+        '409': *241
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -46569,7 +46367,7 @@ paths:
         '204':
           description: Response
         '422': *39
-        '400': *239
+        '400': *240
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -47432,7 +47230,7 @@ paths:
                   milestone:
                     anyOf:
                     - type: 'null'
-                    - *244
+                    - *245
                   active_lock_reason:
                     type:
                     - string
@@ -48399,14 +48197,14 @@ paths:
                   _links:
                     type: object
                     properties:
-                      comments: *245
-                      commits: *245
-                      statuses: *245
-                      html: *245
-                      issue: *245
-                      review_comments: *245
-                      review_comment: *245
-                      self: *245
+                      comments: *246
+                      commits: *246
+                      statuses: *246
+                      html: *246
+                      issue: *246
+                      review_comments: *246
+                      review_comment: *246
+                      self: *246
                     required:
                     - comments
                     - commits
@@ -49476,7 +49274,7 @@ paths:
               examples:
                 default: *319
         '304': *37
-        '500': *247
+        '500': *239
         '404': *30
       x-github:
         githubCloudOnly: false
@@ -49964,7 +49762,7 @@ paths:
           headers:
             Link: *7
         '422': *39
-        '500': *247
+        '500': *239
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -51380,9 +51178,9 @@ paths:
                     _links:
                       type: object
                       properties:
-                        self: *245
-                        html: *245
-                        pull_request: *245
+                        self: *246
+                        html: *246
+                        pull_request: *246
                       required:
                       - self
                       - html
@@ -55357,7 +55155,7 @@ paths:
                         milestone:
                           anyOf:
                           - type: 'null'
-                          - *244
+                          - *245
                         comments:
                           type: integer
                         created_at:
@@ -61634,7 +61432,7 @@ paths:
         '404': *30
         '403': *34
         '422': *39
-        '400': *239
+        '400': *240
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -61693,7 +61491,7 @@ paths:
         '204':
           description: Response
         '403': *34
-        '409': *240
+        '409': *241
         '404': *30
         '304': *37
       x-github:
@@ -61715,7 +61513,7 @@ paths:
       responses:
         '204':
           description: Response
-        '409': *240
+        '409': *241
         '304': *37
         '404': *30
         '403': *34
