@@ -2044,7 +2044,7 @@ paths:
     get:
       summary: Get an installation for the authenticated app
       description: |-
-        Enables an authenticated GitHub App to find an installation's information using the installation id. The installation's account type (`target_type`) will be either an organization or a user account, depending which account the repository belongs to.
+        Enables an authenticated GitHub App to find an installation's information using the installation id.
 
         You must use a [JWT](https://docs.github.com/enterprise-server@3.0/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app) to access this endpoint.
       tags:
@@ -13602,6 +13602,10 @@ paths:
       responses:
         '204':
           description: Response
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '500':
+          "$ref": "#/components/responses/internal_error"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -58060,7 +58064,6 @@ components:
         rule:
           id: js/zipslip
           severity: error
-          security_severity_level: high
           description: Arbitrary file write during zip extraction ("Zip Slip")
           name: js/zipslip
           full_description: Extracting files from a malicious zip archive without
@@ -58125,7 +58128,6 @@ components:
         rule:
           id: js/zipslip
           severity: error
-          security_severity_level: high
           description: Arbitrary file write during zip extraction ("Zip Slip")
           name: js/zipslip
           full_description: Extracting files from a malicious zip archive without
@@ -65952,6 +65954,12 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
+    internal_error:
+      description: Internal Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     code_scanning_forbidden_read:
       description: Response if GitHub Advanced Security is not enabled for this repository
       content:
@@ -65961,12 +65969,6 @@ components:
     code_scanning_forbidden_write:
       description: Response if the repository is archived or if github advanced security
         is not enabled for this repository
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
-    internal_error:
-      description: Internal Error
       content:
         application/json:
           schema:
