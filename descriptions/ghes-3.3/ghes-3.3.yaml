@@ -9633,13 +9633,10 @@ paths:
                     will be added to the team with when none is specified. Can be
                     one of:  \n\\* `pull` - team members can pull, but not push to
                     or administer newly-added repositories.  \n\\* `push` - team members
-                    can pull and push, but not administer newly-added repositories.
-                    \ \n\\* `admin` - team members can pull, push and administer newly-added
-                    repositories."
+                    can pull and push, but not administer newly-added repositories."
                   enum:
                   - pull
                   - push
-                  - admin
                   default: pull
                 parent_team_id:
                   type: integer
@@ -9657,7 +9654,7 @@ paths:
             example:
               name: Justice League
               description: A great team
-              permission: admin
+              permission: push
               privacy: closed
       responses:
         '201':
@@ -13074,93 +13071,6 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: artifacts
-  "/repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}":
-    get:
-      summary: Get a workflow run attempt
-      description: |-
-        Gets a specific workflow run attempt. Anyone with read access to the repository
-        can use this endpoint. If the repository is private you must use an access token
-        with the `repo` scope. GitHub Apps must have the `actions:read` permission to
-        use this endpoint.
-      tags:
-      - actions
-      operationId: actions/get-workflow-run-attempt
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.3/rest/reference/actions#get-a-workflow-run-attempt
-      parameters:
-      - "$ref": "#/components/parameters/owner"
-      - "$ref": "#/components/parameters/repo"
-      - "$ref": "#/components/parameters/run-id"
-      - "$ref": "#/components/parameters/attempt-number"
-      - "$ref": "#/components/parameters/exclude-pull-requests"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/workflow-run"
-              examples:
-                default:
-                  "$ref": "#/components/examples/workflow-run"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        category: actions
-        subcategory: workflow-runs
-  "/repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs":
-    get:
-      summary: List jobs for a workflow run attempt
-      description: Lists jobs for a specific workflow run attempt. Anyone with read
-        access to the repository can use this endpoint. If the repository is private
-        you must use an access token with the `repo` scope. GitHub Apps must have
-        the `actions:read` permission to use this endpoint. You can use parameters
-        to narrow the list of results. For more information about using parameters,
-        see [Parameters](https://docs.github.com/enterprise-server@3.3/rest/overview/resources-in-the-rest-api#parameters).
-      tags:
-      - actions
-      operationId: actions/list-jobs-for-workflow-run-attempt
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.3/rest/reference/actions#list-jobs-for-a-workflow-run-attempt
-      parameters:
-      - "$ref": "#/components/parameters/owner"
-      - "$ref": "#/components/parameters/repo"
-      - "$ref": "#/components/parameters/run-id"
-      - "$ref": "#/components/parameters/attempt-number"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                - total_count
-                - jobs
-                properties:
-                  total_count:
-                    type: integer
-                  jobs:
-                    type: array
-                    items:
-                      "$ref": "#/components/schemas/job"
-              examples:
-                default:
-                  "$ref": "#/components/examples/job-paginated"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-        '404':
-          "$ref": "#/components/responses/not_found"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        category: actions
-        subcategory: workflow-jobs
   "/repos/{owner}/{repo}/actions/runs/{run_id}/cancel":
     post:
       summary: Cancel a workflow run
@@ -17497,7 +17407,9 @@ paths:
 
         Team members will include the members of child teams.
 
-        You must have push access to the repository in order to list collaborators.
+        You must authenticate using an access token with the `read:org` and `repo` scopes with push access to use this
+        endpoint. GitHub Apps must have the `members` organization permission and `metadata` repository permission to use this
+        endpoint.
       tags:
       - repos
       operationId: repos/list-collaborators
@@ -17553,6 +17465,10 @@ paths:
         For organization-owned repositories, the list of collaborators includes outside collaborators, organization members that are direct collaborators, organization members with access through team memberships, organization members with access through default organization permissions, and organization owners.
 
         Team members will include the members of child teams.
+
+        You must authenticate using an access token with the `read:org` and `repo` scopes with push access to use this
+        endpoint. GitHub Apps must have the `members` organization permission and `metadata` repository permission to use this
+        endpoint.
       tags:
       - repos
       operationId: repos/check-collaborator
@@ -33995,13 +33911,6 @@ components:
     run-id:
       name: run_id
       description: The id of the workflow run.
-      in: path
-      required: true
-      schema:
-        type: integer
-    attempt-number:
-      name: attempt_number
-      description: The attempt number of the workflow run.
       in: path
       required: true
       schema:
