@@ -8696,6 +8696,66 @@
         }
       }
     },
+    "/orgs/{org}/hooks/{hook_id}/deliveries": {
+      "get": {
+        "summary": "List deliveries for an organization webhook",
+        "description": "Returns a list of webhook deliveries for a webhook configured in an organization.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/list-webhook-deliveries",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/orgs#list-deliveries-for-an-organization-webhook"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/hook-id"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/hook-delivery-item"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/hook-delivery-items"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "webhooks"
+        }
+      }
+    },
     "/orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}": {
       "get": {
         "summary": "Get a webhook delivery for an organization webhook",
@@ -20973,6 +21033,66 @@
           "enabledForGitHubApps": true,
           "githubCloudOnly": false,
           "category": "code-scanning"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/codeowners/errors": {
+      "get": {
+        "summary": "List CODEOWNERS errors",
+        "description": "List any syntax errors that are detected in the CODEOWNERS\nfile.\n\nFor more information about the correct CODEOWNERS syntax,\nsee \"[About code owners](https://docs.github.com/github-ae@latest/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).\"",
+        "tags": [
+          "repos"
+        ],
+        "operationId": "repos/codeowners-errors",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/repos#list-codeowners-errors"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "ref",
+            "description": "A branch, tag or commit name used to determine which version of the CODEOWNERS file to use. Default: the repository's default branch (e.g. `main`)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codeowners-errors"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codeowners-errors"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "repos",
+          "subcategory": null
         }
       }
     },
@@ -54856,6 +54976,67 @@
           }
         }
       },
+      "codeowners-errors": {
+        "title": "CODEOWNERS errors",
+        "description": "A list of errors found in a repo's CODEOWNERS file",
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "description": "The line number where this errors occurs.",
+                  "type": "integer",
+                  "example": 7
+                },
+                "column": {
+                  "description": "The column number where this errors occurs.",
+                  "type": "integer",
+                  "example": 3
+                },
+                "source": {
+                  "description": "The contents of the line where the error occurs.",
+                  "type": "string",
+                  "example": "* user"
+                },
+                "kind": {
+                  "description": "The type of error.",
+                  "type": "string",
+                  "example": "Invalid owner"
+                },
+                "suggestion": {
+                  "description": "Suggested action to fix the error. This will usually be `null`, but is provided for some common errors.",
+                  "type": "string",
+                  "nullable": true,
+                  "example": "The pattern `/` will never match anything, did you mean `*` instead?"
+                },
+                "message": {
+                  "description": "A human-readable description of the error, combining information from multiple fields, laid out for display in a monospaced typeface (for example, a command-line setting).",
+                  "type": "string",
+                  "example": "Invalid owner on line 7:\n\n  * user\n    ^"
+                },
+                "path": {
+                  "description": "The path of the file where the error occured.",
+                  "type": "string",
+                  "example": ".github/CODEOWNERS"
+                }
+              },
+              "required": [
+                "line",
+                "column",
+                "kind",
+                "message",
+                "path"
+              ]
+            }
+          }
+        },
+        "required": [
+          "errors"
+        ]
+      },
       "collaborator": {
         "title": "Collaborator",
         "description": "Collaborator",
@@ -72619,6 +72800,30 @@
         "value": {
           "processing_status": "complete",
           "analyses_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/analyses?sarif_id=47177e22-5596-11eb-80a1-c1e54ef945c6"
+        }
+      },
+      "codeowners-errors": {
+        "value": {
+          "errors": [
+            {
+              "line": 3,
+              "column": 1,
+              "kind": "Invalid pattern",
+              "source": "***/*.rb @monalisa",
+              "suggestion": "Did you mean `**/*.rb`?",
+              "message": "Invalid pattern on line 3: Did you mean `**/*.rb`?\n\n  ***/*.rb @monalisa\n  ^",
+              "path": ".github/CODEOWNERS"
+            },
+            {
+              "line": 7,
+              "column": 7,
+              "kind": "Invalid owner",
+              "source": "*.txt docs@",
+              "suggestion": null,
+              "message": "Invalid owner on line 7:\n\n  *.txt docs@\n        ^",
+              "path": ".github/CODEOWNERS"
+            }
+          ]
         }
       },
       "collaborator-items": {
