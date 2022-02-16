@@ -26285,6 +26285,66 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/codeowners/errors": {
+      "get": {
+        "summary": "List CODEOWNERS errors",
+        "description": "List any syntax errors that are detected in the CODEOWNERS\nfile.\n\nFor more information about the correct CODEOWNERS syntax,\nsee \"[About code owners](https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).\"",
+        "tags": [
+          "repos"
+        ],
+        "operationId": "repos/codeowners-errors",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/repos#list-codeowners-errors"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "ref",
+            "description": "A branch, tag or commit name used to determine which version of the CODEOWNERS file to use. Default: the repository's default branch (e.g. `main`)",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/codeowners-errors"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/codeowners-errors"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "previews": [
+
+          ],
+          "category": "repos",
+          "subcategory": null
+        }
+      }
+    },
     "/repos/{owner}/{repo}/codespaces": {
       "get": {
         "summary": "List codespaces in a repository for the authenticated user",
@@ -69418,6 +69478,83 @@
           }
         }
       },
+      "codeowners-errors": {
+        "title": "CODEOWNERS errors",
+        "description": "A list of errors found in a repo's CODEOWNERS file",
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "description": "The line number where this errors occurs.",
+                  "type": "integer",
+                  "examples": [
+                    7
+                  ]
+                },
+                "column": {
+                  "description": "The column number where this errors occurs.",
+                  "type": "integer",
+                  "examples": [
+                    3
+                  ]
+                },
+                "source": {
+                  "description": "The contents of the line where the error occurs.",
+                  "type": "string",
+                  "examples": [
+                    "* user"
+                  ]
+                },
+                "kind": {
+                  "description": "The type of error.",
+                  "type": "string",
+                  "examples": [
+                    "Invalid owner"
+                  ]
+                },
+                "suggestion": {
+                  "description": "Suggested action to fix the error. This will usually be `null`, but is provided for some common errors.",
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "examples": [
+                    "The pattern `/` will never match anything, did you mean `*` instead?"
+                  ]
+                },
+                "message": {
+                  "description": "A human-readable description of the error, combining information from multiple fields, laid out for display in a monospaced typeface (for example, a command-line setting).",
+                  "type": "string",
+                  "examples": [
+                    "Invalid owner on line 7:\n\n  * user\n    ^"
+                  ]
+                },
+                "path": {
+                  "description": "The path of the file where the error occured.",
+                  "type": "string",
+                  "examples": [
+                    ".github/CODEOWNERS"
+                  ]
+                }
+              },
+              "required": [
+                "line",
+                "column",
+                "kind",
+                "message",
+                "path"
+              ]
+            }
+          }
+        },
+        "required": [
+          "errors"
+        ]
+      },
       "codespace-machine": {
         "type": "object",
         "title": "Codespace machine",
@@ -92179,6 +92316,30 @@
         "value": {
           "processing_status": "complete",
           "analyses_url": "https://api.github.com/repos/octocat/hello-world/code-scanning/analyses?sarif_id=47177e22-5596-11eb-80a1-c1e54ef945c6"
+        }
+      },
+      "codeowners-errors": {
+        "value": {
+          "errors": [
+            {
+              "line": 3,
+              "column": 1,
+              "kind": "Invalid pattern",
+              "source": "***/*.rb @monalisa",
+              "suggestion": "Did you mean `**/*.rb`?",
+              "message": "Invalid pattern on line 3: Did you mean `**/*.rb`?\n\n  ***/*.rb @monalisa\n  ^",
+              "path": ".github/CODEOWNERS"
+            },
+            {
+              "line": 7,
+              "column": 7,
+              "kind": "Invalid owner",
+              "source": "*.txt docs@",
+              "suggestion": null,
+              "message": "Invalid owner on line 7:\n\n  *.txt docs@\n        ^",
+              "path": ".github/CODEOWNERS"
+            }
+          ]
         }
       },
       "codespaces-list-for-repository": {
