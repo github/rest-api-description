@@ -22026,8 +22026,7 @@
                       },
                       "bypass_pull_request_allowances": {
                         "type": "object",
-                        "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
-                        "nullable": true,
+                        "description": "Allow specific users or teams to bypass pull request requirements.",
                         "properties": {
                           "users": {
                             "type": "array",
@@ -22459,8 +22458,7 @@
                   },
                   "bypass_pull_request_allowances": {
                     "type": "object",
-                    "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
-                    "nullable": true,
+                    "description": "Allow specific users or teams to bypass pull request requirements.",
                     "properties": {
                       "users": {
                         "type": "array",
@@ -40953,7 +40951,7 @@
     "/repos/{owner}/{repo}/secret-scanning/alerts": {
       "get": {
         "summary": "List secret scanning alerts for a repository",
-        "description": "Lists secret scanning alerts for a private repository, from newest to oldest. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
+        "description": "Lists secret scanning alerts for an eligible repository, from newest to oldest.\nTo use this endpoint, you must be an administrator for the repository or for the organization that owns the repository, and you must use a personal access token with the `repo` scope or `security_events` scope.\nFor public repositories, you may instead use the `public_repo` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
         "tags": [
           "secret-scanning"
         ],
@@ -41022,7 +41020,7 @@
     "/repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}": {
       "get": {
         "summary": "Get a secret scanning alert",
-        "description": "Gets a single secret scanning alert detected in a private repository. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
+        "description": "Gets a single secret scanning alert detected in an eligible repository.\nTo use this endpoint, you must be an administrator for the repository or for the organization that owns the repository, and you must use a personal access token with the `repo` scope or `security_events` scope.\nFor public repositories, you may instead use the `public_repo` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
         "tags": [
           "secret-scanning"
         ],
@@ -41077,7 +41075,7 @@
       },
       "patch": {
         "summary": "Update a secret scanning alert",
-        "description": "Updates the status of a secret scanning alert in a private repository. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` write permission to use this endpoint.",
+        "description": "Updates the status of a secret scanning alert in an eligible repository.\nTo use this endpoint, you must be an administrator for the repository or for the organization that owns the repository, and you must use a personal access token with the `repo` scope or `security_events` scope.\nFor public repositories, you may instead use the `public_repo` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` write permission to use this endpoint.",
         "operationId": "secret-scanning/update-alert",
         "tags": [
           "secret-scanning"
@@ -41158,7 +41156,7 @@
     "/repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations": {
       "get": {
         "summary": "List locations for a secret scanning alert",
-        "description": "Lists all locations for a given secret scanning alert for a private repository. To use this endpoint, you must be an administrator for the repository or organization, and you must use an access token with the `repo` scope or `security_events` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
+        "description": "Lists all locations for a given secret scanning alert for an eligible repository.\nTo use this endpoint, you must be an administrator for the repository or for the organization that owns the repository, and you must use a personal access token with the `repo` scope or `security_events` scope.\nFor public repositories, you may instead use the `public_repo` scope.\n\nGitHub Apps must have the `secret_scanning_alerts` read permission to use this endpoint.",
         "tags": [
           "secret-scanning"
         ],
@@ -65607,7 +65605,7 @@
             "example": "master"
           },
           "head_sha": {
-            "description": "The SHA of the head commit that points to the version of the worflow being run.",
+            "description": "The SHA of the head commit that points to the version of the workflow being run.",
             "example": "009b8a3a9ccbb128af87f9b1c0f4c62e8a304f6d",
             "type": "string"
           },
@@ -65663,6 +65661,9 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
           },
           "run_started_at": {
             "type": "string",
@@ -66416,8 +66417,7 @@
           },
           "bypass_pull_request_allowances": {
             "type": "object",
-            "description": "Allow specific users or teams to bypass pull request requirements. Set to `null` to disable.",
-            "nullable": true,
+            "description": "Allow specific users or teams to bypass pull request requirements.",
             "properties": {
               "users": {
                 "description": "The list of users allowed to bypass pull request requirements.",
@@ -73958,6 +73958,53 @@
           "assignee"
         ]
       },
+      "state-change-issue-event": {
+        "title": "State Change Issue Event",
+        "description": "State Change Issue Event",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "event": {
+            "type": "string"
+          },
+          "commit_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "commit_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "performed_via_github_app": {
+            "$ref": "#/components/schemas/nullable-integration"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "actor",
+          "event",
+          "commit_id",
+          "commit_url",
+          "created_at",
+          "performed_via_github_app"
+        ]
+      },
       "timeline-issue-events": {
         "title": "Timeline Event",
         "description": "Timeline Event",
@@ -74025,6 +74072,9 @@
           },
           {
             "$ref": "#/components/schemas/timeline-unassigned-issue-event"
+          },
+          {
+            "$ref": "#/components/schemas/state-change-issue-event"
           }
         ]
       },
@@ -87666,6 +87716,26 @@
           ],
           "created_at": "2020-01-22T19:33:08Z",
           "updated_at": "2020-01-22T19:33:08Z",
+          "actor": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
           "jobs_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/jobs",
           "logs_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/logs",
           "check_suite_url": "https://api.github.com/repos/octo-org/octo-repo/check-suites/414944374",
@@ -101900,7 +101970,7 @@
       "secret-scanning-alert-secret-type": {
         "name": "secret_type",
         "in": "query",
-        "description": "A comma-separated list of secret types to return. By default all secret types are returned.\nSee \"[About secret scanning for private repositories](https://docs.github.com/code-security/secret-security/about-secret-scanning#about-secret-scanning-for-private-repositories)\"\nfor a complete list of secret types (API slug).",
+        "description": "A comma-separated list of secret types to return. By default all secret types are returned.\nSee \"[Secret scanning patterns](https://docs.github.com/code-security/secret-scanning/secret-scanning-patterns#supported-secrets-for-advanced-security)\"\nfor a complete list of secret types (API slug).",
         "required": false,
         "schema": {
           "type": "string"
