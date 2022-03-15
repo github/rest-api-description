@@ -27749,6 +27749,69 @@ paths:
         category: repos
         subcategory: releases
   "/repos/{owner}/{repo}/releases/{release_id}/reactions":
+    get:
+      summary: List reactions for a release
+      description: List the reactions to a [release](https://docs.github.com/enterprise-server@3.2/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/list-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.2/rest/reference/reactions/#list-reactions-for-a-release
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - name: content
+        description: Returns a single [reaction type](https://docs.github.com/enterprise-server@3.2/rest/reference/reactions#reaction-types).
+          Omit this parameter to list all reactions to a release.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - "+1"
+          - laugh
+          - heart
+          - hooray
+          - rocket
+          - eyes
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/reaction"
+              examples:
+                default:
+                  "$ref": "#/components/examples/reaction-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@3.2/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a release
       description: 'Create a reaction to a [release](https://docs.github.com/enterprise-server@3.2/rest/reference/repos#releases).
@@ -27807,6 +27870,42 @@ paths:
                   "$ref": "#/components/examples/reaction"
         '422':
           "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/enterprise-server@3.2/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/enterprise-server@3.2/rest/reference/reactions) reactions.
+  "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}":
+    delete:
+      summary: Delete a release reaction
+      description: |-
+        **Note:** You can also specify a repository by `repository_id` using the route `DELETE delete /repositories/:repository_id/releases/:release_id/reactions/:reaction_id`.
+
+        Delete a reaction to a [release](https://docs.github.com/enterprise-server@3.2/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/delete-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.2/rest/reference/reactions/#delete-a-release-reaction
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - "$ref": "#/components/parameters/reaction-id"
+      responses:
+        '204':
+          description: Response
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -29150,10 +29249,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
-          See "[Searching code](https://docs.github.com/articles/searching-code/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          See "[Searching code](https://docs.github.com/enterprise-server@3.2/search-github/searching-on-github/searching-code)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29229,10 +29329,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
-          See "[Searching commits](https://docs.github.com/articles/searching-commits/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          See "[Searching commits](https://docs.github.com/enterprise-server@3.2/search-github/searching-on-github/searching-commits)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29315,10 +29416,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
-          See "[Searching issues and pull requests](https://docs.github.com/articles/searching-issues-and-pull-requests/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          See "[Searching issues and pull requests](https://docs.github.com/enterprise-server@3.2/search-github/searching-on-github/searching-issues-and-pull-requests)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29494,9 +29596,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
           See "[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)"
           for a detailed list of qualifiers.
         in: query
@@ -29582,9 +29685,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
         in: query
         required: true
         schema:
@@ -29652,10 +29756,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
-          See "[Searching users](https://docs.github.com/articles/searching-users/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.2/rest/reference/search#constructing-a-search-query).
+          See "[Searching users](https://docs.github.com/enterprise-server@3.2/search-github/searching-on-github/searching-users)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29840,7 +29945,10 @@ paths:
   "/setup/api/settings":
     get:
       summary: Get settings
-      description: ''
+      description: |-
+        Gets the settings for your instance. To change settings, see the [Set settings endpoint](https://docs.github.com/enterprise-server@3.2/rest/reference/enterprise-admin#set-settings).
+
+        **Note:** You cannot retrieve the management console password with the Enterprise administration API.
       operationId: enterprise-admin/get-settings
       tags:
       - enterprise-admin
@@ -29865,9 +29973,12 @@ paths:
     put:
       summary: Set settings
       description: |-
-        For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.2/rest/reference/enterprise-admin#get-settings).
+        Applies settings on your instance. For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.2/rest/reference/enterprise-admin#get-settings).
 
-        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        **Notes:**
+
+        - The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        - You cannot set the management console password with the Enterprise administration API. Use the `ghe-set-password` utility to change the management console password. For more information, see "[Command-line utilities](https://docs.github.com/enterprise-server@3.2/admin/configuration/configuring-your-enterprise/command-line-utilities#ghe-set-password)."
       operationId: enterprise-admin/set-settings
       tags:
       - enterprise-admin
