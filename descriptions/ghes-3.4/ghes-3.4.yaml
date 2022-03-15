@@ -8219,6 +8219,10 @@ paths:
         Gets the audit log for an organization. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/enterprise-server@3.4/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization)."
 
         To use this endpoint, you must be an organization owner, and you must use an access token with the `admin:org` scope. GitHub Apps must have the `organization_administration` read permission to use this endpoint.
+
+        By default, the response includes up to 30 events from the past three months. Use the `phrase` parameter to filter results and retrieve older events. For example, use the `phrase` parameter with the `created` qualifier to filter events based on when the events occurred. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/enterprise-server@3.4/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/reviewing-the-audit-log-for-your-organization#searching-the-audit-log)."
+
+        Use pagination to retrieve fewer or more than 30 events. For more information, see "[Resources in the REST API](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#pagination)."
       operationId: orgs/get-audit-log
       tags:
       - orgs
@@ -11315,11 +11319,14 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
-          description: Response
+          description: Response when the reaction type has already been added to this
+            team discussion comment
           content:
             application/json:
               schema:
@@ -11461,8 +11468,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Response
@@ -17447,6 +17456,8 @@ paths:
               examples:
                 example-of-completed-conclusion:
                   "$ref": "#/components/examples/check-run-example-of-completed-conclusion"
+                example-of-in-progress-conclusion:
+                  "$ref": "#/components/examples/check-run-example-of-in-progress-conclusion"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17864,11 +17875,13 @@ paths:
                   description: The sha of the head commit.
               required:
               - head_sha
-            example:
-              head_sha: d6fde92930d4715a2b49857d24b940956b26d2d3
+            examples:
+              default:
+                value:
+                  head_sha: d6fde92930d4715a2b49857d24b940956b26d2d3
       responses:
         '200':
-          description: when the suite already existed
+          description: Response when the suite already exists
           content:
             application/json:
               schema:
@@ -19124,7 +19137,9 @@ paths:
               required:
               - content
             example:
-              content: heart
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -23319,8 +23334,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -24285,8 +24302,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Response
@@ -26374,8 +26393,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -26695,14 +26716,6 @@ paths:
               required:
               - body
             examples:
-              example-for-a-single-line-comment:
-                summary: Example for a single-line comment
-                value:
-                  body: Let's add this deleted line back.
-                  commit_id: 6dcb09b5b57875f334f61aebed695e2e4193db5e
-                  path: file1.txt
-                  line: 5
-                  side: LEFT
               example-for-a-multi-line-comment:
                 summary: Example for a multi-line comment
                 value:
@@ -28314,6 +28327,59 @@ paths:
         category: repos
         subcategory: releases
   "/repos/{owner}/{repo}/releases/{release_id}/reactions":
+    get:
+      summary: List reactions for a release
+      description: List the reactions to a [release](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/list-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/reactions/#list-reactions-for-a-release
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - name: content
+        description: Returns a single [reaction type](https://docs.github.com/enterprise-server@3.4/rest/reference/reactions#reaction-types).
+          Omit this parameter to list all reactions to a release.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - "+1"
+          - laugh
+          - heart
+          - hooray
+          - rocket
+          - eyes
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/reaction"
+              examples:
+                default:
+                  "$ref": "#/components/examples/reaction-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        subcategory: 
     post:
       summary: Create reaction for a release
       description: 'Create a reaction to a [release](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#releases).
@@ -28349,8 +28415,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -28372,6 +28440,32 @@ paths:
                   "$ref": "#/components/examples/reaction"
         '422':
           "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        subcategory: 
+  "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}":
+    delete:
+      summary: Delete a release reaction
+      description: |-
+        **Note:** You can also specify a repository by `repository_id` using the route `DELETE delete /repositories/:repository_id/releases/:release_id/reactions/:reaction_id`.
+
+        Delete a reaction to a [release](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/delete-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/reactions/#delete-a-release-reaction
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - "$ref": "#/components/parameters/reaction-id"
+      responses:
+        '204':
+          description: Response
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -29807,10 +29901,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
-          See "[Searching code](https://docs.github.com/articles/searching-code/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          See "[Searching code](https://docs.github.com/enterprise-server@3.4/search-github/searching-on-github/searching-code)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29886,10 +29981,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
-          See "[Searching commits](https://docs.github.com/articles/searching-commits/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          See "[Searching commits](https://docs.github.com/enterprise-server@3.4/search-github/searching-on-github/searching-commits)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -29963,10 +30059,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
-          See "[Searching issues and pull requests](https://docs.github.com/articles/searching-issues-and-pull-requests/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          See "[Searching issues and pull requests](https://docs.github.com/enterprise-server@3.4/search-github/searching-on-github/searching-issues-and-pull-requests)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -30138,9 +30235,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
           See "[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)"
           for a detailed list of qualifiers.
         in: query
@@ -30219,9 +30317,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
         in: query
         required: true
         schema:
@@ -30280,10 +30379,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
-          See "[Searching users](https://docs.github.com/articles/searching-users/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub Enterprise
+          Server. The REST API supports the same qualifiers as the web interface for
+          GitHub Enterprise Server. To learn more about the format of the query, see
+          [Constructing a search query](https://docs.github.com/enterprise-server@3.4/rest/reference/search#constructing-a-search-query).
+          See "[Searching users](https://docs.github.com/enterprise-server@3.4/search-github/searching-on-github/searching-users)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -30468,7 +30568,10 @@ paths:
   "/setup/api/settings":
     get:
       summary: Get settings
-      description: ''
+      description: |-
+        Gets the settings for your instance. To change settings, see the [Set settings endpoint](https://docs.github.com/enterprise-server@3.4/rest/reference/enterprise-admin#set-settings).
+
+        **Note:** You cannot retrieve the management console password with the Enterprise administration API.
       operationId: enterprise-admin/get-settings
       tags:
       - enterprise-admin
@@ -30493,9 +30596,12 @@ paths:
     put:
       summary: Set settings
       description: |-
-        For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.4/rest/reference/enterprise-admin#get-settings).
+        Applies settings on your instance. For a list of the available settings, see the [Get settings endpoint](https://docs.github.com/enterprise-server@3.4/rest/reference/enterprise-admin#get-settings).
 
-        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        **Notes:**
+
+        - The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        - You cannot set the management console password with the Enterprise administration API. Use the `ghe-set-password` utility to change the management console password. For more information, see "[Command-line utilities](https://docs.github.com/enterprise-server@3.4/admin/configuration/configuring-your-enterprise/command-line-utilities#ghe-set-password)."
       operationId: enterprise-admin/set-settings
       tags:
       - enterprise-admin
@@ -30815,13 +30921,15 @@ paths:
                   nullable: true
               required:
               - name
-            example:
-              name: new team name
-              description: new team description
-              privacy: closed
+            examples:
+              default:
+                value:
+                  name: new team name
+                  description: new team description
+                  privacy: closed
       responses:
         '200':
-          description: Response
+          description: Response when the updated information already exists
           content:
             application/json:
               schema:
@@ -61024,7 +61132,7 @@ components:
         id: 4
         head_sha: ce587453ced02b1526dfb4cb910479d431683101
         node_id: MDg6Q2hlY2tSdW40
-        external_id: ''
+        external_id: '42'
         url: https://api.github.com/repos/github/hello-world/check-runs/4
         html_url: https://github.com/github/hello-world/runs/4
         details_url: https://example.com
@@ -61032,6 +61140,85 @@ components:
         conclusion: neutral
         started_at: '2018-05-04T01:14:52Z'
         completed_at: '2018-05-04T01:14:52Z'
+        output:
+          title: Mighty Readme report
+          summary: There are 0 failures, 2 warnings, and 1 notice.
+          text: You may have some misspelled words on lines 2 and 4. You also may
+            want to add a section in your README about how to install your app.
+          annotations_count: 2
+          annotations_url: https://api.github.com/repos/github/hello-world/check-runs/4/annotations
+        name: mighty_readme
+        check_suite:
+          id: 5
+        app:
+          id: 1
+          slug: octoapp
+          node_id: MDExOkludGVncmF0aW9uMQ==
+          owner:
+            login: github
+            id: 1
+            node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+            url: https://api.github.com/orgs/github
+            repos_url: https://api.github.com/orgs/github/repos
+            events_url: https://api.github.com/orgs/github/events
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: true
+          name: Octocat App
+          description: ''
+          external_url: https://example.com
+          html_url: https://github.com/apps/octoapp
+          created_at: '2017-07-08T16:18:44-04:00'
+          updated_at: '2017-07-08T16:18:44-04:00'
+          permissions:
+            metadata: read
+            contents: read
+            issues: write
+            single_file: write
+          events:
+          - push
+          - pull_request
+        pull_requests:
+        - url: https://api.github.com/repos/github/hello-world/pulls/1
+          id: 1934
+          number: 3956
+          head:
+            ref: say-hello
+            sha: 3dca65fa3e8d4b3da3f3d056c59aee1c50f41390
+            repo:
+              id: 526
+              url: https://api.github.com/repos/github/hello-world
+              name: hello-world
+          base:
+            ref: master
+            sha: e7fdf7640066d71ad16a86fbcbb9c6a10a18af4f
+            repo:
+              id: 526
+              url: https://api.github.com/repos/github/hello-world
+              name: hello-world
+    check-run-example-of-in-progress-conclusion:
+      summary: Response for completed conclusion
+      value:
+        id: 4
+        head_sha: ce587453ced02b1526dfb4cb910479d431683101
+        node_id: MDg6Q2hlY2tSdW40
+        external_id: '42'
+        url: https://api.github.com/repos/github/hello-world/check-runs/4
+        html_url: https://github.com/github/hello-world/runs/4
+        details_url: https://example.com
+        status: in_progress
+        conclusion: 
+        started_at: '2018-05-04T01:14:52Z'
+        completed_at: 
         output:
           title: Mighty Readme report
           summary: There are 0 failures, 2 warnings, and 1 notice.
