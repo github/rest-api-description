@@ -4196,7 +4196,7 @@
     "/enterprises/{enterprise}/actions/runners": {
       "get": {
         "summary": "List self-hosted runners for an enterprise",
-        "description": "Lists all self-hosted runners configured for an enterprise.\n\nYou must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.",
+        "description": "Lists all self-hosted runners configured for an enterprise.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.",
         "operationId": "enterprise-admin/list-self-hosted-runners-for-enterprise",
         "tags": [
           "enterprise-admin"
@@ -4257,10 +4257,139 @@
         }
       }
     },
+    "/enterprises/{enterprise}/actions/runners/downloads": {
+      "get": {
+        "summary": "List runner applications for an enterprise",
+        "description": "Lists binaries for the runner application that you can download and run.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.",
+        "operationId": "enterprise-admin/list-runner-applications-for-enterprise",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/runner-application"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-application-items"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": false,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/enterprises/{enterprise}/actions/runners/registration-token": {
+      "post": {
+        "summary": "Create a registration token for an enterprise",
+        "description": "Returns a token that you can pass to the `config` script. The token expires after one hour.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.\n\n#### Example using registration token\n\nConfigure your self-hosted runner, replacing `TOKEN` with the registration token provided by this endpoint.\n\n```\n./config.sh --url https://github.com/enterprises/octo-enterprise --token TOKEN\n```",
+        "operationId": "enterprise-admin/create-registration-token-for-enterprise",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": false,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/enterprises/{enterprise}/actions/runners/remove-token": {
+      "post": {
+        "summary": "Create a remove token for an enterprise",
+        "description": "Returns a token that you can pass to the `config` script to remove a self-hosted runner from an enterprise. The token expires after one hour.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.\n\n#### Example using remove token\n\nTo remove your self-hosted runner from an enterprise, replace `TOKEN` with the remove token provided by this\nendpoint.\n\n```\n./config.sh remove --token TOKEN\n```",
+        "operationId": "enterprise-admin/create-remove-token-for-enterprise",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token-2"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": false,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/enterprises/{enterprise}/actions/runners/{runner_id}": {
       "get": {
         "summary": "Get a self-hosted runner for an enterprise",
-        "description": "Gets a specific self-hosted runner configured in an enterprise.\n\nYou must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.",
+        "description": "Gets a specific self-hosted runner configured in an enterprise.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.",
         "operationId": "enterprise-admin/get-self-hosted-runner-for-enterprise",
         "tags": [
           "enterprise-admin"
@@ -4303,7 +4432,7 @@
       },
       "delete": {
         "summary": "Delete a self-hosted runner from an enterprise",
-        "description": "Forces the removal of a self-hosted runner from an enterprise. You can use this endpoint to completely remove the runner when the machine you were using no longer exists.\n\nYou must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.",
+        "description": "Forces the removal of a self-hosted runner from an enterprise. You can use this endpoint to completely remove the runner when the machine you were using no longer exists.\n\nYou must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.",
         "operationId": "enterprise-admin/delete-self-hosted-runner-from-enterprise",
         "tags": [
           "enterprise-admin"
@@ -6714,51 +6843,6 @@
         }
       }
     },
-    "/organizations/{org}/team/{team_slug}/external-groups": {
-      "get": {
-        "summary": "List a connection between an external group and a team",
-        "description": "Lists a connection between a team and an external group.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
-        "tags": [
-          "teams"
-        ],
-        "operationId": "teams/list-linked-external-idp-groups-to-team-for-org",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-group-team-connection"
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/org"
-          },
-          {
-            "$ref": "#/components/parameters/team-slug"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/external-groups"
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/external-groups"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": true,
-          "enabledForGitHubApps": true,
-          "category": "teams",
-          "subcategory": "external-groups"
-        }
-      }
-    },
     "/orgs/{org}": {
       "get": {
         "summary": "Get an organization",
@@ -7350,6 +7434,67 @@
       }
     },
     "/orgs/{org}/actions/runner-groups": {
+      "get": {
+        "summary": "List self-hosted runner groups for an organization",
+        "description": "Lists all self-hosted runner groups configured in an organization and inherited from an enterprise.\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "operationId": "actions/list-self-hosted-runner-groups-for-org",
+        "tags": [
+          "actions"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#list-self-hosted-runner-groups-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "runner_groups"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "number"
+                    },
+                    "runner_groups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/runner-groups-org"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-groups-org"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": true,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runner-groups"
+        }
+      },
       "post": {
         "summary": "Create a self-hosted runner group for an organization",
         "description": "The self-hosted runner groups REST API is available with GitHub Enterprise Cloud and GitHub Enterprise Server. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products).\"\n\nCreates a new self-hosted runner group for an organization.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
@@ -7454,6 +7599,49 @@
       }
     },
     "/orgs/{org}/actions/runner-groups/{runner_group_id}": {
+      "get": {
+        "summary": "Get a self-hosted runner group for an organization",
+        "description": "Gets a specific self-hosted runner group for an organization.\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "operationId": "actions/get-self-hosted-runner-group-for-org",
+        "tags": [
+          "actions"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-group-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/runner-group-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/runner-groups-org"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-group-item"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": true,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runner-groups"
+        }
+      },
       "patch": {
         "summary": "Update a self-hosted runner group for an organization",
         "description": "The self-hosted runner groups REST API is available with GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products).\"\n\nUpdates the `name` and `visibility` of a self-hosted runner group in an organization.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
@@ -7536,7 +7724,7 @@
       },
       "delete": {
         "summary": "Delete a self-hosted runner group from an organization",
-        "description": "The self-hosted runner groups REST API is available with GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products).\"\n\nDeletes a self-hosted runner group for an organization.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "description": "Deletes a self-hosted runner group for an organization.\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
         "operationId": "actions/delete-self-hosted-runner-group-from-org",
         "tags": [
           "actions"
@@ -7566,7 +7754,283 @@
         }
       }
     },
+    "/orgs/{org}/actions/runner-groups/{runner_group_id}/runners/{runner_id}": {
+      "put": {
+        "summary": "Add a self-hosted runner to a group for an organization",
+        "description": "Adds a self-hosted runner to a runner group configured in an organization.\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "operationId": "actions/add-self-hosted-runner-to-group-for-org",
+        "tags": [
+          "actions"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#add-a-self-hosted-runner-to-a-group-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/runner-group-id"
+          },
+          {
+            "$ref": "#/components/parameters/runner-id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": true,
+          "githubCloudOnly": false,
+          "category": "actions",
+          "subcategory": "self-hosted-runner-groups"
+        }
+      }
+    },
+    "/orgs/{org}/actions/runners": {
+      "get": {
+        "summary": "List self-hosted runners for an organization",
+        "description": "Lists all self-hosted runners configured in an organization.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/list-self-hosted-runners-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#list-self-hosted-runners-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "total_count",
+                    "runners"
+                  ],
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "runners": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/runner"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-paginated"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/orgs/{org}/actions/runners/downloads": {
+      "get": {
+        "summary": "List runner applications for an organization",
+        "description": "Lists binaries for the runner application that you can download and run.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/list-runner-applications-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/runner-application"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-application-items"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/orgs/{org}/actions/runners/registration-token": {
+      "post": {
+        "summary": "Create a registration token for an organization",
+        "description": "Returns a token that you can pass to the `config` script. The token expires after one hour.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.\n\n#### Example using registration token\n\nConfigure your self-hosted runner, replacing `TOKEN` with the registration token provided by this endpoint.\n\n```\n./config.sh --url https://github.com/octo-org --token TOKEN\n```",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/create-registration-token-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/orgs/{org}/actions/runners/remove-token": {
+      "post": {
+        "summary": "Create a remove token for an organization",
+        "description": "Returns a token that you can pass to the `config` script to remove a self-hosted runner from an organization. The token expires after one hour.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.\n\n#### Example using remove token\n\nTo remove your self-hosted runner from an organization, replace `TOKEN` with the remove token provided by this\nendpoint.\n\n```\n./config.sh remove --token TOKEN\n```",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/create-remove-token-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token-2"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/orgs/{org}/actions/runners/{runner_id}": {
+      "get": {
+        "summary": "Get a self-hosted runner for an organization",
+        "description": "Gets a specific self-hosted runner configured in an organization.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-self-hosted-runner-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/runner-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/runner"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      },
       "delete": {
         "summary": "Delete a self-hosted runner from an organization",
         "description": "Forces the removal of a self-hosted runner from an organization. You can use this endpoint to completely remove the runner when the machine you were using no longer exists.\n\nYou must authenticate using an access token with the `admin:org` scope to use this endpoint.",
@@ -11310,7 +11774,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -11406,7 +11876,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -11448,7 +11924,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -11529,7 +12011,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -11622,7 +12110,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": false,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -11661,7 +12155,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -14864,7 +15364,191 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/actions/runners/downloads": {
+      "get": {
+        "summary": "List runner applications for a repository",
+        "description": "Lists binaries for the runner application that you can download and run.\n\nYou must authenticate using an access token with the `repo` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/list-runner-applications-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/runner-application"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner-application-items"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/actions/runners/registration-token": {
+      "post": {
+        "summary": "Create a registration token for a repository",
+        "description": "Returns a token that you can pass to the `config` script. The token expires after one hour. You must authenticate\nusing an access token with the `repo` scope to use this endpoint.\n\n#### Example using registration token\n \nConfigure your self-hosted runner, replacing `TOKEN` with the registration token provided by this endpoint.\n\n```\n./config.sh --url https://github.com/octo-org/octo-repo-artifacts --token TOKEN\n```",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/create-registration-token-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/actions/runners/remove-token": {
+      "post": {
+        "summary": "Create a remove token for a repository",
+        "description": "Returns a token that you can pass to remove a self-hosted runner from a repository. The token expires after one hour.\nYou must authenticate using an access token with the `repo` scope to use this endpoint.\n\n#### Example using remove token\n \nTo remove your self-hosted runner from a repository, replace TOKEN with the remove token provided by this endpoint.\n\n```\n./config.sh remove --token TOKEN\n```",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/create-remove-token-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/authentication-token"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/authentication-token-2"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/actions/runners/{runner_id}": {
+      "get": {
+        "summary": "Get a self-hosted runner for a repository",
+        "description": "Gets a specific self-hosted runner configured in a repository.\n\nYou must authenticate using an access token with the `repo` scope to use this\nendpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-self-hosted-runner-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/runner-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/runner"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/runner"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      },
       "delete": {
         "summary": "Delete a self-hosted runner from a repository",
         "description": "Forces the removal of a self-hosted runner from a repository. You can use this endpoint to completely remove the runner when the machine you were using no longer exists.\n\nYou must authenticate using an access token with the `repo`\nscope to use this endpoint.",
@@ -21690,7 +22374,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -21789,7 +22479,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -21828,7 +22524,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -23777,6 +24479,76 @@
           "enabledForGitHubApps": true,
           "category": "repos",
           "subcategory": "deployments"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/dispatches": {
+      "post": {
+        "summary": "Create a repository dispatch event",
+        "description": "You can use this endpoint to trigger a webhook event called `repository_dispatch` when you want activity that happens outside of GitHub AE to trigger a GitHub Actions workflow or GitHub App webhook. You must configure your GitHub Actions workflow or GitHub App to run when the `repository_dispatch` event occurs. For an example `repository_dispatch` webhook payload, see \"[RepositoryDispatchEvent](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#repository_dispatch).\"\n\nThe `client_payload` parameter is available for any extra information that your workflow might need. This parameter is a JSON payload that will be passed on when the webhook event is dispatched. For example, the `client_payload` can include a message that a user would like to send using a GitHub Actions workflow. Or the `client_payload` can be used as a test to debug your workflow.\n\nThis endpoint requires write access to the repository by providing either:\n\n  - Personal access tokens with `repo` scope. For more information, see \"[Creating a personal access token for the command line](https://docs.github.com/articles/creating-a-personal-access-token-for-the-command-line)\" in the GitHub Help documentation.\n  - GitHub Apps with both `metadata:read` and `contents:read&write` permissions.\n\nThis input example shows how you can use the `client_payload` as a test to debug your workflow.",
+        "tags": [
+          "repos"
+        ],
+        "operationId": "repos/create-dispatch-event",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/repos#create-a-repository-dispatch-event"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "event_type"
+                ],
+                "properties": {
+                  "event_type": {
+                    "type": "string",
+                    "description": "A custom webhook event name.",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "client_payload": {
+                    "type": "object",
+                    "description": "JSON payload with extra information about the webhook event that your action or worklow may use.",
+                    "additionalProperties": true,
+                    "maxProperties": 10
+                  }
+                }
+              },
+              "example": {
+                "event_type": "on-demand-test",
+                "client_payload": {
+                  "unit": false,
+                  "integration": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Response"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "repos",
+          "subcategory": null
         }
       }
     },
@@ -26688,7 +27460,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -26784,7 +27562,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -26823,7 +27607,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -28167,7 +28957,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -28263,7 +29059,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": false,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -28302,7 +29104,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -31078,7 +31886,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       },
       "post": {
@@ -31174,7 +31988,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -31213,7 +32033,13 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -33817,6 +34643,95 @@
       }
     },
     "/repos/{owner}/{repo}/releases/{release_id}/reactions": {
+      "get": {
+        "summary": "List reactions for a release",
+        "description": "List the reactions to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).",
+        "tags": [
+          "reactions"
+        ],
+        "operationId": "reactions/list-for-release",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-release"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/release-id"
+          },
+          {
+            "name": "content",
+            "description": "Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a release.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "+1",
+                "laugh",
+                "heart",
+                "hooray",
+                "rocket",
+                "eyes"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/reaction"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/reaction-items"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "415": {
+            "$ref": "#/components/responses/preview_header_missing"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "reactions",
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
+        }
+      },
       "post": {
         "summary": "Create reaction for a release",
         "description": "Create a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases). A response with a `Status: 200 OK` means that you already added the reaction type to this release.",
@@ -33908,7 +34823,58 @@
           "githubCloudOnly": false,
           "enabledForGitHubApps": true,
           "category": "reactions",
-          "subcategory": null
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}": {
+      "delete": {
+        "summary": "Delete a release reaction",
+        "description": "**Note:** You can also specify a repository by `repository_id` using the route `DELETE delete /repositories/:repository_id/releases/:release_id/reactions/:reaction_id`.\n\nDelete a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).",
+        "tags": [
+          "reactions"
+        ],
+        "operationId": "reactions/delete-for-release",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#delete-a-release-reaction"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/release-id"
+          },
+          {
+            "$ref": "#/components/parameters/reaction-id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "reactions",
+          "previews": [
+            {
+              "required": true,
+              "name": "squirrel-girl",
+              "note": "An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.\n\nTo access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:\n```shell\napplication/vnd.github.squirrel-girl-preview\n```\nThe `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions."
+            }
+          ]
         }
       }
     },
@@ -35770,7 +36736,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching code](https://docs.github.com/articles/searching-code/)\" for a detailed list of qualifiers.",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching code](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-code)\" for a detailed list of qualifiers.",
             "in": "query",
             "required": true,
             "schema": {
@@ -35870,7 +36836,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching commits](https://docs.github.com/articles/searching-commits/)\" for a detailed list of qualifiers.",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching commits](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-commits)\" for a detailed list of qualifiers.",
             "in": "query",
             "required": true,
             "schema": {
@@ -35962,7 +36928,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/articles/searching-issues-and-pull-requests/)\" for a detailed list of qualifiers.",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching issues and pull requests](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-issues-and-pull-requests)\" for a detailed list of qualifiers.",
             "in": "query",
             "required": true,
             "schema": {
@@ -36182,7 +37148,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)\" for a detailed list of qualifiers.",
             "in": "query",
             "required": true,
             "schema": {
@@ -36282,7 +37248,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).",
             "in": "query",
             "required": true,
             "schema": {
@@ -36358,7 +37324,7 @@
         "parameters": [
           {
             "name": "q",
-            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub. The REST API supports the same qualifiers as GitHub.com. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching users](https://docs.github.com/articles/searching-users/)\" for a detailed list of qualifiers.",
+            "description": "The query contains one or more search keywords and qualifiers. Qualifiers allow you to limit your search to specific areas of GitHub AE. The REST API supports the same qualifiers as the web interface for GitHub AE. To learn more about the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query). See \"[Searching users](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-users)\" for a detailed list of qualifiers.",
             "in": "query",
             "required": true,
             "schema": {
@@ -37224,330 +38190,6 @@
           "deprecationDate": "2020-01-21",
           "category": "teams",
           "subcategory": "discussion-comments"
-        },
-        "deprecated": true
-      }
-    },
-    "/teams/{team_id}/discussions/{discussion_number}/comments/{comment_number}/reactions": {
-      "get": {
-        "summary": "List reactions for a team discussion comment (Legacy)",
-        "description": "**Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`List reactions for a team discussion comment`](https://docs.github.com/github-ae@latest/rest/reference/reactions#list-reactions-for-a-team-discussion-comment) endpoint.\n\nList the reactions to a [team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/teams#discussion-comments). OAuth access tokens require the `read:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/).",
-        "tags": [
-          "reactions"
-        ],
-        "operationId": "reactions/list-for-team-discussion-comment-legacy",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-team-discussion-comment-legacy"
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/team-id"
-          },
-          {
-            "$ref": "#/components/parameters/discussion-number"
-          },
-          {
-            "$ref": "#/components/parameters/comment-number"
-          },
-          {
-            "name": "content",
-            "description": "Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a team discussion comment.",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "+1",
-                "-1",
-                "laugh",
-                "confused",
-                "heart",
-                "hooray",
-                "rocket",
-                "eyes"
-              ]
-            }
-          },
-          {
-            "$ref": "#/components/parameters/per-page"
-          },
-          {
-            "$ref": "#/components/parameters/page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/reaction"
-                  }
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/reaction-items"
-                  }
-                }
-              }
-            },
-            "headers": {
-              "Link": {
-                "$ref": "#/components/headers/link"
-              }
-            }
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": true,
-          "removalDate": "2021-02-21",
-          "deprecationDate": "2020-02-26",
-          "category": "reactions",
-          "subcategory": null
-        },
-        "deprecated": true
-      },
-      "post": {
-        "summary": "Create reaction for a team discussion comment (Legacy)",
-        "description": "**Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new \"[Create reaction for a team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/reactions#create-reaction-for-a-team-discussion-comment)\" endpoint.\n\nCreate a reaction to a [team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/teams#discussion-comments). OAuth access tokens require the `write:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/). A response with an HTTP `200` status means that you already added the reaction type to this team discussion comment.",
-        "tags": [
-          "reactions"
-        ],
-        "operationId": "reactions/create-for-team-discussion-comment-legacy",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-team-discussion-comment-legacy"
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/team-id"
-          },
-          {
-            "$ref": "#/components/parameters/discussion-number"
-          },
-          {
-            "$ref": "#/components/parameters/comment-number"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "description": "The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types) to add to the team discussion comment.",
-                    "enum": [
-                      "+1",
-                      "-1",
-                      "laugh",
-                      "confused",
-                      "heart",
-                      "hooray",
-                      "rocket",
-                      "eyes"
-                    ]
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              },
-              "example": {
-                "content": "heart"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/reaction"
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/reaction"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": true,
-          "removalDate": "2021-02-21",
-          "deprecationDate": "2020-02-26",
-          "category": "reactions",
-          "subcategory": null
-        },
-        "deprecated": true
-      }
-    },
-    "/teams/{team_id}/discussions/{discussion_number}/reactions": {
-      "get": {
-        "summary": "List reactions for a team discussion (Legacy)",
-        "description": "**Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`List reactions for a team discussion`](https://docs.github.com/github-ae@latest/rest/reference/reactions#list-reactions-for-a-team-discussion) endpoint.\n\nList the reactions to a [team discussion](https://docs.github.com/github-ae@latest/rest/reference/teams#discussions). OAuth access tokens require the `read:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/).",
-        "tags": [
-          "reactions"
-        ],
-        "operationId": "reactions/list-for-team-discussion-legacy",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-team-discussion-legacy"
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/team-id"
-          },
-          {
-            "$ref": "#/components/parameters/discussion-number"
-          },
-          {
-            "name": "content",
-            "description": "Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types). Omit this parameter to list all reactions to a team discussion.",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "+1",
-                "-1",
-                "laugh",
-                "confused",
-                "heart",
-                "hooray",
-                "rocket",
-                "eyes"
-              ]
-            }
-          },
-          {
-            "$ref": "#/components/parameters/per-page"
-          },
-          {
-            "$ref": "#/components/parameters/page"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/reaction"
-                  }
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/reaction-items"
-                  }
-                }
-              }
-            },
-            "headers": {
-              "Link": {
-                "$ref": "#/components/headers/link"
-              }
-            }
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": true,
-          "removalDate": "2021-02-21",
-          "deprecationDate": "2020-02-26",
-          "category": "reactions",
-          "subcategory": null
-        },
-        "deprecated": true
-      },
-      "post": {
-        "summary": "Create reaction for a team discussion (Legacy)",
-        "description": "**Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`Create reaction for a team discussion`](https://docs.github.com/github-ae@latest/rest/reference/reactions#create-reaction-for-a-team-discussion) endpoint.\n\nCreate a reaction to a [team discussion](https://docs.github.com/github-ae@latest/rest/reference/teams#discussions). OAuth access tokens require the `write:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/). A response with an HTTP `200` status means that you already added the reaction type to this team discussion.",
-        "tags": [
-          "reactions"
-        ],
-        "operationId": "reactions/create-for-team-discussion-legacy",
-        "externalDocs": {
-          "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-team-discussion-legacy"
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/team-id"
-          },
-          {
-            "$ref": "#/components/parameters/discussion-number"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "content": {
-                    "type": "string",
-                    "description": "The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types) to add to the team discussion.",
-                    "enum": [
-                      "+1",
-                      "-1",
-                      "laugh",
-                      "confused",
-                      "heart",
-                      "hooray",
-                      "rocket",
-                      "eyes"
-                    ]
-                  }
-                },
-                "required": [
-                  "content"
-                ]
-              },
-              "example": {
-                "content": "heart"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/reaction"
-                },
-                "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/reaction"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-github": {
-          "githubCloudOnly": false,
-          "enabledForGitHubApps": false,
-          "removalDate": "2021-02-21",
-          "deprecationDate": "2020-02-26",
-          "category": "reactions",
-          "subcategory": null
         },
         "deprecated": true
       }
@@ -42484,15 +43126,6 @@
           "type": "integer"
         }
       },
-      "team-slug": {
-        "name": "team_slug",
-        "description": "team_slug parameter",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        }
-      },
       "repository-id": {
         "name": "repository_id",
         "in": "path",
@@ -42526,6 +43159,15 @@
         "required": true,
         "schema": {
           "type": "integer"
+        }
+      },
+      "team-slug": {
+        "name": "team_slug",
+        "description": "team_slug parameter",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       },
       "discussion-number": {
@@ -46111,6 +46753,87 @@
           "labels"
         ]
       },
+      "runner-application": {
+        "title": "Runner Application",
+        "description": "Runner Application",
+        "type": "object",
+        "properties": {
+          "os": {
+            "type": "string"
+          },
+          "architecture": {
+            "type": "string"
+          },
+          "download_url": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "temp_download_token": {
+            "description": "A short lived bearer token used to download the runner, if needed.",
+            "type": "string"
+          },
+          "sha256_checksum": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "os",
+          "architecture",
+          "download_url",
+          "filename"
+        ]
+      },
+      "authentication-token": {
+        "title": "Authentication Token",
+        "description": "Authentication Token",
+        "type": "object",
+        "properties": {
+          "token": {
+            "description": "The token used for authentication",
+            "type": "string",
+            "example": "v1.1f699f1069f60xxx"
+          },
+          "expires_at": {
+            "description": "The time this token expires",
+            "type": "string",
+            "format": "date-time",
+            "example": "2016-07-11T22:14:10Z"
+          },
+          "permissions": {
+            "type": "object",
+            "example": {
+              "issues": "read",
+              "deployments": "write"
+            }
+          },
+          "repositories": {
+            "description": "The repositories this token has access to",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/repository"
+            }
+          },
+          "single_file": {
+            "type": "string",
+            "example": "config.yaml",
+            "nullable": true
+          },
+          "repository_selection": {
+            "description": "Describe whether all repositories have been selected or there's a selection involved",
+            "type": "string",
+            "enum": [
+              "all",
+              "selected"
+            ]
+          }
+        },
+        "required": [
+          "token",
+          "expires_at"
+        ]
+      },
       "link-with-type": {
         "title": "Link With Type",
         "description": "Hypermedia Link with Type",
@@ -49085,54 +49808,6 @@
           "subscribed"
         ]
       },
-      "external-groups": {
-        "title": "ExternalGroups",
-        "description": "A list of external groups available to be connected to a team",
-        "type": "object",
-        "properties": {
-          "groups": {
-            "description": "An array of external groups available to be mapped to a team",
-            "example": [
-              {
-                "group_id": 1,
-                "group_name": "group-azuread-test",
-                "updated_at": "2021-01-03 22:27:15:000 -700"
-              },
-              {
-                "group_id": 2,
-                "group_name": "group-azuread-test2",
-                "updated_at": "2021-06-03 22:27:15:000 -700"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "group_id",
-                "group_name",
-                "updated_at"
-              ],
-              "properties": {
-                "group_id": {
-                  "description": "The internal ID of the group",
-                  "example": 1,
-                  "type": "integer"
-                },
-                "group_name": {
-                  "description": "The display name of the group",
-                  "example": "group-azuread-test",
-                  "type": "string"
-                },
-                "updated_at": {
-                  "description": "The time of the last update for this group",
-                  "example": "2019-06-03 22:27:15:000 -700",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
       "organization-full": {
         "title": "Organization Full",
         "description": "Organization Full",
@@ -49650,6 +50325,54 @@
                 "member_email": {
                   "description": "An email attached to a user",
                   "example": "mona_lisa@github.com",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "external-groups": {
+        "title": "ExternalGroups",
+        "description": "A list of external groups available to be connected to a team",
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "An array of external groups available to be mapped to a team",
+            "example": [
+              {
+                "group_id": 1,
+                "group_name": "group-azuread-test",
+                "updated_at": "2021-01-03 22:27:15:000 -700"
+              },
+              {
+                "group_id": 2,
+                "group_name": "group-azuread-test2",
+                "updated_at": "2021-06-03 22:27:15:000 -700"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "group_name",
+                "updated_at"
+              ],
+              "properties": {
+                "group_id": {
+                  "description": "The internal ID of the group",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "group_name": {
+                  "description": "The display name of the group",
+                  "example": "group-azuread-test",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "description": "The time of the last update for this group",
+                  "example": "2019-06-03 22:27:15:000 -700",
                   "type": "string"
                 }
               }
@@ -65932,6 +66655,52 @@
           ]
         }
       },
+      "runner-application-items": {
+        "value": [
+          {
+            "os": "osx",
+            "architecture": "x64",
+            "download_url": "https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-osx-x64-2.164.0.tar.gz",
+            "filename": "actions-runner-osx-x64-2.164.0.tar.gz"
+          },
+          {
+            "os": "linux",
+            "architecture": "x64",
+            "download_url": "https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-x64-2.164.0.tar.gz",
+            "filename": "actions-runner-linux-x64-2.164.0.tar.gz"
+          },
+          {
+            "os": "linux",
+            "architecture": "arm",
+            "download_url": "https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-arm-2.164.0.tar.gz",
+            "filename": "actions-runner-linux-arm-2.164.0.tar.gz"
+          },
+          {
+            "os": "win",
+            "architecture": "x64",
+            "download_url": "https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-win-x64-2.164.0.zip",
+            "filename": "actions-runner-win-x64-2.164.0.zip"
+          },
+          {
+            "os": "linux",
+            "architecture": "arm64",
+            "download_url": "https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-arm64-2.164.0.tar.gz",
+            "filename": "actions-runner-linux-arm64-2.164.0.tar.gz"
+          }
+        ]
+      },
+      "authentication-token": {
+        "value": {
+          "token": "LLBF3JGZDX3P5PMEXLND6TS6FCWO6",
+          "expires_at": "2020-01-22T12:13:35.123-08:00"
+        }
+      },
+      "authentication-token-2": {
+        "value": {
+          "token": "AABF3JGZDX3P5PMEXLND6TS6FCWO6",
+          "expires_at": "2020-01-29T12:13:35.123-08:00"
+        }
+      },
       "runner": {
         "value": {
           "id": 23,
@@ -66998,22 +67767,6 @@
           }
         ]
       },
-      "external-groups": {
-        "value": {
-          "groups": [
-            {
-              "group_id": "123",
-              "group_name": "Octocat admins",
-              "updated_at": "2021-01-24T11:31:04-06:00"
-            },
-            {
-              "group_id": "456",
-              "group_name": "Octocat docs members",
-              "updated_at": "2021-03-24T11:31:04-06:00"
-            }
-          ]
-        }
-      },
       "organization-full-default-response": {
         "summary": "Default response",
         "value": {
@@ -67262,6 +68015,41 @@
           ]
         }
       },
+      "runner-groups-org": {
+        "value": {
+          "total_count": 3,
+          "runner_groups": [
+            {
+              "id": 1,
+              "name": "Default",
+              "visibility": "all",
+              "default": true,
+              "runners_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/1/runners",
+              "inherited": false,
+              "allows_public_repositories": true
+            },
+            {
+              "id": 2,
+              "name": "octo-runner-group",
+              "visibility": "selected",
+              "default": false,
+              "selected_repositories_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories",
+              "runners_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners",
+              "inherited": true,
+              "allows_public_repositories": true
+            },
+            {
+              "id": 3,
+              "name": "expensive-hardware",
+              "visibility": "private",
+              "default": false,
+              "runners_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/3/runners",
+              "inherited": false,
+              "allows_public_repositories": true
+            }
+          ]
+        }
+      },
       "runner-group": {
         "value": {
           "id": 2,
@@ -67269,6 +68057,18 @@
           "visibility": "selected",
           "default": false,
           "selected_repositories_url": "https://api.github.com/orgs/octo-org/actions/runner-groups/2/repositories",
+          "runners_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners",
+          "inherited": false,
+          "allows_public_repositories": true
+        }
+      },
+      "runner-group-item": {
+        "value": {
+          "id": 2,
+          "name": "octo-runner-group",
+          "visibility": "selected",
+          "default": false,
+          "selected_repositories_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories",
           "runners_url": "https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners",
           "inherited": false,
           "allows_public_repositories": true
@@ -67418,6 +68218,22 @@
               "member_login": "octo-lisa_eocsaxrs",
               "member_name": "Octo Lisa",
               "member_email": "octo_lisa@github.com"
+            }
+          ]
+        }
+      },
+      "external-groups": {
+        "value": {
+          "groups": [
+            {
+              "group_id": "123",
+              "group_name": "Octocat admins",
+              "updated_at": "2021-01-24T11:31:04-06:00"
+            },
+            {
+              "group_id": "456",
+              "group_name": "Octocat docs members",
+              "updated_at": "2021-03-24T11:31:04-06:00"
             }
           ]
         }
