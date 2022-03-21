@@ -1758,6 +1758,39 @@ paths:
         enabledForGitHubApps: true
         category: emojis
         subcategory: 
+  "/enterprises/{enterprise}/actions/cache/usage":
+    get:
+      summary: Get GitHub Actions cache usage for an enterprise
+      description: |-
+        Gets the total GitHub Actions cache usage for an enterprise.
+        The data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: actions/get-actions-cache-usage-for-enterprise
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#get-github-actions-cache-usage-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-usage-org-enterprise"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-usage-org-enterprise"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        category: actions
+        subcategory: cache
   "/enterprises/{enterprise}/actions/permissions":
     get:
       summary: Get GitHub Actions permissions for an enterprise
@@ -5363,6 +5396,84 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: 
+  "/orgs/{org}/actions/cache/usage":
+    get:
+      summary: Get GitHub Actions cache usage for an organization
+      description: |-
+        Gets the total GitHub Actions cache usage for an organization.
+        The data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.
+        You must authenticate using an access token with the `read:org` scope to use this endpoint. GitHub Apps must have the `organization_admistration:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-actions-cache-usage-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#get-github-actions-cache-usage-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-usage-org-enterprise"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-usage-org-enterprise"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
+  "/orgs/{org}/actions/cache/usage-by-repository":
+    get:
+      summary: List repositories with GitHub Actions cache usage for an organization
+      description: |-
+        Lists repositories and their GitHub Actions cache usage for an organization.
+        The data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.
+        You must authenticate using an access token with the `read:org` scope to use this endpoint. GitHub Apps must have the `organization_admistration:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-actions-cache-usage-by-repo-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#list-repositories-with-github-actions-cache-usage-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - repository_cache_usages
+                properties:
+                  total_count:
+                    type: integer
+                  repository_cache_usages:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/actions-cache-usage-by-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/org-actions-cache-usage-by-repo"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
   "/orgs/{org}/actions/permissions":
     get:
       summary: Get GitHub Actions permissions for an organization
@@ -13592,6 +13703,37 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: artifacts
+  "/repos/{owner}/{repo}/actions/cache/usage":
+    get:
+      summary: Get GitHub Actions cache usage for a repository
+      description: |-
+        Gets GitHub Actions cache usage for a repository.
+        The data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.
+        Anyone with read access to the repository can use this endpoint. If the repository is private, you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-actions-cache-usage
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/actions#get-github-actions-cache-usage-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-usage-by-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-usage"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
   "/repos/{owner}/{repo}/actions/jobs/{job_id}":
     get:
       summary: Get a job for a workflow run
@@ -41728,6 +41870,20 @@ components:
       - html_url
       - key
       - name
+    actions-cache-usage-org-enterprise:
+      type: object
+      properties:
+        total_active_caches_count:
+          type: integer
+          description: The count of active caches across all repositories of an enterprise
+            or an organization.
+        total_active_caches_size_in_bytes:
+          type: integer
+          description: The total size in bytes of all active cache items across all
+            repositories of an enterprise or an organization.
+      required:
+      - total_active_caches_count
+      - total_active_caches_size_in_bytes
     enabled-organizations:
       type: string
       description: 'The policy that controls the organizations in the enterprise that
@@ -44617,6 +44773,31 @@ components:
       - type
       - created_at
       - updated_at
+    actions-cache-usage-by-repository:
+      title: Actions Cache Usage by repository
+      description: GitHub Actions Cache Usage by repository.
+      type: object
+      properties:
+        full_name:
+          description: The repository owner and name for the cache usage being shown.
+          type: string
+          examples:
+          - octo-org/Hello-World
+        active_caches_size_in_bytes:
+          description: The sum of the size in bytes of all the active cache items
+            in the repository.
+          type: integer
+          examples:
+          - 2322142
+        active_caches_count:
+          description: The number of active caches in the repository.
+          type: integer
+          examples:
+          - 3
+      required:
+      - full_name
+      - active_caches_size_in_bytes
+      - active_caches_count
     enabled-repositories:
       type: string
       description: 'The policy that controls the repositories in the organization
@@ -60010,6 +60191,10 @@ components:
           [homepage]: http://contributor-covenant.org
           [version]: http://contributor-covenant.org/version/1/4/
         html_url: http://contributor-covenant.org/version/1/4/
+    actions-cache-usage-org-enterprise:
+      value:
+        total_active_caches_size_in_bytes: 3344284
+        total_active_caches_count: 5
     actions-enterprise-permissions:
       value:
         enabled_organizations: all
@@ -61921,6 +62106,16 @@ components:
         members_can_create_private_pages: true
         members_can_fork_private_repositories: false
         updated_at: '2014-03-03T18:58:10Z'
+    org-actions-cache-usage-by-repo:
+      value:
+        total_count: 2
+        repository_cache_usages:
+        - full_name: octo-org/Hello-World
+          active_caches_size_in_bytes: 2322142
+          active_caches_count: 3
+        - full_name: octo-org/server
+          active_caches_size_in_bytes: 1022142
+          active_caches_count: 2
     actions-organization-permissions:
       value:
         enabled_repositories: all
@@ -66088,6 +66283,11 @@ components:
         created_at: '2020-01-10T14:59:22Z'
         expires_at: '2020-01-21T14:59:22Z'
         updated_at: '2020-01-21T14:59:22Z'
+    actions-cache-usage:
+      value:
+        full_name: octo-org/Hello-World
+        active_caches_size_in_bytes: 2322142
+        active_caches_count: 3
     job:
       value:
         id: 399444496
