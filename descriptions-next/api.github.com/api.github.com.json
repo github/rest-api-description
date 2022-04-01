@@ -60,6 +60,10 @@
       "description": "Endpoints to manage Dependabot."
     },
     {
+      "name": "dependency-graph",
+      "description": "Endpoints to access Dependency Graph features."
+    },
+    {
       "name": "gists",
       "description": "View, modify your gists."
     },
@@ -29572,6 +29576,73 @@
           "enabledForGitHubApps": true,
           "category": "dependabot",
           "subcategory": "secrets"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/dependency-graph/compare/{basehead}": {
+      "get": {
+        "summary": "Get a diff of the dependencies between commits",
+        "description": "Gets the diff of the dependency changes between two commits of a repository, based on the changes to the dependency manifests made in those commits.",
+        "tags": [
+          "dependency-graph"
+        ],
+        "operationId": "dependency-graph/diff-range",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/reference/dependency-graph#get-a-diff-of-the-dependencies-between-commits"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "basehead",
+            "description": "The base and head Git revisions to compare. The Git revisions will be resolved to commit SHAs. Named revisions will be resolved to their corresponding HEAD commits, and an appropriate merge base will be determined. This parameter expects the format `{base}...{head}`.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/manifest-path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dependency-graph-diff"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/diff-range-response"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "category": "dependency-graph",
+          "subcategory": "dependency-review"
         }
       }
     },
@@ -73091,6 +73162,123 @@
           "updated_at"
         ]
       },
+      "dependency-graph-diff": {
+        "title": "Dependency Graph Diff",
+        "description": "A diff of the dependencies between two commits.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "change_type": {
+              "type": "string",
+              "enum": [
+                "added",
+                "removed"
+              ]
+            },
+            "manifest": {
+              "type": "string",
+              "examples": [
+                "path/to/package-lock.json"
+              ]
+            },
+            "ecosystem": {
+              "type": "string",
+              "examples": [
+                "npm"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "examples": [
+                "@actions/core"
+              ]
+            },
+            "version": {
+              "type": "string",
+              "examples": [
+                "1.0.0"
+              ]
+            },
+            "package_url": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "examples": [
+                "pkg:/npm/%40actions/core@1.1.0"
+              ]
+            },
+            "license": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "examples": [
+                "MIT"
+              ]
+            },
+            "source_repository_url": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "examples": [
+                "https://github.com/github/actions"
+              ]
+            },
+            "vulnerabilities": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "severity": {
+                    "type": "string",
+                    "examples": [
+                      "critical"
+                    ]
+                  },
+                  "advisory_ghsa_id": {
+                    "type": "string",
+                    "examples": [
+                      "GHSA-rf4j-j272-fj86"
+                    ]
+                  },
+                  "advisory_summary": {
+                    "type": "string",
+                    "examples": [
+                      "A summary of the advisory."
+                    ]
+                  },
+                  "advisory_url": {
+                    "type": "string",
+                    "examples": [
+                      "https://github.com/advisories/GHSA-rf4j-j272-fj86"
+                    ]
+                  }
+                },
+                "required": [
+                  "severity",
+                  "advisory_ghsa_id",
+                  "advisory_summary",
+                  "advisory_url"
+                ]
+              }
+            }
+          },
+          "required": [
+            "change_type",
+            "manifest",
+            "ecosystem",
+            "name",
+            "version",
+            "package_url",
+            "license",
+            "source_repository_url",
+            "vulnerabilities"
+          ]
+        }
+      },
       "deployment-status": {
         "title": "Deployment Status",
         "description": "The status of a deployment.",
@@ -96090,6 +96278,54 @@
           "updated_at": "2020-01-10T14:59:22Z"
         }
       },
+      "diff-range-response": {
+        "value": [
+          {
+            "change_type": "removed",
+            "manifest": "package.json",
+            "ecosystem": "npm",
+            "name": "helmet",
+            "version": "4.6.0",
+            "package_url": "pkg:npm/helmet@4.6.0",
+            "license": "MIT",
+            "source_repository_url": "https://github.com/helmetjs/helmet",
+            "vulnerabilities": [
+
+            ]
+          },
+          {
+            "change_type": "added",
+            "manifest": "package.json",
+            "ecosystem": "npm",
+            "name": "helmet",
+            "version": "5.0.0",
+            "package_url": "pkg:npm/helmet@5.0.0",
+            "license": "MIT",
+            "source_repository_url": "https://github.com/helmetjs/helmet",
+            "vulnerabilities": [
+
+            ]
+          },
+          {
+            "change_type": "added",
+            "manifest": "Gemfile",
+            "ecosystem": "rubygems",
+            "name": "ruby-openid",
+            "version": "2.7.0",
+            "package_url": "pkg:gem/ruby-openid@2.7.0",
+            "license": null,
+            "source_repository_url": "https://github.com/openid/ruby-openid",
+            "vulnerabilities": [
+              {
+                "severity": "critical",
+                "advisory_ghsa_id": "GHSA-fqfj-cmh6-hj49",
+                "advisory_summary": "Ruby OpenID",
+                "advisory_url": "https://github.com/advisories/GHSA-fqfj-cmh6-hj49"
+              }
+            ]
+          }
+        ]
+      },
       "deployment-simple-example": {
         "summary": "Simple example",
         "value": {
@@ -106236,6 +106472,15 @@
           "type": "string"
         },
         "x-multi-segment": true
+      },
+      "manifest-path": {
+        "name": "name",
+        "description": "The full path, relative to the repository root, of the dependency manifest file.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
       },
       "deployment-id": {
         "name": "deployment_id",
