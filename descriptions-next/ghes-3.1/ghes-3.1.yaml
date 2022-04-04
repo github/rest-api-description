@@ -2082,8 +2082,6 @@ paths:
                   "$ref": "#/components/examples/base-installation"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -2172,8 +2170,6 @@ paths:
                   "$ref": "#/components/examples/installation-token"
         '403':
           "$ref": "#/components/responses/forbidden"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '401':
           "$ref": "#/components/responses/requires_authentication"
         '404':
@@ -2793,8 +2789,6 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -14354,8 +14348,6 @@ paths:
                 "$ref": "#/components/schemas/branch-with-protection"
         '301':
           "$ref": "#/components/responses/moved_permanently"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -14573,6 +14565,11 @@ paths:
                     deletion of the protected branch. Default: `false`. For more information,
                     see "[Enabling force pushes to a protected branch](https://docs.github.com/en/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)"
                     in the GitHub Help documentation.'
+                block_creations:
+                  type: boolean
+                  description: 'Blocks creation of new branches which match the branch
+                    protection pattern. Set to `true` to prohibit new branch creation.
+                    Default: `false`.'
                 required_conversation_resolution:
                   type: boolean
                   description: 'Requires all conversations on code to be resolved
@@ -14619,6 +14616,7 @@ paths:
               required_linear_history: true
               allow_force_pushes: true
               allow_deletions: true
+              block_creations: true
               required_conversation_resolution: true
       responses:
         '200':
@@ -18149,10 +18147,10 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/reaction"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -27010,8 +27008,6 @@ paths:
                   "$ref": "#/components/examples/release-asset"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '302':
           "$ref": "#/components/responses/found"
       x-github:
@@ -30866,8 +30862,6 @@ paths:
           description: Response
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed"
       x-github:
@@ -31760,8 +31754,6 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '401':
           "$ref": "#/components/responses/requires_authentication"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -32388,10 +32380,10 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '401':
           "$ref": "#/components/responses/requires_authentication"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -42435,6 +42427,11 @@ components:
           properties:
             enabled:
               type: boolean
+        block_creations:
+          type: object
+          properties:
+            enabled:
+              type: boolean
         required_conversation_resolution:
           type: object
           properties:
@@ -42910,6 +42907,14 @@ components:
             enabled:
               type: boolean
           additionalProperties: false
+        block_creations:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+          additionalProperties: false
+          required:
+          - enabled
       required:
       - url
     deployment-simple:
@@ -67063,20 +67068,6 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/validation-error-simple"
-    preview_header_missing:
-      description: Preview header missing
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - message
-            - documentation_url
-            properties:
-              message:
-                type: string
-              documentation_url:
-                type: string
     forbidden:
       description: Forbidden
       content:
@@ -67184,6 +67175,20 @@ components:
         application/scim+json:
           schema:
             "$ref": "#/components/schemas/scim-error"
+    preview_header_missing:
+      description: Preview header missing
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - message
+            - documentation_url
+            properties:
+              message:
+                type: string
+              documentation_url:
+                type: string
     found:
       description: Found
     accepted:
