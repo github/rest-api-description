@@ -960,7 +960,7 @@ paths:
             application/json:
               schema: *8
             application/scim+json:
-              schema: &412
+              schema: &414
                 title: Scim Error
                 description: Scim Error
                 type: object
@@ -4931,6 +4931,13 @@ paths:
       - *33
       - *12
       - *18
+      - name: visible_to_organization
+        description: Only return runner groups that are allowed to be used by this
+          organization.
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: Response
@@ -6497,7 +6504,7 @@ paths:
                       format: uri
                       description: The REST API URL of the code locations for this
                         alert.
-                    state: &391
+                    state: &392
                       description: Sets the state of the secret scanning alert. Can
                         be either `open` or `resolved`. You must provide `resolution`
                         when you set the state to `resolved`.
@@ -6505,7 +6512,7 @@ paths:
                       enum:
                       - open
                       - resolved
-                    resolution: &392
+                    resolution: &393
                       type:
                       - string
                       - 'null'
@@ -7878,7 +7885,7 @@ paths:
                             milestone:
                               anyOf:
                               - type: 'null'
-                              - &292
+                              - &293
                                 title: Milestone
                                 description: A collection of related issues and pull
                                   requests.
@@ -8128,7 +8135,7 @@ paths:
                           - author_association
                           - created_at
                           - updated_at
-                        comment: &332
+                        comment: &333
                           title: Issue Comment
                           description: Comments provide a way for people to collaborate
                             on an issue.
@@ -8619,7 +8626,7 @@ paths:
                         url:
                           type: string
                           format: uri
-                        user: &431
+                        user: &433
                           title: Public User
                           description: Public User
                           type: object
@@ -11628,7 +11635,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/activity#list-notifications-for-the-authenticated-user
       parameters:
-      - &360
+      - &361
         name: all
         description: If `true`, show notifications marked as read.
         in: query
@@ -11636,7 +11643,7 @@ paths:
         schema:
           type: boolean
           default: false
-      - &361
+      - &362
         name: participating
         description: If `true`, only shows notifications in which the user is directly
           participating or mentioned.
@@ -11646,7 +11653,7 @@ paths:
           type: boolean
           default: false
       - *57
-      - &362
+      - &363
         name: before
         description: 'Only show notifications updated before the given time. This
           is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format:
@@ -11716,7 +11723,7 @@ paths:
                   - url
                   - subscription_url
               examples:
-                default: &363
+                default: &364
                   value:
                   - id: '1'
                     repository:
@@ -12201,7 +12208,7 @@ paths:
                 type: array
                 items: *42
               examples:
-                default: &449
+                default: &451
                   value:
                   - login: github
                     id: 1
@@ -13104,7 +13111,7 @@ paths:
                     type: array
                     items: *47
               examples:
-                default: &443
+                default: &445
                   value:
                     total_count: 1
                     repositories:
@@ -13485,6 +13492,13 @@ paths:
       - *84
       - *12
       - *18
+      - name: visible_to_repository
+        description: Only return runner groups that are allowed to be used by this
+          repository.
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: Response
@@ -13887,7 +13901,7 @@ paths:
                     type: array
                     items: *79
               examples:
-                default: &433
+                default: &435
                   value:
                     total_count: 1
                     repositories:
@@ -16574,7 +16588,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &301
+              schema: &302
                 title: DependabotPublicKey
                 description: The public key used for setting Dependabot Secrets.
                 type: object
@@ -16593,7 +16607,7 @@ paths:
                 - key_id
                 - key
               examples:
-                default: &302
+                default: &303
                   value:
                     key_id: '012345678912345678'
                     key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
@@ -17910,7 +17924,7 @@ paths:
             application/json:
               schema: *14
               examples:
-                default: &328
+                default: &329
                   value:
                     id: 1
                     account:
@@ -18134,7 +18148,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &329
+            schema: &330
               title: Interaction Restrictions
               description: Limit interactions to a specific type of user for a specified
                 duration
@@ -19721,7 +19735,7 @@ paths:
       parameters:
       - *84
       - *148
-      - &448
+      - &450
         name: repo_name
         description: repo_name parameter
         in: path
@@ -19920,6 +19934,9 @@ paths:
         they'll only have access to the repositories that their current team membership
         allows. The user will no longer be a member of the organization. For more
         information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        Converting an organization member to an outside collaborator may be restricted
+        by enterprise administrators. For more information, see "[Enforcing repository
+        management policies in your enterprise](https://docs.github.com/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
       tags:
       - orgs
       operationId: orgs/convert-member-to-outside-collaborator
@@ -19941,8 +19958,10 @@ paths:
         '204':
           description: User was converted
         '403':
-          description: Forbidden if user is the last owner of the organization or
-            not a member of the organization
+          description: Forbidden if user is the last owner of the organization, not
+            a member of the organization, or if the enterprise enforces a policy for
+            inviting outside collaborators. For more information, see "[Enforcing
+            repository management policies in your enterprise](https://docs.github.com/en/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -20021,7 +20040,7 @@ paths:
           - nuget
           - container
       - *84
-      - &450
+      - &452
         name: visibility
         description: The selected visibility of the packages. Can be one of `public`,
           `private`, or `internal`. Only `container` package_types currently support
@@ -21179,7 +21198,7 @@ paths:
             application/json:
               schema: *47
               examples:
-                default: &452
+                default: &454
                   value:
                     id: 1296269
                     node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -22129,7 +22148,7 @@ paths:
                   - updated_at
                   - url
               examples:
-                default: &421
+                default: &423
                   value:
                   - author:
                       login: octocat
@@ -22367,7 +22386,7 @@ paths:
             application/json:
               schema: *176
               examples:
-                default: &422
+                default: &424
                   value:
                     author:
                       login: octocat
@@ -22552,7 +22571,7 @@ paths:
                   - updated_at
                   - url
               examples:
-                default: &423
+                default: &425
                   value:
                   - author:
                       login: octocat
@@ -22768,7 +22787,7 @@ paths:
             application/json:
               schema: *179
               examples:
-                default: &424
+                default: &426
                   value:
                     author:
                       login: octocat
@@ -23458,7 +23477,7 @@ paths:
                 - state
                 - url
               examples:
-                response-if-user-is-a-team-maintainer: &425
+                response-if-user-is-a-team-maintainer: &427
                   summary: Response if user is a team maintainer
                   value:
                     url: https://api.github.com/teams/1/memberships/octocat
@@ -23520,7 +23539,7 @@ paths:
             application/json:
               schema: *190
               examples:
-                response-if-users-membership-with-team-is-now-pending: &426
+                response-if-users-membership-with-team-is-now-pending: &428
                   summary: Response if user's membership with team is now pending
                   value:
                     url: https://api.github.com/teams/1/memberships/octocat
@@ -23660,7 +23679,7 @@ paths:
                   - updated_at
                   - permissions
               examples:
-                default: &427
+                default: &429
                   value:
                   - owner_url: https://api.github.com/orgs/octocat
                     url: https://api.github.com/projects/1002605
@@ -23735,7 +23754,7 @@ paths:
             application/json:
               schema: *191
               examples:
-                default: &428
+                default: &430
                   value:
                     owner_url: https://api.github.com/orgs/octocat
                     url: https://api.github.com/projects/1002605
@@ -23932,7 +23951,7 @@ paths:
           description: Alternative response with repository permissions
           content:
             application/json:
-              schema: &429
+              schema: &431
                 title: Team Repository
                 description: A team's access to a repository.
                 type: object
@@ -24891,7 +24910,7 @@ paths:
                 type: array
                 items: *170
               examples:
-                response-if-child-teams-exist: &430
+                response-if-child-teams-exist: &432
                   value:
                   - id: 2
                     node_id: MDQ6VGVhbTI=
@@ -26614,7 +26633,7 @@ paths:
                     description: Whether anonymous git access is allowed.
                     default: true
                     type: boolean
-                  code_of_conduct: &297
+                  code_of_conduct: &298
                     title: Code Of Conduct Simple
                     description: Code of Conduct Simple
                     type: object
@@ -27415,7 +27434,7 @@ paths:
             application/json:
               schema: *206
               examples:
-                default: &315
+                default: &316
                   value:
                     id: 1296269
                     node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
@@ -30718,7 +30737,7 @@ paths:
                       items:
                         type: object
                         properties:
-                          type: &309
+                          type: &310
                             type: string
                             description: 'The type of reviewer. Must be one of: `User`
                               or `Team`'
@@ -30847,7 +30866,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &304
+                items: &305
                   title: Deployment
                   description: A request for a specific ref(branch,sha,tag) to be
                     deployed
@@ -30958,7 +30977,7 @@ paths:
                   - created_at
                   - updated_at
               examples:
-                default: &305
+                default: &306
                   value:
                   - url: https://api.github.com/repos/octocat/example/deployments/1
                     id: 1
@@ -31249,7 +31268,7 @@ paths:
                       - created_at
                       - updated_at
               examples:
-                default: &402
+                default: &404
                   value:
                     total_count: 2
                     secrets:
@@ -31320,7 +31339,7 @@ paths:
             application/json:
               schema: *226
               examples:
-                default: &403
+                default: &405
                   value:
                     name: GH_TOKEN
                     created_at: '2019-08-10T14:59:22Z'
@@ -32669,7 +32688,7 @@ paths:
                 properties:
                   name:
                     type: string
-                  commit: &288
+                  commit: &289
                     title: Commit
                     description: Commit
                     type: object
@@ -32753,7 +32772,7 @@ paths:
                             required:
                             - sha
                             - url
-                          verification: &319
+                          verification: &320
                             title: Verification
                             type: object
                             properties:
@@ -32822,7 +32841,7 @@ paths:
                             type: integer
                       files:
                         type: array
-                        items: &299
+                        items: &300
                           title: Diff Entry
                           description: Diff Entry
                           type: object
@@ -37249,14 +37268,14 @@ paths:
       - *193
       - *194
       - *259
-      - &294
+      - &295
         name: check_name
         description: Returns check runs with the specified `name`.
         in: query
         required: false
         schema:
           type: string
-      - &295
+      - &296
         name: status
         description: Returns check runs with the specified `status`. Can be one of
           `queued`, `in_progress`, or `completed`.
@@ -37298,7 +37317,7 @@ paths:
                     type: array
                     items: *253
               examples:
-                default: &296
+                default: &297
                   value:
                     total_count: 1
                     check_runs:
@@ -38705,6 +38724,8 @@ paths:
         Lists the codespaces associated to a specified repository and the authenticated user.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-in-repository-for-authenticated-user
@@ -39278,6 +39299,8 @@ paths:
         Creates a codespace owned by the authenticated user in the specified repository.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-with-repo-for-authenticated-user
@@ -39488,6 +39511,8 @@ paths:
         List the machine types available for a given repository based on its configuration.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_metadata` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/repo-machines-for-authenticated-user
@@ -39522,7 +39547,7 @@ paths:
                     type: array
                     items: *285
               examples:
-                default: &438
+                default: &440
                   value:
                     total_count: 2
                     machines:
@@ -39545,9 +39570,328 @@ paths:
         '404': *15
       x-github:
         githubCloudOnly: false
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: codespaces
         subcategory: machines
+  "/repos/{owner}/{repo}/codespaces/secrets":
+    get:
+      summary: List repository secrets
+      description: Lists all secrets available in a repository without revealing their
+        encrypted values. You must authenticate using an access token with the `repo`
+        scope to use this endpoint. GitHub Apps must have the `secrets` repository
+        permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-repo-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-repository-secrets
+      parameters:
+      - *193
+      - *194
+      - *12
+      - *18
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items: &286
+                      title: Codespaces Secret
+                      description: Set repository secrets for GitHub Codespaces.
+                      type: object
+                      properties:
+                        name:
+                          description: The name of the secret.
+                          type: string
+                          examples:
+                          - SECRET_TOKEN
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                      required:
+                      - name
+                      - created_at
+                      - updated_at
+              examples:
+                default:
+                  value:
+                    total_count: 2
+                    secrets:
+                    - name: GH_TOKEN
+                      created_at: '2019-08-10T14:59:22Z'
+                      updated_at: '2020-01-10T14:59:22Z'
+                    - name: GIST_ID
+                      created_at: '2020-01-10T10:59:22Z'
+                      updated_at: '2020-01-11T11:59:22Z'
+          headers:
+            Link: *19
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+  "/repos/{owner}/{repo}/codespaces/secrets/public-key":
+    get:
+      summary: Get a repository public key
+      description: Gets your public key, which you need to encrypt secrets. You need
+        to encrypt a secret before you can create or update secrets. Anyone with read
+        access to the repository can use this endpoint. If the repository is private
+        you must use an access token with the `repo` scope. GitHub Apps must have
+        the `secrets` repository permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-repo-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-a-repository-public-key
+      parameters:
+      - *193
+      - *194
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: CodespacesPublicKey
+                description: The public key used for setting Codespaces secrets.
+                type: object
+                properties:
+                  key_id:
+                    description: The identifier for the key.
+                    type: string
+                    examples:
+                    - '1234567'
+                  key:
+                    description: The Base64 encoded public key.
+                    type: string
+                    examples:
+                    - hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
+                  id:
+                    type: integer
+                    examples:
+                    - 2
+                  url:
+                    type: string
+                    examples:
+                    - https://api.github.com/user/keys/2
+                  title:
+                    type: string
+                    examples:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAA
+                  created_at:
+                    type: string
+                    examples:
+                    - '2011-01-26T19:01:12Z'
+                required:
+                - key_id
+                - key
+              examples:
+                default:
+                  value:
+                    key_id: '012345678912345678'
+                    key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: repository-secrets
+  "/repos/{owner}/{repo}/codespaces/secrets/{secret_name}":
+    get:
+      summary: Get a repository secret
+      description: Gets a single repository secret without revealing its encrypted
+        value. You must authenticate using an access token with the `repo` scope to
+        use this endpoint. GitHub Apps must have the `codespaces_secrets` repository
+        permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-a-repository-secret
+      parameters:
+      - *193
+      - *194
+      - *106
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema: *286
+              examples:
+                default:
+                  value:
+                    name: GH_TOKEN
+                    created_at: '2019-08-10T14:59:22Z'
+                    updated_at: '2020-01-10T14:59:22Z'
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+    put:
+      summary: Create or update a repository secret
+      description: |-
+        Creates or updates a repository secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `repo` scope to use this endpoint. GitHub Apps must have the `codespaces_secrets` repository
+        permission to use this endpoint.
+
+        #### Example of encrypting a secret using Node.js
+
+        Encrypt your secret using the [tweetsodium](https://github.com/github/tweetsodium) library.
+
+        ```
+        const sodium = require('tweetsodium');
+
+        const key = "base64-encoded-public-key";
+        const value = "plain-text-secret";
+
+        // Convert the message and key to Uint8Array's (Buffer implements that interface)
+        const messageBytes = Buffer.from(value);
+        const keyBytes = Buffer.from(key, 'base64');
+
+        // Encrypt using LibSodium.
+        const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+
+        // Base64 the encrypted secret
+        const encrypted = Buffer.from(encryptedBytes).toString('base64');
+
+        console.log(encrypted);
+        ```
+
+
+        #### Example of encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example of encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example of encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - codespaces
+      operationId: codespaces/create-or-update-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#create-or-update-a-repository-secret
+      parameters:
+      - *193
+      - *194
+      - *106
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: Value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get a repository public
+                    key](https://docs.github.com/rest/reference/codespaces#get-a-repository-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: ID of the key you used to encrypt the secret.
+            example:
+              encrypted_value: c2VjcmV0
+              key_id: '012345678912345678'
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                additionalProperties: false
+        '204':
+          description: Response when updating a secret
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+    delete:
+      summary: Delete a repository secret
+      description: Deletes a secret in a repository using the secret name. You must
+        authenticate using an access token with the `repo` scope to use this endpoint.
+        GitHub Apps must have the `codespaces_secrets` repository permission to use
+        this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/delete-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#delete-a-repository-secret
+      parameters:
+      - *193
+      - *194
+      - *106
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
   "/repos/{owner}/{repo}/collaborators":
     get:
       summary: List repository collaborators
@@ -39592,7 +39936,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &286
+                items: &287
                   title: Collaborator
                   description: Collaborator
                   type: object
@@ -39796,9 +40140,11 @@ paths:
     put:
       summary: Add a repository collaborator
       description: |-
-        This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
+        This endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+        Adding an outside collaborator may be restricted by enterprise administrators. For more information, see "[Enforcing repository management policies in your enterprise](https://docs.github.com/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
+
+        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
 
         ```
         Cannot assign {member} permission of {role name}
@@ -39857,7 +40203,7 @@ paths:
           description: Response when a new invitation is created
           content:
             application/json:
-              schema: &331
+              schema: &332
                 title: Repository Invitation
                 description: Repository invitations let you manage who you collaborate
                   with.
@@ -40096,7 +40442,7 @@ paths:
                   user:
                     anyOf:
                     - type: 'null'
-                    - *286
+                    - *287
                 required:
                 - permission
                 - role_name
@@ -40156,7 +40502,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &287
+                items: &288
                   title: Commit Comment
                   description: Commit Comment
                   type: object
@@ -40214,7 +40560,7 @@ paths:
                   - created_at
                   - updated_at
               examples:
-                default: &290
+                default: &291
                   value:
                   - html_url: https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e#commitcomment-1
                     url: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -40273,9 +40619,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *287
+              schema: *288
               examples:
-                default: &291
+                default: &292
                   value:
                     html_url: https://github.com/octocat/Hello-World/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e#commitcomment-1
                     url: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -40348,7 +40694,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *287
+              schema: *288
               examples:
                 default:
                   value:
@@ -40627,9 +40973,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *288
+                items: *289
               examples:
-                default: &377
+                default: &378
                   value:
                   - url: https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e
                     sha: 6dcb09b5b57875f334f61aebed695e2e4193db5e
@@ -40724,7 +41070,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &289
+      - &290
         name: commit_sha
         description: commit_sha parameter
         in: path
@@ -40790,7 +41136,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *289
+      - *290
       - *12
       - *18
       responses:
@@ -40800,9 +41146,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *287
+                items: *288
               examples:
-                default: *290
+                default: *291
           headers:
             Link: *19
       x-github:
@@ -40825,7 +41171,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *289
+      - *290
       requestBody:
         required: true
         content:
@@ -40860,9 +41206,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *287
+              schema: *288
               examples:
-                default: *291
+                default: *292
           headers:
             Location:
               example: https://api.github.com/repos/octocat/Hello-World/comments/1
@@ -40892,7 +41238,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *289
+      - *290
       - *12
       - *18
       responses:
@@ -40902,7 +41248,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &368
+                items: &369
                   title: Pull Request Simple
                   description: Pull Request Simple
                   type: object
@@ -41021,7 +41367,7 @@ paths:
                     milestone:
                       anyOf:
                       - type: 'null'
-                      - *292
+                      - *293
                     active_lock_reason:
                       type:
                       - string
@@ -41120,7 +41466,7 @@ paths:
                     _links:
                       type: object
                       properties:
-                        comments: &293
+                        comments: &294
                           title: Link
                           description: Hypermedia Link
                           type: object
@@ -41129,13 +41475,13 @@ paths:
                               type: string
                           required:
                           - href
-                        commits: *293
-                        statuses: *293
-                        html: *293
-                        issue: *293
-                        review_comments: *293
-                        review_comment: *293
-                        self: *293
+                        commits: *294
+                        statuses: *294
+                        html: *294
+                        issue: *294
+                        review_comments: *294
+                        review_comment: *294
+                        self: *294
                       required:
                       - comments
                       - commits
@@ -41146,7 +41492,7 @@ paths:
                       - review_comment
                       - self
                     author_association: *53
-                    auto_merge: &370
+                    auto_merge: &371
                       title: Auto merge
                       description: The status of auto merging a pull request.
                       type:
@@ -41211,7 +41557,7 @@ paths:
                   - author_association
                   - auto_merge
               examples:
-                default: &369
+                default: &370
                   value:
                   - url: https://api.github.com/repos/octocat/Hello-World/pulls/1347
                     id: 1
@@ -41758,9 +42104,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *288
+              schema: *289
               examples:
-                default: &357
+                default: &358
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e
                     sha: 6dcb09b5b57875f334f61aebed695e2e4193db5e
@@ -41874,8 +42220,8 @@ paths:
         schema:
           type: string
         x-multi-segment: true
-      - *294
       - *295
+      - *296
       - name: filter
         description: Filters check runs by their `completed_at` timestamp. Can be
           one of `latest` (returning the most recent check runs) or `all`.
@@ -41911,7 +42257,7 @@ paths:
                     type: array
                     items: *253
               examples:
-                default: *296
+                default: *297
           headers:
             Link: *19
       x-github:
@@ -41949,7 +42295,7 @@ paths:
         schema:
           type: integer
         example: 1
-      - *294
+      - *295
       - *12
       - *18
       responses:
@@ -42393,7 +42739,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &396
+                items: &397
                   title: Status
                   description: The status of a commit.
                   type: object
@@ -42533,11 +42879,11 @@ paths:
                       code_of_conduct:
                         anyOf:
                         - type: 'null'
-                        - *297
+                        - *298
                       code_of_conduct_file:
                         anyOf:
                         - type: 'null'
-                        - &298
+                        - &299
                           title: Community Health File
                           type: object
                           properties:
@@ -42557,19 +42903,19 @@ paths:
                       contributing:
                         anyOf:
                         - type: 'null'
-                        - *298
+                        - *299
                       readme:
                         anyOf:
                         - type: 'null'
-                        - *298
+                        - *299
                       issue_template:
                         anyOf:
                         - type: 'null'
-                        - *298
+                        - *299
                       pull_request_template:
                         anyOf:
                         - type: 'null'
-                        - *298
+                        - *299
                     required:
                     - code_of_conduct
                     - code_of_conduct_file
@@ -42733,8 +43079,8 @@ paths:
                     format: uri
                     examples:
                     - https://github.com/octocat/Hello-World/compare/master...topic.patch
-                  base_commit: *288
-                  merge_base_commit: *288
+                  base_commit: *289
+                  merge_base_commit: *289
                   status:
                     type: string
                     enum:
@@ -42758,10 +43104,10 @@ paths:
                     - 6
                   commits:
                     type: array
-                    items: *288
+                    items: *289
                   files:
                     type: array
-                    items: *299
+                    items: *300
                 required:
                 - url
                 - html_url
@@ -43270,7 +43616,7 @@ paths:
                     - size
                     - type
                     - url
-                - &382
+                - &383
                   title: Content File
                   description: Content File
                   type: object
@@ -43565,7 +43911,7 @@ paths:
                       html: https://github.com/jquery/qunit/tree/6ca3721222109997540bd6d9ccd396902e0ad2f9
         '404': *15
         '403': *20
-        '302': &386
+        '302': &387
           description: Found
       x-github:
         githubCloudOnly: false
@@ -43678,7 +44024,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &300
+              schema: &301
                 title: File Commit
                 description: File Commit
                 type: object
@@ -43829,7 +44175,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *300
+              schema: *301
               examples:
                 example-for-creating-a-file:
                   value:
@@ -43960,7 +44306,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *300
+              schema: *301
               examples:
                 default:
                   value:
@@ -44157,7 +44503,7 @@ paths:
                     type: integer
                   secrets:
                     type: array
-                    items: &303
+                    items: &304
                       title: Dependabot Secret
                       description: Set secrets for Dependabot.
                       type: object
@@ -44217,9 +44563,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *301
+              schema: *302
               examples:
-                default: *302
+                default: *303
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44247,7 +44593,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *303
+              schema: *304
               examples:
                 default:
                   value:
@@ -44620,9 +44966,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *304
+                items: *305
               examples:
-                default: *305
+                default: *306
           headers:
             Link: *19
       x-github:
@@ -44768,7 +45114,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *304
+              schema: *305
               examples:
                 simple-example:
                   summary: Simple example
@@ -44843,7 +45189,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &306
+      - &307
         name: deployment_id
         description: deployment_id parameter
         in: path
@@ -44855,7 +45201,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *304
+              schema: *305
               examples:
                 default:
                   value:
@@ -44920,7 +45266,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *306
+      - *307
       responses:
         '204':
           description: Response
@@ -44944,7 +45290,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *306
+      - *307
       - *12
       - *18
       responses:
@@ -44954,7 +45300,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &307
+                items: &308
                   title: Deployment Status
                   description: The status of a deployment.
                   type: object
@@ -45118,7 +45464,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *306
+      - *307
       requestBody:
         required: true
         content:
@@ -45196,9 +45542,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *307
+              schema: *308
               examples:
-                default: &308
+                default: &309
                   value:
                     url: https://api.github.com/repos/octocat/example/deployments/42/statuses/1
                     id: 1
@@ -45256,7 +45602,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *306
+      - *307
       - name: status_id
         in: path
         required: true
@@ -45267,9 +45613,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *307
+              schema: *308
               examples:
-                default: *308
+                default: *309
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -45366,7 +45712,7 @@ paths:
                     - 5
                   environments:
                     type: array
-                    items: &310
+                    items: &311
                       title: Environment
                       description: Details of a deployment environment
                       type: object
@@ -45425,7 +45771,7 @@ paths:
                                   type: string
                                   examples:
                                   - wait_timer
-                                wait_timer: &312
+                                wait_timer: &313
                                   type: integer
                                   description: The amount of time to delay a job after
                                     the job is initially triggered. The time (in minutes)
@@ -45461,7 +45807,7 @@ paths:
                                   items:
                                     type: object
                                     properties:
-                                      type: *309
+                                      type: *310
                                       reviewer:
                                         anyOf:
                                         - *13
@@ -45488,7 +45834,7 @@ paths:
                               - id
                               - node_id
                               - type
-                        deployment_branch_policy: &313
+                        deployment_branch_policy: &314
                           type:
                           - object
                           - 'null'
@@ -45601,7 +45947,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &311
+      - &312
         name: environment_name
         in: path
         required: true
@@ -45613,9 +45959,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *310
+              schema: *311
               examples:
-                default: &314
+                default: &315
                   value:
                     id: 161088068
                     node_id: MDExOkVudmlyb25tZW50MTYxMDg4MDY4
@@ -45697,7 +46043,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *311
+      - *312
       requestBody:
         required: false
         content:
@@ -45707,7 +46053,7 @@ paths:
               - object
               - 'null'
               properties:
-                wait_timer: *312
+                wait_timer: *313
                 reviewers:
                   type:
                   - array
@@ -45720,23 +46066,23 @@ paths:
                   items:
                     type: object
                     properties:
-                      type: *309
+                      type: *310
                       id:
                         type: integer
                         description: The id of the user or team who can review the
                           deployment
                         examples:
                         - 4532992
-                deployment_branch_policy: *313
+                deployment_branch_policy: *314
               additionalProperties: false
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *310
+              schema: *311
               examples:
-                default: *314
+                default: *315
         '422':
           description: Validation error when the environment name is invalid or when
             `protected_branches` and `custom_branch_policies` in `deployment_branch_policy`
@@ -45762,7 +46108,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *311
+      - *312
       responses:
         '204':
           description: Default response
@@ -45988,7 +46334,7 @@ paths:
             application/json:
               schema: *206
               examples:
-                default: *315
+                default: *316
         '400': *9
         '422': *10
         '403': *20
@@ -46289,7 +46635,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &316
+              schema: &317
                 title: Git Commit
                 description: Low-level Git commit operations within a repository
                 type: object
@@ -46508,13 +46854,13 @@ paths:
       parameters:
       - *193
       - *194
-      - *289
+      - *290
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *316
+              schema: *317
               examples:
                 default:
                   value:
@@ -46585,7 +46931,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &317
+                items: &318
                   title: Git Reference
                   description: Git references within a repository
                   type: object
@@ -46673,9 +47019,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *317
+              schema: *318
               examples:
-                default: &318
+                default: &319
                   value:
                     ref: refs/heads/featureA
                     node_id: MDM6UmVmcmVmcy9oZWFkcy9mZWF0dXJlQQ==
@@ -46737,9 +47083,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *317
+              schema: *318
               examples:
-                default: *318
+                default: *319
           headers:
             Location:
               example: https://api.github.com/repos/octocat/Hello-World/git/refs/heads/featureA
@@ -46799,9 +47145,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *317
+              schema: *318
               examples:
-                default: *318
+                default: *319
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -46945,7 +47291,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &320
+              schema: &321
                 title: Git Tag
                 description: Metadata for a Git tag
                 type: object
@@ -47001,7 +47347,7 @@ paths:
                     - sha
                     - type
                     - url
-                  verification: *319
+                  verification: *320
                 required:
                 - sha
                 - url
@@ -47011,7 +47357,7 @@ paths:
                 - tag
                 - message
               examples:
-                default: &321
+                default: &322
                   value:
                     node_id: MDM6VGFnOTQwYmQzMzYyNDhlZmFlMGY5ZWU1YmM3YjJkNWM5ODU4ODdiMTZhYw==
                     tag: v0.0.1
@@ -47093,9 +47439,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *320
+              schema: *321
               examples:
-                default: *321
+                default: *322
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -47191,7 +47537,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &322
+              schema: &323
                 title: Git Tree
                 description: The hierarchy between files in a Git repository.
                 type: object
@@ -47328,7 +47674,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *322
+              schema: *323
               examples:
                 default-response:
                   summary: Default response
@@ -47396,7 +47742,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &323
+                items: &324
                   title: Webhook
                   description: Webhooks for repositories.
                   type: object
@@ -47629,9 +47975,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *323
+              schema: *324
               examples:
-                default: &324
+                default: &325
                   value:
                     type: Repository
                     id: 12345678
@@ -47687,9 +48033,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *323
+              schema: *324
               examples:
-                default: *324
+                default: *325
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -47774,9 +48120,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *323
+              schema: *324
               examples:
-                default: *324
+                default: *325
         '422': *10
         '404': *15
       x-github:
@@ -48072,7 +48418,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &325
+              schema: &326
                 title: Import
                 description: A repository import from an external source.
                 type: object
@@ -48179,7 +48525,7 @@ paths:
                 - html_url
                 - authors_url
               examples:
-                default: &327
+                default: &328
                   value:
                     vcs: subversion
                     use_lfs: true
@@ -48260,7 +48606,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *325
+              schema: *326
               examples:
                 default:
                   value:
@@ -48359,7 +48705,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *325
+              schema: *326
               examples:
                 example-1:
                   summary: Example 1
@@ -48448,7 +48794,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &455
+      - &457
         name: since
         description: A user ID. Only return users with an ID greater than this ID.
         in: query
@@ -48462,7 +48808,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &326
+                items: &327
                   title: Porter Author
                   description: Porter Author
                   type: object
@@ -48564,7 +48910,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *326
+              schema: *327
               examples:
                 default:
                   value:
@@ -48682,9 +49028,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *325
+              schema: *326
               examples:
-                default: *327
+                default: *328
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -48714,7 +49060,7 @@ paths:
             application/json:
               schema: *14
               examples:
-                default: *328
+                default: *329
         '301': *205
         '404': *15
       x-github:
@@ -48749,7 +49095,7 @@ paths:
                   properties: {}
                   additionalProperties: false
               examples:
-                default: &330
+                default: &331
                   value:
                     limit: collaborators_only
                     origin: repository
@@ -48780,7 +49126,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: *329
+            schema: *330
       responses:
         '200':
           description: Response
@@ -48788,7 +49134,7 @@ paths:
             application/json:
               schema: *137
               examples:
-                default: *330
+                default: *331
         '409':
           description: Response
       x-github:
@@ -48845,9 +49191,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *331
+                items: *332
               examples:
-                default: &453
+                default: &455
                   value:
                   - id: 1
                     repository:
@@ -49004,7 +49350,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *331
+              schema: *332
               examples:
                 default:
                   value:
@@ -49483,7 +49829,7 @@ paths:
             application/json:
               schema: *67
               examples:
-                default: &335
+                default: &336
                   value:
                     id: 1
                     node_id: MDU6SXNzdWUx
@@ -49677,9 +50023,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *332
+                items: *333
               examples:
-                default: &337
+                default: &338
                   value:
                   - id: 1
                     node_id: MDEyOklzc3VlQ29tbWVudDE=
@@ -49737,9 +50083,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *332
+              schema: *333
               examples:
-                default: &333
+                default: &334
                   value:
                     id: 1
                     node_id: MDEyOklzc3VlQ29tbWVudDE=
@@ -49809,9 +50155,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *332
+              schema: *333
               examples:
-                default: *333
+                default: *334
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -49999,7 +50345,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &334
+                items: &335
                   title: Issue Event
                   description: Issue Event
                   type: object
@@ -50348,7 +50694,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *334
+              schema: *335
               examples:
                 default:
                   value:
@@ -50571,7 +50917,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &336
+      - &337
         name: issue_number
         description: issue_number parameter
         in: path
@@ -50585,7 +50931,7 @@ paths:
             application/json:
               schema: *67
               examples:
-                default: *335
+                default: *336
         '301': *205
         '404': *15
         '410': *155
@@ -50607,7 +50953,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: false
         content:
@@ -50702,7 +51048,7 @@ paths:
             application/json:
               schema: *67
               examples:
-                default: *335
+                default: *336
         '422': *10
         '503': *55
         '403': *20
@@ -50728,7 +51074,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: false
         content:
@@ -50756,7 +51102,7 @@ paths:
             application/json:
               schema: *67
               examples:
-                default: *335
+                default: *336
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -50774,7 +51120,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         content:
           application/json:
@@ -50801,7 +51147,7 @@ paths:
             application/json:
               schema: *67
               examples:
-                default: *335
+                default: *336
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -50820,7 +51166,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - *57
       - *12
       - *18
@@ -50831,9 +51177,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *332
+                items: *333
               examples:
-                default: *337
+                default: *338
           headers:
             Link: *19
         '404': *15
@@ -50859,7 +51205,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: true
         content:
@@ -50881,9 +51227,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *332
+              schema: *333
               examples:
-                default: *333
+                default: *334
           headers:
             Location:
               example: https://api.github.com/repos/octocat/Hello-World/issues/comments/1
@@ -50912,7 +51258,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - *12
       - *18
       responses:
@@ -50926,7 +51272,7 @@ paths:
                   title: Issue Event for Issue
                   description: Issue Event for Issue
                   anyOf:
-                  - &340
+                  - &341
                     title: Labeled Issue Event
                     description: Labeled Issue Event
                     type: object
@@ -50975,7 +51321,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &341
+                  - &342
                     title: Unlabeled Issue Event
                     description: Unlabeled Issue Event
                     type: object
@@ -51103,7 +51449,7 @@ paths:
                     - performed_via_github_app
                     - assignee
                     - assigner
-                  - &342
+                  - &343
                     title: Milestoned Issue Event
                     description: Milestoned Issue Event
                     type: object
@@ -51149,7 +51495,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &343
+                  - &344
                     title: Demilestoned Issue Event
                     description: Demilestoned Issue Event
                     type: object
@@ -51195,7 +51541,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &344
+                  - &345
                     title: Renamed Issue Event
                     description: Renamed Issue Event
                     type: object
@@ -51244,7 +51590,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &345
+                  - &346
                     title: Review Requested Issue Event
                     description: Review Requested Issue Event
                     type: object
@@ -51286,7 +51632,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &346
+                  - &347
                     title: Review Request Removed Issue Event
                     description: Review Request Removed Issue Event
                     type: object
@@ -51328,7 +51674,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &347
+                  - &348
                     title: Review Dismissed Issue Event
                     description: Review Dismissed Issue Event
                     type: object
@@ -51384,7 +51730,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &348
+                  - &349
                     title: Locked Issue Event
                     description: Locked Issue Event
                     type: object
@@ -51429,7 +51775,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &349
+                  - &350
                     title: Added to Project Issue Event
                     description: Added to Project Issue Event
                     type: object
@@ -51490,7 +51836,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &350
+                  - &351
                     title: Moved Column in Project Issue Event
                     description: Moved Column in Project Issue Event
                     type: object
@@ -51551,7 +51897,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &351
+                  - &352
                     title: Removed from Project Issue Event
                     description: Removed from Project Issue Event
                     type: object
@@ -51612,7 +51958,7 @@ paths:
                     - commit_url
                     - created_at
                     - performed_via_github_app
-                  - &352
+                  - &353
                     title: Converted Note to Issue Issue Event
                     description: Converted Note to Issue Issue Event
                     type: object
@@ -51724,7 +52070,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - *12
       - *18
       responses:
@@ -51734,7 +52080,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &338
+                items: &339
                   title: Label
                   description: Color-coded labels help you categorize and filter your
                     issues (just like labels in Gmail).
@@ -51785,7 +52131,7 @@ paths:
                   - color
                   - default
               examples:
-                default: &339
+                default: &340
                   value:
                   - id: 208045946
                     node_id: MDU6TGFiZWwyMDgwNDU5NDY=
@@ -51821,7 +52167,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: false
         content:
@@ -51880,9 +52226,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *338
+                items: *339
               examples:
-                default: *339
+                default: *340
         '410': *155
         '422': *10
       x-github:
@@ -51902,7 +52248,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: false
         content:
@@ -51962,9 +52308,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *338
+                items: *339
               examples:
-                default: *339
+                default: *340
         '410': *155
         '422': *10
       x-github:
@@ -51984,7 +52330,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       responses:
         '204':
           description: Response
@@ -52009,7 +52355,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - name: name
         in: path
         required: true
@@ -52022,7 +52368,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *338
+                items: *339
               examples:
                 default:
                   value:
@@ -52056,7 +52402,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: false
         content:
@@ -52100,7 +52446,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       responses:
         '204':
           description: Response
@@ -52124,7 +52470,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to an issue.
@@ -52176,7 +52522,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       requestBody:
         required: true
         content:
@@ -52240,7 +52586,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - *185
       responses:
         '204':
@@ -52263,7 +52609,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *336
+      - *337
       - *12
       - *18
       responses:
@@ -52278,7 +52624,6 @@ paths:
                   description: Timeline Event
                   type: object
                   anyOf:
-                  - *340
                   - *341
                   - *342
                   - *343
@@ -52291,6 +52636,7 @@ paths:
                   - *350
                   - *351
                   - *352
+                  - *353
                   - title: Timeline Comment Event
                     description: Timeline Comment Event
                     type: object
@@ -52609,7 +52955,7 @@ paths:
                         type: string
                       comments:
                         type: array
-                        items: &371
+                        items: &372
                           title: Pull Request Review Comment
                           description: Pull Request Review Comments are comments on
                             a portion of the Pull Request's diff.
@@ -52838,7 +53184,7 @@ paths:
                         type: string
                       comments:
                         type: array
-                        items: *287
+                        items: *288
                   - title: Timeline Assigned Issue Event
                     description: Timeline Assigned Issue Event
                     type: object
@@ -52985,7 +53331,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &353
+                items: &354
                   title: Deploy Key
                   description: An SSH key granting access to a single repository.
                   type: object
@@ -53076,9 +53422,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *353
+              schema: *354
               examples:
-                default: &354
+                default: &355
                   value:
                     id: 1
                     key: ssh-rsa AAA...
@@ -53111,7 +53457,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &355
+      - &356
         name: key_id
         description: key_id parameter
         in: path
@@ -53123,9 +53469,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *353
+              schema: *354
               examples:
-                default: *354
+                default: *355
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -53145,7 +53491,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *355
+      - *356
       responses:
         '204':
           description: Response
@@ -53176,9 +53522,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *338
+                items: *339
               examples:
-                default: *339
+                default: *340
           headers:
             Link: *19
         '404': *15
@@ -53234,9 +53580,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *338
+              schema: *339
               examples:
-                default: &356
+                default: &357
                   value:
                     id: 208045946
                     node_id: MDU6TGFiZWwyMDgwNDU5NDY=
@@ -53280,9 +53626,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *338
+              schema: *339
               examples:
-                default: *356
+                default: *357
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -53339,7 +53685,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *338
+              schema: *339
               examples:
                 default:
                   value:
@@ -53722,9 +54068,9 @@ paths:
           description: Successful Response (The resulting merge commit)
           content:
             application/json:
-              schema: *288
+              schema: *289
               examples:
-                default: *357
+                default: *358
         '204':
           description: Response when already merged
         '404':
@@ -53791,7 +54137,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *292
+                items: *293
               examples:
                 default:
                   value:
@@ -53888,9 +54234,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *292
+              schema: *293
               examples:
-                default: &358
+                default: &359
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/milestones/1
                     html_url: https://github.com/octocat/Hello-World/milestones/v1.0
@@ -53951,7 +54297,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &359
+      - &360
         name: milestone_number
         description: milestone_number parameter
         in: path
@@ -53963,9 +54309,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *292
+              schema: *293
               examples:
-                default: *358
+                default: *359
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -53984,7 +54330,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *359
+      - *360
       requestBody:
         required: false
         content:
@@ -54022,9 +54368,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *292
+              schema: *293
               examples:
-                default: *358
+                default: *359
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -54042,7 +54388,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *359
+      - *360
       responses:
         '204':
           description: Response
@@ -54065,7 +54411,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *359
+      - *360
       - *12
       - *18
       responses:
@@ -54075,9 +54421,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *338
+                items: *339
               examples:
-                default: *339
+                default: *340
           headers:
             Link: *19
       x-github:
@@ -54098,10 +54444,10 @@ paths:
       parameters:
       - *193
       - *194
-      - *360
       - *361
-      - *57
       - *362
+      - *57
+      - *363
       - *12
       - *18
       responses:
@@ -54113,7 +54459,7 @@ paths:
                 type: array
                 items: *80
               examples:
-                default: *363
+                default: *364
           headers:
             Link: *19
       x-github:
@@ -54192,7 +54538,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &364
+              schema: &365
                 title: GitHub Pages
                 description: The configuration for GitHub Pages for a repository.
                 type: object
@@ -54325,7 +54671,7 @@ paths:
                 - custom_404
                 - public
               examples:
-                default: &365
+                default: &366
                   value:
                     url: https://api.github.com/repos/github/developer.github.com/pages
                     status: built
@@ -54404,9 +54750,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *364
+              schema: *365
               examples:
-                default: *365
+                default: *366
         '422': *10
         '409': *222
       x-github:
@@ -54551,7 +54897,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &366
+                items: &367
                   title: Page Build
                   description: Page Build
                   type: object
@@ -54695,9 +55041,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *366
+              schema: *367
               examples:
-                default: &367
+                default: &368
                   value:
                     url: https://api.github.com/repos/github/developer.github.com/pages/builds/5472601
                     status: built
@@ -54754,9 +55100,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *366
+              schema: *367
               examples:
-                default: *367
+                default: *368
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -55270,9 +55616,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *368
+                items: *369
               examples:
-                default: *369
+                default: *370
           headers:
             Link: *19
         '304': *23
@@ -55353,7 +55699,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &373
+              schema: &374
                 type: object
                 title: Pull Request
                 description: Pull requests let you tell others about changes you've
@@ -55484,7 +55830,7 @@ paths:
                   milestone:
                     anyOf:
                     - type: 'null'
-                    - *292
+                    - *293
                   active_lock_reason:
                     type:
                     - string
@@ -56451,14 +56797,14 @@ paths:
                   _links:
                     type: object
                     properties:
-                      comments: *293
-                      commits: *293
-                      statuses: *293
-                      html: *293
-                      issue: *293
-                      review_comments: *293
-                      review_comment: *293
-                      self: *293
+                      comments: *294
+                      commits: *294
+                      statuses: *294
+                      html: *294
+                      issue: *294
+                      review_comments: *294
+                      review_comment: *294
+                      self: *294
                     required:
                     - comments
                     - commits
@@ -56469,7 +56815,7 @@ paths:
                     - review_comment
                     - self
                   author_association: *53
-                  auto_merge: *370
+                  auto_merge: *371
                   draft:
                     description: Indicates whether or not the pull request is a draft.
                     type: boolean
@@ -56571,7 +56917,7 @@ paths:
                 - merged_by
                 - review_comments
               examples:
-                default: &374
+                default: &375
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/pulls/1347
                     id: 1
@@ -57117,9 +57463,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *371
+                items: *372
               examples:
-                default: &376
+                default: &377
                   value:
                   - url: https://api.github.com/repos/octocat/Hello-World/pulls/comments/1
                     pull_request_review_id: 42
@@ -57196,9 +57542,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *371
+              schema: *372
               examples:
-                default: &372
+                default: &373
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/pulls/comments/1
                     pull_request_review_id: 42
@@ -57289,9 +57635,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *371
+              schema: *372
               examples:
-                default: *372
+                default: *373
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -57485,7 +57831,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &375
+      - &376
         name: pull_number
         in: path
         required: true
@@ -57497,9 +57843,9 @@ paths:
             to fetch diff and patch formats.
           content:
             application/json:
-              schema: *373
+              schema: *374
               examples:
-                default: *374
+                default: *375
         '304': *23
         '500': *282
         '404': *15
@@ -57523,7 +57869,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: false
         content:
@@ -57565,9 +57911,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *373
+              schema: *374
               examples:
-                default: *374
+                default: *375
         '422': *10
         '403': *20
       x-github:
@@ -57582,6 +57928,8 @@ paths:
         Creates a codespace owned by the authenticated user for the specified pull request.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-with-pr-for-authenticated-user
@@ -57591,7 +57939,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: true
         content:
@@ -57660,7 +58008,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *76
       - name: direction
         description: Can be either `asc` or `desc`. Ignored without `sort` parameter.
@@ -57681,9 +58029,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *371
+                items: *372
               examples:
-                default: *376
+                default: *377
           headers:
             Link: *19
       x-github:
@@ -57711,7 +58059,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: true
         content:
@@ -57799,7 +58147,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *371
+              schema: *372
               examples:
                 example-for-a-multi-line-comment:
                   value:
@@ -57881,7 +58229,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *66
       requestBody:
         required: true
@@ -57904,7 +58252,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *371
+              schema: *372
               examples:
                 default:
                   value:
@@ -57985,7 +58333,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *12
       - *18
       responses:
@@ -57995,9 +58343,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *288
+                items: *289
               examples:
-                default: *377
+                default: *378
           headers:
             Link: *19
       x-github:
@@ -58019,7 +58367,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *12
       - *18
       responses:
@@ -58029,7 +58377,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *299
+                items: *300
               examples:
                 default:
                   value:
@@ -58066,7 +58414,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       responses:
         '204':
           description: Response if pull request has been merged
@@ -58093,7 +58441,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: false
         content:
@@ -58199,7 +58547,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *12
       - *18
       responses:
@@ -58279,7 +58627,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: false
         content:
@@ -58316,7 +58664,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *368
+              schema: *369
               examples:
                 default:
                   value:
@@ -58852,7 +59200,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: true
         content:
@@ -58884,7 +59232,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *368
+              schema: *369
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -58904,7 +59252,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       - *12
       - *18
       responses:
@@ -58914,7 +59262,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &378
+                items: &379
                   title: Pull Request Review
                   description: Pull Request Reviews are reviews on pull requests.
                   type: object
@@ -59057,7 +59405,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: false
         content:
@@ -59142,9 +59490,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
-                default: &380
+                default: &381
                   value:
                     id: 80
                     node_id: MDE3OlB1bGxSZXF1ZXN0UmV2aWV3ODA=
@@ -59201,8 +59549,8 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - &379
+      - *376
+      - &380
         name: review_id
         description: review_id parameter
         in: path
@@ -59214,9 +59562,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
-                default: &381
+                default: &382
                   value:
                     id: 80
                     node_id: MDE3OlB1bGxSZXF1ZXN0UmV2aWV3ODA=
@@ -59269,8 +59617,8 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - *379
+      - *376
+      - *380
       requestBody:
         required: true
         content:
@@ -59291,7 +59639,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
                 default:
                   value:
@@ -59347,16 +59695,16 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - *379
+      - *376
+      - *380
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
-                default: *380
+                default: *381
         '422': *51
         '404': *15
       x-github:
@@ -59377,8 +59725,8 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - *379
+      - *376
+      - *380
       - *12
       - *18
       responses:
@@ -59474,9 +59822,9 @@ paths:
                     _links:
                       type: object
                       properties:
-                        self: *293
-                        html: *293
-                        pull_request: *293
+                        self: *294
+                        html: *294
+                        pull_request: *294
                       required:
                       - self
                       - html
@@ -59620,8 +59968,8 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - *379
+      - *376
+      - *380
       requestBody:
         required: true
         content:
@@ -59643,7 +59991,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
                 default:
                   value:
@@ -59700,8 +60048,8 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
-      - *379
+      - *376
+      - *380
       requestBody:
         required: true
         content:
@@ -59731,9 +60079,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *378
+              schema: *379
               examples:
-                default: *381
+                default: *382
         '404': *15
         '422': *51
         '403': *20
@@ -59756,7 +60104,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *375
+      - *376
       requestBody:
         required: false
         content:
@@ -59827,9 +60175,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *382
+              schema: *383
               examples:
-                default: &383
+                default: &384
                   value:
                     type: file
                     encoding: base64
@@ -59888,9 +60236,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *382
+              schema: *383
               examples:
-                default: *383
+                default: *384
         '404': *15
         '422': *10
       x-github:
@@ -59923,7 +60271,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &384
+                items: &385
                   title: Release
                   description: A release.
                   type: object
@@ -59995,7 +60343,7 @@ paths:
                     author: *13
                     assets:
                       type: array
-                      items: &385
+                      items: &386
                         title: Release Asset
                         description: Data related to a release.
                         type: object
@@ -60240,9 +60588,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *384
+              schema: *385
               examples:
-                default: &389
+                default: &390
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/releases/1
                     html_url: https://github.com/octocat/Hello-World/releases/v1.0.0
@@ -60345,7 +60693,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &387
+      - &388
         name: asset_id
         description: asset_id parameter
         in: path
@@ -60361,9 +60709,9 @@ paths:
             response.
           content:
             application/json:
-              schema: *385
+              schema: *386
               examples:
-                default: &388
+                default: &389
                   value:
                     url: https://api.github.com/repos/octocat/Hello-World/releases/assets/1
                     browser_download_url: https://github.com/octocat/Hello-World/releases/download/v1.0.0/example.zip
@@ -60397,7 +60745,7 @@ paths:
                       type: User
                       site_admin: false
         '404': *15
-        '302': *386
+        '302': *387
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60415,7 +60763,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *387
+      - *388
       requestBody:
         required: false
         content:
@@ -60444,9 +60792,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *385
+              schema: *386
               examples:
-                default: *388
+                default: *389
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60464,7 +60812,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *387
+      - *388
       responses:
         '204':
           description: Response
@@ -60582,9 +60930,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *384
+              schema: *385
               examples:
-                default: *389
+                default: *390
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -60615,9 +60963,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *384
+              schema: *385
               examples:
-                default: *389
+                default: *390
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -60638,7 +60986,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &390
+      - &391
         name: release_id
         description: release_id parameter
         in: path
@@ -60651,9 +60999,9 @@ paths:
             the endpoint for uploading release assets. This key is a [hypermedia resource](https://docs.github.com/rest/overview/resources-in-the-rest-api#hypermedia)."
           content:
             application/json:
-              schema: *384
+              schema: *385
               examples:
-                default: *389
+                default: *390
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -60672,7 +61020,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       requestBody:
         required: false
         content:
@@ -60724,9 +61072,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *384
+              schema: *385
               examples:
-                default: *389
+                default: *390
         '404':
           description: Not Found if the discussion category name is invalid
           content:
@@ -60749,7 +61097,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       responses:
         '204':
           description: Response
@@ -60771,7 +61119,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       - *12
       - *18
       responses:
@@ -60781,7 +61129,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *385
+                items: *386
               examples:
                 default:
                   value:
@@ -60864,7 +61212,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       - name: name
         in: query
         required: true
@@ -60886,7 +61234,7 @@ paths:
           description: Response for successful upload
           content:
             application/json:
-              schema: *385
+              schema: *386
               examples:
                 response-for-successful-upload:
                   value:
@@ -60942,7 +61290,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/rest/reference/reactions#reaction-types).
           Omit this parameter to list all reactions to a release.
@@ -60991,7 +61339,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       requestBody:
         required: true
         content:
@@ -61053,7 +61401,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *390
+      - *391
       - *185
       responses:
         '204':
@@ -61093,7 +61441,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &393
+                items: &394
                   type: object
                   properties:
                     number: *118
@@ -61105,8 +61453,8 @@ paths:
                       format: uri
                       description: The REST API URL of the code locations for this
                         alert.
-                    state: *391
-                    resolution: *392
+                    state: *392
+                    resolution: *393
                     resolved_at:
                       type:
                       - string
@@ -61207,7 +61555,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *393
+              schema: *394
               examples:
                 default:
                   value:
@@ -61258,8 +61606,8 @@ paths:
             schema:
               type: object
               properties:
-                state: *391
-                resolution: *392
+                state: *392
+                resolution: *393
               required:
               - state
             examples:
@@ -61272,7 +61620,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *393
+              schema: *394
               examples:
                 default:
                   value:
@@ -61582,7 +61930,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &395
+                items: &396
                   title: Code Frequency Stat
                   description: Code Frequency Stat
                   type: array
@@ -61595,7 +61943,7 @@ paths:
                     - 1124
                     - -435
         '202': *135
-        '204': &394
+        '204': &395
           description: A header with no content is returned.
       x-github:
         githubCloudOnly: false
@@ -61666,7 +62014,7 @@ paths:
                     total: 89
                     week: 1336280400
         '202': *135
-        '204': *394
+        '204': *395
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61767,7 +62115,7 @@ paths:
                       d: 77
                       c: 10
         '202': *135
-        '204': *394
+        '204': *395
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61953,7 +62301,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *395
+                items: *396
               examples:
                 default:
                   value:
@@ -61966,7 +62314,7 @@ paths:
                   - - 0
                     - 2
                     - 21
-        '204': *394
+        '204': *395
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -62040,7 +62388,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *396
+              schema: *397
               examples:
                 default:
                   value:
@@ -62133,7 +62481,7 @@ paths:
           description: if you subscribe to the repository
           content:
             application/json:
-              schema: &397
+              schema: &398
                 title: Repository Invitation
                 description: Repository invitations let you manage who you collaborate
                   with.
@@ -62228,7 +62576,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *397
+              schema: *398
               examples:
                 default:
                   value:
@@ -62342,6 +62690,145 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: 
+  "/repos/{owner}/{repo}/tags/protection":
+    get:
+      summary: List tag protection states for a repository
+      description: |-
+        This returns the tag protection states of a repository.
+
+        This information is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/list-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#list-tag-protection-state-of-a-repository
+      parameters:
+      - *193
+      - *194
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items: &399
+                  title: Tag protection
+                  description: Tag protection
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      examples:
+                      - 2
+                    created_at:
+                      type: string
+                      examples:
+                      - '2011-01-26T19:01:12Z'
+                    updated_at:
+                      type: string
+                      examples:
+                      - '2011-01-26T19:01:12Z'
+                    enabled:
+                      type: boolean
+                      examples:
+                      - true
+                    pattern:
+                      type: string
+                      examples:
+                      - v1.*
+                  required:
+                  - pattern
+              examples:
+                default:
+                  value:
+                  - id: 2
+                    pattern: v1.*
+        '403': *20
+        '404': *15
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
+    post:
+      summary: Create a tag protection state for a repository
+      description: |-
+        This creates a tag protection state for a repository.
+        This endpoint is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/create-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#create-tag-protection-state-for-a-repository
+      parameters:
+      - *193
+      - *194
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pattern:
+                  type: string
+                  description: An optional glob pattern to match against when enforcing
+                    tag protection.
+              required:
+              - pattern
+            example:
+              pattern: v1.*
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema: *399
+              examples:
+                default:
+                  value:
+                    enabled: true
+        '403': *20
+        '404': *15
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
+  "/repos/{owner}/{repo}/tags/protection/{tag_protection_id}":
+    delete:
+      summary: Delete a tag protection state for a repository
+      description: |-
+        This deletes a tag protection state for a repository.
+        This endpoint is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/delete-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#delete-tag-protection-state-for-a-repository
+      parameters:
+      - *193
+      - *194
+      - name: tag_protection_id
+        description: tag_protection_id parameter
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Response
+        '403': *20
+        '404': *15
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
   "/repos/{owner}/{repo}/tarball/{ref}":
     get:
       summary: Download a repository archive (tar)
@@ -62429,7 +62916,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &398
+              schema: &400
                 title: Topic
                 description: A topic aggregates entities that are related to a subject.
                 type: object
@@ -62441,7 +62928,7 @@ paths:
                 required:
                 - names
               examples:
-                default: &399
+                default: &401
                   value:
                     names:
                     - octocat
@@ -62496,9 +62983,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *398
+              schema: *400
               examples:
-                default: *399
+                default: *401
         '404': *15
         '422': *51
       x-github:
@@ -62521,7 +63008,7 @@ paths:
       parameters:
       - *193
       - *194
-      - &400
+      - &402
         name: per
         description: 'Must be one of: `day`, `week`.'
         in: query
@@ -62553,7 +63040,7 @@ paths:
                     - 128
                   clones:
                     type: array
-                    items: &401
+                    items: &403
                       title: Traffic
                       type: object
                       properties:
@@ -62801,7 +63288,7 @@ paths:
       parameters:
       - *193
       - *194
-      - *400
+      - *402
       responses:
         '200':
           description: Response
@@ -62822,7 +63309,7 @@ paths:
                     - 3782
                   views:
                     type: array
-                    items: *401
+                    items: *403
                 required:
                 - uniques
                 - count
@@ -63585,7 +64072,7 @@ paths:
         url: https://docs.github.com/rest/reference/actions#list-environment-secrets
       parameters:
       - *92
-      - *311
+      - *312
       - *12
       - *18
       responses:
@@ -63605,7 +64092,7 @@ paths:
                     type: array
                     items: *226
               examples:
-                default: *402
+                default: *404
           headers:
             Link: *19
       x-github:
@@ -63630,7 +64117,7 @@ paths:
         url: https://docs.github.com/rest/reference/actions#get-an-environment-public-key
       parameters:
       - *92
-      - *311
+      - *312
       responses:
         '200':
           description: Response
@@ -63659,7 +64146,7 @@ paths:
         url: https://docs.github.com/rest/reference/actions#get-an-environment-secret
       parameters:
       - *92
-      - *311
+      - *312
       - *106
       responses:
         '200':
@@ -63668,7 +64155,7 @@ paths:
             application/json:
               schema: *226
               examples:
-                default: *403
+                default: *405
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -63760,7 +64247,7 @@ paths:
         url: https://docs.github.com/rest/reference/actions#create-or-update-an-environment-secret
       parameters:
       - *92
-      - *311
+      - *312
       - *106
       requestBody:
         required: true
@@ -63811,7 +64298,7 @@ paths:
         url: https://docs.github.com/rest/reference/actions#delete-an-environment-secret
       parameters:
       - *92
-      - *311
+      - *312
       - *106
       responses:
         '204':
@@ -63834,14 +64321,14 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#list-provisioned-scim-groups-for-an-enterprise
       parameters:
       - *33
-      - &407
+      - &409
         name: startIndex
         description: 'Used for pagination: the index of the first result to return.'
         in: query
         required: false
         schema:
           type: integer
-      - &408
+      - &410
         name: count
         description: 'Used for pagination: the number of results to return.'
         in: query
@@ -64028,7 +64515,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &404
+              schema: &406
                 type: object
                 properties:
                   schemas:
@@ -64069,7 +64556,7 @@ paths:
                 - schemas
                 - id
               examples:
-                default: &405
+                default: &407
                   value:
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:Group
@@ -64106,7 +64593,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#get-scim-provisioning-information-for-an-enterprise-group
       parameters:
       - *33
-      - &406
+      - &408
         name: scim_group_id
         description: Identifier generated by the GitHub SCIM endpoint.
         in: path
@@ -64124,9 +64611,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *404
+              schema: *406
               examples:
-                default: *405
+                default: *407
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64146,7 +64633,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#set-scim-information-for-a-provisioned-enterprise-group
       parameters:
       - *33
-      - *406
+      - *408
       requestBody:
         required: true
         content:
@@ -64190,9 +64677,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *404
+              schema: *406
               examples:
-                default: *405
+                default: *407
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64212,7 +64699,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#update-an-attribute-for-a-scim-enterprise-group
       parameters:
       - *33
-      - *406
+      - *408
       requestBody:
         required: true
         content:
@@ -64265,7 +64752,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *404
+              schema: *406
               examples:
                 default:
                   value:
@@ -64300,7 +64787,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#delete-a-scim-group-from-an-enterprise
       parameters:
       - *33
-      - *406
+      - *408
       responses:
         '204':
           description: Response
@@ -64339,8 +64826,8 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#list-scim-provisioned-identities-for-an-enterprise
       parameters:
       - *33
-      - *407
-      - *408
+      - *409
+      - *410
       - name: filter
         description: filter results
         in: query
@@ -64575,7 +65062,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &409
+              schema: &411
                 type: object
                 properties:
                   schemas:
@@ -64630,7 +65117,7 @@ paths:
                 - schemas
                 - id
               examples:
-                default: &410
+                default: &412
                   value:
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:User
@@ -64670,7 +65157,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#get-scim-provisioning-information-for-an-enterprise-user
       parameters:
       - *33
-      - &411
+      - &413
         name: scim_user_id
         description: scim_user_id parameter
         in: path
@@ -64682,9 +65169,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *409
+              schema: *411
               examples:
-                default: *410
+                default: *412
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64708,7 +65195,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#set-scim-information-for-a-provisioned-enterprise-user
       parameters:
       - *33
-      - *411
+      - *413
       requestBody:
         required: true
         content:
@@ -64788,9 +65275,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *409
+              schema: *411
               examples:
-                default: *410
+                default: *412
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: true
@@ -64825,7 +65312,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#update-an-attribute-for-a-scim-enterprise-user
       parameters:
       - *33
-      - *411
+      - *413
       requestBody:
         required: true
         content:
@@ -64865,7 +65352,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *409
+              schema: *411
               examples:
                 default:
                   value:
@@ -64908,7 +65395,7 @@ paths:
         url: https://docs.github.com/rest/reference/enterprise-admin#delete-a-scim-user-from-an-enterprise
       parameters:
       - *33
-      - *411
+      - *413
       responses:
         '204':
           description: Response
@@ -65002,7 +65489,7 @@ paths:
                     - 1
                   Resources:
                     type: array
-                    items: &413
+                    items: &415
                       title: SCIM /Users
                       description: SCIM /Users provisioning endpoints
                       type: object
@@ -65240,34 +65727,34 @@ paths:
                         lastModified: '2017-03-09T16:11:13-05:00'
                         location: https://api.github.com/scim/v2/organizations/octo-org/Users/77563764-eb6-24-0598234-958243
         '304': *23
-        '404': &414
+        '404': &416
           description: Resource not found
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
-        '403': &415
+              schema: *414
+        '403': &417
           description: Forbidden
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
-        '400': &416
+              schema: *414
+        '400': &418
           description: Bad Request
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
+              schema: *414
         '429':
           description: Too Many Requests
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
+              schema: *414
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -65290,9 +65777,9 @@ paths:
           description: Response
           content:
             application/scim+json:
-              schema: *413
+              schema: *415
               examples:
-                default: &417
+                default: &419
                   value:
                     schemas:
                     - urn:ietf:params:scim:schemas:core:2.0:User
@@ -65315,23 +65802,23 @@ paths:
                       lastModified: '2017-03-09T16:11:13-05:00'
                       location: https://api.github.com/scim/v2/organizations/octo-org/Users/edefdfedf-050c-11e7-8d32
         '304': *23
-        '404': *414
-        '403': *415
+        '404': *416
+        '403': *417
         '500':
           description: Internal Error
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
+              schema: *414
         '409':
           description: Conflict
           content:
             application/json:
-              schema: *412
+              schema: *414
             application/scim+json:
-              schema: *412
-        '400': *416
+              schema: *414
+        '400': *418
       requestBody:
         required: true
         content:
@@ -65418,17 +65905,17 @@ paths:
         url: https://docs.github.com/rest/reference/scim#get-scim-provisioning-information-for-a-user
       parameters:
       - *84
-      - *411
+      - *413
       responses:
         '200':
           description: Response
           content:
             application/scim+json:
-              schema: *413
+              schema: *415
               examples:
-                default: *417
-        '404': *414
-        '403': *415
+                default: *419
+        '404': *416
+        '403': *417
         '304': *23
       x-github:
         githubCloudOnly: true
@@ -65451,18 +65938,18 @@ paths:
         url: https://docs.github.com/rest/reference/scim#set-scim-information-for-a-provisioned-user
       parameters:
       - *84
-      - *411
+      - *413
       responses:
         '200':
           description: Response
           content:
             application/scim+json:
-              schema: *413
+              schema: *415
               examples:
-                default: *417
+                default: *419
         '304': *23
-        '404': *414
-        '403': *415
+        '404': *416
+        '403': *417
       requestBody:
         required: true
         content:
@@ -65564,19 +66051,19 @@ paths:
         url: https://docs.github.com/rest/reference/scim#update-an-attribute-for-a-scim-user
       parameters:
       - *84
-      - *411
+      - *413
       responses:
         '200':
           description: Response
           content:
             application/scim+json:
-              schema: *413
+              schema: *415
               examples:
-                default: *417
+                default: *419
         '304': *23
-        '404': *414
-        '403': *415
-        '400': *416
+        '404': *416
+        '403': *417
+        '400': *418
         '429':
           description: Response
           content:
@@ -65665,12 +66152,12 @@ paths:
         url: https://docs.github.com/rest/reference/scim#delete-a-scim-user-from-an-organization
       parameters:
       - *84
-      - *411
+      - *413
       responses:
         '204':
           description: Response
-        '404': *414
-        '403': *415
+        '404': *416
+        '403': *417
         '304': *23
       x-github:
         githubCloudOnly: true
@@ -65727,7 +66214,7 @@ paths:
           type: string
           enum:
           - indexed
-      - &418
+      - &420
         name: order
         description: Determines whether the first search result returned is the highest
           number of matches (`desc`) or lowest number of matches (`asc`). This parameter
@@ -65799,7 +66286,7 @@ paths:
                           examples:
                           - 73..77
                           - 77..78
-                        text_matches: &419
+                        text_matches: &421
                           title: Search Result Text Matches
                           type: array
                           items:
@@ -65962,7 +66449,7 @@ paths:
           enum:
           - author-date
           - committer-date
-      - *418
+      - *420
       - *12
       - *18
       responses:
@@ -66038,7 +66525,7 @@ paths:
                             url:
                               type: string
                               format: uri
-                            verification: *319
+                            verification: *320
                           required:
                           - author
                           - committer
@@ -66070,7 +66557,7 @@ paths:
                           type: number
                         node_id:
                           type: string
-                        text_matches: *419
+                        text_matches: *421
                       required:
                       - sha
                       - node_id
@@ -66261,7 +66748,7 @@ paths:
           - interactions
           - created
           - updated
-      - *418
+      - *420
       - *12
       - *18
       responses:
@@ -66358,7 +66845,7 @@ paths:
                         milestone:
                           anyOf:
                           - type: 'null'
-                          - *292
+                          - *293
                         comments:
                           type: integer
                         created_at:
@@ -66372,7 +66859,7 @@ paths:
                           - string
                           - 'null'
                           format: date-time
-                        text_matches: *419
+                        text_matches: *421
                         pull_request:
                           type: object
                           properties:
@@ -66593,7 +67080,7 @@ paths:
           enum:
           - created
           - updated
-      - *418
+      - *420
       - *12
       - *18
       responses:
@@ -66638,7 +67125,7 @@ paths:
                           - 'null'
                         score:
                           type: number
-                        text_matches: *419
+                        text_matches: *421
                       required:
                       - id
                       - node_id
@@ -66723,7 +67210,7 @@ paths:
           - forks
           - help-wanted-issues
           - updated
-      - *418
+      - *420
       - *12
       - *18
       responses:
@@ -66958,7 +67445,7 @@ paths:
                           - admin
                           - pull
                           - push
-                        text_matches: *419
+                        text_matches: *421
                         temp_clone_token:
                           type: string
                         allow_merge_commit:
@@ -67262,7 +67749,7 @@ paths:
                           - string
                           - 'null'
                           format: uri
-                        text_matches: *419
+                        text_matches: *421
                         related:
                           type:
                           - array
@@ -67453,7 +67940,7 @@ paths:
           - followers
           - repositories
           - joined
-      - *418
+      - *420
       - *12
       - *18
       responses:
@@ -67562,7 +68049,7 @@ paths:
                           type:
                           - boolean
                           - 'null'
-                        text_matches: *419
+                        text_matches: *421
                         blog:
                           type:
                           - string
@@ -67643,7 +68130,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#get-a-team-legacy
       parameters:
-      - &420
+      - &422
         name: team_id
         in: path
         required: true
@@ -67681,7 +68168,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#update-a-team-legacy
       parameters:
-      - *420
+      - *422
       requestBody:
         required: true
         content:
@@ -67775,7 +68262,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#delete-a-team-legacy
       parameters:
-      - *420
+      - *422
       responses:
         '204':
           description: Response
@@ -67803,7 +68290,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#list-discussions-legacy
       parameters:
-      - *420
+      - *422
       - *117
       - *12
       - *18
@@ -67816,7 +68303,7 @@ paths:
                 type: array
                 items: *176
               examples:
-                default: *421
+                default: *423
           headers:
             Link: *19
       x-github:
@@ -67842,7 +68329,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#create-a-discussion-legacy
       parameters:
-      - *420
+      - *422
       requestBody:
         required: true
         content:
@@ -67902,7 +68389,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#get-a-discussion-legacy
       parameters:
-      - *420
+      - *422
       - *178
       responses:
         '200':
@@ -67933,7 +68420,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#update-a-discussion-legacy
       parameters:
-      - *420
+      - *422
       - *178
       requestBody:
         required: false
@@ -67959,7 +68446,7 @@ paths:
             application/json:
               schema: *176
               examples:
-                default: *422
+                default: *424
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -67981,7 +68468,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#delete-a-discussion-legacy
       parameters:
-      - *420
+      - *422
       - *178
       responses:
         '204':
@@ -68008,7 +68495,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#list-discussion-comments-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *117
       - *12
@@ -68022,7 +68509,7 @@ paths:
                 type: array
                 items: *179
               examples:
-                default: *423
+                default: *425
           headers:
             Link: *19
       x-github:
@@ -68048,7 +68535,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#create-a-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       requestBody:
         required: true
@@ -68097,7 +68584,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#get-a-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *181
       responses:
@@ -68129,7 +68616,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#update-a-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *181
       requestBody:
@@ -68155,7 +68642,7 @@ paths:
             application/json:
               schema: *179
               examples:
-                default: *424
+                default: *426
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -68177,7 +68664,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#delete-a-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *181
       responses:
@@ -68205,7 +68692,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/reactions/#list-reactions-for-a-team-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *181
       - name: content
@@ -68259,7 +68746,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/reactions/#create-reaction-for-a-team-discussion-comment-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - *181
       requestBody:
@@ -68318,7 +68805,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/reactions/#list-reactions-for-a-team-discussion-legacy
       parameters:
-      - *420
+      - *422
       - *178
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/rest/reference/reactions#reaction-types).
@@ -68371,7 +68858,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/reactions/#create-reaction-for-a-team-discussion-legacy
       parameters:
-      - *420
+      - *422
       - *178
       requestBody:
         required: true
@@ -68429,7 +68916,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#list-pending-team-invitations-legacy
       parameters:
-      - *420
+      - *422
       - *12
       - *18
       responses:
@@ -68466,7 +68953,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#list-team-members-legacy
       parameters:
-      - *420
+      - *422
       - name: role
         description: "Filters members returned by their role in the team. Can be one
           of:  \n\\* `member` - normal members of the team.  \n\\* `maintainer` -
@@ -68519,7 +69006,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#get-team-member-legacy
       parameters:
-      - *420
+      - *422
       - *114
       responses:
         '204':
@@ -68555,7 +69042,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#add-team-member-legacy
       parameters:
-      - *420
+      - *422
       - *114
       responses:
         '204':
@@ -68594,7 +69081,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#remove-team-member-legacy
       parameters:
-      - *420
+      - *422
       - *114
       responses:
         '204':
@@ -68630,7 +69117,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#get-team-membership-for-a-user-legacy
       parameters:
-      - *420
+      - *422
       - *114
       responses:
         '200':
@@ -68639,7 +69126,7 @@ paths:
             application/json:
               schema: *190
               examples:
-                response-if-user-is-a-team-maintainer: *425
+                response-if-user-is-a-team-maintainer: *427
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -68670,7 +69157,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#add-or-update-team-membership-for-a-user-legacy
       parameters:
-      - *420
+      - *422
       - *114
       requestBody:
         required: false
@@ -68697,7 +69184,7 @@ paths:
             application/json:
               schema: *190
               examples:
-                response-if-users-membership-with-team-is-now-pending: *426
+                response-if-users-membership-with-team-is-now-pending: *428
         '403':
           description: Forbidden if team synchronization is set up
         '422':
@@ -68729,7 +69216,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#remove-team-membership-for-a-user-legacy
       parameters:
-      - *420
+      - *422
       - *114
       responses:
         '204':
@@ -68758,7 +69245,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#list-team-projects-legacy
       parameters:
-      - *420
+      - *422
       - *12
       - *18
       responses:
@@ -68770,7 +69257,7 @@ paths:
                 type: array
                 items: *191
               examples:
-                default: *427
+                default: *429
           headers:
             Link: *19
         '404': *15
@@ -68796,7 +69283,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#check-team-permissions-for-a-project-legacy
       parameters:
-      - *420
+      - *422
       - *192
       responses:
         '200':
@@ -68805,7 +69292,7 @@ paths:
             application/json:
               schema: *191
               examples:
-                default: *428
+                default: *430
         '404':
           description: Not Found if project is not managed by this team
       x-github:
@@ -68829,7 +69316,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#add-or-update-team-project-permissions-legacy
       parameters:
-      - *420
+      - *422
       - *192
       requestBody:
         required: false
@@ -68896,7 +69383,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#remove-a-project-from-a-team-legacy
       parameters:
-      - *420
+      - *422
       - *192
       responses:
         '204':
@@ -68925,7 +69412,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#list-team-repositories-legacy
       parameters:
-      - *420
+      - *422
       - *12
       - *18
       responses:
@@ -68965,7 +69452,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#check-team-permissions-for-a-repository-legacy
       parameters:
-      - *420
+      - *422
       - *193
       - *194
       responses:
@@ -68973,7 +69460,7 @@ paths:
           description: Alternative response with extra repository information
           content:
             application/json:
-              schema: *429
+              schema: *431
               examples:
                 alternative-response-with-extra-repository-information:
                   value:
@@ -69242,7 +69729,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#add-or-update-team-repository-permissions-legacy
       parameters:
-      - *420
+      - *422
       - *193
       - *194
       requestBody:
@@ -69292,7 +69779,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#remove-a-repository-from-a-team-legacy
       parameters:
-      - *420
+      - *422
       - *193
       - *194
       responses:
@@ -69322,7 +69809,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#list-idp-groups-for-a-team-legacy
       parameters:
-      - *420
+      - *422
       responses:
         '200':
           description: Response
@@ -69356,7 +69843,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams#create-or-update-idp-group-connections-legacy
       parameters:
-      - *420
+      - *422
       requestBody:
         required: true
         content:
@@ -69449,7 +69936,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/teams/#list-child-teams-legacy
       parameters:
-      - *420
+      - *422
       - *12
       - *18
       responses:
@@ -69461,7 +69948,7 @@ paths:
                 type: array
                 items: *170
               examples:
-                response-if-child-teams-exist: *430
+                response-if-child-teams-exist: *432
           headers:
             Link: *19
         '404': *15
@@ -69496,7 +69983,7 @@ paths:
             application/json:
               schema:
                 oneOf:
-                - &432
+                - &434
                   title: Private User
                   description: Private User
                   type: object
@@ -69741,7 +70228,7 @@ paths:
                   - private_gists
                   - total_private_repos
                   - two_factor_authentication
-                - *431
+                - *433
               examples:
                 response-with-public-and-private-profile-information:
                   summary: Response with public and private profile information
@@ -69895,7 +70382,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *432
+              schema: *434
               examples:
                 default:
                   value:
@@ -70064,6 +70551,8 @@ paths:
         Lists the authenticated user's codespaces.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-for-authenticated-user
@@ -70522,6 +71011,8 @@ paths:
         This endpoint requires either a `repository_id` OR a `pull_request` but not both.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-for-authenticated-user
@@ -70626,7 +71117,10 @@ paths:
       description: |-
         Lists all secrets available for a user's Codespaces without revealing their
         encrypted values.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-secrets-for-authenticated-user
@@ -70651,7 +71145,7 @@ paths:
                     type: integer
                   secrets:
                     type: array
-                    items: &434
+                    items: &436
                       title: Codespaces Secret
                       description: Secrets for a GitHub Codespace.
                       type: object
@@ -70686,7 +71180,7 @@ paths:
                       - visibility
                       - selected_repositories_url
               examples:
-                default: *433
+                default: *435
           headers:
             Link: *19
       x-github:
@@ -70697,10 +71191,12 @@ paths:
   "/user/codespaces/secrets/public-key":
     get:
       summary: Get public key for the authenticated user
-      description: Gets your public key, which you need to encrypt secrets. You need
-        to encrypt a secret before you can create or update secrets. Anyone with one
-        of the 'read:user' or 'user' scopes in their personal access token. User must
-        have Codespaces access to use this endpoint.
+      description: |-
+        Gets your public key, which you need to encrypt secrets. You need to encrypt a secret before you can create or update secrets.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-public-key-for-authenticated-user
@@ -70745,7 +71241,10 @@ paths:
       summary: Get a secret for the authenticated user
       description: |-
         Gets a secret available to a user's codespaces without revealing its encrypted value.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-secret-for-authenticated-user
@@ -70759,7 +71258,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *434
+              schema: *436
               examples:
                 default:
                   value:
@@ -70777,7 +71276,11 @@ paths:
       summary: Create or update a secret for the authenticated user
       description: |-
         Creates or updates a secret for a user's codespace with an encrypted value. Encrypt your secret using
-        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access token with the `user` scope to use this endpoint. User must also have Codespaces access to use this endpoint.
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages).
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must also have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission and `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
 
         #### Example encrypting a secret using Node.js
 
@@ -70912,11 +71415,12 @@ paths:
         subcategory: secrets
     delete:
       summary: Delete a secret for the authenticated user
-      description: Deletes a secret from a user's codespaces using the secret name.
-        Deleting the secret will remove access from all codespaces that were allowed
-        to access the secret. You must authenticate using an access token with the
-        `user` scope to use this endpoint. User must have Codespaces access to use
-        this endpoint.
+      description: |-
+        Deletes a secret from a user's codespaces using the secret name. Deleting the secret will remove access from all codespaces that were allowed to access the secret.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/delete-secret-for-authenticated-user
@@ -70938,7 +71442,10 @@ paths:
       summary: List selected repositories for a user secret
       description: |-
         List the repositories that have been granted the ability to use a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-repositories-for-secret-for-authenticated-user
@@ -70964,7 +71471,7 @@ paths:
                     type: array
                     items: *79
               examples:
-                default: *433
+                default: *435
         '401': *21
         '403': *20
         '404': *15
@@ -70978,7 +71485,10 @@ paths:
       summary: Set selected repositories for a user secret
       description: |-
         Select the repositories that will use a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/set-repositories-for-secret-for-authenticated-user
@@ -71027,7 +71537,8 @@ paths:
       summary: Add a selected repository to a user secret
       description: |-
         Adds a repository to the selected repositories for a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on the referenced repository to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/add-repository-for-secret-for-authenticated-user
@@ -71057,7 +71568,8 @@ paths:
       summary: Remove a selected repository from a user secret
       description: |-
         Removes a repository from the selected repositories for a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/remove-repository-for-secret-for-authenticated-user
@@ -71090,6 +71602,8 @@ paths:
         Gets information about a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-for-authenticated-user
@@ -71097,7 +71611,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#get-a-codespace-for-the-authenticated-user
       parameters:
-      - &435
+      - &437
         name: codespace_name
         in: path
         required: true
@@ -71130,6 +71644,8 @@ paths:
         If you specify a new machine type it will be applied the next time your codespace is started.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/update-for-authenticated-user
@@ -71137,7 +71653,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#update-a-codespace-for-the-authenticated-user
       parameters:
-      - *435
+      - *437
       requestBody:
         required: false
         content:
@@ -71184,6 +71700,8 @@ paths:
         Deletes a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/delete-for-authenticated-user
@@ -71191,7 +71709,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#delete-a-codespace-for-the-authenticated-user
       parameters:
-      - *435
+      - *437
       responses:
         '202': *135
         '304': *23
@@ -71211,17 +71729,19 @@ paths:
         Triggers an export of the specified codespace and returns a URL and ID where the status of the export can be monitored.
 
         You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/export-for-authenticated-user
       parameters:
-      - *435
+      - *437
       responses:
         '202':
           description: Response
           content:
             application/json:
-              schema: &436
+              schema: &438
                 type: object
                 title: Fetches information about an export of a codespace.
                 description: An export of a codespace. Also, latest export details
@@ -71274,7 +71794,7 @@ paths:
                     examples:
                     - https://github.com/octocat/hello-world/tree/:branch
               examples:
-                default: &437
+                default: &439
                   value:
                     state: succeeded
                     completed_at: '2022-01-01T14:59:22Z'
@@ -71299,11 +71819,13 @@ paths:
         Gets information about an export of a codespace.
 
         You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-export-details-for-authenticated-user
       parameters:
-      - *435
+      - *437
       - name: export_id
         in: path
         required: true
@@ -71316,9 +71838,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *436
+              schema: *438
               examples:
-                default: *437
+                default: *439
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -71332,6 +71854,8 @@ paths:
         List the machine types a codespace can transition to use.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_metadata` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/codespace-machines-for-authenticated-user
@@ -71339,7 +71863,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#list-machine-types-for-a-codespace
       parameters:
-      - *435
+      - *437
       responses:
         '200':
           description: Response
@@ -71357,7 +71881,7 @@ paths:
                     type: array
                     items: *285
               examples:
-                default: *438
+                default: *440
         '304': *23
         '500': *282
         '401': *21
@@ -71375,6 +71899,8 @@ paths:
         Starts a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/start-for-authenticated-user
@@ -71382,7 +71908,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#start-a-codespace-for-the-authenticated-user
       parameters:
-      - *435
+      - *437
       responses:
         '200':
           description: Response
@@ -71415,6 +71941,8 @@ paths:
         Stops a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/stop-for-authenticated-user
@@ -71422,7 +71950,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/codespaces#stop-a-codespace-for-the-authenticated-user
       parameters:
-      - *435
+      - *437
       responses:
         '200':
           description: Response
@@ -71473,7 +72001,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &439
+                items: &441
                   title: Email
                   description: Email
                   type: object
@@ -71540,9 +72068,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *439
+                items: *441
               examples:
-                default: &451
+                default: &453
                   value:
                   - email: octocat@github.com
                     verified: true
@@ -71610,7 +72138,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *439
+                items: *441
               examples:
                 default:
                   value:
@@ -71857,7 +72385,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &440
+                items: &442
                   title: GPG Key
                   description: A unique encryption key
                   type: object
@@ -71981,7 +72509,7 @@ paths:
                   - emails
                   - subkeys
               examples:
-                default: &456
+                default: &458
                   value:
                   - id: 3
                     primary_key_id: 2
@@ -72050,9 +72578,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *440
+              schema: *442
               examples:
-                default: &441
+                default: &443
                   value:
                     id: 3
                     primary_key_id: 2
@@ -72105,7 +72633,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/users#get-a-gpg-key-for-the-authenticated-user
       parameters:
-      - &442
+      - &444
         name: gpg_key_id
         description: gpg_key_id parameter
         in: path
@@ -72117,9 +72645,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *440
+              schema: *442
               examples:
-                default: *441
+                default: *443
         '404': *15
         '304': *23
         '403': *20
@@ -72141,7 +72669,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/users#delete-a-gpg-key-for-the-authenticated-user
       parameters:
-      - *442
+      - *444
       responses:
         '204':
           description: Response
@@ -72336,7 +72864,7 @@ paths:
                     type: array
                     items: *47
               examples:
-                default: *443
+                default: *445
           headers:
             Link: *19
         '404': *15
@@ -72447,7 +72975,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: *329
+            schema: *330
       responses:
         '200':
           description: Response
@@ -72588,7 +73116,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &444
+                items: &446
                   title: Key
                   description: Key
                   type: object
@@ -72679,9 +73207,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *444
+              schema: *446
               examples:
-                default: &445
+                default: &447
                   value:
                     key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
                     id: 2
@@ -72713,15 +73241,15 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/users#get-a-public-ssh-key-for-the-authenticated-user
       parameters:
-      - *355
+      - *356
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *444
+              schema: *446
               examples:
-                default: *445
+                default: *447
         '404': *15
         '304': *23
         '403': *20
@@ -72743,7 +73271,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/users#delete-a-public-ssh-key-for-the-authenticated-user
       parameters:
-      - *355
+      - *356
       responses:
         '204':
           description: Response
@@ -72779,7 +73307,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &446
+                items: &448
                   title: User Marketplace Purchase
                   description: User Marketplace Purchase
                   type: object
@@ -72858,7 +73386,7 @@ paths:
                   - account
                   - plan
               examples:
-                default: &447
+                default: &449
                   value:
                   - billing_cycle: monthly
                     next_billing_date: '2017-11-11T00:00:00Z'
@@ -72923,9 +73451,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *446
+                items: *448
               examples:
-                default: *447
+                default: *449
           headers:
             Link: *19
         '304': *23
@@ -73896,7 +74424,7 @@ paths:
         url: https://docs.github.com/rest/reference/migrations#unlock-a-user-repository
       parameters:
       - *148
-      - *448
+      - *450
       responses:
         '204':
           description: Response
@@ -73968,7 +74496,7 @@ paths:
                 type: array
                 items: *42
               examples:
-                default: *449
+                default: *451
           headers:
             Link: *19
         '304': *23
@@ -74012,7 +74540,7 @@ paths:
           - docker
           - nuget
           - container
-      - *450
+      - *452
       responses:
         '200':
           description: Response
@@ -74022,7 +74550,7 @@ paths:
                 type: array
                 items: *149
               examples:
-                default: &457
+                default: &459
                   value:
                   - id: 197
                     name: hello_docker
@@ -74109,7 +74637,7 @@ paths:
             application/json:
               schema: *149
               examples:
-                default: &458
+                default: &460
                   value:
                     id: 40201
                     name: octo-name
@@ -74551,9 +75079,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *439
+                items: *441
               examples:
-                default: *451
+                default: *453
           headers:
             Link: *19
         '304': *23
@@ -74644,7 +75172,7 @@ paths:
       - *12
       - *18
       - *57
-      - *362
+      - *363
       responses:
         '200':
           description: Response
@@ -74654,7 +75182,7 @@ paths:
                 type: array
                 items: *47
               examples:
-                default: &454
+                default: &456
                   summary: Default response
                   value:
                   - id: 1296269
@@ -74915,7 +75443,7 @@ paths:
             application/json:
               schema: *47
               examples:
-                default: *452
+                default: *454
           headers:
             Location:
               example: https://api.github.com/repos/octocat/Hello-World
@@ -74953,9 +75481,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *331
+                items: *332
               examples:
-                default: *453
+                default: *455
           headers:
             Link: *19
         '304': *23
@@ -75041,11 +75569,11 @@ paths:
                 type: array
                 items: *47
               examples:
-                default-response: *454
+                default-response: *456
             application/vnd.github.v3.star+json:
               schema:
                 type: array
-                items: &459
+                items: &461
                   title: Starred Repository
                   description: Starred Repository
                   type: object
@@ -75397,7 +75925,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/rest/reference/users#list-users
       parameters:
-      - *455
+      - *457
       - *12
       responses:
         '200':
@@ -75446,8 +75974,8 @@ paths:
             application/json:
               schema:
                 oneOf:
-                - *432
-                - *431
+                - *434
+                - *433
               examples:
                 default-response:
                   summary: Default response
@@ -75758,9 +76286,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *440
+                items: *442
               examples:
-                default: *456
+                default: *458
           headers:
             Link: *19
       x-github:
@@ -75867,7 +76395,7 @@ paths:
             application/json:
               schema: *14
               examples:
-                default: *328
+                default: *329
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -75945,7 +76473,7 @@ paths:
                 type: array
                 items: *42
               examples:
-                default: *449
+                default: *451
           headers:
             Link: *19
       x-github:
@@ -75986,7 +76514,7 @@ paths:
           - docker
           - nuget
           - container
-      - *450
+      - *452
       - *114
       responses:
         '200':
@@ -75997,7 +76525,7 @@ paths:
                 type: array
                 items: *149
               examples:
-                default: *457
+                default: *459
         '403': *20
         '401': *21
       x-github:
@@ -76030,7 +76558,7 @@ paths:
             application/json:
               schema: *149
               examples:
-                default: *458
+                default: *460
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -76597,11 +77125,11 @@ paths:
               schema:
                 anyOf:
                 - type: array
-                  items: *459
+                  items: *461
                 - type: array
                   items: *47
               examples:
-                default-response: *454
+                default-response: *456
           headers:
             Link: *19
       x-github:

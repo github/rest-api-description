@@ -2063,6 +2063,7 @@ paths:
       - "$ref": "#/components/parameters/enterprise"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/visible-to-organization"
       responses:
         '200':
           description: Response
@@ -5824,6 +5825,7 @@ paths:
       - "$ref": "#/components/parameters/org"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/visible-to-repository"
       responses:
         '200':
           description: Response
@@ -9555,6 +9557,9 @@ paths:
         they'll only have access to the repositories that their current team membership
         allows. The user will no longer be a member of the organization. For more
         information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        Converting an organization member to an outside collaborator may be restricted
+        by enterprise administrators. For more information, see "[Enforcing repository
+        management policies in your enterprise](https://docs.github.com/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
       tags:
       - orgs
       operationId: orgs/convert-member-to-outside-collaborator
@@ -9576,8 +9581,10 @@ paths:
         '204':
           description: User was converted
         '403':
-          description: Forbidden if user is the last owner of the organization or
-            not a member of the organization
+          description: Forbidden if user is the last owner of the organization, not
+            a member of the organization, or if the enterprise enforces a policy for
+            inviting outside collaborators. For more information, see "[Enforcing
+            repository management policies in your enterprise](https://docs.github.com/en/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -19476,6 +19483,8 @@ paths:
         Lists the codespaces associated to a specified repository and the authenticated user.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-in-repository-for-authenticated-user
@@ -19526,6 +19535,8 @@ paths:
         Creates a codespace owned by the authenticated user in the specified repository.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-with-repo-for-authenticated-user
@@ -19606,6 +19617,8 @@ paths:
         List the machine types available for a given repository based on its configuration.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_metadata` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/repo-machines-for-authenticated-user
@@ -19655,9 +19668,267 @@ paths:
           "$ref": "#/components/responses/not_found"
       x-github:
         githubCloudOnly: false
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: codespaces
         subcategory: machines
+  "/repos/{owner}/{repo}/codespaces/secrets":
+    get:
+      summary: List repository secrets
+      description: Lists all secrets available in a repository without revealing their
+        encrypted values. You must authenticate using an access token with the `repo`
+        scope to use this endpoint. GitHub Apps must have the `secrets` repository
+        permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-repo-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-repository-secrets
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/repo-codespaces-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+  "/repos/{owner}/{repo}/codespaces/secrets/public-key":
+    get:
+      summary: Get a repository public key
+      description: Gets your public key, which you need to encrypt secrets. You need
+        to encrypt a secret before you can create or update secrets. Anyone with read
+        access to the repository can use this endpoint. If the repository is private
+        you must use an access token with the `repo` scope. GitHub Apps must have
+        the `secrets` repository permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-repo-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-a-repository-public-key
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespaces-public-key"
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-public-key"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: repository-secrets
+  "/repos/{owner}/{repo}/codespaces/secrets/{secret_name}":
+    get:
+      summary: Get a repository secret
+      description: Gets a single repository secret without revealing its encrypted
+        value. You must authenticate using an access token with the `repo` scope to
+        use this endpoint. GitHub Apps must have the `codespaces_secrets` repository
+        permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/repo-codespaces-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+    put:
+      summary: Create or update a repository secret
+      description: |-
+        Creates or updates a repository secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `repo` scope to use this endpoint. GitHub Apps must have the `codespaces_secrets` repository
+        permission to use this endpoint.
+
+        #### Example of encrypting a secret using Node.js
+
+        Encrypt your secret using the [tweetsodium](https://github.com/github/tweetsodium) library.
+
+        ```
+        const sodium = require('tweetsodium');
+
+        const key = "base64-encoded-public-key";
+        const value = "plain-text-secret";
+
+        // Convert the message and key to Uint8Array's (Buffer implements that interface)
+        const messageBytes = Buffer.from(value);
+        const keyBytes = Buffer.from(key, 'base64');
+
+        // Encrypt using LibSodium.
+        const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+
+        // Base64 the encrypted secret
+        const encrypted = Buffer.from(encryptedBytes).toString('base64');
+
+        console.log(encrypted);
+        ```
+
+
+        #### Example of encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example of encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example of encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - codespaces
+      operationId: codespaces/create-or-update-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#create-or-update-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: Value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get a repository public
+                    key](https://docs.github.com/rest/reference/codespaces#get-a-repository-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: ID of the key you used to encrypt the secret.
+            example:
+              encrypted_value: c2VjcmV0
+              key_id: '012345678912345678'
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                additionalProperties: false
+        '204':
+          description: Response when updating a secret
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
+    delete:
+      summary: Delete a repository secret
+      description: Deletes a secret in a repository using the secret name. You must
+        authenticate using an access token with the `repo` scope to use this endpoint.
+        GitHub Apps must have the `codespaces_secrets` repository permission to use
+        this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/delete-repo-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#delete-a-repository-secret
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: repository-secrets
   "/repos/{owner}/{repo}/collaborators":
     get:
       summary: List repository collaborators
@@ -19751,9 +20022,11 @@ paths:
     put:
       summary: Add a repository collaborator
       description: |-
-        This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
+        This endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+        Adding an outside collaborator may be restricted by enterprise administrators. For more information, see "[Enforcing repository management policies in your enterprise](https://docs.github.com/enterprise-cloud@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
+
+        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
 
         ```
         Cannot assign {member} permission of {role name}
@@ -28140,6 +28413,8 @@ paths:
         Creates a codespace owned by the authenticated user for the specified pull request.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-with-pr-for-authenticated-user
@@ -30828,6 +31103,119 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: 
+  "/repos/{owner}/{repo}/tags/protection":
+    get:
+      summary: List tag protection states for a repository
+      description: |-
+        This returns the tag protection states of a repository.
+
+        This information is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/list-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#list-tag-protection-state-of-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/tag-protection"
+              examples:
+                default:
+                  "$ref": "#/components/examples/tag-protection-items"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
+    post:
+      summary: Create a tag protection state for a repository
+      description: |-
+        This creates a tag protection state for a repository.
+        This endpoint is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/create-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#create-tag-protection-state-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pattern:
+                  type: string
+                  description: An optional glob pattern to match against when enforcing
+                    tag protection.
+              required:
+              - pattern
+            example:
+              pattern: v1.*
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/tag-protection"
+              examples:
+                default:
+                  "$ref": "#/components/examples/tag-protection"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
+  "/repos/{owner}/{repo}/tags/protection/{tag_protection_id}":
+    delete:
+      summary: Delete a tag protection state for a repository
+      description: |-
+        This deletes a tag protection state for a repository.
+        This endpoint is only available to repository administrators.
+      tags:
+      - repos
+      operationId: repos/delete-tag-protection
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#delete-tag-protection-state-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/tag_protection_id"
+      responses:
+        '204':
+          description: Response
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: tags
   "/repos/{owner}/{repo}/tarball/{ref}":
     get:
       summary: Download a repository archive (tar)
@@ -35349,6 +35737,8 @@ paths:
         Lists the authenticated user's codespaces.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-for-authenticated-user
@@ -35402,6 +35792,8 @@ paths:
         This endpoint requires either a `repository_id` OR a `pull_request` but not both.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/create-for-authenticated-user
@@ -35513,7 +35905,10 @@ paths:
       description: |-
         Lists all secrets available for a user's Codespaces without revealing their
         encrypted values.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-secrets-for-authenticated-user
@@ -35554,10 +35949,12 @@ paths:
   "/user/codespaces/secrets/public-key":
     get:
       summary: Get public key for the authenticated user
-      description: Gets your public key, which you need to encrypt secrets. You need
-        to encrypt a secret before you can create or update secrets. Anyone with one
-        of the 'read:user' or 'user' scopes in their personal access token. User must
-        have Codespaces access to use this endpoint.
+      description: |-
+        Gets your public key, which you need to encrypt secrets. You need to encrypt a secret before you can create or update secrets.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-public-key-for-authenticated-user
@@ -35584,7 +35981,10 @@ paths:
       summary: Get a secret for the authenticated user
       description: |-
         Gets a secret available to a user's codespaces without revealing its encrypted value.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-secret-for-authenticated-user
@@ -35612,7 +36012,11 @@ paths:
       summary: Create or update a secret for the authenticated user
       description: |-
         Creates or updates a secret for a user's codespace with an encrypted value. Encrypt your secret using
-        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access token with the `user` scope to use this endpoint. User must also have Codespaces access to use this endpoint.
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages).
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must also have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission and `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
 
         #### Example encrypting a secret using Node.js
 
@@ -35749,11 +36153,12 @@ paths:
         subcategory: secrets
     delete:
       summary: Delete a secret for the authenticated user
-      description: Deletes a secret from a user's codespaces using the secret name.
-        Deleting the secret will remove access from all codespaces that were allowed
-        to access the secret. You must authenticate using an access token with the
-        `user` scope to use this endpoint. User must have Codespaces access to use
-        this endpoint.
+      description: |-
+        Deletes a secret from a user's codespaces using the secret name. Deleting the secret will remove access from all codespaces that were allowed to access the secret.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/delete-secret-for-authenticated-user
@@ -35775,7 +36180,10 @@ paths:
       summary: List selected repositories for a user secret
       description: |-
         List the repositories that have been granted the ability to use a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/list-repositories-for-secret-for-authenticated-user
@@ -35821,7 +36229,10 @@ paths:
       summary: Set selected repositories for a user secret
       description: |-
         Select the repositories that will use a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on all referenced repositories to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/set-repositories-for-secret-for-authenticated-user
@@ -35874,7 +36285,8 @@ paths:
       summary: Add a selected repository to a user secret
       description: |-
         Adds a repository to the selected repositories for a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission and write access to the `codespace_secrets` repository permission on the referenced repository to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/add-repository-for-secret-for-authenticated-user
@@ -35908,7 +36320,8 @@ paths:
       summary: Remove a selected repository from a user secret
       description: |-
         Removes a repository from the selected repositories for a user's codespace secret.
-        You must authenticate using an access token with the `user` or `read:user` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        You must authenticate using an access token with the `codespace` or `codespace:secrets` scope to use this endpoint. User must have Codespaces access to use this endpoint.
+        GitHub Apps must have write access to the `codespaces_user_secrets` user permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/remove-repository-for-secret-for-authenticated-user
@@ -35945,6 +36358,8 @@ paths:
         Gets information about a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-for-authenticated-user
@@ -35986,6 +36401,8 @@ paths:
         If you specify a new machine type it will be applied the next time your codespace is started.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/update-for-authenticated-user
@@ -36045,6 +36462,8 @@ paths:
         Deletes a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/delete-for-authenticated-user
@@ -36078,6 +36497,8 @@ paths:
         Triggers an export of the specified codespace and returns a URL and ID where the status of the export can be monitored.
 
         You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/export-for-authenticated-user
@@ -36115,6 +36536,8 @@ paths:
         Gets information about an export of a codespace.
 
         You must authenticate using a personal access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/get-export-details-for-authenticated-user
@@ -36145,6 +36568,8 @@ paths:
         List the machine types a codespace can transition to use.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_metadata` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/codespace-machines-for-authenticated-user
@@ -36195,6 +36620,8 @@ paths:
         Starts a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/start-for-authenticated-user
@@ -36245,6 +36672,8 @@ paths:
         Stops a user's codespace.
 
         You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces_lifecycle_admin` repository permission to use this endpoint.
       tags:
       - codespaces
       operationId: codespaces/stop-for-authenticated-user
@@ -51123,6 +51552,60 @@ components:
       - stop_url
       - pulls_url
       - recent_folders
+    repo-codespaces-secret:
+      title: Codespaces Secret
+      description: Set repository secrets for GitHub Codespaces.
+      type: object
+      properties:
+        name:
+          description: The name of the secret.
+          type: string
+          examples:
+          - SECRET_TOKEN
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - name
+      - created_at
+      - updated_at
+    codespaces-public-key:
+      title: CodespacesPublicKey
+      description: The public key used for setting Codespaces secrets.
+      type: object
+      properties:
+        key_id:
+          description: The identifier for the key.
+          type: string
+          examples:
+          - '1234567'
+        key:
+          description: The Base64 encoded public key.
+          type: string
+          examples:
+          - hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
+        id:
+          type: integer
+          examples:
+          - 2
+        url:
+          type: string
+          examples:
+          - https://api.github.com/user/keys/2
+        title:
+          type: string
+          examples:
+          - ssh-rsa AAAAB3NzaC1yc2EAAA
+        created_at:
+          type: string
+          examples:
+          - '2011-01-26T19:01:12Z'
+      required:
+      - key_id
+      - key
     collaborator:
       title: Collaborator
       description: Collaborator
@@ -57810,6 +58293,33 @@ components:
       - commit
       - zipball_url
       - tarball_url
+    tag-protection:
+      title: Tag protection
+      description: Tag protection
+      type: object
+      properties:
+        id:
+          type: integer
+          examples:
+          - 2
+        created_at:
+          type: string
+          examples:
+          - '2011-01-26T19:01:12Z'
+        updated_at:
+          type: string
+          examples:
+          - '2011-01-26T19:01:12Z'
+        enabled:
+          type: boolean
+          examples:
+          - true
+        pattern:
+          type: string
+          examples:
+          - v1.*
+      required:
+      - pattern
     topic:
       title: Topic
       description: A topic aggregates entities that are related to a subject.
@@ -69583,6 +70093,25 @@ components:
           storage_in_bytes: 68719476736
           memory_in_bytes: 17179869184
           cpus: 8
+    repo-codespaces-secret-paginated:
+      value:
+        total_count: 2
+        secrets:
+        - name: GH_TOKEN
+          created_at: '2019-08-10T14:59:22Z'
+          updated_at: '2020-01-10T14:59:22Z'
+        - name: GIST_ID
+          created_at: '2020-01-10T10:59:22Z'
+          updated_at: '2020-01-11T11:59:22Z'
+    codespaces-public-key:
+      value:
+        key_id: '012345678912345678'
+        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
+    repo-codespaces-secret:
+      value:
+        name: GH_TOKEN
+        created_at: '2019-08-10T14:59:22Z'
+        updated_at: '2020-01-10T14:59:22Z'
     collaborator-items:
       value:
       - login: octocat
@@ -75444,6 +75973,13 @@ components:
         zipball_url: https://github.com/octocat/Hello-World/zipball/v0.1
         tarball_url: https://github.com/octocat/Hello-World/tarball/v0.1
         node_id: MDQ6VXNlcjE=
+    tag-protection-items:
+      value:
+      - id: 2
+        pattern: v1.*
+    tag-protection:
+      value:
+        enabled: true
     topic:
       value:
         names:
@@ -79423,6 +79959,13 @@ components:
       required: true
       schema:
         type: integer
+    visible-to-organization:
+      name: visible_to_organization
+      description: Only return runner groups that are allowed to be used by this organization.
+      in: query
+      required: false
+      schema:
+        type: string
     runner-group-id:
       name: runner_group_id
       description: Unique identifier of the self-hosted runner group.
@@ -79669,6 +80212,13 @@ components:
       required: true
       schema:
         type: integer
+    visible-to-repository:
+      name: visible_to_repository
+      description: Only return runner groups that are allowed to be used by this repository.
+      in: query
+      required: false
+      schema:
+        type: string
     secret-name:
       name: secret_name
       description: secret_name parameter
@@ -80087,6 +80637,13 @@ components:
     release-id:
       name: release_id
       description: release_id parameter
+      in: path
+      required: true
+      schema:
+        type: integer
+    tag_protection_id:
+      name: tag_protection_id
+      description: tag_protection_id parameter
       in: path
       required: true
       schema:
