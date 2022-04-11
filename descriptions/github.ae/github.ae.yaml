@@ -34,6 +34,8 @@ tags:
   description: Administer a GitHub enterprise.
 - name: dependabot
   description: Endpoints to manage Dependabot.
+- name: dependency-graph
+  description: Endpoints to access Dependency Graph features.
 - name: gists
   description: View, modify your gists.
 - name: git
@@ -255,13 +257,6 @@ paths:
         description: API method documentation
         url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#list-global-webhooks
       parameters:
-      - name: accept
-        description: This API is under preview and subject to change.
-        in: header
-        schema:
-          type: string
-          default: application/vnd.github.superpro-preview+json
-        required: true
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
       responses:
@@ -355,15 +350,17 @@ paths:
               required:
               - name
               - config
-            example:
-              name: web
-              events:
-              - organization
-              - user
-              config:
-                url: https://example.com/webhook
-                content_type: json
-                secret: secret
+            examples:
+              default:
+                value:
+                  name: web
+                  events:
+                  - organization
+                  - user
+                  config:
+                    url: https://example.com/webhook
+                    content_type: json
+                    secret: secret
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -463,11 +460,13 @@ paths:
                   description: Determines if notifications are sent when the webhook
                     is triggered. Set to `true` to send notifications.
                   default: true
-            example:
-              events:
-              - organization
-              config:
-                url: https://example.com/webhook
+            examples:
+              default:
+                value:
+                  events:
+                  - organization
+                  config:
+                    url: https://example.com/webhook
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -483,13 +482,6 @@ paths:
         description: API method documentation
         url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#delete-a-global-webhook
       parameters:
-      - name: accept
-        description: This API is under preview and subject to change.
-        in: header
-        schema:
-          type: string
-          default: application/vnd.github.superpro-preview+json
-        required: true
       - "$ref": "#/components/parameters/hook-id"
       responses:
         '204':
@@ -511,13 +503,6 @@ paths:
         description: API method documentation
         url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#ping-a-global-webhook
       parameters:
-      - name: accept
-        description: This API is under preview and subject to change.
-        in: header
-        schema:
-          type: string
-          default: application/vnd.github.superpro-preview+json
-        required: true
       - "$ref": "#/components/parameters/hook-id"
       responses:
         '204':
@@ -636,10 +621,12 @@ paths:
               required:
               - login
               - admin
-            example:
-              login: github
-              profile_name: GitHub, Inc.
-              admin: monalisaoctocat
+            examples:
+              default:
+                value:
+                  login: github
+                  profile_name: GitHub, Inc.
+                  admin: monalisaoctocat
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -768,9 +755,11 @@ paths:
               required:
               - name
               - image_url
-            example:
-              name: DevTools Hook Env
-              image_url: https://my_file_server/path/to/devtools_env.tar.gz
+            examples:
+              default:
+                value:
+                  name: DevTools Hook Env
+                  image_url: https://my_file_server/path/to/devtools_env.tar.gz
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -1110,7 +1099,16 @@ paths:
       - "$ref": "#/components/parameters/username"
       responses:
         '201':
-          description: Response
+          description: Response when creating a new impersonation OAuth token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authorization"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authorization"
+        '200':
+          description: Response when getting an existing impersonation OAuth token
           content:
             application/json:
               schema:
@@ -1202,13 +1200,6 @@ paths:
         required: true
         schema:
           type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
       responses:
         '201':
           description: Response
@@ -1301,11 +1292,13 @@ paths:
                   "$ref": "#/components/schemas/webhook-config-secret"
                 insecure_ssl:
                   "$ref": "#/components/schemas/webhook-config-insecure-ssl"
-              example:
-                content_type: json
-                insecure_ssl: '0'
-                secret: "********"
-                url: https://example.com/webhook
+            examples:
+              default:
+                value:
+                  content_type: json
+                  insecure_ssl: '0'
+                  secret: "********"
+                  url: https://example.com/webhook
       responses:
         '200':
           description: Response
@@ -1489,8 +1482,6 @@ paths:
                   "$ref": "#/components/examples/base-installation"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -1559,6 +1550,13 @@ paths:
                     type: integer
                 permissions:
                   "$ref": "#/components/schemas/app-permissions"
+            examples:
+              default:
+                value:
+                  respoitory: Hello-World
+                  permissions:
+                    issues: write
+                    contents: read
       responses:
         '201':
           description: Response
@@ -1571,8 +1569,6 @@ paths:
                   "$ref": "#/components/examples/installation-token"
         '403':
           "$ref": "#/components/responses/forbidden"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '401':
           "$ref": "#/components/responses/requires_authentication"
         '404':
@@ -1702,6 +1698,10 @@ paths:
               required:
               - access_token
               type: object
+            examples:
+              default:
+                value:
+                  access_token: e72e16c7e42f292c6912e7710c838347ae178b4a
       responses:
         '200':
           description: Response
@@ -1750,6 +1750,10 @@ paths:
               required:
               - access_token
               type: object
+            examples:
+              default:
+                value:
+                  access_token: e72e16c7e42f292c6912e7710c838347ae178b4a
       responses:
         '200':
           description: Response
@@ -1869,8 +1873,6 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -2652,15 +2654,17 @@ paths:
                   default: false
               required:
               - name
-            example:
-              name: Expensive hardware runners
-              visibility: selected
-              selected_organization_ids:
-              - 32
-              - 91
-              runners:
-              - 9
-              - 2
+            examples:
+              default:
+                value:
+                  name: Expensive hardware runners
+                  visibility: selected
+                  selected_organization_ids:
+                  - 32
+                  - 91
+                  runners:
+                  - 9
+                  - 2
       responses:
         '201':
           description: Response
@@ -2744,9 +2748,11 @@ paths:
                   description: Whether the runner group can be used by `public` repositories.
                   type: boolean
                   default: false
-            example:
-              name: Expensive hardware runners
-              visibility: selected
+            examples:
+              default:
+                value:
+                  name: Expensive hardware runners
+                  visibility: selected
       responses:
         '200':
           description: Response
@@ -2929,7 +2935,7 @@ paths:
       description: |-
         Lists all self-hosted runners configured for an enterprise.
 
-        You must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
       operationId: enterprise-admin/list-self-hosted-runners-for-enterprise
       tags:
       - enterprise-admin
@@ -2965,13 +2971,122 @@ paths:
         githubCloudOnly: false
         category: actions
         subcategory: self-hosted-runners
+  "/enterprises/{enterprise}/actions/runners/downloads":
+    get:
+      summary: List runner applications for an enterprise
+      description: |-
+        Lists binaries for the runner application that you can download and run.
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/list-runner-applications-for-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/runner-application"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-application-items"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runners
+  "/enterprises/{enterprise}/actions/runners/registration-token":
+    post:
+      summary: Create a registration token for an enterprise
+      description: |-
+        Returns a token that you can pass to the `config` script. The token expires after one hour.
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+
+        #### Example using registration token
+
+        Configure your self-hosted runner, replacing `TOKEN` with the registration token provided by this endpoint.
+
+        ```
+        ./config.sh --url https://github.com/enterprises/octo-enterprise --token TOKEN
+        ```
+      operationId: enterprise-admin/create-registration-token-for-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runners
+  "/enterprises/{enterprise}/actions/runners/remove-token":
+    post:
+      summary: Create a remove token for an enterprise
+      description: |-
+        Returns a token that you can pass to the `config` script to remove a self-hosted runner from an enterprise. The token expires after one hour.
+
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
+
+        #### Example using remove token
+
+        To remove your self-hosted runner from an enterprise, replace `TOKEN` with the remove token provided by this
+        endpoint.
+
+        ```
+        ./config.sh remove --token TOKEN
+        ```
+      operationId: enterprise-admin/create-remove-token-for-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token-2"
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/{runner_id}":
     get:
       summary: Get a self-hosted runner for an enterprise
       description: |-
         Gets a specific self-hosted runner configured in an enterprise.
 
-        You must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
       operationId: enterprise-admin/get-self-hosted-runner-for-enterprise
       tags:
       - enterprise-admin
@@ -3001,7 +3116,7 @@ paths:
       description: |-
         Forces the removal of a self-hosted runner from an enterprise. You can use this endpoint to completely remove the runner when the machine you were using no longer exists.
 
-        You must authenticate using an access token with the `manage_runners:enterprise` scope to use this endpoint.
+        You must authenticate using an access token with the `admin:enterprise` scope to use this endpoint.
       operationId: enterprise-admin/delete-self-hosted-runner-from-enterprise
       tags:
       - enterprise-admin
@@ -4630,37 +4745,6 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: 
-  "/organizations/{org}/team/{team_slug}/external-groups":
-    get:
-      summary: List a connection between an external group and a team
-      description: |-
-        Lists a connection between a team and an external group.
-
-        You can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github-ae@latest/github/getting-started-with-github/githubs-products)" in the GitHub Help documentation.
-      tags:
-      - teams
-      operationId: teams/list-linked-external-idp-groups-to-team-for-org
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/teams#list-external-idp-group-team-connection
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/team-slug"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/external-groups"
-              examples:
-                default:
-                  "$ref": "#/components/examples/external-groups"
-      x-github:
-        githubCloudOnly: true
-        enabledForGitHubApps: true
-        category: teams
-        subcategory: external-groups
   "/orgs/{org}":
     get:
       summary: Get an organization
@@ -4849,17 +4933,19 @@ paths:
                 blog:
                   type: string
                   example: '"http://github.blog"'
-            example:
-              billing_email: mona@github.com
-              company: GitHub
-              email: mona@github.com
-              twitter_username: github
-              location: San Francisco
-              name: github
-              description: GitHub, the company.
-              default_repository_permission: read
-              members_can_create_repositories: true
-              members_allowed_repository_creation_type: all
+            examples:
+              default:
+                value:
+                  billing_email: mona@github.com
+                  company: GitHub
+                  email: mona@github.com
+                  twitter_username: github
+                  location: San Francisco
+                  name: github
+                  description: GitHub, the company.
+                  default_repository_permission: read
+                  members_can_create_repositories: true
+                  members_allowed_repository_creation_type: all
       responses:
         '200':
           description: Response
@@ -5151,6 +5237,46 @@ paths:
         category: actions
         subcategory: permissions
   "/orgs/{org}/actions/runner-groups":
+    get:
+      summary: List self-hosted runner groups for an organization
+      description: |-
+        Lists all self-hosted runner groups configured in an organization and inherited from an enterprise.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      operationId: actions/list-self-hosted-runner-groups-for-org
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#list-self-hosted-runner-groups-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - runner_groups
+                properties:
+                  total_count:
+                    type: number
+                  runner_groups:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/runner-groups-org"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-groups-org"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runner-groups
     post:
       summary: Create a self-hosted runner group for an organization
       description: |-
@@ -5205,15 +5331,17 @@ paths:
                   default: false
               required:
               - name
-            example:
-              name: Expensive hardware runners
-              visibility: selected
-              selected_repository_ids:
-              - 32
-              - 91
-              runners:
-              - 9
-              - 2
+            examples:
+              default:
+                value:
+                  name: Expensive hardware runners
+                  visibility: selected
+                  selected_repository_ids:
+                  - 32
+                  - 91
+                  runners:
+                  - 9
+                  - 2
       responses:
         '201':
           description: Response
@@ -5230,6 +5358,35 @@ paths:
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}":
+    get:
+      summary: Get a self-hosted runner group for an organization
+      description: |-
+        Gets a specific self-hosted runner group for an organization.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      operationId: actions/get-self-hosted-runner-group-for-org
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-group-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/runner-group-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/runner-groups-org"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-group-item"
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runner-groups
     patch:
       summary: Update a self-hosted runner group for an organization
       description: |-
@@ -5272,9 +5429,11 @@ paths:
                   default: false
               required:
               - name
-            example:
-              name: Expensive hardware runners
-              visibility: selected
+            examples:
+              default:
+                value:
+                  name: Expensive hardware runners
+                  visibility: selected
       responses:
         '200':
           description: Response
@@ -5293,10 +5452,7 @@ paths:
     delete:
       summary: Delete a self-hosted runner group from an organization
       description: |-
-        The self-hosted runner groups REST API is available with GitHub Enterprise Cloud. For more information, see "[GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products)."
-
         Deletes a self-hosted runner group for an organization.
-
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/delete-self-hosted-runner-group-from-org
       tags:
@@ -5315,7 +5471,215 @@ paths:
         githubCloudOnly: false
         category: actions
         subcategory: self-hosted-runner-groups
+  "/orgs/{org}/actions/runner-groups/{runner_group_id}/runners/{runner_id}":
+    put:
+      summary: Add a self-hosted runner to a group for an organization
+      description: |-
+        Adds a self-hosted runner to a runner group configured in an organization.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      operationId: actions/add-self-hosted-runner-to-group-for-org
+      tags:
+      - actions
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#add-a-self-hosted-runner-to-a-group-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/runner-group-id"
+      - "$ref": "#/components/parameters/runner-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        enabledForGitHubApps: true
+        githubCloudOnly: false
+        category: actions
+        subcategory: self-hosted-runner-groups
+  "/orgs/{org}/actions/runners":
+    get:
+      summary: List self-hosted runners for an organization
+      description: |-
+        Lists all self-hosted runners configured in an organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/list-self-hosted-runners-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#list-self-hosted-runners-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - runners
+                properties:
+                  total_count:
+                    type: integer
+                  runners:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/runner"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/orgs/{org}/actions/runners/downloads":
+    get:
+      summary: List runner applications for an organization
+      description: |-
+        Lists binaries for the runner application that you can download and run.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/list-runner-applications-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/runner-application"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-application-items"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/orgs/{org}/actions/runners/registration-token":
+    post:
+      summary: Create a registration token for an organization
+      description: |-
+        Returns a token that you can pass to the `config` script. The token expires after one hour.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        #### Example using registration token
+
+        Configure your self-hosted runner, replacing `TOKEN` with the registration token provided by this endpoint.
+
+        ```
+        ./config.sh --url https://github.com/octo-org --token TOKEN
+        ```
+      tags:
+      - actions
+      operationId: actions/create-registration-token-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/orgs/{org}/actions/runners/remove-token":
+    post:
+      summary: Create a remove token for an organization
+      description: |-
+        Returns a token that you can pass to the `config` script to remove a self-hosted runner from an organization. The token expires after one hour.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        #### Example using remove token
+
+        To remove your self-hosted runner from an organization, replace `TOKEN` with the remove token provided by this
+        endpoint.
+
+        ```
+        ./config.sh remove --token TOKEN
+        ```
+      tags:
+      - actions
+      operationId: actions/create-remove-token-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token-2"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
   "/orgs/{org}/actions/runners/{runner_id}":
+    get:
+      summary: Get a self-hosted runner for an organization
+      description: |-
+        Gets a specific self-hosted runner configured in an organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-self-hosted-runner-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/runner-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/runner"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
     delete:
       summary: Delete a self-hosted runner from an organization
       description: |-
@@ -5947,15 +6311,17 @@ paths:
               required:
               - name
               - config
-            example:
-              name: web
-              active: true
-              events:
-              - push
-              - pull_request
-              config:
-                url: http://example.com/webhook
-                content_type: json
+            examples:
+              default:
+                value:
+                  name: web
+                  active: true
+                  events:
+                  - push
+                  - pull_request
+                  config:
+                    url: http://example.com/webhook
+                    content_type: json
       responses:
         '201':
           description: Response
@@ -6065,10 +6431,12 @@ paths:
                 name:
                   type: string
                   example: '"web"'
-            example:
-              active: true
-              events:
-              - pull_request
+            examples:
+              default:
+                value:
+                  active: true
+                  events:
+                  - pull_request
       responses:
         '200':
           description: Response
@@ -6821,10 +7189,12 @@ paths:
                     - repositories
               required:
               - repositories
-            example:
-              repositories:
-              - github/Hello-World
-              lock_repositories: true
+            examples:
+              default:
+                value:
+                  repositories:
+                  - github/Hello-World
+                  lock_repositories: true
       responses:
         '201':
           description: Response
@@ -6949,7 +7319,10 @@ paths:
       description: When an organization member is converted to an outside collaborator,
         they'll only have access to the repositories that their current team membership
         allows. The user will no longer be a member of the organization. For more
-        information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/github-ae@latest/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        Converting an organization member to an outside collaborator may be restricted
+        by enterprise administrators. For more information, see "[Enforcing repository
+        management policies in your enterprise](https://docs.github.com/github-ae@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
       tags:
       - orgs
       operationId: orgs/convert-member-to-outside-collaborator
@@ -6971,8 +7344,10 @@ paths:
         '204':
           description: User was converted
         '403':
-          description: Forbidden if user is the last owner of the organization or
-            not a member of the organization
+          description: Forbidden if user is the last owner of the organization, not
+            a member of the organization, or if the enterprise enforces a policy for
+            inviting outside collaborators. For more information, see "[Enforcing
+            repository management policies in your enterprise](https://docs.github.com/github-ae@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -7098,9 +7473,11 @@ paths:
                   description: The description of the project.
               required:
               - name
-            example:
-              name: Organization Roadmap
-              body: High-level roadmap for the upcoming year.
+            examples:
+              default:
+                value:
+                  name: Organization Roadmap
+                  body: High-level roadmap for the upcoming year.
       responses:
         '201':
           description: Response
@@ -7328,14 +7705,16 @@ paths:
                   default: false
               required:
               - name
-            example:
-              name: Hello-World
-              description: This is your first repository
-              homepage: https://github.com
-              private: false
-              has_issues: true
-              has_projects: true
-              has_wiki: true
+            examples:
+              default:
+                value:
+                  name: Hello-World
+                  description: This is your first repository
+                  homepage: https://github.com
+                  private: false
+                  has_issues: true
+                  has_projects: true
+                  has_wiki: true
       responses:
         '201':
           description: Response
@@ -7464,11 +7843,13 @@ paths:
                   description: The ID of a team to set as the parent team.
               required:
               - name
-            example:
-              name: Justice League
-              description: A great team
-              permission: push
-              privacy: closed
+            examples:
+              default:
+                value:
+                  name: Justice League
+                  description: A great team
+                  permission: push
+                  privacy: closed
       responses:
         '201':
           description: Response
@@ -7580,10 +7961,12 @@ paths:
                   type: integer
                   description: The ID of a team to set as the parent team.
                   nullable: true
-            example:
-              name: new team name
-              description: new team description
-              privacy: closed
+            examples:
+              default:
+                value:
+                  name: new team name
+                  description: new team description
+                  privacy: closed
       responses:
         '201':
           description: Response
@@ -7709,9 +8092,11 @@ paths:
               required:
               - title
               - body
-            example:
-              title: Our first team post
-              body: Hi! This is an area for us to collaborate as a team.
+            examples:
+              default:
+                value:
+                  title: Our first team post
+                  body: Hi! This is an area for us to collaborate as a team.
       responses:
         '201':
           description: Response
@@ -7789,8 +8174,10 @@ paths:
                 body:
                   type: string
                   description: The discussion post's body text.
-            example:
-              title: Welcome to our first team post
+            examples:
+              default:
+                value:
+                  title: Welcome to our first team post
       responses:
         '200':
           description: Response
@@ -7900,8 +8287,10 @@ paths:
                   description: The discussion comment's body text.
               required:
               - body
-            example:
-              body: Do you like apples?
+            examples:
+              default:
+                value:
+                  body: Do you like apples?
       responses:
         '201':
           description: Response
@@ -7980,8 +8369,10 @@ paths:
                   description: The discussion comment's body text.
               required:
               - body
-            example:
-              body: Do you like pineapples?
+            examples:
+              default:
+                value:
+                  body: Do you like pineapples?
       responses:
         '200':
           description: Response
@@ -8077,7 +8468,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a team discussion comment
       description: |-
@@ -8117,11 +8518,14 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
-          description: Response
+          description: Response when the reaction type has already been added to this
+            team discussion comment
           content:
             application/json:
               schema:
@@ -8142,7 +8546,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions/{reaction_id}":
     delete:
       summary: Delete team discussion comment reaction
@@ -8169,7 +8583,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions":
     get:
       summary: List reactions for a team discussion
@@ -8224,7 +8648,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a team discussion
       description: |-
@@ -8263,8 +8697,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Response
@@ -8288,7 +8724,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: false
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions/{reaction_id}":
     delete:
       summary: Delete team discussion reaction
@@ -8314,7 +8760,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/orgs/{org}/teams/{team_slug}/external-groups":
     patch:
       summary: Update the connection between an external group and a team
@@ -8344,8 +8800,10 @@ paths:
                   example: 1
               required:
               - group_id
-            example:
-              group_id: 123
+            examples:
+              default:
+                value:
+                  group_id: 123
       responses:
         '200':
           description: Response
@@ -10019,9 +10477,7 @@ paths:
                   description: Can be `public` or `private`. If your organization
                     is associated with an enterprise account using GitHub Enterprise
                     Cloud or GitHub Enterprise Server 2.20+, `visibility` can also
-                    be `internal`. The `visibility` parameter overrides the `private`
-                    parameter when you use both along with the `nebula-preview` preview
-                    header.
+                    be `internal`."
                   enum:
                   - public
                   - private
@@ -10059,7 +10515,7 @@ paths:
                       type: object
                       description: Use the `status` property to enable or disable
                         secret scanning push protection for this repository. For more
-                        information, see "[About push protection](/enterprise-cloud@latest/early-access/code-security/secret-scanning/protecting-pushes-with-secret-scanning)."
+                        information, see "[Protecting pushes with secret scanning](/enterprise-cloud@latest/code-security/secret-scanning/protecting-pushes-with-secret-scanning)."
                       properties:
                         status:
                           type: string
@@ -10584,7 +11040,138 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: self-hosted-runners
+  "/repos/{owner}/{repo}/actions/runners/downloads":
+    get:
+      summary: List runner applications for a repository
+      description: |-
+        Lists binaries for the runner application that you can download and run.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/list-runner-applications-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#list-runner-applications-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/runner-application"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner-application-items"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/repos/{owner}/{repo}/actions/runners/registration-token":
+    post:
+      summary: Create a registration token for a repository
+      description: "Returns a token that you can pass to the `config` script. The
+        token expires after one hour. You must authenticate\nusing an access token
+        with the `repo` scope to use this endpoint.\n\n#### Example using registration
+        token\n \nConfigure your self-hosted runner, replacing `TOKEN` with the registration
+        token provided by this endpoint.\n\n```\n./config.sh --url https://github.com/octo-org/octo-repo-artifacts
+        --token TOKEN\n```"
+      tags:
+      - actions
+      operationId: actions/create-registration-token-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-registration-token-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/repos/{owner}/{repo}/actions/runners/remove-token":
+    post:
+      summary: Create a remove token for a repository
+      description: "Returns a token that you can pass to remove a self-hosted runner
+        from a repository. The token expires after one hour.\nYou must authenticate
+        using an access token with the `repo` scope to use this endpoint.\n\n####
+        Example using remove token\n \nTo remove your self-hosted runner from a repository,
+        replace TOKEN with the remove token provided by this endpoint.\n\n```\n./config.sh
+        remove --token TOKEN\n```"
+      tags:
+      - actions
+      operationId: actions/create-remove-token-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#create-a-remove-token-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/authentication-token"
+              examples:
+                default:
+                  "$ref": "#/components/examples/authentication-token-2"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
   "/repos/{owner}/{repo}/actions/runners/{runner_id}":
+    get:
+      summary: Get a self-hosted runner for a repository
+      description: |-
+        Gets a specific self-hosted runner configured in a repository.
+
+        You must authenticate using an access token with the `repo` scope to use this
+        endpoint.
+      tags:
+      - actions
+      operationId: actions/get-self-hosted-runner-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/actions#get-a-self-hosted-runner-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/runner-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/runner"
+              examples:
+                default:
+                  "$ref": "#/components/examples/runner"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
     delete:
       summary: Delete a self-hosted runner from a repository
       description: |-
@@ -11764,9 +12351,11 @@ paths:
               required:
               - key_prefix
               - url_template
-            example:
-              key_prefix: TICKET-
-              url_template: https://example.com/TICKET?query=<num>
+            examples:
+              default:
+                value:
+                  key_prefix: TICKET-
+                  url_template: https://example.com/TICKET?query=<num>
       responses:
         '201':
           description: response
@@ -11917,8 +12506,6 @@ paths:
                 "$ref": "#/components/schemas/branch-with-protection"
         '301':
           "$ref": "#/components/responses/moved_permanently"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -12141,6 +12728,11 @@ paths:
                     deletion of the protected branch. Default: `false`. For more information,
                     see "[Enabling force pushes to a protected branch](https://docs.github.com/en/github/administering-a-repository/enabling-force-pushes-to-a-protected-branch)"
                     in the GitHub Help documentation.'
+                block_creations:
+                  type: boolean
+                  description: 'Blocks creation of new branches which match the branch
+                    protection pattern. Set to `true` to prohibit new branch creation.
+                    Default: `false`.'
                 required_conversation_resolution:
                   type: boolean
                   description: 'Requires all conversations on code to be resolved
@@ -12181,6 +12773,7 @@ paths:
               required_linear_history: true
               allow_force_pushes: true
               allow_deletions: true
+              block_creations: true
               required_conversation_resolution: true
       responses:
         '200':
@@ -12423,20 +13016,22 @@ paths:
                         request requirements.
                       items:
                         type: string
-            example:
-              dismissal_restrictions:
-                users:
-                - octocat
-                teams:
-                - justice-league
-              bypass_pull_request_allowances:
-                users:
-                - octocat
-                teams:
-                - justice-league
-              dismiss_stale_reviews: true
-              require_code_owner_reviews: true
-              required_approving_review_count: 2
+            examples:
+              default:
+                value:
+                  dismissal_restrictions:
+                    users:
+                    - octocat
+                    teams:
+                    - justice-league
+                  bypass_pull_request_allowances:
+                    users:
+                    - octocat
+                    teams:
+                    - justice-league
+                  dismiss_stale_reviews: true
+                  require_code_owner_reviews: true
+                  required_approving_review_count: 2
       responses:
         '200':
           description: Response
@@ -12666,10 +13261,12 @@ paths:
                           App that has recently provided this check, or any app if
                           it was not set by a GitHub App. Pass -1 to explicitly allow
                           any app to set the status.
-            example:
-              strict: true
-              contexts:
-              - continuous-integration/travis-ci
+            examples:
+              default:
+                value:
+                  strict: true
+                  contexts:
+                  - continuous-integration/travis-ci
       responses:
         '200':
           description: Response
@@ -13951,6 +14548,8 @@ paths:
               examples:
                 example-of-completed-conclusion:
                   "$ref": "#/components/examples/check-run-example-of-completed-conclusion"
+                example-of-in-progress-conclusion:
+                  "$ref": "#/components/examples/check-run-example-of-in-progress-conclusion"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -14368,11 +14967,13 @@ paths:
                   description: The sha of the head commit.
               required:
               - head_sha
-            example:
-              head_sha: d6fde92930d4715a2b49857d24b940956b26d2d3
+            examples:
+              default:
+                value:
+                  head_sha: d6fde92930d4715a2b49857d24b940956b26d2d3
       responses:
         '200':
-          description: when the suite already existed
+          description: Response when the suite already exists
           content:
             application/json:
               schema:
@@ -14440,10 +15041,12 @@ paths:
                     required:
                     - app_id
                     - setting
-            example:
-              auto_trigger_checks:
-              - app_id: 4
-                setting: false
+            examples:
+              default:
+                value:
+                  auto_trigger_checks:
+                  - app_id: 4
+                    setting: false
       responses:
         '200':
           description: Response
@@ -14706,9 +15309,11 @@ paths:
                   "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
               required:
               - state
-            example:
-              state: dismissed
-              dismissed_reason: false positive
+            examples:
+              default:
+                value:
+                  state: dismissed
+                  dismissed_reason: false positive
       responses:
         '200':
           description: Response
@@ -15202,6 +15807,7 @@ paths:
       summary: List repository collaborators
       description: |-
         For organization-owned repositories, the list of collaborators includes outside collaborators, organization members that are direct collaborators, organization members with access through team memberships, organization members with access through default organization permissions, and organization owners.
+        Organization members with write, maintain, or admin privileges on the organization-owned repository can use this endpoint.
 
         Team members will include the members of child teams.
 
@@ -15290,9 +15896,11 @@ paths:
     put:
       summary: Add a repository collaborator
       description: |-
-        This endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
+        This endpoint triggers [notifications](https://docs.github.com/github-ae@latest/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
 
-        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/en/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
+        Adding an outside collaborator may be restricted by enterprise administrators. For more information, see "[Enforcing repository management policies in your enterprise](https://docs.github.com/github-ae@latest/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
+
+        For more information on permission levels, see "[Repository permission levels for an organization](https://docs.github.com/github-ae@latest/github/setting-up-and-managing-organizations-and-teams/repository-permission-levels-for-an-organization#permission-levels-for-repositories-owned-by-an-organization)". There are restrictions on which permissions can be granted to organization members when an organization base role is in place. In this case, the permission being given must be equal to or higher than the org base permission. Otherwise, the request will fail with:
 
         ```
         Cannot assign {member} permission of {role name}
@@ -15512,8 +16120,10 @@ paths:
                   description: The contents of the comment
               required:
               - body
-            example:
-              body: Nice change
+            examples:
+              default:
+                value:
+                  body: Nice change
       responses:
         '200':
           description: Response
@@ -15607,7 +16217,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a commit comment
       description: Create a reaction to a [commit comment](https://docs.github.com/github-ae@latest/rest/reference/repos#comments).
@@ -15645,8 +16265,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -15666,15 +16288,25 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/reaction"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/comments/{comment_id}/reactions/{reaction_id}":
     delete:
       summary: Delete a commit comment reaction
@@ -15700,7 +16332,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/commits":
     get:
       summary: List commits
@@ -15911,11 +16553,13 @@ paths:
                     Line number in the file to comment on."
               required:
               - body
-            example:
-              body: Great stuff
-              path: file1.txt
-              position: 4
-              line: 1
+            examples:
+              default:
+                value:
+                  body: Great stuff
+                  path: file1.txt
+                  position: 4
+                  line: 1
       responses:
         '201':
           description: Response
@@ -15947,11 +16591,7 @@ paths:
       description: Lists the merged pull request that introduced the commit to the
         repository. If the commit is not present in the default branch, additionally
         returns open pull requests associated with the commit. The results may include
-        open and closed pull requests. Additional preview headers may be required
-        to see certain details for associated pull requests, such as whether a pull
-        request is in a draft state. For more information about previews that might
-        affect this endpoint, see the [List pull requests](https://docs.github.com/github-ae@latest/rest/reference/pulls#list-pull-requests)
-        endpoint.
+        open and closed pull requests.
       tags:
       - repos
       operationId: repos/list-pull-requests-associated-with-commit
@@ -16655,12 +17295,14 @@ paths:
               required:
               - message
               - sha
-            example:
-              message: my commit message
-              committer:
-                name: Monalisa Octocat
-                email: octocat@github.com
-              sha: 329688480d39049927147c162b9d2deaf885005f
+            examples:
+              default:
+                value:
+                  message: my commit message
+                  committer:
+                    name: Monalisa Octocat
+                    email: octocat@github.com
+                  sha: 329688480d39049927147c162b9d2deaf885005f
       responses:
         '200':
           description: Response
@@ -17147,11 +17789,13 @@ paths:
                     state. Default: `true`'
               required:
               - state
-            example:
-              environment: production
-              state: success
-              log_url: https://example.com/deployment/42/output
-              description: Deployment finished successfully.
+            examples:
+              default:
+                value:
+                  environment: production
+                  state: success
+                  log_url: https://example.com/deployment/42/output
+                  description: Deployment finished successfully.
       responses:
         '201':
           description: Response
@@ -17210,6 +17854,233 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: deployments
+  "/repos/{owner}/{repo}/dispatches":
+    post:
+      summary: Create a repository dispatch event
+      description: |-
+        You can use this endpoint to trigger a webhook event called `repository_dispatch` when you want activity that happens outside of GitHub AE to trigger a GitHub Actions workflow or GitHub App webhook. You must configure your GitHub Actions workflow or GitHub App to run when the `repository_dispatch` event occurs. For an example `repository_dispatch` webhook payload, see "[RepositoryDispatchEvent](https://docs.github.com/github-ae@latest/webhooks/event-payloads/#repository_dispatch)."
+
+        The `client_payload` parameter is available for any extra information that your workflow might need. This parameter is a JSON payload that will be passed on when the webhook event is dispatched. For example, the `client_payload` can include a message that a user would like to send using a GitHub Actions workflow. Or the `client_payload` can be used as a test to debug your workflow.
+
+        This endpoint requires write access to the repository by providing either:
+
+          - Personal access tokens with `repo` scope. For more information, see "[Creating a personal access token for the command line](https://docs.github.com/articles/creating-a-personal-access-token-for-the-command-line)" in the GitHub Help documentation.
+          - GitHub Apps with both `metadata:read` and `contents:read&write` permissions.
+
+        This input example shows how you can use the `client_payload` as a test to debug your workflow.
+      tags:
+      - repos
+      operationId: repos/create-dispatch-event
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#create-a-repository-dispatch-event
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - event_type
+              properties:
+                event_type:
+                  type: string
+                  description: A custom webhook event name.
+                  minLength: 1
+                  maxLength: 100
+                client_payload:
+                  type: object
+                  description: JSON payload with extra information about the webhook
+                    event that your action or worklow may use.
+                  additionalProperties: true
+                  maxProperties: 10
+            example:
+              event_type: on-demand-test
+              client_payload:
+                unit: false
+                integration: true
+      responses:
+        '204':
+          description: Response
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: 
+  "/repos/{owner}/{repo}/environments":
+    get:
+      summary: Get all environments
+      description: |-
+        Get all environments for a repository.
+
+        Anyone with read access to the repository can use this endpoint. If the repository is private, you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/get-all-environments
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#get-all-environments
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    description: The number of environments in this repository
+                    example: 5
+                    type: integer
+                  environments:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/environment"
+              examples:
+                default:
+                  "$ref": "#/components/examples/environments"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: environments
+  "/repos/{owner}/{repo}/environments/{environment_name}":
+    get:
+      summary: Get an environment
+      description: Anyone with read access to the repository can use this endpoint.
+        If the repository is private, you must use an access token with the `repo`
+        scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/get-environment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#get-an-environment
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/environment"
+              examples:
+                default:
+                  "$ref": "#/components/examples/environment"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: environments
+    put:
+      summary: Create or update an environment
+      description: |-
+        Create or update an environment with protection rules, such as required reviewers. For more information about environment protection rules, see "[Environments](/actions/reference/environments#environment-protection-rules)."
+
+        **Note:** Although you can use this operation to specify that only branches that match specified name patterns can deploy to this environment, you must use the UI to set the name patterns. For more information, see "[Environments](/actions/reference/environments#deployment-branches)."
+
+        **Note:** To create or update secrets for an environment, see "[Secrets](/rest/reference/actions#secrets)."
+
+        You must authenticate using an access token with the repo scope to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/create-or-update-environment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#create-or-update-an-environment
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              nullable: true
+              properties:
+                wait_timer:
+                  "$ref": "#/components/schemas/wait-timer"
+                reviewers:
+                  type: array
+                  nullable: true
+                  description: The people or teams that may review jobs that reference
+                    the environment. You can list up to six users or teams as reviewers.
+                    The reviewers must have at least read access to the repository.
+                    Only one of the required reviewers needs to approve the job for
+                    it to proceed.
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        "$ref": "#/components/schemas/deployment-reviewer-type"
+                      id:
+                        type: integer
+                        description: The id of the user or team who can review the
+                          deployment
+                        example: 4532992
+                deployment_branch_policy:
+                  "$ref": "#/components/schemas/deployment_branch_policy"
+              additionalProperties: false
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/environment"
+              examples:
+                default:
+                  "$ref": "#/components/examples/environment"
+        '422':
+          description: Validation error when the environment name is invalid or when
+            `protected_branches` and `custom_branch_policies` in `deployment_branch_policy`
+            are set to the same value
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/basic-error"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: environments
+    delete:
+      summary: Delete an environment
+      description: You must authenticate using an access token with the repo scope
+        to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/delete-an-environment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/repos#delete-an-environment
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      responses:
+        '204':
+          description: Default response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: environments
   "/repos/{owner}/{repo}/events":
     get:
       summary: List repository events
@@ -17368,9 +18239,11 @@ paths:
                   default: utf-8
               required:
               - content
-            example:
-              content: Content of the blob
-              encoding: utf-8
+            examples:
+              default:
+                value:
+                  content: Content of the blob
+                  encoding: utf-8
       responses:
         '201':
           description: Response
@@ -17454,7 +18327,7 @@ paths:
         | Name | Type | Description |
         | ---- | ---- | ----------- |
         | `verified` | `boolean` | Indicates whether GitHub considers the signature in this commit to be verified. |
-        | `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in table below. |
+        | `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in the table below. |
         | `signature` | `string` | The signature that was extracted from the commit. |
         | `payload` | `string` | The value that was signed. |
 
@@ -17621,7 +18494,7 @@ paths:
         | Name | Type | Description |
         | ---- | ---- | ----------- |
         | `verified` | `boolean` | Indicates whether GitHub considers the signature in this commit to be verified. |
-        | `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in table below. |
+        | `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in the table below. |
         | `signature` | `string` | The signature that was extracted from the commit. |
         | `payload` | `string` | The value that was signed. |
 
@@ -17794,9 +18667,11 @@ paths:
               required:
               - ref
               - sha
-            example:
-              ref: refs/heads/featureA
-              sha: aa218f56b14c9653891f9e74264a383fa43fefbd
+            examples:
+              default:
+                value:
+                  ref: refs/heads/featureA
+                  sha: aa218f56b14c9653891f9e74264a383fa43fefbd
       responses:
         '201':
           description: Response
@@ -17857,9 +18732,11 @@ paths:
                   default: false
               required:
               - sha
-            example:
-              sha: aa218f56b14c9653891f9e74264a383fa43fefbd
-              force: true
+            examples:
+              default:
+                value:
+                  sha: aa218f56b14c9653891f9e74264a383fa43fefbd
+                  force: true
       responses:
         '200':
           description: Response
@@ -17999,15 +18876,17 @@ paths:
               - message
               - object
               - type
-            example:
-              tag: v0.0.1
-              message: initial version
-              object: c3d0be41ecbe669545ee3e94d31ed9a4bc91ee3c
-              type: commit
-              tagger:
-                name: Monalisa Octocat
-                email: octocat@github.com
-                date: '2011-06-17T14:53:35-07:00'
+            examples:
+              default:
+                value:
+                  tag: v0.0.1
+                  message: initial version
+                  object: c3d0be41ecbe669545ee3e94d31ed9a4bc91ee3c
+                  type: commit
+                  tagger:
+                    name: Monalisa Octocat
+                    email: octocat@github.com
+                    date: '2011-06-17T14:53:35-07:00'
       responses:
         '201':
           description: Response
@@ -18167,13 +19046,15 @@ paths:
                     If not provided, GitHub will create a new Git tree object from only the entries defined in the `tree` parameter. If you create a new commit pointing to such a tree, then all files which were a part of the parent commit's tree and were not defined in the `tree` parameter will be listed as deleted by the new commit.
               required:
               - tree
-            example:
-              base_tree: 9fb037999f264ba9a7fc6274d15fa3ae2ab98312
-              tree:
-              - path: file.rb
-                mode: '100644'
-                type: blob
-                sha: 44b4fc6d56897b048c772eb4087f854f46256132
+            examples:
+              default:
+                value:
+                  base_tree: 9fb037999f264ba9a7fc6274d15fa3ae2ab98312
+                  tree:
+                  - path: file.rb
+                    mode: '100644'
+                    type: blob
+                    sha: 44b4fc6d56897b048c772eb4087f854f46256132
       responses:
         '201':
           description: Response
@@ -18349,16 +19230,18 @@ paths:
                     is triggered. Set to `true` to send notifications.
                   default: true
               additionalProperties: false
-            example:
-              name: web
-              active: true
-              events:
-              - push
-              - pull_request
-              config:
-                url: https://example.com/webhook
-                content_type: json
-                insecure_ssl: '0'
+            examples:
+              default:
+                value:
+                  name: web
+                  active: true
+                  events:
+                  - push
+                  - pull_request
+                  config:
+                    url: https://example.com/webhook
+                    content_type: json
+                    insecure_ssl: '0'
       responses:
         '201':
           description: Response
@@ -18486,10 +19369,12 @@ paths:
                   description: Determines if notifications are sent when the webhook
                     is triggered. Set to `true` to send notifications.
                   default: true
-            example:
-              active: true
-              add_events:
-              - pull_request
+            examples:
+              default:
+                value:
+                  active: true
+                  add_events:
+                  - pull_request
       responses:
         '200':
           description: Response
@@ -19082,14 +19967,16 @@ paths:
                     type: string
               required:
               - title
-            example:
-              title: Found a bug
-              body: I'm having a problem with this.
-              assignees:
-              - octocat
-              milestone: 1
-              labels:
-              - bug
+            examples:
+              default:
+                value:
+                  title: Found a bug
+                  body: I'm having a problem with this.
+                  assignees:
+                  - octocat
+                  milestone: 1
+                  labels:
+                  - bug
       responses:
         '201':
           description: Response
@@ -19227,8 +20114,10 @@ paths:
                   description: The contents of the comment.
               required:
               - body
-            example:
-              body: Me too
+            examples:
+              default:
+                value:
+                  body: Me too
       responses:
         '200':
           description: Response
@@ -19320,7 +20209,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for an issue comment
       description: Create a reaction to an [issue comment](https://docs.github.com/github-ae@latest/rest/reference/issues#comments).
@@ -19358,8 +20257,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -19385,7 +20286,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}":
     delete:
       summary: Delete an issue comment reaction
@@ -19411,7 +20322,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/issues/events":
     get:
       summary: List issue events for a repository
@@ -19682,10 +20603,12 @@ paths:
                     are silently ignored otherwise._'
                   items:
                     type: string
-            example:
-              assignees:
-              - hubot
-              - other_user
+            examples:
+              default:
+                value:
+                  assignees:
+                  - hubot
+                  - other_user
       responses:
         '201':
           description: Response
@@ -19727,10 +20650,12 @@ paths:
                     Assignees are silently ignored otherwise._'
                   items:
                     type: string
-            example:
-              assignees:
-              - hubot
-              - other_user
+            examples:
+              default:
+                value:
+                  assignees:
+                  - hubot
+                  - other_user
       responses:
         '200':
           description: Response
@@ -19816,8 +20741,10 @@ paths:
                   description: The contents of the comment.
               required:
               - body
-            example:
-              body: Me too
+            examples:
+              default:
+                value:
+                  body: Me too
       responses:
         '201':
           description: Response
@@ -19981,10 +20908,12 @@ paths:
                   required:
                   - name
               - type: string
-            example:
-              labels:
-              - bug
-              - enhancement
+            examples:
+              default:
+                value:
+                  labels:
+                  - bug
+                  - enhancement
       responses:
         '200':
           description: Response
@@ -20065,10 +20994,12 @@ paths:
                   required:
                   - name
               - type: string
-            example:
-              labels:
-              - bug
-              - enhancement
+            examples:
+              default:
+                value:
+                  labels:
+                  - bug
+                  - enhancement
       responses:
         '200':
           description: Response
@@ -20286,7 +21217,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for an issue
       description: Create a reaction to an [issue](https://docs.github.com/github-ae@latest/rest/reference/issues/).
@@ -20324,8 +21265,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Response
@@ -20351,7 +21294,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: false
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/issues/{issue_number}/reactions/{reaction_id}":
     delete:
       summary: Delete an issue reaction
@@ -20377,7 +21330,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/issues/{issue_number}/timeline":
     get:
       summary: List timeline events for an issue
@@ -20486,10 +21449,12 @@ paths:
                     and \"[Permission levels for a user account repository](https://docs.github.com/articles/permission-levels-for-a-user-account-repository/).\""
               required:
               - key
-            example:
-              title: octocat@octomac
-              key: ssh-rsa AAA...
-              read_only: true
+            examples:
+              default:
+                value:
+                  title: octocat@octomac
+                  key: ssh-rsa AAA...
+                  read_only: true
       responses:
         '201':
           description: Response
@@ -20638,10 +21603,12 @@ paths:
                     or fewer.
               required:
               - name
-            example:
-              name: bug
-              description: Something isn't working
-              color: f29513
+            examples:
+              default:
+                value:
+                  name: bug
+                  description: Something isn't working
+                  color: f29513
       responses:
         '201':
           description: Response
@@ -20740,10 +21707,12 @@ paths:
                   type: string
                   description: A short description of the label. Must be 100 characters
                     or fewer.
-            example:
-              new_name: 'bug :bug:'
-              description: Small bug fix required
-              color: b01f26
+            examples:
+              default:
+                value:
+                  new_name: 'bug :bug:'
+                  description: Small bug fix required
+                  color: b01f26
       responses:
         '200':
           description: Response
@@ -20919,8 +21888,10 @@ paths:
                     upstream.
               required:
               - branch
-            example:
-              branch: main
+            examples:
+              default:
+                value:
+                  branch: main
       responses:
         '200':
           description: The branch has been successfully synced with the upstream repository
@@ -21111,11 +22082,13 @@ paths:
                     8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.'
               required:
               - title
-            example:
-              title: v1.0
-              state: open
-              description: Tracking milestone for version 1.0
-              due_on: '2012-10-09T23:39:01Z'
+            examples:
+              default:
+                value:
+                  title: v1.0
+                  state: open
+                  description: Tracking milestone for version 1.0
+                  due_on: '2012-10-09T23:39:01Z'
       responses:
         '201':
           description: Response
@@ -21209,11 +22182,13 @@ paths:
                   format: date-time
                   description: 'The milestone due date. This is a timestamp in [ISO
                     8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.'
-            example:
-              title: v1.0
-              state: open
-              description: Tracking milestone for version 1.0
-              due_on: '2012-10-09T23:39:01Z'
+            examples:
+              default:
+                value:
+                  title: v1.0
+                  state: open
+                  description: Tracking milestone for version 1.0
+                  due_on: '2012-10-09T23:39:01Z'
       responses:
         '200':
           description: Response
@@ -21827,9 +22802,11 @@ paths:
                   description: The description of the project.
               required:
               - name
-            example:
-              name: Projects Documentation
-              body: Developer documentation project for the developer site.
+            examples:
+              default:
+                value:
+                  name: Projects Documentation
+                  body: Developer documentation project for the developer site.
       responses:
         '201':
           description: Response
@@ -22005,11 +22982,13 @@ paths:
               required:
               - head
               - base
-            example:
-              title: Amazing new feature
-              body: Please pull these awesome changes in!
-              head: octocat:new-feature
-              base: master
+            examples:
+              default:
+                value:
+                  title: Amazing new feature
+                  body: Please pull these awesome changes in!
+                  head: octocat:new-feature
+                  base: master
       responses:
         '201':
           description: Response
@@ -22146,8 +23125,10 @@ paths:
                   description: The text of the reply to the review comment.
               required:
               - body
-            example:
-              body: I like this too!
+            examples:
+              default:
+                value:
+                  body: I like this too!
       responses:
         '200':
           description: Response
@@ -22239,7 +23220,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a pull request review comment
       description: Create a reaction to a [pull request review comment](https://docs.github.com/github-ae@latest/rest/reference/pulls#comments).
@@ -22277,8 +23268,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -22304,7 +23297,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}":
     delete:
       summary: Delete a pull request comment reaction
@@ -22330,7 +23333,17 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/pulls/{pull_number}":
     get:
       summary: Get a pull request
@@ -22427,11 +23440,13 @@ paths:
                   type: boolean
                   description: Indicates whether [maintainers can modify](https://docs.github.com/articles/allowing-changes-to-a-pull-request-branch-created-from-a-fork/)
                     the pull request.
-            example:
-              title: new title
-              body: updated body
-              state: open
-              base: master
+            examples:
+              default:
+                value:
+                  title: new title
+                  body: updated body
+                  state: open
+                  base: master
       responses:
         '200':
           description: Response
@@ -22540,48 +23555,41 @@ paths:
                   description: The relative path to the file that necessitates a comment.
                 position:
                   type: integer
-                  description: "**Required without `comfort-fade` preview unless using
-                    `in_reply_to`**. The position in the diff where you want to add
-                    a review comment. Note this value is not the same as the line
-                    number in the file. For help finding the position value, read
-                    the note above."
+                  description: The position in the diff where you want to add a review
+                    comment. Note this value is not the same as the line number in
+                    the file. For help finding the position value, read the note above.
                 side:
                   type: string
-                  description: '**Required with `comfort-fade` preview unless using
-                    `in_reply_to`**. In a split diff view, the side of the diff that
-                    the pull request''s changes appear on. Can be `LEFT` or `RIGHT`.
-                    Use `LEFT` for deletions that appear in red. Use `RIGHT` for additions
+                  description: In a split diff view, the side of the diff that the
+                    pull request's changes appear on. Can be `LEFT` or `RIGHT`. Use
+                    `LEFT` for deletions that appear in red. Use `RIGHT` for additions
                     that appear in green or unchanged lines that appear in white and
                     are shown for context. For a multi-line comment, side represents
                     whether the last line of the comment range is a deletion or addition.
                     For more information, see "[Diff view options](https://docs.github.com/en/articles/about-comparing-branches-in-pull-requests#diff-view-options)"
-                    in the GitHub Help documentation.'
+                    in the GitHub Help documentation.
                   enum:
                   - LEFT
                   - RIGHT
                 line:
                   type: integer
-                  description: "**Required with `comfort-fade` preview unless using
-                    `in_reply_to`**. The line of the blob in the pull request diff
-                    that the comment applies to. For a multi-line comment, the last
-                    line of the range that your comment applies to."
+                  description: The line of the blob in the pull request diff that
+                    the comment applies to. For a multi-line comment, the last line
+                    of the range that your comment applies to.
                 start_line:
                   type: integer
                   description: '**Required when using multi-line comments unless using
-                    `in_reply_to`**. To create multi-line comments, you must use the
-                    `comfort-fade` preview header. The `start_line` is the first line
-                    in the pull request diff that your multi-line comment applies
-                    to. To learn more about multi-line comments, see "[Commenting
-                    on a pull request](https://docs.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
+                    `in_reply_to`**. The `start_line` is the first line in the pull
+                    request diff that your multi-line comment applies to. To learn
+                    more about multi-line comments, see "[Commenting on a pull request](https://docs.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
                     in the GitHub Help documentation.'
                 start_side:
                   type: string
                   description: '**Required when using multi-line comments unless using
-                    `in_reply_to`**. To create multi-line comments, you must use the
-                    `comfort-fade` preview header. The `start_side` is the starting
-                    side of the diff that the comment applies to. Can be `LEFT` or
-                    `RIGHT`. To learn more about multi-line comments, see "[Commenting
-                    on a pull request](https://docs.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
+                    `in_reply_to`**. The `start_side` is the starting side of the
+                    diff that the comment applies to. Can be `LEFT` or `RIGHT`. To
+                    learn more about multi-line comments, see "[Commenting on a pull
+                    request](https://docs.github.com/en/articles/commenting-on-a-pull-request#adding-line-comments-to-a-pull-request)"
                     in the GitHub Help documentation. See `side` in this table for
                     additional context.'
                   enum:
@@ -22598,14 +23606,6 @@ paths:
               required:
               - body
             examples:
-              example-for-a-single-line-comment:
-                summary: Example for a single-line comment
-                value:
-                  body: Let's add this deleted line back.
-                  commit_id: 6dcb09b5b57875f334f61aebed695e2e4193db5e
-                  path: file1.txt
-                  line: 5
-                  side: LEFT
               example-for-a-multi-line-comment:
                 summary: Example for a multi-line comment
                 value:
@@ -22671,8 +23671,10 @@ paths:
                   description: The text of the review comment.
               required:
               - body
-            example:
-              body: Great stuff!
+            examples:
+              default:
+                value:
+                  body: Great stuff!
       responses:
         '201':
           description: Response
@@ -22968,13 +23970,15 @@ paths:
                 - reviewers
               - required:
                 - team_reviewers
-            example:
-              reviewers:
-              - octocat
-              - hubot
-              - other_user
-              team_reviewers:
-              - justice-league
+            examples:
+              default:
+                value:
+                  reviewers:
+                  - octocat
+                  - hubot
+                  - other_user
+                  team_reviewers:
+                  - justice-league
       responses:
         '201':
           description: Response
@@ -23168,15 +24172,17 @@ paths:
                     required:
                     - path
                     - body
-            example:
-              commit_id: ecdd80bb57125d7ba9641ffaa4d7d2c19d3f3091
-              body: This is close to perfect! Please address the suggested inline
-                change.
-              event: REQUEST_CHANGES
-              comments:
-              - path: file.md
-                position: 6
-                body: Please add more information here, and fix this typo.
+            examples:
+              default:
+                value:
+                  commit_id: ecdd80bb57125d7ba9641ffaa4d7d2c19d3f3091
+                  body: This is close to perfect! Please address the suggested inline
+                    change.
+                  event: REQUEST_CHANGES
+                  comments:
+                  - path: file.md
+                    position: 6
+                    body: Please add more information here, and fix this typo.
       responses:
         '200':
           description: Response
@@ -23696,13 +24702,15 @@ paths:
                   default: false
               required:
               - tag_name
-            example:
-              tag_name: v1.0.0
-              target_commitish: master
-              name: v1.0.0
-              body: Description of the release
-              draft: false
-              prerelease: false
+            examples:
+              default:
+                value:
+                  tag_name: v1.0.0
+                  target_commitish: master
+                  name: v1.0.0
+                  body: Description of the release
+                  draft: false
+                  prerelease: false
       responses:
         '201':
           description: Response
@@ -23759,8 +24767,6 @@ paths:
                   "$ref": "#/components/examples/release-asset"
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '302':
           "$ref": "#/components/responses/found"
       x-github:
@@ -23798,9 +24804,11 @@ paths:
                 state:
                   type: string
                   example: '"uploaded"'
-            example:
-              name: foo-1.0.0-osx.zip
-              label: Mac binary
+            examples:
+              default:
+                value:
+                  name: foo-1.0.0-osx.zip
+                  label: Mac binary
       responses:
         '200':
           description: Response
@@ -23981,13 +24989,15 @@ paths:
                   type: boolean
                   description: "`true` to identify the release as a prerelease, `false`
                     to identify the release as a full release."
-            example:
-              tag_name: v1.0.0
-              target_commitish: master
-              name: v1.0.0
-              body: Description of the release
-              draft: false
-              prerelease: false
+            examples:
+              default:
+                value:
+                  tag_name: v1.0.0
+                  target_commitish: master
+                  name: v1.0.0
+                  body: Description of the release
+                  draft: false
+                  prerelease: false
       responses:
         '200':
           description: Response
@@ -24137,6 +25147,69 @@ paths:
         category: repos
         subcategory: releases
   "/repos/{owner}/{repo}/releases/{release_id}/reactions":
+    get:
+      summary: List reactions for a release
+      description: List the reactions to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/list-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-release
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - name: content
+        description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
+          Omit this parameter to list all reactions to a release.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - "+1"
+          - laugh
+          - heart
+          - hooray
+          - rocket
+          - eyes
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/reaction"
+              examples:
+                default:
+                  "$ref": "#/components/examples/reaction-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '415':
+          "$ref": "#/components/responses/preview_header_missing"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
     post:
       summary: Create reaction for a release
       description: 'Create a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).
@@ -24172,8 +25245,10 @@ paths:
                   - eyes
               required:
               - content
-            example:
-              content: heart
+            examples:
+              default:
+                value:
+                  content: heart
       responses:
         '200':
           description: Reaction exists
@@ -24199,7 +25274,53 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: reactions
-        subcategory: 
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
+  "/repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}":
+    delete:
+      summary: Delete a release reaction
+      description: |-
+        **Note:** You can also specify a repository by `repository_id` using the route `DELETE delete /repositories/:repository_id/releases/:release_id/reactions/:reaction_id`.
+
+        Delete a reaction to a [release](https://docs.github.com/github-ae@latest/rest/reference/repos#releases).
+      tags:
+      - reactions
+      operationId: reactions/delete-for-release
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#delete-a-release-reaction
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/release-id"
+      - "$ref": "#/components/parameters/reaction-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: reactions
+        previews:
+        - required: true
+          name: squirrel-girl
+          note: |-
+            An additional `reactions` object in the issue comment payload is currently available for developers to preview. During the preview period, the APIs may change without advance notice. Please see the [blog post](https://developer.github.com/changes/2016-05-12-reactions-api-preview) for full details.
+
+            To access the API you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.squirrel-girl-preview
+            ```
+            The `reactions` key will have the following payload where `url` can be used to construct the API location for [listing and creating](https://docs.github.com/github-ae@latest/rest/reference/reactions) reactions.
   "/repos/{owner}/{repo}/secret-scanning/alerts":
     get:
       summary: List secret scanning alerts for a repository
@@ -24311,9 +25432,11 @@ paths:
                   "$ref": "#/components/schemas/secret-scanning-alert-resolution"
               required:
               - state
-            example:
-              state: resolved
-              resolution: false_positive
+            examples:
+              default:
+                value:
+                  state: resolved
+                  resolution: false_positive
       responses:
         '200':
           description: Response
@@ -24627,11 +25750,13 @@ paths:
                   default: default
               required:
               - state
-            example:
-              state: success
-              target_url: https://example.com/build/status
-              description: The build succeeded!
-              context: continuous-integration/jenkins
+            examples:
+              default:
+                value:
+                  state: success
+                  target_url: https://example.com/build/status
+                  description: The build succeeded!
+                  context: continuous-integration/jenkins
       responses:
         '201':
           description: Response
@@ -24953,12 +26078,14 @@ paths:
                     type: string
               required:
               - names
-            example:
-              names:
-              - octocat
-              - atom
-              - electron
-              - api
+            examples:
+              default:
+                value:
+                  names:
+                  - octocat
+                  - atom
+                  - electron
+                  - api
       responses:
         '200':
           description: Response
@@ -25014,11 +26141,13 @@ paths:
                     type: integer
               required:
               - new_owner
-            example:
-              new_owner: github
-              team_ids:
-              - 12
-              - 345
+            examples:
+              default:
+                value:
+                  new_owner: github
+                  team_ids:
+                  - 12
+                  - 345
       responses:
         '202':
           description: Response
@@ -25129,12 +26258,14 @@ paths:
                   default: false
               required:
               - name
-            example:
-              owner: octocat
-              name: Hello-World
-              description: This is your first repository
-              include_all_branches: false
-              private: false
+            examples:
+              default:
+                value:
+                  owner: octocat
+                  name: Hello-World
+                  description: This is your first repository
+                  include_all_branches: false
+                  private: false
       responses:
         '201':
           description: Response
@@ -25240,13 +26371,15 @@ paths:
               required:
               - schemas
               - displayName
-            example:
-              schemas:
-              - urn:ietf:params:scim:schemas:core:2.0:Group
-              displayName: octo-org
-              members:
-              - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-              - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
+            examples:
+              default:
+                value:
+                  schemas:
+                  - urn:ietf:params:scim:schemas:core:2.0:Group
+                  displayName: octo-org
+                  members:
+                  - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
+                  - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
       responses:
         '201':
           description: Response
@@ -25341,13 +26474,15 @@ paths:
               required:
               - schemas
               - displayName
-            example:
-              schemas:
-              - urn:ietf:params:scim:schemas:core:2.0:Group
-              displayName: octo-org
-              members:
-              - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-              - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
+            examples:
+              default:
+                value:
+                  schemas:
+                  - urn:ietf:params:scim:schemas:core:2.0:Group
+                  displayName: octo-org
+                  members:
+                  - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
+                  - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
       responses:
         '200':
           description: Response
@@ -25415,14 +26550,16 @@ paths:
               required:
               - schemas
               - Operations
-            example:
-              schemas:
-              - urn:ietf:params:scim:api:messages:2.0:PatchOp
-              Operations:
-              - op: remove
-                path: members
+            examples:
+              default:
                 value:
-                - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
+                  schemas:
+                  - urn:ietf:params:scim:api:messages:2.0:PatchOp
+                  Operations:
+                  - op: remove
+                    path: members
+                    value:
+                    - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
       responses:
         '200':
           description: Response
@@ -25490,10 +26627,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
-          See "[Searching code](https://docs.github.com/articles/searching-code/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          See "[Searching code](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-code)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -25569,10 +26707,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
-          See "[Searching commits](https://docs.github.com/articles/searching-commits/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          See "[Searching commits](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-commits)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -25646,10 +26785,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
-          See "[Searching issues and pull requests](https://docs.github.com/articles/searching-issues-and-pull-requests/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          See "[Searching issues and pull requests](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-issues-and-pull-requests)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -25821,9 +26961,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
           See "[Searching for repositories](https://docs.github.com/articles/searching-for-repositories/)"
           for a detailed list of qualifiers.
         in: query
@@ -25902,9 +27043,10 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
         in: query
         required: true
         schema:
@@ -25963,10 +27105,11 @@ paths:
       parameters:
       - name: q
         description: The query contains one or more search keywords and qualifiers.
-          Qualifiers allow you to limit your search to specific areas of GitHub. The
-          REST API supports the same qualifiers as GitHub.com. To learn more about
-          the format of the query, see [Constructing a search query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
-          See "[Searching users](https://docs.github.com/articles/searching-users/)"
+          Qualifiers allow you to limit your search to specific areas of GitHub AE.
+          The REST API supports the same qualifiers as the web interface for GitHub
+          AE. To learn more about the format of the query, see [Constructing a search
+          query](https://docs.github.com/github-ae@latest/rest/reference/search#constructing-a-search-query).
+          See "[Searching users](https://docs.github.com/github-ae@latest/search-github/searching-on-github/searching-users)"
           for a detailed list of qualifiers.
         in: query
         required: true
@@ -26116,13 +27259,15 @@ paths:
                   nullable: true
               required:
               - name
-            example:
-              name: new team name
-              description: new team description
-              privacy: closed
+            examples:
+              default:
+                value:
+                  name: new team name
+                  description: new team description
+                  privacy: closed
       responses:
         '200':
-          description: Response
+          description: Response when the updated information already exists
           content:
             application/json:
               schema:
@@ -26264,9 +27409,11 @@ paths:
               required:
               - title
               - body
-            example:
-              title: Our first team post
-              body: Hi! This is an area for us to collaborate as a team.
+            examples:
+              default:
+                value:
+                  title: Our first team post
+                  body: Hi! This is an area for us to collaborate as a team.
       responses:
         '201':
           description: Response
@@ -26348,8 +27495,10 @@ paths:
                 body:
                   type: string
                   description: The discussion post's body text.
-            example:
-              title: Welcome to our first team post
+            examples:
+              default:
+                value:
+                  title: Welcome to our first team post
       responses:
         '200':
           description: Response
@@ -26465,8 +27614,10 @@ paths:
                   description: The discussion comment's body text.
               required:
               - body
-            example:
-              body: Do you like apples?
+            examples:
+              default:
+                value:
+                  body: Do you like apples?
       responses:
         '201':
           description: Response
@@ -26549,8 +27700,10 @@ paths:
                   description: The discussion comment's body text.
               required:
               - body
-            example:
-              body: Do you like pineapples?
+            examples:
+              default:
+                value:
+                  body: Do you like pineapples?
       responses:
         '200':
           description: Response
@@ -26595,236 +27748,6 @@ paths:
         deprecationDate: '2020-01-21'
         category: teams
         subcategory: discussion-comments
-      deprecated: true
-  "/teams/{team_id}/discussions/{discussion_number}/comments/{comment_number}/reactions":
-    get:
-      summary: List reactions for a team discussion comment (Legacy)
-      description: |-
-        **Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`List reactions for a team discussion comment`](https://docs.github.com/github-ae@latest/rest/reference/reactions#list-reactions-for-a-team-discussion-comment) endpoint.
-
-        List the reactions to a [team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/teams#discussion-comments). OAuth access tokens require the `read:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/).
-      tags:
-      - reactions
-      operationId: reactions/list-for-team-discussion-comment-legacy
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-team-discussion-comment-legacy
-      parameters:
-      - "$ref": "#/components/parameters/team-id"
-      - "$ref": "#/components/parameters/discussion-number"
-      - "$ref": "#/components/parameters/comment-number"
-      - name: content
-        description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
-          Omit this parameter to list all reactions to a team discussion comment.
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - "+1"
-          - "-1"
-          - laugh
-          - confused
-          - heart
-          - hooray
-          - rocket
-          - eyes
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/reaction"
-              examples:
-                default:
-                  "$ref": "#/components/examples/reaction-items"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        removalDate: '2021-02-21'
-        deprecationDate: '2020-02-26'
-        category: reactions
-        subcategory: 
-      deprecated: true
-    post:
-      summary: Create reaction for a team discussion comment (Legacy)
-      description: |-
-        **Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new "[Create reaction for a team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/reactions#create-reaction-for-a-team-discussion-comment)" endpoint.
-
-        Create a reaction to a [team discussion comment](https://docs.github.com/github-ae@latest/rest/reference/teams#discussion-comments). OAuth access tokens require the `write:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/). A response with an HTTP `200` status means that you already added the reaction type to this team discussion comment.
-      tags:
-      - reactions
-      operationId: reactions/create-for-team-discussion-comment-legacy
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-team-discussion-comment-legacy
-      parameters:
-      - "$ref": "#/components/parameters/team-id"
-      - "$ref": "#/components/parameters/discussion-number"
-      - "$ref": "#/components/parameters/comment-number"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types)
-                    to add to the team discussion comment.
-                  enum:
-                  - "+1"
-                  - "-1"
-                  - laugh
-                  - confused
-                  - heart
-                  - hooray
-                  - rocket
-                  - eyes
-              required:
-              - content
-            example:
-              content: heart
-      responses:
-        '201':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/reaction"
-              examples:
-                default:
-                  "$ref": "#/components/examples/reaction"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        removalDate: '2021-02-21'
-        deprecationDate: '2020-02-26'
-        category: reactions
-        subcategory: 
-      deprecated: true
-  "/teams/{team_id}/discussions/{discussion_number}/reactions":
-    get:
-      summary: List reactions for a team discussion (Legacy)
-      description: |-
-        **Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`List reactions for a team discussion`](https://docs.github.com/github-ae@latest/rest/reference/reactions#list-reactions-for-a-team-discussion) endpoint.
-
-        List the reactions to a [team discussion](https://docs.github.com/github-ae@latest/rest/reference/teams#discussions). OAuth access tokens require the `read:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/).
-      tags:
-      - reactions
-      operationId: reactions/list-for-team-discussion-legacy
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#list-reactions-for-a-team-discussion-legacy
-      parameters:
-      - "$ref": "#/components/parameters/team-id"
-      - "$ref": "#/components/parameters/discussion-number"
-      - name: content
-        description: Returns a single [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types).
-          Omit this parameter to list all reactions to a team discussion.
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - "+1"
-          - "-1"
-          - laugh
-          - confused
-          - heart
-          - hooray
-          - rocket
-          - eyes
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/reaction"
-              examples:
-                default:
-                  "$ref": "#/components/examples/reaction-items"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: true
-        removalDate: '2021-02-21'
-        deprecationDate: '2020-02-26'
-        category: reactions
-        subcategory: 
-      deprecated: true
-    post:
-      summary: Create reaction for a team discussion (Legacy)
-      description: |-
-        **Deprecation Notice:** This endpoint route is deprecated and will be removed from the Teams API. We recommend migrating your existing code to use the new [`Create reaction for a team discussion`](https://docs.github.com/github-ae@latest/rest/reference/reactions#create-reaction-for-a-team-discussion) endpoint.
-
-        Create a reaction to a [team discussion](https://docs.github.com/github-ae@latest/rest/reference/teams#discussions). OAuth access tokens require the `write:discussion` [scope](https://docs.github.com/github-ae@latest/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/). A response with an HTTP `200` status means that you already added the reaction type to this team discussion.
-      tags:
-      - reactions
-      operationId: reactions/create-for-team-discussion-legacy
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/reactions/#create-reaction-for-a-team-discussion-legacy
-      parameters:
-      - "$ref": "#/components/parameters/team-id"
-      - "$ref": "#/components/parameters/discussion-number"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                  description: The [reaction type](https://docs.github.com/github-ae@latest/rest/reference/reactions#reaction-types)
-                    to add to the team discussion.
-                  enum:
-                  - "+1"
-                  - "-1"
-                  - laugh
-                  - confused
-                  - heart
-                  - hooray
-                  - rocket
-                  - eyes
-              required:
-              - content
-            example:
-              content: heart
-      responses:
-        '201':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/reaction"
-              examples:
-                default:
-                  "$ref": "#/components/examples/reaction"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        removalDate: '2021-02-21'
-        deprecationDate: '2020-02-26'
-        category: reactions
-        subcategory: 
       deprecated: true
   "/teams/{team_id}/members":
     get:
@@ -27296,8 +28219,6 @@ paths:
           description: Response
         '404':
           "$ref": "#/components/responses/not_found"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed"
       x-github:
@@ -28009,8 +28930,6 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '401':
           "$ref": "#/components/responses/requires_authentication"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -28493,8 +29412,10 @@ paths:
                   - active
               required:
               - state
-            example:
-              state: active
+            examples:
+              default:
+                value:
+                  state: active
       responses:
         '200':
           description: Response
@@ -28812,8 +29733,6 @@ paths:
           "$ref": "#/components/responses/forbidden"
         '401':
           "$ref": "#/components/responses/requires_authentication"
-        '415':
-          "$ref": "#/components/responses/preview_header_missing"
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
       x-github:
@@ -30238,6 +31157,9 @@ components:
       required: true
       schema:
         type: integer
+      examples:
+        default:
+          value: 1
     client-id:
       name: client_id
       in: path
@@ -30245,6 +31167,9 @@ components:
       description: The client ID of your GitHub app.
       schema:
         type: string
+      examples:
+        default:
+          value: Iv1.8a61f9b3a7aba766
     access-token:
       name: access_token
       in: path
@@ -30349,13 +31274,6 @@ components:
       required: false
       schema:
         type: integer
-    team-slug:
-      name: team_slug
-      description: team_slug parameter
-      in: path
-      required: true
-      schema:
-        type: string
     repository-id:
       name: repository_id
       in: path
@@ -30383,6 +31301,13 @@ components:
       required: true
       schema:
         type: integer
+    team-slug:
+      name: team_slug
+      description: team_slug parameter
+      in: path
+      required: true
+      schema:
+        type: string
     discussion-number:
       name: discussion_number
       in: path
@@ -30639,6 +31564,13 @@ components:
       required: true
       schema:
         type: integer
+    environment-name:
+      name: environment_name
+      in: path
+      required: true
+      description: The name of the environment
+      schema:
+        type: string
     invitation-id:
       name: invitation_id
       description: invitation_id parameter
@@ -33126,9 +34058,9 @@ components:
             includes the actions in the `actions` organization.
         verified_allowed:
           type: boolean
-          description: Whether actions in GitHub Marketplace from verified creators
-            are allowed. Set to `true` to allow all GitHub Marketplace actions by
-            verified creators.
+          description: Whether actions from GitHub Marketplace verified creators are
+            allowed. Set to `true` to allow all actions by GitHub Marketplace verified
+            creators.
         patterns_allowed:
           type: array
           description: Specifies a list of string-matching patterns to allow specific
@@ -33214,6 +34146,68 @@ components:
       - status
       - busy
       - labels
+    runner-application:
+      title: Runner Application
+      description: Runner Application
+      type: object
+      properties:
+        os:
+          type: string
+        architecture:
+          type: string
+        download_url:
+          type: string
+        filename:
+          type: string
+        temp_download_token:
+          description: A short lived bearer token used to download the runner, if
+            needed.
+          type: string
+        sha256_checksum:
+          type: string
+      required:
+      - os
+      - architecture
+      - download_url
+      - filename
+    authentication-token:
+      title: Authentication Token
+      description: Authentication Token
+      type: object
+      properties:
+        token:
+          description: The token used for authentication
+          type: string
+          example: v1.1f699f1069f60xxx
+        expires_at:
+          description: The time this token expires
+          type: string
+          format: date-time
+          example: '2016-07-11T22:14:10Z'
+        permissions:
+          type: object
+          example:
+            issues: read
+            deployments: write
+        repositories:
+          description: The repositories this token has access to
+          type: array
+          items:
+            "$ref": "#/components/schemas/repository"
+        single_file:
+          type: string
+          example: config.yaml
+          nullable: true
+        repository_selection:
+          description: Describe whether all repositories have been selected or there's
+            a selection involved
+          type: string
+          enum:
+          - all
+          - selected
+      required:
+      - token
+      - expires_at
     link-with-type:
       title: Link With Type
       description: Hypermedia Link with Type
@@ -35493,40 +36487,6 @@ components:
       - reason
       - url
       - subscribed
-    external-groups:
-      title: ExternalGroups
-      description: A list of external groups available to be connected to a team
-      type: object
-      properties:
-        groups:
-          description: An array of external groups available to be mapped to a team
-          example:
-          - group_id: 1
-            group_name: group-azuread-test
-            updated_at: 2021-01-03 22:27:15:000 -700
-          - group_id: 2
-            group_name: group-azuread-test2
-            updated_at: 2021-06-03 22:27:15:000 -700
-          type: array
-          items:
-            type: object
-            required:
-            - group_id
-            - group_name
-            - updated_at
-            properties:
-              group_id:
-                description: The internal ID of the group
-                example: 1
-                type: integer
-              group_name:
-                description: The display name of the group
-                example: group-azuread-test
-                type: string
-              updated_at:
-                description: The time of the last update for this group
-                example: 2019-06-03 22:27:15:000 -700
-                type: string
     organization-full:
       title: Organization Full
       description: Organization Full
@@ -35926,6 +36886,40 @@ components:
               member_email:
                 description: An email attached to a user
                 example: mona_lisa@github.com
+                type: string
+    external-groups:
+      title: ExternalGroups
+      description: A list of external groups available to be connected to a team
+      type: object
+      properties:
+        groups:
+          description: An array of external groups available to be mapped to a team
+          example:
+          - group_id: 1
+            group_name: group-azuread-test
+            updated_at: 2021-01-03 22:27:15:000 -700
+          - group_id: 2
+            group_name: group-azuread-test2
+            updated_at: 2021-06-03 22:27:15:000 -700
+          type: array
+          items:
+            type: object
+            required:
+            - group_id
+            - group_name
+            - updated_at
+            properties:
+              group_id:
+                description: The internal ID of the group
+                example: 1
+                type: integer
+              group_name:
+                description: The display name of the group
+                example: group-azuread-test
+                type: string
+              updated_at:
+                description: The time of the last update for this group
+                example: 2019-06-03 22:27:15:000 -700
                 type: string
     org-hook:
       title: Org Hook
@@ -38736,6 +39730,11 @@ components:
           properties:
             enabled:
               type: boolean
+        block_creations:
+          type: object
+          properties:
+            enabled:
+              type: boolean
         required_conversation_resolution:
           type: object
           properties:
@@ -39193,6 +40192,14 @@ components:
             enabled:
               type: boolean
           additionalProperties: false
+        block_creations:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+          additionalProperties: false
+          required:
+          - enabled
       required:
       - url
     deployment-simple:
@@ -41636,6 +42643,149 @@ components:
       - target_url
       - repository_url
       - url
+      - created_at
+      - updated_at
+    wait-timer:
+      type: integer
+      example: 30
+      description: The amount of time to delay a job after the job is initially triggered.
+        The time (in minutes) must be an integer between 0 and 43,200 (30 days).
+    deployment-reviewer-type:
+      type: string
+      description: 'The type of reviewer. Must be one of: `User` or `Team`'
+      enum:
+      - User
+      - Team
+      example: User
+    deployment_branch_policy:
+      type: object
+      description: The type of deployment branch policy for this environment. To allow
+        all branches to deploy, set to `null`.
+      properties:
+        protected_branches:
+          type: boolean
+          description: Whether only branches with branch protection rules can deploy
+            to this environment. If `protected_branches` is `true`, `custom_branch_policies`
+            must be `false`; if `protected_branches` is `false`, `custom_branch_policies`
+            must be `true`.
+        custom_branch_policies:
+          type: boolean
+          description: Whether only branches that match the specified name patterns
+            can deploy to this environment.  If `custom_branch_policies` is `true`,
+            `protected_branches` must be `false`; if `custom_branch_policies` is `false`,
+            `protected_branches` must be `true`.
+      nullable: true
+      required:
+      - protected_branches
+      - custom_branch_policies
+    environment:
+      title: Environment
+      description: Details of a deployment environment
+      type: object
+      properties:
+        id:
+          description: The id of the environment.
+          example: 56780428
+          type: integer
+        node_id:
+          type: string
+          example: MDExOkVudmlyb25tZW50NTY3ODA0Mjg=
+        name:
+          description: The name of the environment.
+          example: staging
+          type: string
+        url:
+          type: string
+          example: https://api.github.com/repos/github/hello-world/environments/staging
+        html_url:
+          type: string
+          example: https://github.com/github/hello-world/deployments/activity_log?environments_filter=staging
+        created_at:
+          description: The time that the environment was created, in ISO 8601 format.
+          example: '2020-11-23T22:00:40Z'
+          format: date-time
+          type: string
+        updated_at:
+          description: The time that the environment was last updated, in ISO 8601
+            format.
+          example: '2020-11-23T22:00:40Z'
+          format: date-time
+          type: string
+        protection_rules:
+          type: array
+          items:
+            anyOf:
+            - type: object
+              properties:
+                id:
+                  type: integer
+                  example: 3515
+                node_id:
+                  type: string
+                  example: MDQ6R2F0ZTM1MTU=
+                type:
+                  type: string
+                  example: wait_timer
+                wait_timer:
+                  "$ref": "#/components/schemas/wait-timer"
+              required:
+              - id
+              - node_id
+              - type
+            - type: object
+              properties:
+                id:
+                  type: integer
+                  example: 3755
+                node_id:
+                  type: string
+                  example: MDQ6R2F0ZTM3NTU=
+                type:
+                  type: string
+                  example: required_reviewers
+                reviewers:
+                  type: array
+                  description: The people or teams that may approve jobs that reference
+                    the environment. You can list up to six users or teams as reviewers.
+                    The reviewers must have at least read access to the repository.
+                    Only one of the required reviewers needs to approve the job for
+                    it to proceed.
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        "$ref": "#/components/schemas/deployment-reviewer-type"
+                      reviewer:
+                        anyOf:
+                        - "$ref": "#/components/schemas/simple-user"
+                        - "$ref": "#/components/schemas/team"
+              required:
+              - id
+              - node_id
+              - type
+            - type: object
+              properties:
+                id:
+                  type: integer
+                  example: 3515
+                node_id:
+                  type: string
+                  example: MDQ6R2F0ZTM1MTU=
+                type:
+                  type: string
+                  example: branch_policy
+              required:
+              - id
+              - node_id
+              - type
+        deployment_branch_policy:
+          "$ref": "#/components/schemas/deployment_branch_policy"
+      required:
+      - id
+      - node_id
+      - name
+      - url
+      - html_url
       - created_at
       - updated_at
     actor:
@@ -48118,7 +49268,7 @@ components:
         app:
           url: http://my-github-app.com
           name: my github app
-          client_id: abcde12345fghij67890
+          client_id: Iv1.8a61f9b3a7aba766
         note: optional note
         note_url: http://optional/note/url
         updated_at: '2011-09-06T20:39:23Z'
@@ -48374,6 +49524,36 @@ components:
           - id: 21
             name: no-gpu
             type: custom
+    runner-application-items:
+      value:
+      - os: osx
+        architecture: x64
+        download_url: https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-osx-x64-2.164.0.tar.gz
+        filename: actions-runner-osx-x64-2.164.0.tar.gz
+      - os: linux
+        architecture: x64
+        download_url: https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-x64-2.164.0.tar.gz
+        filename: actions-runner-linux-x64-2.164.0.tar.gz
+      - os: linux
+        architecture: arm
+        download_url: https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-arm-2.164.0.tar.gz
+        filename: actions-runner-linux-arm-2.164.0.tar.gz
+      - os: win
+        architecture: x64
+        download_url: https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-win-x64-2.164.0.zip
+        filename: actions-runner-win-x64-2.164.0.zip
+      - os: linux
+        architecture: arm64
+        download_url: https://github.com/actions/runner/releases/download/v2.164.0/actions-runner-linux-arm64-2.164.0.tar.gz
+        filename: actions-runner-linux-arm64-2.164.0.tar.gz
+    authentication-token:
+      value:
+        token: LLBF3JGZDX3P5PMEXLND6TS6FCWO6
+        expires_at: '2020-01-22T12:13:35.123-08:00'
+    authentication-token-2:
+      value:
+        token: AABF3JGZDX3P5PMEXLND6TS6FCWO6
+        expires_at: '2020-01-29T12:13:35.123-08:00'
     runner:
       value:
         id: 23
@@ -49343,15 +50523,6 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
-    external-groups:
-      value:
-        groups:
-        - group_id: '123'
-          group_name: Octocat admins
-          updated_at: '2021-01-24T11:31:04-06:00'
-        - group_id: '456'
-          group_name: Octocat docs members
-          updated_at: '2021-03-24T11:31:04-06:00'
     organization-full-default-response:
       summary: Default response
       value:
@@ -49583,6 +50754,32 @@ components:
           forks: 1
           open_issues: 1
           watchers: 1
+    runner-groups-org:
+      value:
+        total_count: 3
+        runner_groups:
+        - id: 1
+          name: Default
+          visibility: all
+          default: true
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/1/runners
+          inherited: false
+          allows_public_repositories: true
+        - id: 2
+          name: octo-runner-group
+          visibility: selected
+          default: false
+          selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
+          inherited: true
+          allows_public_repositories: true
+        - id: 3
+          name: expensive-hardware
+          visibility: private
+          default: false
+          runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/3/runners
+          inherited: false
+          allows_public_repositories: true
     runner-group:
       value:
         id: 2
@@ -49590,6 +50787,16 @@ components:
         visibility: selected
         default: false
         selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner-groups/2/repositories
+        runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
+        inherited: false
+        allows_public_repositories: true
+    runner-group-item:
+      value:
+        id: 2
+        name: octo-runner-group
+        visibility: selected
+        default: false
+        selected_repositories_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/repositories
         runners_url: https://api.github.com/orgs/octo-org/actions/runner_groups/2/runners
         inherited: false
         allows_public_repositories: true
@@ -49710,6 +50917,15 @@ components:
           member_login: octo-lisa_eocsaxrs
           member_name: Octo Lisa
           member_email: octo_lisa@github.com
+    external-groups:
+      value:
+        groups:
+        - group_id: '123'
+          group_name: Octocat admins
+          updated_at: '2021-01-24T11:31:04-06:00'
+        - group_id: '456'
+          group_name: Octocat docs members
+          updated_at: '2021-03-24T11:31:04-06:00'
     org-hook-items:
       value:
       - id: 1
@@ -52604,7 +53820,7 @@ components:
           number: 3
           started_at: '2020-01-20T09:42:45.000-08:00'
           completed_at: '2020-01-20T09:42:45.000-08:00'
-        - name: Run actions/cache@v2
+        - name: Run actions/cache@v3
           status: completed
           conclusion: success
           number: 4
@@ -52634,7 +53850,7 @@ components:
           number: 8
           started_at: '2020-01-20T09:42:59.000-08:00'
           completed_at: '2020-01-20T09:44:39.000-08:00'
-        - name: Post actions/cache@v2
+        - name: Post actions/cache@v3
           status: completed
           conclusion: success
           number: 16
@@ -52667,6 +53883,8 @@ components:
         - id: 30433642
           name: Build
           node_id: MDEyOldvcmtmbG93IFJ1bjI2OTI4OQ==
+          check_suite_id: 42
+          check_suite_node_id: MDEwOkNoZWNrU3VpdGU0Mg==
           head_branch: master
           head_sha: acb5820ced9479c074f688cc328bf03f341a511d
           run_number: 562
@@ -52679,6 +53897,46 @@ components:
           pull_requests: []
           created_at: '2020-01-22T19:33:08Z'
           updated_at: '2020-01-22T19:33:08Z'
+          actor:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          run_attempt: 1
+          run_started_at: '2020-01-22T19:33:08Z'
+          triggering_actor:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
           jobs_url: https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/jobs
           logs_url: https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/logs
           check_suite_url: https://api.github.com/repos/octo-org/octo-repo/check-suites/414944374
@@ -52867,6 +54125,8 @@ components:
           received_events_url: https://api.github.com/users/octocat/received_events
           type: User
           site_admin: false
+        run_attempt: 1
+        run_started_at: '2020-01-22T19:33:08Z'
         triggering_actor:
           login: octocat
           id: 1
@@ -53071,7 +54331,7 @@ components:
             number: 3
             started_at: '2020-01-20T09:42:45.000-08:00'
             completed_at: '2020-01-20T09:42:45.000-08:00'
-          - name: Run actions/cache@v2
+          - name: Run actions/cache@v3
             status: completed
             conclusion: success
             number: 4
@@ -53101,7 +54361,7 @@ components:
             number: 8
             started_at: '2020-01-20T09:42:59.000-08:00'
             completed_at: '2020-01-20T09:44:39.000-08:00'
-          - name: Post actions/cache@v2
+          - name: Post actions/cache@v3
             status: completed
             conclusion: success
             number: 16
@@ -53535,7 +54795,7 @@ components:
         id: 4
         head_sha: ce587453ced02b1526dfb4cb910479d431683101
         node_id: MDg6Q2hlY2tSdW40
-        external_id: ''
+        external_id: '42'
         url: https://api.github.com/repos/github/hello-world/check-runs/4
         html_url: https://github.com/github/hello-world/runs/4
         details_url: https://example.com
@@ -53543,6 +54803,85 @@ components:
         conclusion: neutral
         started_at: '2018-05-04T01:14:52Z'
         completed_at: '2018-05-04T01:14:52Z'
+        output:
+          title: Mighty Readme report
+          summary: There are 0 failures, 2 warnings, and 1 notice.
+          text: You may have some misspelled words on lines 2 and 4. You also may
+            want to add a section in your README about how to install your app.
+          annotations_count: 2
+          annotations_url: https://api.github.com/repos/github/hello-world/check-runs/4/annotations
+        name: mighty_readme
+        check_suite:
+          id: 5
+        app:
+          id: 1
+          slug: octoapp
+          node_id: MDExOkludGVncmF0aW9uMQ==
+          owner:
+            login: github
+            id: 1
+            node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+            url: https://api.github.com/orgs/github
+            repos_url: https://api.github.com/orgs/github/repos
+            events_url: https://api.github.com/orgs/github/events
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: true
+          name: Octocat App
+          description: ''
+          external_url: https://example.com
+          html_url: https://github.com/apps/octoapp
+          created_at: '2017-07-08T16:18:44-04:00'
+          updated_at: '2017-07-08T16:18:44-04:00'
+          permissions:
+            metadata: read
+            contents: read
+            issues: write
+            single_file: write
+          events:
+          - push
+          - pull_request
+        pull_requests:
+        - url: https://api.github.com/repos/github/hello-world/pulls/1
+          id: 1934
+          number: 3956
+          head:
+            ref: say-hello
+            sha: 3dca65fa3e8d4b3da3f3d056c59aee1c50f41390
+            repo:
+              id: 526
+              url: https://api.github.com/repos/github/hello-world
+              name: hello-world
+          base:
+            ref: master
+            sha: e7fdf7640066d71ad16a86fbcbb9c6a10a18af4f
+            repo:
+              id: 526
+              url: https://api.github.com/repos/github/hello-world
+              name: hello-world
+    check-run-example-of-in-progress-conclusion:
+      summary: Response for completed conclusion
+      value:
+        id: 4
+        head_sha: ce587453ced02b1526dfb4cb910479d431683101
+        node_id: MDg6Q2hlY2tSdW40
+        external_id: '42'
+        url: https://api.github.com/repos/github/hello-world/check-runs/4
+        html_url: https://github.com/github/hello-world/runs/4
+        details_url: https://example.com
+        status: in_progress
+        conclusion: 
+        started_at: '2018-05-04T01:14:52Z'
+        completed_at: 
         output:
           title: Mighty Readme report
           summary: There are 0 failures, 2 warnings, and 1 notice.
@@ -56448,6 +57787,124 @@ components:
         repository_url: https://api.github.com/repos/octocat/example
         environment_url: https://test-branch.lab.acme.com
         log_url: https://example.com/deployment/42/output
+    environments:
+      value:
+        total_count: 1
+        environments:
+        - id: 161088068
+          node_id: MDExOkVudmlyb25tZW50MTYxMDg4MDY4
+          name: staging
+          url: https://api.github.com/repos/github/hello-world/environments/staging
+          html_url: https://github.com/github/hello-world/deployments/activity_log?environments_filter=staging
+          created_at: '2020-11-23T22:00:40Z'
+          updated_at: '2020-11-23T22:00:40Z'
+          protection_rules:
+          - id: 3736
+            node_id: MDQ6R2F0ZTM3MzY=
+            type: wait_timer
+            wait_timer: 30
+          - id: 3755
+            node_id: MDQ6R2F0ZTM3NTU=
+            type: required_reviewers
+            reviewers:
+            - type: User
+              reviewer:
+                login: octocat
+                id: 1
+                node_id: MDQ6VXNlcjE=
+                avatar_url: https://github.com/images/error/octocat_happy.gif
+                gravatar_id: ''
+                url: https://api.github.com/users/octocat
+                html_url: https://github.com/octocat
+                followers_url: https://api.github.com/users/octocat/followers
+                following_url: https://api.github.com/users/octocat/following{/other_user}
+                gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+                starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+                subscriptions_url: https://api.github.com/users/octocat/subscriptions
+                organizations_url: https://api.github.com/users/octocat/orgs
+                repos_url: https://api.github.com/users/octocat/repos
+                events_url: https://api.github.com/users/octocat/events{/privacy}
+                received_events_url: https://api.github.com/users/octocat/received_events
+                type: User
+                site_admin: false
+            - type: Team
+              reviewer:
+                id: 1
+                node_id: MDQ6VGVhbTE=
+                url: https://api.github.com/teams/1
+                html_url: https://github.com/orgs/github/teams/justice-league
+                name: Justice League
+                slug: justice-league
+                description: A great team.
+                privacy: closed
+                permission: admin
+                members_url: https://api.github.com/teams/1/members{/member}
+                repositories_url: https://api.github.com/teams/1/repos
+                parent: 
+          - id: 3756
+            node_id: MDQ6R2F0ZTM3NTY=
+            type: branch_policy
+          deployment_branch_policy:
+            protected_branches: false
+            custom_branch_policies: true
+    environment:
+      value:
+        id: 161088068
+        node_id: MDExOkVudmlyb25tZW50MTYxMDg4MDY4
+        name: staging
+        url: https://api.github.com/repos/github/hello-world/environments/staging
+        html_url: https://github.com/github/hello-world/deployments/activity_log?environments_filter=staging
+        created_at: '2020-11-23T22:00:40Z'
+        updated_at: '2020-11-23T22:00:40Z'
+        protection_rules:
+        - id: 3736
+          node_id: MDQ6R2F0ZTM3MzY=
+          type: wait_timer
+          wait_timer: 30
+        - id: 3755
+          node_id: MDQ6R2F0ZTM3NTU=
+          type: required_reviewers
+          reviewers:
+          - type: User
+            reviewer:
+              login: octocat
+              id: 1
+              node_id: MDQ6VXNlcjE=
+              avatar_url: https://github.com/images/error/octocat_happy.gif
+              gravatar_id: ''
+              url: https://api.github.com/users/octocat
+              html_url: https://github.com/octocat
+              followers_url: https://api.github.com/users/octocat/followers
+              following_url: https://api.github.com/users/octocat/following{/other_user}
+              gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+              starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+              subscriptions_url: https://api.github.com/users/octocat/subscriptions
+              organizations_url: https://api.github.com/users/octocat/orgs
+              repos_url: https://api.github.com/users/octocat/repos
+              events_url: https://api.github.com/users/octocat/events{/privacy}
+              received_events_url: https://api.github.com/users/octocat/received_events
+              type: User
+              site_admin: false
+          - type: Team
+            reviewer:
+              id: 1
+              node_id: MDQ6VGVhbTE=
+              url: https://api.github.com/teams/1
+              html_url: https://github.com/orgs/github/teams/justice-league
+              name: Justice League
+              slug: justice-league
+              description: A great team.
+              privacy: closed
+              permission: admin
+              members_url: https://api.github.com/teams/1/members{/member}
+              repositories_url: https://api.github.com/teams/1/repos
+              parent: 
+        - id: 3756
+          node_id: MDQ6R2F0ZTM3NTY=
+          type: branch_policy
+        deployment_branch_policy:
+          protected_branches: false
+          custom_branch_policies: true
     minimal-repository-items-2:
       value:
       - id: 1296269
@@ -59758,7 +61215,6 @@ components:
         created_at: '2020-11-06T18:48:51Z'
         url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2
         html_url: https://github.com/owner/private-repo/security/secret-scanning/2
-        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/2/locations
         state: resolved
         resolution: false_positive
         resolved_at: '2020-11-07T02:47:13Z'
@@ -59787,7 +61243,6 @@ components:
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
         html_url: https://github.com/owner/repo/security/secret-scanning/1
-        locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/1/locations
         state: open
         resolution: 
         resolved_at: 
@@ -59802,9 +61257,6 @@ components:
         html_url: https://github.com/owner/private-repo/security/secret-scanning/42
         locations_url: https://api.github.com/repos/owner/private-repo/secret-scanning/alerts/42/locations
         state: open
-        resolution: 
-        resolved_at: 
-        resolved_by: 
         secret_type: mailchimp_api_key
         secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2
     secret-scanning-alert-resolved:
@@ -62526,20 +63978,6 @@ components:
         application/json:
           schema:
             type: object
-    preview_header_missing:
-      description: Preview header missing
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - message
-            - documentation_url
-            properties:
-              message:
-                type: string
-              documentation_url:
-                type: string
     forbidden:
       description: Forbidden
       content:
@@ -62631,6 +64069,20 @@ components:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
+    preview_header_missing:
+      description: Preview header missing
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - message
+            - documentation_url
+            properties:
+              message:
+                type: string
+              documentation_url:
+                type: string
     found:
       description: Found
     no_content:
