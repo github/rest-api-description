@@ -39096,6 +39096,14 @@ paths:
                             - memory_in_bytes
                             - cpus
                             - prebuild_availability
+                        devcontainer_path:
+                          description: Path to devcontainer.json from repo root used
+                            to create Codespace.
+                          type:
+                          - string
+                          - 'null'
+                          examples:
+                          - ".devcontainer/example/devcontainer.json"
                         prebuild:
                           description: Whether the codespace was created from a prebuild.
                           type:
@@ -39576,6 +39584,9 @@ paths:
                 machine:
                   description: Machine type to use for this codespace
                   type: string
+                devcontainer_path:
+                  description: Path to devcontainer.json config to use for this codespace
+                  type: string
                 working_directory:
                   description: Working directory for this codespace
                   type: string
@@ -39749,6 +39760,72 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
+        category: codespaces
+        subcategory: 
+  "/repos/{owner}/{repo}/codespaces/devcontainers":
+    get:
+      summary: List devcontainer configurations in a repository for the authenticated
+        user
+      description: |-
+        Lists the devcontainer.json files associated with a specified repository and the authenticated user. These files
+        specify launchpoint configurations for codespaces created within the repository.
+
+        You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_metadata` repository permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-devcontainers-in-repository-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-devcontainers-in-a-repository-for-the-authenticated-user
+      parameters:
+      - *12
+      - *18
+      - *197
+      - *198
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - devcontainers
+                properties:
+                  total_count:
+                    type: integer
+                  devcontainers:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - path
+                      properties:
+                        path:
+                          type: string
+                        name:
+                          type: string
+              examples:
+                default:
+                  value:
+                    devcontainers:
+                    - path: ".devcontainer/foobar/devcontainer.json"
+                      name: foobar
+                    - path: ".devcontainer/devcontainer.json"
+                      name: kitchensink
+                    - path: ".devcontainer.json"
+                    total_count: 3
+        '500': *285
+        '400': *9
+        '401': *21
+        '403': *20
+        '404': *15
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
         category: codespaces
         subcategory: 
   "/repos/{owner}/{repo}/codespaces/machines":
@@ -58228,6 +58305,9 @@ paths:
                 machine:
                   description: Machine type to use for this codespace
                   type: string
+                devcontainer_path:
+                  description: Path to devcontainer.json config to use for this codespace
+                  type: string
                 working_directory:
                   description: Working directory for this codespace
                   type: string
@@ -71330,6 +71410,10 @@ paths:
                   machine:
                     description: Machine type to use for this codespace
                     type: string
+                  devcontainer_path:
+                    description: Path to devcontainer.json config to use for this
+                      codespace
+                    type: string
                   working_directory:
                     description: Working directory for this codespace
                     type: string
@@ -71362,6 +71446,10 @@ paths:
                     type: string
                   machine:
                     description: Machine type to use for this codespace
+                    type: string
+                  devcontainer_path:
+                    description: Path to devcontainer.json config to use for this
+                      codespace
                     type: string
                   working_directory:
                     description: Working directory for this codespace
