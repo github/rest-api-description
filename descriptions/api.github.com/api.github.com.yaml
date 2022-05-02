@@ -19711,6 +19711,9 @@ paths:
                 machine:
                   description: Machine type to use for this codespace
                   type: string
+                devcontainer_path:
+                  description: Path to devcontainer.json config to use for this codespace
+                  type: string
                 working_directory:
                   description: Working directory for this codespace
                   type: string
@@ -19754,6 +19757,70 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
+        category: codespaces
+        subcategory: 
+  "/repos/{owner}/{repo}/codespaces/devcontainers":
+    get:
+      summary: List devcontainer configurations in a repository for the authenticated
+        user
+      description: |-
+        Lists the devcontainer.json files associated with a specified repository and the authenticated user. These files
+        specify launchpoint configurations for codespaces created within the repository.
+
+        You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have read access to the `codespaces_metadata` repository permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-devcontainers-in-repository-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-devcontainers-in-a-repository-for-the-authenticated-user
+      parameters:
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - devcontainers
+                properties:
+                  total_count:
+                    type: integer
+                  devcontainers:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - path
+                      properties:
+                        path:
+                          type: string
+                        name:
+                          type: string
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-list-devcontainers-for-repository"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
         category: codespaces
         subcategory: 
   "/repos/{owner}/{repo}/codespaces/machines":
@@ -28567,6 +28634,9 @@ paths:
                 machine:
                   description: Machine type to use for this codespace
                   type: string
+                devcontainer_path:
+                  description: Path to devcontainer.json config to use for this codespace
+                  type: string
                 working_directory:
                   description: Working directory for this codespace
                   type: string
@@ -35932,6 +36002,10 @@ paths:
                   machine:
                     description: Machine type to use for this codespace
                     type: string
+                  devcontainer_path:
+                    description: Path to devcontainer.json config to use for this
+                      codespace
+                    type: string
                   working_directory:
                     description: Working directory for this codespace
                     type: string
@@ -35964,6 +36038,10 @@ paths:
                     type: string
                   machine:
                     description: Machine type to use for this codespace
+                    type: string
+                  devcontainer_path:
+                    description: Path to devcontainer.json config to use for this
+                      codespace
                     type: string
                   working_directory:
                     description: Working directory for this codespace
@@ -51484,6 +51562,11 @@ components:
           "$ref": "#/components/schemas/minimal-repository"
         machine:
           "$ref": "#/components/schemas/nullable-codespace-machine"
+        devcontainer_path:
+          description: Path to devcontainer.json from repo root used to create Codespace.
+          type: string
+          example: ".devcontainer/example/devcontainer.json"
+          nullable: true
         prebuild:
           description: Whether the codespace was created from a prebuild.
           type: boolean
@@ -69863,6 +69946,15 @@ components:
         stop_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-g4wpq6h95q/stop
         pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls/1
         recent_folders: []
+    codespaces-list-devcontainers-for-repository:
+      value:
+        devcontainers:
+        - path: ".devcontainer/foobar/devcontainer.json"
+          name: foobar
+        - path: ".devcontainer/devcontainer.json"
+          name: kitchensink
+        - path: ".devcontainer.json"
+        total_count: 3
     codespace-machines-list:
       value:
         total_count: 2
