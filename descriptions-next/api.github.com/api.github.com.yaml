@@ -1758,6 +1758,57 @@ paths:
         enabledForGitHubApps: true
         category: emojis
         subcategory: 
+  "/enterprise-installation/{enterprise_or_org}/server-statistics":
+    get:
+      summary: Get GitHub Enterprise Server statistics
+      description: |-
+        Returns aggregate usage metrics for your GitHub Enterprise Server 3.5+ instance for a specified time period up to 365 days.
+
+        To use this endpoint, your GitHub Enterprise Server instance must be connected to GitHub Enterprise Cloud using GitHub Connect. You must enable Server Statistics, and for the API request provide your enterprise account name or organization name connected to the GitHub Enterprise Server. For more information, see "[Enabling Server Statistics for your enterprise](/admin/configuration/configuring-github-connect/enabling-server-statistics-for-your-enterprise)" in the GitHub Enterprise Server documentation.
+
+        You'll need to use a personal access token:
+          - If you connected your GitHub Enterprise Server to an enterprise account and enabled Server Statistics, you'll need a personal access token with the `read:enterprise` permission.
+          - If you connected your GitHub Enterprise Server to an organization account and enabled Server Statistics, you'll need a personal access token with the `read:org` permission.
+
+        For more information on creating a personal access token, see "[Creating a personal access token](/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)."
+      operationId: enterprise-admin/get-server-statistics
+      tags:
+      - server-statistics
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/enterprise-admin#get-github-enterprise-server-statistics
+      parameters:
+      - "$ref": "#/components/parameters/enterprise_or_org"
+      - name: date_start
+        description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+          If specified, the query only searches for events after this cursor.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: date_end
+        description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+          If specified, the query only searches for events before this cursor.
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/server-statistics"
+              examples:
+                default:
+                  "$ref": "#/components/examples/server-statistics"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: enterprise-admin
+        subcategory: admin-stats
   "/enterprises/{enterprise}/actions/cache/usage":
     get:
       summary: Get GitHub Actions cache usage for an enterprise
@@ -42786,6 +42837,135 @@ components:
       - html_url
       - key
       - name
+    server-statistics:
+      title: Server Statistics Proxy Endpoint
+      description: Response of S4 Proxy endpoint that provides GHES statistics
+      properties:
+        server_id:
+          type: string
+        collection_date:
+          type: string
+        schema_version:
+          type: string
+        ghes_version:
+          type: string
+        host_name:
+          type: string
+        github_connect:
+          type: object
+          properties:
+            features_enabled:
+              type: array
+              items:
+                type: string
+        ghe_stats:
+          type: object
+          properties:
+            comments:
+              type: object
+              properties:
+                total_commit_comments:
+                  type: integer
+                total_gist_comments:
+                  type: integer
+                total_issue_comments:
+                  type: integer
+                total_pull_request_comments:
+                  type: integer
+            gists:
+              type: object
+              properties:
+                total_gists:
+                  type: integer
+                private_gists:
+                  type: integer
+                public_gists:
+                  type: integer
+            hooks:
+              type: object
+              properties:
+                total_hooks:
+                  type: integer
+                active_hooks:
+                  type: integer
+                inactive_hooks:
+                  type: integer
+            issues:
+              type: object
+              properties:
+                total_issues:
+                  type: integer
+                open_issues:
+                  type: integer
+                closed_issues:
+                  type: integer
+            milestones:
+              type: object
+              properties:
+                total_milestones:
+                  type: integer
+                open_milestones:
+                  type: integer
+                closed_milestones:
+                  type: integer
+            orgs:
+              type: object
+              properties:
+                total_orgs:
+                  type: integer
+                disabled_orgs:
+                  type: integer
+                total_teams:
+                  type: integer
+                total_team_members:
+                  type: integer
+            pages:
+              type: object
+              properties:
+                total_pages:
+                  type: integer
+            pulls:
+              type: object
+              properties:
+                total_pulls:
+                  type: integer
+                merged_pulls:
+                  type: integer
+                mergeable_pulls:
+                  type: integer
+                unmergeable_pulls:
+                  type: integer
+            repos:
+              type: object
+              properties:
+                total_repos:
+                  type: integer
+                root_repos:
+                  type: integer
+                fork_repos:
+                  type: integer
+                org_repos:
+                  type: integer
+                total_pushes:
+                  type: integer
+                total_wikis:
+                  type: integer
+            users:
+              type: object
+              properties:
+                total_users:
+                  type: integer
+                admin_users:
+                  type: integer
+                suspended_users:
+                  type: integer
+        dormant_users:
+          type: object
+          properties:
+            total_dormant_users:
+              type: integer
+            dormancy_threshold:
+              type: string
     actions-cache-usage-org-enterprise:
       type: object
       properties:
@@ -61411,6 +61591,66 @@ components:
           [homepage]: http://contributor-covenant.org
           [version]: http://contributor-covenant.org/version/1/4/
         html_url: http://contributor-covenant.org/version/1/4/
+    server-statistics:
+      value:
+        server_id: ea6088f3-f095-4bf2-8d7f-c573819e8768
+        collection_date: '2021-12-14T23:59:59Z'
+        schema_version: '20220111'
+        ghes_version: 3.5.0
+        host_name: github.example.com
+        github_connect:
+          features_enabled:
+          - license_usage_sync
+          - content_analysis
+          - content_analysis_notifications
+        ghe_stats:
+          comments:
+            total_commit_comments: 1000
+            total_gist_comments: 1000
+            total_issue_comments: 0
+            total_pull_request_comments: 0
+          gists:
+            total_gists: 100
+            private_gists: 59
+            public_gists: 41
+          hooks:
+            total_hooks: 2
+            active_hooks: 1
+            inactive_hooks: 1
+          issues:
+            total_issues: 3421
+            open_issues: 1234
+            closed_issues: 1222
+          milestones:
+            total_milestones: 50
+            open_milestones: 20
+            closed_milestones: 30
+          orgs:
+            total_orgs: 100
+            disabled_orgs: 22
+            total_teams: 299
+            total_team_members: 400
+          pages:
+            total_pages: 10
+          pulls:
+            total_pulls: 1232
+            merged_pulls: 223
+            mergeable_pulls: 435
+            unmergeable_pulls: 0
+          repos:
+            total_repos: 12
+            root_repos: 1
+            fork_repos: 2
+            org_repos: 1
+            total_pushes: 42
+            total_wikis: 1
+          users:
+            total_users: 2000
+            admin_users: 299
+            suspended_users: 423
+        dormant_users:
+          total_dormant_users: 5
+          dormancy_threshold: 90 days
     actions-cache-usage-org-enterprise:
       value:
         total_active_caches_size_in_bytes: 3344284
@@ -80243,6 +80483,13 @@ components:
       required: true
       schema:
         type: integer
+    enterprise_or_org:
+      name: enterprise_or_org
+      description: The slug version of the enterprise name or the login of an organization.
+      in: path
+      required: true
+      schema:
+        type: string
     enterprise:
       name: enterprise
       description: The slug version of the enterprise name. You can also substitute
