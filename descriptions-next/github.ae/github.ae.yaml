@@ -3150,6 +3150,43 @@ paths:
         githubCloudOnly: false
         category: actions
         subcategory: self-hosted-runners
+  "/enterprises/{enterprise}/audit-log":
+    get:
+      summary: Get the audit log for an enterprise
+      operationId: enterprise-admin/get-audit-log
+      description: Gets the audit log for an enterprise. To use this endpoint, you
+        must be an enterprise admin, and you must use an access token with the `admin:enterprise`
+        scope.
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#get-the-audit-log-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/audit-log-order"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        category: enterprise-admin
+        subcategory: audit-log
   "/feeds":
     get:
       summary: Get feeds
@@ -6141,6 +6178,48 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: secrets
+  "/orgs/{org}/audit-log":
+    get:
+      summary: Get the audit log for an organization
+      description: |-
+        Gets the audit log for an organization. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/github-ae@latest/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization)."
+
+        This endpoint is available for organizations on GitHub Enterprise Cloud. To use this endpoint, you must be an organization owner, and you must use an access token with the `admin:org` scope. GitHub Apps must have the `organization_administration` read permission to use this endpoint.
+
+        By default, the response includes up to 30 events from the past three months. Use the `phrase` parameter to filter results and retrieve older events. For example, use the `phrase` parameter with the `created` qualifier to filter events based on when the events occurred. For more information, see "[Reviewing the audit log for your organization](https://docs.github.com/github-ae@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/reviewing-the-audit-log-for-your-organization#searching-the-audit-log)."
+
+        Use pagination to retrieve fewer or more than 30 events. For more information, see "[Resources in the REST API](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#pagination)."
+      operationId: orgs/get-audit-log
+      tags:
+      - orgs
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/github-ae@latest/rest/reference/orgs#get-audit-log
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-after"
+      - "$ref": "#/components/parameters/audit-log-before"
+      - "$ref": "#/components/parameters/audit-log-order"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/audit-log-event"
+              examples:
+                default:
+                  "$ref": "#/components/examples/audit-log"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: 
   "/orgs/{org}/external-group/{group_id}":
     get:
       summary: Get an external group
@@ -22525,14 +22604,6 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: pages
-        previews:
-        - required: true
-          name: switcheroo
-          note: |-
-            Enabling and disabling Pages in the Pages API is currently available for developers to preview. See the [blog post](https://developer.github.com/changes/2019-03-14-enabling-disabling-pages/) preview for more details. To access the new endpoints during the preview period, you must provide a custom [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types) in the `Accept` header:
-            ```shell
-            application/vnd.github.switcheroo-preview+json
-            ```
     put:
       summary: Update information about a GitHub AE Pages site
       description: Updates information for a GitHub AE Pages site. For more information,
@@ -22654,13 +22725,6 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: pages
-        previews:
-        - required: true
-          name: machine-man
-          note: To access the API with your GitHub App, you must provide a custom
-            [media type](https://docs.github.com/github-ae@latest/rest/overview/media-types)
-            in the `Accept` Header for your requests. ```shell application/vnd.github.machine-man-preview+json
-            ```
   "/repos/{owner}/{repo}/pages/builds":
     get:
       summary: List GitHub AE Pages builds
@@ -31073,7 +31137,7 @@ paths:
     put:
       summary: Suspend a user
       description: |-
-        If your GitHub instance uses [LDAP Sync with Active Directory LDAP servers](https://docs.github.com/enterprise/admin/guides/user-management/using-ldap), Active Directory LDAP-authenticated users cannot be suspended through this API. If you attempt to suspend an Active Directory LDAP-authenticated user through this API, it will return a `403` response.
+        If your GitHub instance uses [LDAP Sync with Active Directory LDAP servers](https://docs.github.com/github-ae@latest/admin/identity-and-access-management/using-ldap-for-enterprise-iam/using-ldap), Active Directory LDAP-authenticated users cannot be suspended through this API. If you attempt to suspend an Active Directory LDAP-authenticated user through this API, it will return a `403` response.
 
         You can suspend any user account except your own.
 
@@ -31100,7 +31164,7 @@ paths:
                 reason:
                   type: string
                   description: The reason the user is being suspended. This message
-                    will be logged in the [audit log](https://docs.github.com/enterprise/admin/articles/audit-logging/).
+                    will be logged in the [audit log](https://docs.github.com/github-ae@latest/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/about-the-audit-log-for-your-enterprise).
                     If you don't provide a `reason`, it will default to "Suspended
                     via API by _SITE\_ADMINISTRATOR_", where _SITE\_ADMINISTRATOR_
                     is the person who performed the action.
@@ -31112,7 +31176,7 @@ paths:
     delete:
       summary: Unsuspend a user
       description: If your GitHub instance uses [LDAP Sync with Active Directory LDAP
-        servers](https://docs.github.com/enterprise/admin/guides/user-management/using-ldap),
+        servers](https://docs.github.com/github-ae@latest/admin/identity-and-access-management/using-ldap-for-enterprise-iam/using-ldap),
         this API is disabled and will return a `403` response. Active Directory LDAP-authenticated
         users cannot be unsuspended using the API.
       operationId: enterprise-admin/unsuspend-user
@@ -31137,7 +31201,7 @@ paths:
                 reason:
                   type: string
                   description: The reason the user is being unsuspended. This message
-                    will be logged in the [audit log](https://docs.github.com/enterprise/admin/articles/audit-logging/).
+                    will be logged in the [audit log](https://docs.github.com/github-ae@latest/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/about-the-audit-log-for-your-enterprise).
                     If you don't provide a `reason`, it will default to "Unsuspended
                     via API by _SITE\_ADMINISTRATOR_", where _SITE\_ADMINISTRATOR_
                     is the person who performed the action.
@@ -31319,6 +31383,43 @@ components:
       required: true
       schema:
         type: integer
+    audit-log-phrase:
+      name: phrase
+      description: A search phrase. For more information, see [Searching the audit
+        log](https://docs.github.com/github-ae@latest/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-after:
+      name: after
+      description: A cursor, as given in the [Link header](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events after this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-before:
+      name: before
+      description: A cursor, as given in the [Link header](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events before this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    audit-log-order:
+      name: order
+      description: |-
+        The order of audit log events. To list newest events first, specify `desc`. To list oldest events first, specify `asc`.
+
+        The default is `desc`.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - desc
+        - asc
     gist-id:
       name: gist_id
       description: The unique identifier of the gist.
@@ -31770,7 +31871,7 @@ components:
       description: |-
         A comma-separated list of secret types to return. By default all secret types are returned.
         See "[Secret scanning patterns](https://docs.github.com/github-ae@latest/code-security/secret-scanning/secret-scanning-patterns#supported-secrets-for-advanced-security)"
-        for a complete list of secret types (API slug).
+        for a complete list of secret types.
       required: false
       schema:
         type: string
@@ -34466,6 +34567,118 @@ components:
       required:
       - token
       - expires_at
+    audit-log-event:
+      type: object
+      properties:
+        "@timestamp":
+          type: integer
+          description: The time the audit log event occurred, given as a [Unix timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        action:
+          type: string
+          description: The name of the action that was performed, for example `user.login`
+            or `repo.create`.
+        active:
+          type: boolean
+        active_was:
+          type: boolean
+        actor:
+          type: string
+          description: The actor who performed the action.
+        actor_id:
+          type: integer
+          description: The id of the actor who performed the action.
+        actor_location:
+          type: object
+          properties:
+            country_name:
+              type: string
+        data:
+          type: object
+          additionalProperties: true
+        org_id:
+          type: integer
+        blocked_user:
+          type: string
+          description: The username of the account being blocked.
+        business:
+          type: string
+        config:
+          type: array
+          items:
+            type: object
+        config_was:
+          type: array
+          items:
+            type: object
+        content_type:
+          type: string
+        created_at:
+          type: integer
+          description: The time the audit log event was recorded, given as a [Unix
+            timestamp](http://en.wikipedia.org/wiki/Unix_time).
+        deploy_key_fingerprint:
+          type: string
+        _document_id:
+          type: string
+          description: A unique identifier for an audit event.
+        emoji:
+          type: string
+        events:
+          type: array
+          items:
+            type: object
+        events_were:
+          type: array
+          items:
+            type: object
+        explanation:
+          type: string
+        fingerprint:
+          type: string
+        hook_id:
+          type: integer
+        limited_availability:
+          type: boolean
+        message:
+          type: string
+        name:
+          type: string
+        old_user:
+          type: string
+        openssh_public_key:
+          type: string
+        org:
+          type: string
+        previous_visibility:
+          type: string
+        read_only:
+          type: boolean
+        repo:
+          type: string
+          description: The name of the repository.
+        repository:
+          type: string
+          description: The name of the repository.
+        repository_public:
+          type: boolean
+        target_login:
+          type: string
+        team:
+          type: string
+        transport_protocol:
+          type: integer
+          description: The type of protocol (for example, HTTP or SSH) used to transfer
+            Git data.
+        transport_protocol_name:
+          type: string
+          description: A human readable name for the protocol (for example, HTTP or
+            SSH) used to transfer Git data.
+        user:
+          type: string
+          description: The user that was affected by the action performed (if available).
+        visibility:
+          type: string
+          description: The repository visibility, for example `public` or `private`.
     link-with-type:
       title: Link With Type
       description: Hypermedia Link with Type
@@ -50152,6 +50365,126 @@ components:
         - id: 21
           name: no-gpu
           type: custom
+    audit-log:
+      value:
+      - actor_ip: 88.123.45.123
+        from: pull_requests#merge
+        device_cookie: 
+        actor: mona-admin
+        actor_id: 7
+        repo: octo-org/octo-repo
+        repo_id: 17
+        business: github
+        business_id: 1
+        org: octo-org
+        org_id: 8
+        action: pull_request.merge
+        "@timestamp": 1635940599755
+        created_at: 1635940599755
+        operation_type: modify
+        actor_location:
+          country_code: GB
+          country_name: United Kingdom
+          region: ENG
+          region_name: England
+          city: Louth
+          postal_code: LN11
+          location:
+            lat: 53.4457
+            lon: 0.141
+        data:
+          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...
+          method: POST
+          request_id: e4dabc4d-ba16-4bca-1234-649be7ae1188
+          server_id: 5d17aab5-fd9f-abcd-a820-16bed246441b
+          request_category: other
+          controller_action: merge
+          url: https://example.com/octo-org/octo-repo/pull/1/merge
+          client_id: 322299977.1635936
+          referrer: https://example.com/octo-org/octo-repo/pull/1
+          actor_session: 1
+          pull_request_id: 1
+          category_type: Resource Management
+      - actor_ip: 88.123.45.123
+        from: pull_request_review_events#create
+        device_cookie: 
+        actor: mona-admin
+        actor_id: 7
+        business_id: 1
+        org_id: 8
+        action: pull_request_review.submit
+        "@timestamp": 1635940593079
+        created_at: 1635940593079
+        operation_type: modify
+        actor_location:
+          country_code: GB
+          country_name: United Kingdom
+          region: ENG
+          region_name: England
+          city: Louth
+          postal_code: LN11
+          location:
+            lat: 53.4457
+            lon: 0.141
+        data:
+          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...
+          method: PUT
+          request_id: c0f63bb7-17b6-4796-940c-12345c5a581b
+          server_id: 2abc1234-f651-43e3-9696-e942ad5f8c89
+          request_category: other
+          controller_action: create
+          url: https://example.com/octo-org/octo-repo/pull/1/reviews
+          client_id: 322299977.1635936
+          referrer: https://example.com/octo-org/octo-repo/pull/1/files
+          actor_session: 1
+          spammy: false
+          pull_request_id: 1
+          body: 
+          allowed: true
+          id: 1
+          state: 40
+          issue_id: 1
+          review_id: 1
+          category_type: Resource Management
+      - actor_ip: 88.123.45.123
+        from: pull_requests#create
+        device_cookie: 
+        actor: mona
+        actor_id: 9
+        user_id: 9
+        repo: octo-org/octo-repo
+        repo_id: 17
+        business: github
+        business_id: 1
+        org: octo-org
+        org_id: 8
+        action: pull_request.create
+        "@timestamp": 1635940554161
+        created_at: 1635940554161
+        operation_type: create
+        actor_location:
+          country_code: GB
+          country_name: United Kingdom
+          region: ENG
+          region_name: England
+          city: Louth
+          postal_code: LN11
+          location:
+            lat: 53.4457
+            lon: 0.141
+        data:
+          user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...
+          method: POST
+          request_id: 2773abeb-477f-4ebf-a017-f8e8a206c305
+          server_id: 796e3115-4ce8-4606-8fd0-99ea57a2e12b
+          request_category: other
+          controller_action: create
+          url: https://example.com/octo-org/octo-repo/pull/create?base=octo-org%3Amain&head=mona%3Apatch-1
+          client_id: 386351111.163594
+          referrer: https://example.com/octo-org/octo-repo/compare/main...mona:patch-1
+          actor_session: 2
+          pull_request_id: 1
+          category_type: Resource Management
     feed:
       value:
         timeline_url: https://github.com/timeline
