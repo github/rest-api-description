@@ -52154,6 +52154,10 @@
             "application/json": {
               "schema": {
                 "properties": {
+                  "name": {
+                    "description": "A descriptive name for the new key.",
+                    "type": "string"
+                  },
                   "armored_public_key": {
                     "description": "A GPG key in ASCII-armored format.",
                     "type": "string"
@@ -68685,6 +68689,26 @@
           "access_level"
         ]
       },
+      "referenced_workflow": {
+        "title": "Referenced workflow",
+        "description": "A workflow referenced/reused by the initial caller workflow",
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha": {
+            "type": "string"
+          },
+          "ref": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "sha"
+        ]
+      },
       "pull-request-minimal": {
         "title": "Pull Request Minimal",
         "type": "object",
@@ -68899,6 +68923,13 @@
               "009b8a3a9ccbb128af87f9b1c0f4c62e8a304f6d"
             ]
           },
+          "path": {
+            "description": "The full path of the workflow",
+            "type": "string",
+            "examples": [
+              "octocat/octo-repo/.github/workflows/ci.yml@main"
+            ]
+          },
           "run_number": {
             "type": "integer",
             "description": "The auto incrementing run number for the workflow run.",
@@ -68912,6 +68943,15 @@
             "examples": [
               1
             ]
+          },
+          "referenced_workflows": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/referenced_workflow"
+            }
           },
           "event": {
             "type": "string",
@@ -69076,6 +69116,7 @@
           "status",
           "conclusion",
           "head_sha",
+          "path",
           "workflow_id",
           "url",
           "html_url",
@@ -84752,6 +84793,15 @@
               3
             ]
           },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "mastahyeti's GPG Key"
+            ]
+          },
           "primary_key_id": {
             "type": [
               "integer",
@@ -84843,6 +84893,9 @@
                     "string",
                     "null"
                   ]
+                },
+                "revoked": {
+                  "type": "boolean"
                 }
               }
             },
@@ -84863,7 +84916,8 @@
                 "can_encrypt_storage": true,
                 "can_certify": false,
                 "created_at": "2016-03-24T11:31:04-06:00",
-                "expires_at": null
+                "expires_at": null,
+                "revoked": false
               }
             ]
           },
@@ -84899,6 +84953,12 @@
             ],
             "format": "date-time"
           },
+          "revoked": {
+            "type": "boolean",
+            "examples": [
+              true
+            ]
+          },
           "raw_key": {
             "type": [
               "string",
@@ -84919,7 +84979,8 @@
           "can_encrypt_storage",
           "can_certify",
           "emails",
-          "subkeys"
+          "subkeys",
+          "revoked"
         ]
       },
       "key": {
@@ -93167,8 +93228,9 @@
           "node_id": "MDEyOldvcmtmbG93IFJ1bjI2OTI4OQ==",
           "check_suite_id": 42,
           "check_suite_node_id": "MDEwOkNoZWNrU3VpdGU0Mg==",
-          "head_branch": "master",
+          "head_branch": "main",
           "head_sha": "acb5820ced9479c074f688cc328bf03f341a511d",
+          "path": ".github/workflows/build.yml@main",
           "run_number": 562,
           "event": "push",
           "status": "queued",
@@ -93202,6 +93264,22 @@
             "site_admin": false
           },
           "run_attempt": 1,
+          "referenced_workflows": [
+            {
+              "path": "octocat/Hello-World/.github/workflows/deploy.yml@main",
+              "sha": "86e8bc9ecf7d38b1ed2d2cfb8eb87ba9b35b01db",
+              "ref": "refs/heads/main"
+            },
+            {
+              "path": "octo-org/octo-repo/.github/workflows/report.yml@v2",
+              "sha": "79e9790903e1c3373b1a3e3a941d57405478a232",
+              "ref": "refs/tags/v2"
+            },
+            {
+              "path": "octo-org/octo-repo/.github/workflows/secure.yml@1595d4b6de6a9e9751fb270a41019ce507d4099e",
+              "sha": "1595d4b6de6a9e9751fb270a41019ce507d4099e"
+            }
+          ],
           "run_started_at": "2020-01-22T19:33:08Z",
           "triggering_actor": {
             "login": "octocat",
@@ -93229,6 +93307,7 @@
           "artifacts_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/artifacts",
           "cancel_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/cancel",
           "rerun_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/rerun",
+          "previous_attempt_url": "https://api.github.com/repos/octo-org/octo-repo/actions/runs/30433642/attempts/1",
           "workflow_url": "https://api.github.com/repos/octo-org/octo-repo/actions/workflows/159038",
           "head_commit": {
             "id": "acb5820ced9479c074f688cc328bf03f341a511d",
@@ -105407,6 +105486,7 @@
         "value": [
           {
             "id": 3,
+            "name": "mastahyeti's GPG Key",
             "primary_key_id": 2,
             "key_id": "3262EFF25BA0D270",
             "public_key": "xsBNBFayYZ...",
@@ -105433,7 +105513,8 @@
                 "can_encrypt_storage": true,
                 "can_certify": false,
                 "created_at": "2016-03-24T11:31:04-06:00",
-                "expires_at": "2016-03-24T11:31:04-07:00"
+                "expires_at": "2016-03-24T11:31:04-07:00",
+                "revoked": false
               }
             ],
             "can_sign": true,
@@ -105442,6 +105523,7 @@
             "can_certify": true,
             "created_at": "2016-03-24T11:31:04-06:00",
             "expires_at": "2016-03-24T11:31:04-07:00",
+            "revoked": false,
             "raw_key": "string"
           }
         ]
@@ -105449,6 +105531,7 @@
       "gpg-key": {
         "value": {
           "id": 3,
+          "name": "mastahyeti's GPG Key",
           "primary_key_id": 2,
           "key_id": "3262EFF25BA0D270",
           "public_key": "xsBNBFayYZ...",
@@ -105475,7 +105558,8 @@
               "can_encrypt_storage": true,
               "can_certify": false,
               "created_at": "2016-03-24T11:31:04-06:00",
-              "expires_at": "2016-03-24T11:31:04-07:00"
+              "expires_at": "2016-03-24T11:31:04-07:00",
+              "revoked": false
             }
           ],
           "can_sign": true,
@@ -105484,6 +105568,7 @@
           "can_certify": true,
           "created_at": "2016-03-24T11:31:04-06:00",
           "expires_at": "2016-03-24T11:31:04-07:00",
+          "revoked": false,
           "raw_key": "\"-----BEGIN PGP PUBLIC KEY BLOCK-----\\nVersion: GnuPG v2\\n\\nmQENBFayYZ0BCAC4hScoJXXpyR+MXGcrBxElqw3FzCVvkViuyeko+Jp76QJhg8kr\\nucRTxbnOoHfda/FmilEa/wxf9ch5/PSrrL26FxEoPHhJolp8fnIDLQeITn94NYdB\\nZtnnEKslpPrG97qSUWIchvyqCPtvOb8+8fWvGx9K/ZWcEEdh1X8+WFR2jMENMeoX\\nwxHWQoPnS7LpX/85/M7VUcJxvDVfv+eHsnQupmE5bGarKNih0oMe3LbdN3qA5PTz\\nSCm6Iudar1VsQ+xTz08ymL7t4pnEtLguQ7EyatFHCjxNblv5RzxoL0tDgN3HqoDz\\nc7TEA+q4RtDQl9amcvQ95emnXmZ974u7UkYdABEBAAG0HlNvbWUgVXNlciA8c29t\\nZXVzZXJAZ21haWwuY29tPokBOAQTAQIAIgUCVrJhnQIbAwYLCQgHAwIGFQgCCQoL\\nBBYCAwECHgECF4AACgkQMmLv8lug0nAViQgArWjI55+7p48URr2z9Jvak+yrBTx1\\nzkufltQAnHTJkq+Kl9dySSmTnOop8o3rE4++IOpYV5Y36PkKf9EZMk4n1RQiDPKE\\nAFtRVTkRaoWzOir9KQXJPfhKrl01j/QzY+utfiMvUoBJZ9ybq8Pa885SljW9lbaX\\nIYw+hl8ZdJ2KStvGrEyfQvRyq3aN5c9TV//4BdGnwx7Qabq/U+G18lizG6f/yq15\\ned7t0KELaCfeKPvytp4VE9/z/Ksah/h3+Qilx07/oG2Ae5kC1bEC9coD/ogPUhbv\\nb2bsBIoY9E9YwsLoif2lU+o1t76zLgUktuNscRRUKobW028H1zuFS/XQhrkBDQRW\\nsmGdAQgApnyyv3i144OLYy0O4UKQxd3e10Y3WpDwfnGIBefAI1m7RxnUxBag/DsU\\n7gi9qLEC4VHSfq4eiNfr1LJOyCL2edTgCWFgBhVjbXjZe6YAOrAnhxwCErnN0Y7N\\n6s8wVh9fObSOyf8ZE6G7JeKpcq9Q6gd/KxagfD48a1v+fyRHpyQc6J9pUEmtrDJ7\\nBjmsd2VWzLBvNWdHyxDNtZweIaqIO9VUYYpr1mtTliNBOZLUelmgrt7HBRcJpWMA\\nS8muVVbuP5MK0trLBq/JB8qUH3zRzB/PhMgzmkIfjEK1VYDWm4E8DYyTWEJcHqkb\\neqFsNjrIlwPaA122BWC6gUOPwwH+oQARAQABiQEfBBgBAgAJBQJWsmGdAhsMAAoJ\\nEDJi7/JboNJwAyAIALd4xcdmGbZD98gScJzqwzkOMcO8zFHqHNvJ42xIFvGny7c0\\n1Rx7iyrdypOby5AxE+viQcjG4rpLZW/xKYBNGrCfDyQO7511I0v8x20EICMlMfD/\\nNrWQCzesEPcUlKTP07d+sFyP8AyseOidbzY/92CpskTgdSBjY/ntLSaoknl/fjJE\\nQM8OkPqU7IraO1Jzzdnm20d5PZL9+PIwIWdSTedU/vBMTJyNcoqvSfKf1wNC66XP\\nhqfYgXJE564AdWZKA3C0IyCqiv+LHwxLnUHio1a4/r91C8KPzxs6tGxRDjXLd7ms\\nuYFGWymiUGOE/giHlcxdYcHzwLnPDliMQOLiTkK5AQ0EVuxMygEIAOD+bW1cDTmE\\nBxh5JECoqeHuwgl6DlLhnubWPkQ4ZeRzBRAsFcEJQlwlJjrzFDicL+lnm6Qq4tt0\\n560TwHdf15/AKTZIZu7H25axvGNzgeaUkJEJdYAq9zTKWwX7wKyzBszi485nQg97\\nMfAqwhMpDW0Qqf8+7Ug+WEmfBSGv9uL3aQC6WEeIsHfri0n0n8v4XgwhfShXguxO\\nCsOztEsuW7WWKW9P4TngKKv4lCHdPlV6FwxeMzODBJvc2fkHVHnqc0PqszJ5xcF8\\n6gZCpMM027SbpeYWCAD5zwJyYP9ntfO1p2HjnQ1dZaP9FeNcO7uIV1Lnd1eGCu6I\\nsrVp5k1f3isAEQEAAYkCPgQYAQIACQUCVuxMygIbAgEpCRAyYu/yW6DScMBdIAQZ\\nAQIABgUCVuxMygAKCRCKohN4dhq2b4tcCACHxmOHVXNpu47OvUGYQydLgMACUlXN\\nlj+HfE0VReqShxdDmpasAY9IRpuMB2RsGK8GbNP+4SlOlAiPf5SMhS7nZNkNDgQQ\\naZ3HFpgrFmFwmE10BKT4iQtoxELLM57z0qGOAfTsEjWFQa4sF+6IHAQR/ptkdkkI\\nBUEXiMnAwVwBysLIJiLO8qdjB6qp52QkT074JVrwywT/P+DkMfC2k4r/AfEbf6eF\\ndmPDuPk6KD87+hJZsSa5MaMUBQVvRO/mgEkhJRITVu58eWGaBOcQJ8gqurhCqM5P\\nDfUA4TJ7wiqM6sS764vV1rOioTTXkszzhClQqET7hPVnVQjenYgv0EZHNyQH/1f1\\n/CYqvV1vFjM9vJjMbxXsATCkZe6wvBVKD8vLsJAr8N+onKQz+4OPc3kmKq7aESu3\\nCi/iuie5KKVwnuNhr9AzT61vEkKxwHcVFEvHB77F6ZAAInhRvjzmQbD2dlPLLQCC\\nqDj71ODSSAPTEmUy6969bgD9PfWei7kNkBIx7s3eBv8yzytSc2EcuUgopqFazquw\\nFs1+tqGHjBvQfTo6bqbJjp/9Ci2pvde3ElV2rAgUlb3lqXyXjRDqrXosh5GcRPQj\\nK8Nhj1BNhnrCVskE4BP0LYbOHuzgm86uXwGCFsY+w2VOsSm16Jx5GHyG5S5WU3+D\\nIts/HFYRLiFgDLmTlxo=\\n=+OzK\\n-----END PGP PUBLIC KEY BLOCK-----\""
         }
       },
