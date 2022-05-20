@@ -10085,6 +10085,16 @@ paths:
                   description: Indicates whether repositories should be locked (to
                     prevent manipulation) while migrating data.
                   default: false
+                exclude_metadata:
+                  type: boolean
+                  description: Indicates whether metadata should be excluded and only
+                    git source should be included for the migration.
+                  default: false
+                exclude_git_data:
+                  type: boolean
+                  description: Indicates whether the repository git data should be
+                    excluded from the migration.
+                  default: false
                 exclude_attachments:
                   type: boolean
                   example: true
@@ -10102,6 +10112,13 @@ paths:
                   example: true
                   description: Indicates whether projects owned by the organization
                     or users should be excluded. from the migration.
+                  default: false
+                org_metadata_only:
+                  type: boolean
+                  example: true
+                  description: Indicates whether this should only include organization
+                    metadata (repositories array should be empty and will ignore other
+                    flags).
                   default: false
                 exclude:
                   type: array
@@ -16240,11 +16257,11 @@ paths:
                   properties:
                     dismissal_restrictions:
                       type: object
-                      description: Specify which users and teams can dismiss pull
-                        request reviews. Pass an empty `dismissal_restrictions` object
-                        to disable. User and team `dismissal_restrictions` are only
-                        available for organization-owned repositories. Omit this parameter
-                        for personal repositories.
+                      description: Specify which users, teams, and apps can dismiss
+                        pull request reviews. Pass an empty `dismissal_restrictions`
+                        object to disable. User and team `dismissal_restrictions`
+                        are only available for organization-owned repositories. Omit
+                        this parameter for personal repositories.
                       properties:
                         users:
                           type: array
@@ -16254,6 +16271,11 @@ paths:
                         teams:
                           type: array
                           description: The list of team `slug`s with dismissal access
+                          items:
+                            type: string
+                        apps:
+                          type: array
+                          description: The list of app `slug`s with dismissal access
                           items:
                             type: string
                     dismiss_stale_reviews:
@@ -16271,8 +16293,8 @@ paths:
                         reviewers.
                     bypass_pull_request_allowances:
                       type: object
-                      description: Allow specific users or teams to bypass pull request
-                        requirements.
+                      description: Allow specific users, teams, or apps to bypass
+                        pull request requirements.
                       properties:
                         users:
                           type: array
@@ -16284,6 +16306,12 @@ paths:
                           type: array
                           description: The list of team `slug`s allowed to bypass
                             pull request requirements.
+                          items:
+                            type: string
+                        apps:
+                          type: array
+                          description: The list of app `slug`s allowed to bypass pull
+                            request requirements.
                           items:
                             type: string
                 restrictions:
@@ -16581,10 +16609,10 @@ paths:
               properties:
                 dismissal_restrictions:
                   type: object
-                  description: Specify which users and teams can dismiss pull request
-                    reviews. Pass an empty `dismissal_restrictions` object to disable.
-                    User and team `dismissal_restrictions` are only available for
-                    organization-owned repositories. Omit this parameter for personal
+                  description: Specify which users, teams, and apps can dismiss pull
+                    request reviews. Pass an empty `dismissal_restrictions` object
+                    to disable. User and team `dismissal_restrictions` are only available
+                    for organization-owned repositories. Omit this parameter for personal
                     repositories.
                   properties:
                     users:
@@ -16595,6 +16623,11 @@ paths:
                     teams:
                       type: array
                       description: The list of team `slug`s with dismissal access
+                      items:
+                        type: string
+                    apps:
+                      type: array
+                      description: The list of app `slug`s with dismissal access
                       items:
                         type: string
                 dismiss_stale_reviews:
@@ -16612,8 +16645,8 @@ paths:
                     reviewers.
                 bypass_pull_request_allowances:
                   type: object
-                  description: Allow specific users or teams to bypass pull request
-                    requirements.
+                  description: Allow specific users, teams, or apps to bypass pull
+                    request requirements.
                   properties:
                     users:
                       type: array
@@ -16627,6 +16660,12 @@ paths:
                         request requirements.
                       items:
                         type: string
+                    apps:
+                      type: array
+                      description: The list of app `slug`s allowed to bypass pull
+                        request requirements.
+                      items:
+                        type: string
             examples:
               default:
                 value:
@@ -16635,11 +16674,15 @@ paths:
                     - octocat
                     teams:
                     - justice-league
+                    apps:
+                    - octoapp
                   bypass_pull_request_allowances:
                     users:
                     - octocat
                     teams:
                     - justice-league
+                    apps:
+                    - octoapp
                   dismiss_stale_reviews: true
                   require_code_owner_reviews: true
                   required_approving_review_count: 2
@@ -34683,6 +34726,18 @@ paths:
                   example: true
                   readOnly: false
                   type: boolean
+                exclude_metadata:
+                  description: Indicates whether metadata should be excluded and only
+                    git source should be included for the migration.
+                  example: true
+                  readOnly: false
+                  type: boolean
+                exclude_git_data:
+                  description: Indicates whether the repository git data should be
+                    excluded from the migration.
+                  example: true
+                  readOnly: false
+                  type: boolean
                 exclude_attachments:
                   description: Do not include attachments in the migration
                   example: true
@@ -34699,6 +34754,13 @@ paths:
                   example: true
                   readOnly: false
                   type: boolean
+                org_metadata_only:
+                  type: boolean
+                  example: true
+                  description: Indicates whether this should only include organization
+                    metadata (repositories array should be empty and will ignore other
+                    flags).
+                  default: false
                 exclude:
                   description: Exclude attributes from the API response to improve
                     performance
@@ -43456,6 +43518,8 @@ components:
           type: boolean
         exclude_owner_projects:
           type: boolean
+        org_metadata_only:
+          type: boolean
         repositories:
           type: array
           items:
@@ -43492,6 +43556,7 @@ components:
       - exclude_attachments
       - exclude_releases
       - exclude_owner_projects
+      - org_metadata_only
       - repositories
       - url
       - created_at
@@ -46009,6 +46074,11 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/team"
+            apps:
+              description: The list of apps with review dismissal access.
+              type: array
+              items:
+                "$ref": "#/components/schemas/integration"
             url:
               type: string
               example: '"https://api.github.com/repos/the-org/an-org-repo/branches/master/protection/dismissal_restrictions"'
@@ -46020,7 +46090,8 @@ components:
               example: '"https://api.github.com/repos/the-org/an-org-repo/branches/master/protection/dismissal_restrictions/teams"'
         bypass_pull_request_allowances:
           type: object
-          description: Allow specific users or teams to bypass pull request requirements.
+          description: Allow specific users, teams, or apps to bypass pull request
+            requirements.
           properties:
             users:
               description: The list of users allowed to bypass pull request requirements.
@@ -46032,6 +46103,11 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/team"
+            apps:
+              description: The list of apps allowed to bypass pull request requirements.
+              type: array
+              items:
+                "$ref": "#/components/schemas/integration"
         dismiss_stale_reviews:
           type: boolean
           example: true
@@ -46656,6 +46732,10 @@ components:
                   type: array
                   items:
                     "$ref": "#/components/schemas/team"
+                apps:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/integration"
               required:
               - url
               - users_url
@@ -46673,6 +46753,10 @@ components:
                   type: array
                   items:
                     "$ref": "#/components/schemas/team"
+                apps:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/integration"
               required:
               - users
               - teams
@@ -62961,6 +63045,37 @@ components:
               members_url: https://api.github.com/teams/1/members{/member}
               repositories_url: https://api.github.com/teams/1/repos
               parent: 
+            apps:
+            - id: 1
+              slug: octoapp
+              node_id: MDExOkludGVncmF0aW9uMQ==
+              owner:
+                login: github
+                id: 1
+                node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+                url: https://api.github.com/orgs/github
+                repos_url: https://api.github.com/orgs/github/repos
+                events_url: https://api.github.com/orgs/github/events
+                hooks_url: https://api.github.com/orgs/github/hooks
+                issues_url: https://api.github.com/orgs/github/issues
+                members_url: https://api.github.com/orgs/github/members{/member}
+                public_members_url: https://api.github.com/orgs/github/public_members{/member}
+                avatar_url: https://github.com/images/error/octocat_happy.gif
+                description: A great organization
+              name: Octocat App
+              description: ''
+              external_url: https://example.com
+              html_url: https://github.com/apps/octoapp
+              created_at: '2017-07-08T16:18:44-04:00'
+              updated_at: '2017-07-08T16:18:44-04:00'
+              permissions:
+                metadata: read
+                contents: read
+                issues: write
+                single_file: write
+              events:
+              - push
+              - pull_request
           dismiss_stale_reviews: true
           require_code_owner_reviews: true
           required_approving_review_count: 2
@@ -63083,6 +63198,37 @@ components:
             members_url: https://api.github.com/teams/1/members{/member}
             repositories_url: https://api.github.com/teams/1/repos
             parent: 
+          apps:
+          - id: 1
+            slug: octoapp
+            node_id: MDExOkludGVncmF0aW9uMQ==
+            owner:
+              login: github
+              id: 1
+              node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+              url: https://api.github.com/orgs/github
+              repos_url: https://api.github.com/orgs/github/repos
+              events_url: https://api.github.com/orgs/github/events
+              hooks_url: https://api.github.com/orgs/github/hooks
+              issues_url: https://api.github.com/orgs/github/issues
+              members_url: https://api.github.com/orgs/github/members{/member}
+              public_members_url: https://api.github.com/orgs/github/public_members{/member}
+              avatar_url: https://github.com/images/error/octocat_happy.gif
+              description: A great organization
+            name: Octocat App
+            description: ''
+            external_url: https://example.com
+            html_url: https://github.com/apps/octoapp
+            created_at: '2017-07-08T16:18:44-04:00'
+            updated_at: '2017-07-08T16:18:44-04:00'
+            permissions:
+              metadata: read
+              contents: read
+              issues: write
+              single_file: write
+            events:
+            - push
+            - pull_request
         dismiss_stale_reviews: true
         require_code_owner_reviews: true
         required_approving_review_count: 2
