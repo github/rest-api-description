@@ -13071,6 +13071,16 @@
                       true
                     ]
                   },
+                  "exclude_metadata": {
+                    "type": "boolean",
+                    "description": "Indicates whether metadata should be excluded and only git source should be included for the migration.",
+                    "default": false
+                  },
+                  "exclude_git_data": {
+                    "type": "boolean",
+                    "description": "Indicates whether the repository git data should be excluded from the migration.",
+                    "default": false
+                  },
                   "exclude_attachments": {
                     "type": "boolean",
                     "description": "Indicates whether attachments should be excluded from the migration (to reduce migration archive file size).",
@@ -13090,6 +13100,14 @@
                   "exclude_owner_projects": {
                     "type": "boolean",
                     "description": "Indicates whether projects owned by the organization or users should be excluded. from the migration.",
+                    "default": false,
+                    "examples": [
+                      true
+                    ]
+                  },
+                  "org_metadata_only": {
+                    "type": "boolean",
+                    "description": "Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags).",
                     "default": false,
                     "examples": [
                       true
@@ -23033,7 +23051,7 @@
                     "properties": {
                       "dismissal_restrictions": {
                         "type": "object",
-                        "description": "Specify which users and teams can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.",
+                        "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.",
                         "properties": {
                           "users": {
                             "type": "array",
@@ -23045,6 +23063,13 @@
                           "teams": {
                             "type": "array",
                             "description": "The list of team `slug`s with dismissal access",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "apps": {
+                            "type": "array",
+                            "description": "The list of app `slug`s with dismissal access",
                             "items": {
                               "type": "string"
                             }
@@ -23065,7 +23090,7 @@
                       },
                       "bypass_pull_request_allowances": {
                         "type": "object",
-                        "description": "Allow specific users or teams to bypass pull request requirements.",
+                        "description": "Allow specific users, teams, or apps to bypass pull request requirements.",
                         "properties": {
                           "users": {
                             "type": "array",
@@ -23077,6 +23102,13 @@
                           "teams": {
                             "type": "array",
                             "description": "The list of team `slug`s allowed to bypass pull request requirements.",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "apps": {
+                            "type": "array",
+                            "description": "The list of app `slug`s allowed to bypass pull request requirements.",
                             "items": {
                               "type": "string"
                             }
@@ -23478,7 +23510,7 @@
                 "properties": {
                   "dismissal_restrictions": {
                     "type": "object",
-                    "description": "Specify which users and teams can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.",
+                    "description": "Specify which users, teams, and apps can dismiss pull request reviews. Pass an empty `dismissal_restrictions` object to disable. User and team `dismissal_restrictions` are only available for organization-owned repositories. Omit this parameter for personal repositories.",
                     "properties": {
                       "users": {
                         "type": "array",
@@ -23490,6 +23522,13 @@
                       "teams": {
                         "type": "array",
                         "description": "The list of team `slug`s with dismissal access",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "apps": {
+                        "type": "array",
+                        "description": "The list of app `slug`s with dismissal access",
                         "items": {
                           "type": "string"
                         }
@@ -23510,7 +23549,7 @@
                   },
                   "bypass_pull_request_allowances": {
                     "type": "object",
-                    "description": "Allow specific users or teams to bypass pull request requirements.",
+                    "description": "Allow specific users, teams, or apps to bypass pull request requirements.",
                     "properties": {
                       "users": {
                         "type": "array",
@@ -23522,6 +23561,13 @@
                       "teams": {
                         "type": "array",
                         "description": "The list of team `slug`s allowed to bypass pull request requirements.",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "apps": {
+                        "type": "array",
+                        "description": "The list of app `slug`s allowed to bypass pull request requirements.",
                         "items": {
                           "type": "string"
                         }
@@ -23539,6 +23585,9 @@
                       ],
                       "teams": [
                         "justice-league"
+                      ],
+                      "apps": [
+                        "octoapp"
                       ]
                     },
                     "bypass_pull_request_allowances": {
@@ -23547,6 +23596,9 @@
                       ],
                       "teams": [
                         "justice-league"
+                      ],
+                      "apps": [
+                        "octoapp"
                       ]
                     },
                     "dismiss_stale_reviews": true,
@@ -53434,6 +53486,22 @@
                       true
                     ]
                   },
+                  "exclude_metadata": {
+                    "description": "Indicates whether metadata should be excluded and only git source should be included for the migration.",
+                    "readOnly": false,
+                    "type": "boolean",
+                    "examples": [
+                      true
+                    ]
+                  },
+                  "exclude_git_data": {
+                    "description": "Indicates whether the repository git data should be excluded from the migration.",
+                    "readOnly": false,
+                    "type": "boolean",
+                    "examples": [
+                      true
+                    ]
+                  },
                   "exclude_attachments": {
                     "description": "Do not include attachments in the migration",
                     "readOnly": false,
@@ -53454,6 +53522,14 @@
                     "description": "Indicates whether projects owned by the organization or users should be excluded.",
                     "readOnly": false,
                     "type": "boolean",
+                    "examples": [
+                      true
+                    ]
+                  },
+                  "org_metadata_only": {
+                    "type": "boolean",
+                    "description": "Indicates whether this should only include organization metadata (repositories array should be empty and will ignore other flags).",
+                    "default": false,
                     "examples": [
                       true
                     ]
@@ -65513,6 +65589,9 @@
           "exclude_owner_projects": {
             "type": "boolean"
           },
+          "org_metadata_only": {
+            "type": "boolean"
+          },
           "repositories": {
             "type": "array",
             "items": {
@@ -65565,6 +65644,7 @@
           "exclude_attachments",
           "exclude_releases",
           "exclude_owner_projects",
+          "org_metadata_only",
           "repositories",
           "url",
           "created_at",
@@ -69906,6 +69986,13 @@
                   "$ref": "#/components/schemas/team"
                 }
               },
+              "apps": {
+                "description": "The list of apps with review dismissal access.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/integration"
+                }
+              },
               "url": {
                 "type": "string",
                 "examples": [
@@ -69928,7 +70015,7 @@
           },
           "bypass_pull_request_allowances": {
             "type": "object",
-            "description": "Allow specific users or teams to bypass pull request requirements.",
+            "description": "Allow specific users, teams, or apps to bypass pull request requirements.",
             "properties": {
               "users": {
                 "description": "The list of users allowed to bypass pull request requirements.",
@@ -69942,6 +70029,13 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/team"
+                }
+              },
+              "apps": {
+                "description": "The list of apps allowed to bypass pull request requirements.",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/integration"
                 }
               }
             }
@@ -70952,6 +71046,12 @@
                     "items": {
                       "$ref": "#/components/schemas/team"
                     }
+                  },
+                  "apps": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/integration"
+                    }
                   }
                 },
                 "required": [
@@ -70975,6 +71075,12 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/team"
+                    }
+                  },
+                  "apps": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/integration"
                     }
                   }
                 },
@@ -93947,6 +94053,43 @@
                   "repositories_url": "https://api.github.com/teams/1/repos",
                   "parent": null
                 }
+              ],
+              "apps": [
+                {
+                  "id": 1,
+                  "slug": "octoapp",
+                  "node_id": "MDExOkludGVncmF0aW9uMQ==",
+                  "owner": {
+                    "login": "github",
+                    "id": 1,
+                    "node_id": "MDEyOk9yZ2FuaXphdGlvbjE=",
+                    "url": "https://api.github.com/orgs/github",
+                    "repos_url": "https://api.github.com/orgs/github/repos",
+                    "events_url": "https://api.github.com/orgs/github/events",
+                    "hooks_url": "https://api.github.com/orgs/github/hooks",
+                    "issues_url": "https://api.github.com/orgs/github/issues",
+                    "members_url": "https://api.github.com/orgs/github/members{/member}",
+                    "public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+                    "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                    "description": "A great organization"
+                  },
+                  "name": "Octocat App",
+                  "description": "",
+                  "external_url": "https://example.com",
+                  "html_url": "https://github.com/apps/octoapp",
+                  "created_at": "2017-07-08T16:18:44-04:00",
+                  "updated_at": "2017-07-08T16:18:44-04:00",
+                  "permissions": {
+                    "metadata": "read",
+                    "contents": "read",
+                    "issues": "write",
+                    "single_file": "write"
+                  },
+                  "events": [
+                    "push",
+                    "pull_request"
+                  ]
+                }
               ]
             },
             "dismiss_stale_reviews": true,
@@ -94097,6 +94240,43 @@
                 "members_url": "https://api.github.com/teams/1/members{/member}",
                 "repositories_url": "https://api.github.com/teams/1/repos",
                 "parent": null
+              }
+            ],
+            "apps": [
+              {
+                "id": 1,
+                "slug": "octoapp",
+                "node_id": "MDExOkludGVncmF0aW9uMQ==",
+                "owner": {
+                  "login": "github",
+                  "id": 1,
+                  "node_id": "MDEyOk9yZ2FuaXphdGlvbjE=",
+                  "url": "https://api.github.com/orgs/github",
+                  "repos_url": "https://api.github.com/orgs/github/repos",
+                  "events_url": "https://api.github.com/orgs/github/events",
+                  "hooks_url": "https://api.github.com/orgs/github/hooks",
+                  "issues_url": "https://api.github.com/orgs/github/issues",
+                  "members_url": "https://api.github.com/orgs/github/members{/member}",
+                  "public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+                  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                  "description": "A great organization"
+                },
+                "name": "Octocat App",
+                "description": "",
+                "external_url": "https://example.com",
+                "html_url": "https://github.com/apps/octoapp",
+                "created_at": "2017-07-08T16:18:44-04:00",
+                "updated_at": "2017-07-08T16:18:44-04:00",
+                "permissions": {
+                  "metadata": "read",
+                  "contents": "read",
+                  "issues": "write",
+                  "single_file": "write"
+                },
+                "events": [
+                  "push",
+                  "pull_request"
+                ]
               }
             ]
           },
@@ -106278,6 +106458,7 @@
           "exclude_attachments": false,
           "exclude_releases": false,
           "exclude_owner_projects": false,
+          "org_metadata_only": false,
           "repositories": [
             {
               "id": 1296269,

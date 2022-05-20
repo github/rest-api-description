@@ -14473,11 +14473,11 @@ paths:
                   properties:
                     dismissal_restrictions:
                       type: object
-                      description: Specify which users and teams can dismiss pull
-                        request reviews. Pass an empty `dismissal_restrictions` object
-                        to disable. User and team `dismissal_restrictions` are only
-                        available for organization-owned repositories. Omit this parameter
-                        for personal repositories.
+                      description: Specify which users, teams, and apps can dismiss
+                        pull request reviews. Pass an empty `dismissal_restrictions`
+                        object to disable. User and team `dismissal_restrictions`
+                        are only available for organization-owned repositories. Omit
+                        this parameter for personal repositories.
                       properties:
                         users:
                           type: array
@@ -14487,6 +14487,11 @@ paths:
                         teams:
                           type: array
                           description: The list of team `slug`s with dismissal access
+                          items:
+                            type: string
+                        apps:
+                          type: array
+                          description: The list of app `slug`s with dismissal access
                           items:
                             type: string
                     dismiss_stale_reviews:
@@ -14820,10 +14825,10 @@ paths:
               properties:
                 dismissal_restrictions:
                   type: object
-                  description: Specify which users and teams can dismiss pull request
-                    reviews. Pass an empty `dismissal_restrictions` object to disable.
-                    User and team `dismissal_restrictions` are only available for
-                    organization-owned repositories. Omit this parameter for personal
+                  description: Specify which users, teams, and apps can dismiss pull
+                    request reviews. Pass an empty `dismissal_restrictions` object
+                    to disable. User and team `dismissal_restrictions` are only available
+                    for organization-owned repositories. Omit this parameter for personal
                     repositories.
                   properties:
                     users:
@@ -14834,6 +14839,11 @@ paths:
                     teams:
                       type: array
                       description: The list of team `slug`s with dismissal access
+                      items:
+                        type: string
+                    apps:
+                      type: array
+                      description: The list of app `slug`s with dismissal access
                       items:
                         type: string
                 dismiss_stale_reviews:
@@ -14856,11 +14866,15 @@ paths:
                     - octocat
                     teams:
                     - justice-league
+                    apps:
+                    - octoapp
                   bypass_pull_request_allowances:
                     users:
                     - octocat
                     teams:
                     - justice-league
+                    apps:
+                    - octoapp
                   dismiss_stale_reviews: true
                   require_code_owner_reviews: true
                   required_approving_review_count: 2
@@ -42246,6 +42260,11 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/team"
+            apps:
+              description: The list of apps with review dismissal access.
+              type: array
+              items:
+                "$ref": "#/components/schemas/integration"
             url:
               type: string
               examples:
@@ -42928,6 +42947,10 @@ components:
                   type: array
                   items:
                     "$ref": "#/components/schemas/team"
+                apps:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/integration"
               required:
               - url
               - users_url
@@ -57946,6 +57969,37 @@ components:
               members_url: https://api.github.com/teams/1/members{/member}
               repositories_url: https://api.github.com/teams/1/repos
               parent: 
+            apps:
+            - id: 1
+              slug: octoapp
+              node_id: MDExOkludGVncmF0aW9uMQ==
+              owner:
+                login: github
+                id: 1
+                node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+                url: https://api.github.com/orgs/github
+                repos_url: https://api.github.com/orgs/github/repos
+                events_url: https://api.github.com/orgs/github/events
+                hooks_url: https://api.github.com/orgs/github/hooks
+                issues_url: https://api.github.com/orgs/github/issues
+                members_url: https://api.github.com/orgs/github/members{/member}
+                public_members_url: https://api.github.com/orgs/github/public_members{/member}
+                avatar_url: https://github.com/images/error/octocat_happy.gif
+                description: A great organization
+              name: Octocat App
+              description: ''
+              external_url: https://example.com
+              html_url: https://github.com/apps/octoapp
+              created_at: '2017-07-08T16:18:44-04:00'
+              updated_at: '2017-07-08T16:18:44-04:00'
+              permissions:
+                metadata: read
+                contents: read
+                issues: write
+                single_file: write
+              events:
+              - push
+              - pull_request
           dismiss_stale_reviews: true
           require_code_owner_reviews: true
           required_approving_review_count: 2
@@ -58068,6 +58122,37 @@ components:
             members_url: https://api.github.com/teams/1/members{/member}
             repositories_url: https://api.github.com/teams/1/repos
             parent: 
+          apps:
+          - id: 1
+            slug: octoapp
+            node_id: MDExOkludGVncmF0aW9uMQ==
+            owner:
+              login: github
+              id: 1
+              node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+              url: https://api.github.com/orgs/github
+              repos_url: https://api.github.com/orgs/github/repos
+              events_url: https://api.github.com/orgs/github/events
+              hooks_url: https://api.github.com/orgs/github/hooks
+              issues_url: https://api.github.com/orgs/github/issues
+              members_url: https://api.github.com/orgs/github/members{/member}
+              public_members_url: https://api.github.com/orgs/github/public_members{/member}
+              avatar_url: https://github.com/images/error/octocat_happy.gif
+              description: A great organization
+            name: Octocat App
+            description: ''
+            external_url: https://example.com
+            html_url: https://github.com/apps/octoapp
+            created_at: '2017-07-08T16:18:44-04:00'
+            updated_at: '2017-07-08T16:18:44-04:00'
+            permissions:
+              metadata: read
+              contents: read
+              issues: write
+              single_file: write
+            events:
+            - push
+            - pull_request
         dismiss_stale_reviews: true
         require_code_owner_reviews: true
         required_approving_review_count: 2
