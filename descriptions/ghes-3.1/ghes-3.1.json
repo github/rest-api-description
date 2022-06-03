@@ -24192,10 +24192,14 @@
                       "triage"
                     ],
                     "default": "push"
-                  },
-                  "permissions": {
-                    "type": "string",
-                    "example": "\"push\""
+                  }
+                }
+              },
+              "examples": {
+                "new-invitation-is-created": {
+                  "summary": "Add a collaborator with triage permissions",
+                  "value": {
+                    "permission": "triage"
                   }
                 }
               }
@@ -24211,7 +24215,7 @@
                   "$ref": "#/components/schemas/repository-invitation"
                 },
                 "examples": {
-                  "response-when-a-new-invitation-is-created": {
+                  "new-invitation-is-created": {
                     "$ref": "#/components/examples/repository-invitation-response-when-a-new-invitation-is-created"
                   }
                 }
@@ -26398,7 +26402,7 @@
       },
       "post": {
         "summary": "Create a deployment",
-        "description": "Deployments offer a few configurable parameters with certain defaults.\n\nThe `ref` parameter can be any named branch, tag, or SHA. At GitHub Enterprise Server we often deploy branches and verify them\nbefore we merge a pull request.\n\nThe `environment` parameter allows deployments to be issued to different runtime environments. Teams often have\nmultiple environments for verifying their applications, such as `production`, `staging`, and `qa`. This parameter\nmakes it easier to track which environments have requested deployments. The default environment is `production`.\n\nThe `auto_merge` parameter is used to ensure that the requested ref is not behind the repository's default branch. If\nthe ref _is_ behind the default branch for the repository, we will attempt to merge it for you. If the merge succeeds,\nthe API will return a successful merge commit. If merge conflicts prevent the merge from succeeding, the API will\nreturn a failure response.\n\nBy default, [commit statuses](https://docs.github.com/enterprise-server@3.1/rest/reference/commits#commit-statuses) for every submitted context must be in a `success`\nstate. The `required_contexts` parameter allows you to specify a subset of contexts that must be `success`, or to\nspecify contexts that have not yet been submitted. You are not required to use commit statuses to deploy. If you do\nnot require any contexts or create any commit statuses, the deployment will always succeed.\n\nThe `payload` parameter is available for any extra information that a deployment system might need. It is a JSON text\nfield that will be passed on when a deployment event is dispatched.\n\nThe `task` parameter is used by the deployment system to allow different execution paths. In the web world this might\nbe `deploy:migrations` to run schema changes on the system. In the compiled world this could be a flag to compile an\napplication with debugging enabled.\n\nUsers with `repo` or `repo_deployment` scopes can create a deployment for a given ref.\n\n#### Merged branch response\nYou will see this response when GitHub automatically merges the base branch into the topic branch instead of creating\na deployment. This auto-merge happens when:\n*   Auto-merge option is enabled in the repository\n*   Topic branch does not include the latest changes on the base branch, which is `master` in the response example\n*   There are no merge conflicts\n\nIf there are no new commits in the base branch, a new request to create a deployment should give a successful\nresponse.\n\n#### Merge conflict response\nThis error happens when the `auto_merge` option is enabled and when the default branch (in this case `master`), can't\nbe merged into the branch that's being deployed (in this case `topic-branch`), due to merge conflicts.\n\n#### Failed commit status checks\nThis error happens when the `required_contexts` parameter indicates that one or more contexts need to have a `success`\nstatus for the commit to be deployed, but one or more of the required contexts do not have a state of `success`.",
+        "description": "Deployments offer a few configurable parameters with certain defaults.\n\nThe `ref` parameter can be any named branch, tag, or SHA. At GitHub Enterprise Server we often deploy branches and verify them\nbefore we merge a pull request.\n\nThe `environment` parameter allows deployments to be issued to different runtime environments. Teams often have\nmultiple environments for verifying their applications, such as `production`, `staging`, and `qa`. This parameter\nmakes it easier to track which environments have requested deployments. The default environment is `production`.\n\nThe `auto_merge` parameter is used to ensure that the requested ref is not behind the repository's default branch. If\nthe ref _is_ behind the default branch for the repository, we will attempt to merge it for you. If the merge succeeds,\nthe API will return a successful merge commit. If merge conflicts prevent the merge from succeeding, the API will\nreturn a failure response.\n\nBy default, [commit statuses](https://docs.github.com/enterprise-server@3.1/rest/commits/statuses) for every submitted context must be in a `success`\nstate. The `required_contexts` parameter allows you to specify a subset of contexts that must be `success`, or to\nspecify contexts that have not yet been submitted. You are not required to use commit statuses to deploy. If you do\nnot require any contexts or create any commit statuses, the deployment will always succeed.\n\nThe `payload` parameter is available for any extra information that a deployment system might need. It is a JSON text\nfield that will be passed on when a deployment event is dispatched.\n\nThe `task` parameter is used by the deployment system to allow different execution paths. In the web world this might\nbe `deploy:migrations` to run schema changes on the system. In the compiled world this could be a flag to compile an\napplication with debugging enabled.\n\nUsers with `repo` or `repo_deployment` scopes can create a deployment for a given ref.\n\n#### Merged branch response\nYou will see this response when GitHub automatically merges the base branch into the topic branch instead of creating\na deployment. This auto-merge happens when:\n*   Auto-merge option is enabled in the repository\n*   Topic branch does not include the latest changes on the base branch, which is `master` in the response example\n*   There are no merge conflicts\n\nIf there are no new commits in the base branch, a new request to create a deployment should give a successful\nresponse.\n\n#### Merge conflict response\nThis error happens when the `auto_merge` option is enabled and when the default branch (in this case `master`), can't\nbe merged into the branch that's being deployed (in this case `topic-branch`), due to merge conflicts.\n\n#### Failed commit status checks\nThis error happens when the `required_contexts` parameter indicates that one or more contexts need to have a `success`\nstatus for the commit to be deployed, but one or more of the required contexts do not have a state of `success`.",
         "tags": [
           "repos"
         ],
@@ -26438,7 +26442,7 @@
                   },
                   "required_contexts": {
                     "type": "array",
-                    "description": "The [status](https://docs.github.com/enterprise-server@3.1/rest/reference/commits#commit-statuses) contexts to verify against commit status checks. If you omit this parameter, GitHub verifies all unique contexts before creating a deployment. To bypass checking entirely, pass an empty array. Defaults to all unique contexts.",
+                    "description": "The [status](https://docs.github.com/enterprise-server@3.1/rest/commits/statuses) contexts to verify against commit status checks. If you omit this parameter, GitHub verifies all unique contexts before creating a deployment. To bypass checking entirely, pass an empty array. Defaults to all unique contexts.",
                     "items": {
                       "type": "string"
                     }
