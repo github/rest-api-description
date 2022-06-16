@@ -10527,6 +10527,8 @@ paths:
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/secret-scanning-pagination-before-org-repo"
+      - "$ref": "#/components/parameters/secret-scanning-pagination-after-org-repo"
       responses:
         '200':
           description: Response
@@ -22218,6 +22220,69 @@ paths:
         githubCloudOnly: false
         category: dependency-graph
         subcategory: dependency-review
+  "/repos/{owner}/{repo}/dependency-graph/snapshots":
+    post:
+      summary: Create a snapshot of dependencies for a repository
+      description: Create a new snapshot of a repository's dependencies. You must
+        authenticate using an access token with the `repo` scope to use this endpoint
+        for a repository that the requesting user has access to.
+      tags:
+      - dependency-graph
+      operationId: dependency-graph/create-repository-snapshot
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/dependency-graph#create-a-snapshot-of-dependencies-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/snapshot"
+            examples:
+              example-of-a-dependency-submission:
+                "$ref": "#/components/examples/dependency-graph-create-snapshot-request"
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - id
+                - created_at
+                - result
+                - message
+                properties:
+                  id:
+                    type: integer
+                    description: ID of the created snapshot.
+                  created_at:
+                    type: string
+                    description: The time at which the snapshot was created.
+                  result:
+                    type: string
+                    description: Either "SUCCESS", "ACCEPTED", or "INVALID". "SUCCESS"
+                      indicates that the snapshot was successfully created and the
+                      repository's dependencies were updated. "ACCEPTED" indicates
+                      that the snapshot was successfully created, but the repository's
+                      dependencies were not updated. "INVALID" indicates that the
+                      snapshot was malformed.
+                  message:
+                    type: string
+                    description: A message providing further details about the result,
+                      such as why the dependencies were not updated.
+              examples:
+                example-of-a-dependency-submission:
+                  "$ref": "#/components/examples/dependency-graph-create-snapshot-success"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: dependency-graph
+        subcategory: dependency-submission
   "/repos/{owner}/{repo}/deployments":
     get:
       summary: List deployments
@@ -30886,6 +30951,8 @@ paths:
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/secret-scanning-pagination-before-org-repo"
+      - "$ref": "#/components/parameters/secret-scanning-pagination-after-org-repo"
       responses:
         '200':
           description: Response
@@ -54110,6 +54177,188 @@ components:
         - license
         - source_repository_url
         - vulnerabilities
+    metadata:
+      title: metadata
+      description: User-defined metadata to store domain-specific information limited
+        to 8 keys with scalar values.
+      type: object
+      maxProperties: 8
+      additionalProperties:
+        anyOf:
+        - type: string
+        - type: number
+        - type: boolean
+        type:
+        - 'null'
+        - string
+        - number
+        - boolean
+    dependency:
+      title: Dependency
+      description: A single package dependency.
+      type: object
+      properties:
+        package_url:
+          type: string
+          description: Package-url (PURL) of dependency. See https://github.com/package-url/purl-spec
+            for more details.
+          pattern: "^pkg"
+          examples:
+          - pkg:/npm/%40actions/http-client@1.0.11
+        metadata:
+          "$ref": "#/components/schemas/metadata"
+        relationship:
+          type: string
+          description: A notation of whether a dependency is requested directly by
+            this manifest or is a dependency of another dependency.
+          enum:
+          - direct
+          - indirect
+          examples:
+          - direct
+        scope:
+          type: string
+          description: A notation of whether the dependency is required for the primary
+            build artifact (runtime) or is only used for development. Future versions
+            of this specification may allow for more granular scopes.
+          enum:
+          - runtime
+          - development
+          examples:
+          - runtime
+        dependencies:
+          type: array
+          description: Array of package-url (PURLs) of direct child dependencies.
+          items:
+            type: string
+          examples:
+          - "@actions/http-client"
+      additionalProperties: false
+    manifest:
+      title: manifest
+      description: A collection of related dependencies declared in a file or representing
+        a logical group of dependencies.
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the manifest.
+          examples:
+          - package-lock.json
+        file:
+          type: object
+          properties:
+            source_location:
+              type: string
+              description: The path of the manifest file relative to the root of the
+                Git repository.
+              examples:
+              - "/src/build/package-lock.json"
+          additionalProperties: false
+        metadata:
+          "$ref": "#/components/schemas/metadata"
+        resolved:
+          additionalProperties:
+            "$ref": "#/components/schemas/dependency"
+      required:
+      - name
+      additionalProperties: false
+    snapshot:
+      title: snapshot
+      description: Create a new snapshot of a repository's dependencies.
+      type: object
+      properties:
+        version:
+          description: The version of the repository snapshot submission.
+          type: integer
+        job:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The external ID of the job.
+              examples:
+              - 5622a2b0-63f6-4732-8c34-a1ab27e102a11
+            correlator:
+              type: string
+              description: Correlator provides a key that is used to group snapshots
+                submitted over time. Only the "latest" submitted snapshot for a given
+                combination of `job.correlator` and `detector.name` will be considered
+                when calculating a repository's current dependencies. Correlator should
+                be as unique as it takes to distinguish all detection runs for a given
+                "wave" of CI workflow you run. If you're using GitHub Actions, a good
+                default value for this could be the environment variables GITHUB_WORKFLOW
+                and GITHUB_JOB concatenated together. If you're using a build matrix,
+                then you'll also need to add additional key(s) to distinguish between
+                each submission inside a matrix variation.
+              examples:
+              - yourworkflowname_yourjobname
+            html_url:
+              type: string
+              description: The url for the job.
+              examples:
+              - http://example.com/build
+          required:
+          - id
+          - correlator
+          additionalProperties: false
+        sha:
+          description: The commit SHA associated with this dependency snapshot.
+          type: string
+          minLength: 40
+          examples:
+          - ddc951f4b1293222421f2c8df679786153acf689
+        ref:
+          description: The repository branch that triggered this snapshot.
+          type: string
+          pattern: "^refs/"
+          examples:
+          - refs/heads/main
+        detector:
+          type: object
+          description: A description of the detector used.
+          properties:
+            name:
+              type: string
+              description: The name of the detector used.
+              examples:
+              - docker buildtime detector
+            version:
+              type: string
+              description: The version of the detector used.
+              examples:
+              - 1.0.0
+            url:
+              type: string
+              description: The url of the detector used.
+              examples:
+              - http://example.com/docker-buildtimer-detector
+          required:
+          - name
+          - version
+          - url
+          additionalProperties: false
+        metadata:
+          "$ref": "#/components/schemas/metadata"
+        manifests:
+          type: object
+          description: A collection of package manifests
+          additionalProperties:
+            "$ref": "#/components/schemas/manifest"
+        scanned:
+          type: string
+          format: date-time
+          description: The time at which the snapshot was scanned.
+          examples:
+          - '2020-06-13T14:52:50-05:00'
+      required:
+      - detector
+      - version
+      - ref
+      - sha
+      - job
+      - scanned
+      additionalProperties: false
     deployment-status:
       title: Deployment Status
       description: The status of a deployment.
@@ -75026,6 +75275,41 @@ components:
           advisory_ghsa_id: GHSA-fqfj-cmh6-hj49
           advisory_summary: Ruby OpenID
           advisory_url: https://github.com/advisories/GHSA-fqfj-cmh6-hj49
+    dependency-graph-create-snapshot-request:
+      value:
+        version: 0
+        sha: ce587453ced02b1526dfb4cb910479d431683101
+        ref: refs/heads/main
+        job:
+          correlator: yourworkflowname_youractionname
+          id: yourrunid
+        detector:
+          name: octo-detector
+          version: 0.0.1
+          url: https://github.com/octo-org/octo-repo
+        scanned: '2022-06-14T20:25:00Z'
+        manifests:
+          package-lock.json:
+            name: package-lock.json
+            file:
+              source_location: src/package-lock.json
+            resolved:
+              "@actions/core":
+                package_url: pkg:/npm/%40actions/core@1.1.9
+                dependencies:
+                - "@actions/http-client"
+              "@actions/http-client":
+                package_url: pkg:/npm/%40actions/http-client@1.0.7
+                dependencies:
+                - tunnel
+              tunnel:
+                package_url: pkg:/npm/tunnel@0.0.6
+    dependency-graph-create-snapshot-success:
+      value:
+        id: 12345
+        created_at: '2018-05-04T01:14:52Z'
+        message: Dependency results for the repo have been successfully updated.
+        result: SUCCESS
     deployment-simple-example:
       summary: Simple example
       value:
