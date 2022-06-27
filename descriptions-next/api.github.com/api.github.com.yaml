@@ -14167,6 +14167,108 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: cache
+  "/repos/{owner}/{repo}/actions/caches":
+    get:
+      summary: List GitHub Actions caches for a repository
+      description: |-
+        Lists the GitHub Actions caches for a repository.
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+        GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-actions-cache-list
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#list-github-actions-caches-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/git-ref"
+      - "$ref": "#/components/parameters/actions-cache-key"
+      - "$ref": "#/components/parameters/actions-cache-list-sort"
+      - "$ref": "#/components/parameters/direction"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-list"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-list"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: actions
+        subcategory: cache
+    delete:
+      summary: Delete GitHub Actions caches for a repository (using a cache key)
+      description: |-
+        Deletes one or more GitHub Actions caches for a repository, using a complete cache key. By default, all caches that match the provided key are deleted, but you can optionally provide a Git ref to restrict deletions to caches that match both the provided key and the Git ref.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+
+        GitHub Apps must have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/delete-actions-cache-by-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#delete-github-actions-caches-for-a-repository-using-a-cache-key
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/actions-cache-key-required"
+      - "$ref": "#/components/parameters/git-ref"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-list"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-list"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
+  "/repos/{owner}/{repo}/actions/caches/{cache_id}":
+    delete:
+      summary: Delete a GitHub Actions cache for a repository (using a cache ID)
+      description: |-
+        Deletes a GitHub Actions cache for a repository, using a cache ID.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+
+        GitHub Apps must have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/delete-actions-cache-by-id
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#delete-a-github-actions-cache-for-a-repository-using-a-cache-id
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/cache-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
   "/repos/{owner}/{repo}/actions/jobs/{job_id}":
     get:
       summary: Get a job for a workflow run
@@ -50390,6 +50492,55 @@ components:
       - created_at
       - expires_at
       - updated_at
+    actions-cache-list:
+      title: Repository actions caches
+      description: Repository actions caches
+      type: object
+      properties:
+        total_count:
+          description: Total number of caches
+          type: integer
+          examples:
+          - 2
+        actions_caches:
+          description: Array of caches
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                examples:
+                - 2
+              ref:
+                type: string
+                examples:
+                - refs/heads/main
+              key:
+                type: string
+                examples:
+                - Linux-node-958aff96db2d75d67787d1e634ae70b659de937b
+              version:
+                type: string
+                examples:
+                - 73885106f58cc52a7df9ec4d4a5622a5614813162cb516c759a30af6bf56e6f0
+              last_accessed_at:
+                type: string
+                format: date-time
+                examples:
+                - '2019-01-24T22:45:36.000Z'
+              created_at:
+                type: string
+                format: date-time
+                examples:
+                - '2019-01-24T22:45:36.000Z'
+              size_in_bytes:
+                type: integer
+                examples:
+                - 1024
+      required:
+      - total_count
+      - actions_caches
     job:
       title: Job
       description: Information of a job execution in a workflow run
@@ -71169,6 +71320,17 @@ components:
         full_name: octo-org/Hello-World
         active_caches_size_in_bytes: 2322142
         active_caches_count: 3
+    actions-cache-list:
+      value:
+        total_count: 1
+        actions_caches:
+        - id: 505
+          ref: refs/heads/main
+          key: Linux-node-958aff96db2d75d67787d1e634ae70b659de937b
+          version: 73885106f58cc52a7df9ec4d4a5622a5614813162cb516c759a30af6bf56e6f0
+          last_accessed_at: '2019-01-24T22:45:36.000Z'
+          created_at: '2019-01-24T22:45:36.000Z'
+          size_in_bytes: 1024
     job:
       value:
         id: 399444496
@@ -84435,6 +84597,50 @@ components:
       required: true
       schema:
         type: integer
+    git-ref:
+      name: ref
+      description: The Git reference for the results you want to list. The `ref` for
+        a branch can be formatted either as `refs/heads/<branch name>` or simply `<branch
+        name>`. To reference a pull request use `refs/pull/<number>/merge`.
+      in: query
+      required: false
+      schema:
+        "$ref": "#/components/schemas/code-scanning-ref"
+    actions-cache-key:
+      name: key
+      description: An explicit key or prefix for identifying the cache
+      in: query
+      required: false
+      schema:
+        type: string
+    actions-cache-list-sort:
+      name: sort
+      description: The property to sort the results by. `created_at` means when the
+        cache was created. `last_accessed_at` means when the cache was last accessed.
+        `size_in_bytes` is the size of the cache in bytes.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - created_at
+        - last_accessed_at
+        - size_in_bytes
+        default: last_accessed_at
+    actions-cache-key-required:
+      name: key
+      description: A key for identifying the cache.
+      in: query
+      required: true
+      schema:
+        type: string
+    cache-id:
+      name: cache_id
+      description: The unique identifier of the GitHub Actions cache.
+      in: path
+      required: true
+      schema:
+        type: integer
     job-id:
       name: job_id
       description: The unique identifier of the job.
@@ -84586,15 +84792,6 @@ components:
         - queued
         - in_progress
         - completed
-    git-ref:
-      name: ref
-      description: The Git reference for the results you want to list. The `ref` for
-        a branch can be formatted either as `refs/heads/<branch name>` or simply `<branch
-        name>`. To reference a pull request use `refs/pull/<number>/merge`.
-      in: query
-      required: false
-      schema:
-        "$ref": "#/components/schemas/code-scanning-ref"
     alert-number:
       name: alert_number
       in: path
