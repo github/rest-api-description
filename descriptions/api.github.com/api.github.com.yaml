@@ -5567,6 +5567,79 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: cache
+  "/orgs/{org}/actions/oidc/customization/sub":
+    get:
+      summary: Get the customization template for an OIDC subject claim for an organization
+      description: |-
+        Gets the customization template for an OpenID Connect (OIDC) subject claim.
+        You must authenticate using an access token with the `read:org` scope to use this endpoint.
+        GitHub Apps must have the `organization_administration:write` permission to use this endpoint.
+      tags:
+      - oidc
+      operationId: oidc/get-oidc-custom-sub-template-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/oidc#get-the-customization-template-for-an-oidc-subject-claim-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: A JSON serialized template for OIDC subject claim customization
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/oidc-custom-sub"
+              examples:
+                default:
+                  "$ref": "#/components/examples/oidc-custom-sub"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: oidc
+    put:
+      summary: Set the customization template for an OIDC subject claim for an organization
+      description: |-
+        Creates or updates the customization template for an OpenID Connect (OIDC) subject claim.
+        You must authenticate using an access token with the `write:org` scope to use this endpoint.
+        GitHub Apps must have the `admin:org` permission to use this endpoint.
+      tags:
+      - oidc
+      operationId: oidc/update-oidc-custom-sub-template-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/oidc#set-the-customization-template-for-an-oidc-subject-claim-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/oidc-custom-sub"
+            examples:
+              default:
+                "$ref": "#/components/examples/oidc-custom-sub"
+      responses:
+        '201':
+          description: Empty response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/empty-object"
+              examples:
+                default:
+                  value: 
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: actions
+        subcategory: oidc
   "/orgs/{org}/actions/permissions":
     get:
       summary: Get GitHub Actions permissions for an organization
@@ -14105,6 +14178,108 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: cache
+  "/repos/{owner}/{repo}/actions/caches":
+    get:
+      summary: List GitHub Actions caches for a repository
+      description: |-
+        Lists the GitHub Actions caches for a repository.
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+        GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-actions-cache-list
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#list-github-actions-caches-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/git-ref"
+      - "$ref": "#/components/parameters/actions-cache-key"
+      - "$ref": "#/components/parameters/actions-cache-list-sort"
+      - "$ref": "#/components/parameters/direction"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-list"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-list"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: actions
+        subcategory: cache
+    delete:
+      summary: Delete GitHub Actions caches for a repository (using a cache key)
+      description: |-
+        Deletes one or more GitHub Actions caches for a repository, using a complete cache key. By default, all caches that match the provided key are deleted, but you can optionally provide a Git ref to restrict deletions to caches that match both the provided key and the Git ref.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+
+        GitHub Apps must have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/delete-actions-cache-by-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#delete-github-actions-caches-for-a-repository-using-a-cache-key
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/actions-cache-key-required"
+      - "$ref": "#/components/parameters/git-ref"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/actions-cache-list"
+              examples:
+                default:
+                  "$ref": "#/components/examples/actions-cache-list"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
+  "/repos/{owner}/{repo}/actions/caches/{cache_id}":
+    delete:
+      summary: Delete a GitHub Actions cache for a repository (using a cache ID)
+      description: |-
+        Deletes a GitHub Actions cache for a repository, using a cache ID.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint.
+
+        GitHub Apps must have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/delete-actions-cache-by-id
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/cache#delete-a-github-actions-cache-for-a-repository-using-a-cache-id
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/cache-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: cache
   "/repos/{owner}/{repo}/actions/jobs/{job_id}":
     get:
       summary: Get a job for a workflow run
@@ -14213,6 +14388,85 @@ paths:
         enabledForGitHubApps: true
         category: actions
         subcategory: workflow-runs
+  "/repos/{owner}/{repo}/actions/oidc/customization/sub":
+    get:
+      summary: Get the opt-out flag of an OIDC subject claim customization for a repository
+      description: |-
+        Gets the `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        You must authenticate using an access token with the `repo` scope to use this
+        endpoint. GitHub Apps must have the `organization_administration:read` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-custom-oidc-sub-claim-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/oidc#get-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Status response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/opt-out-oidc-custom-sub"
+              examples:
+                default:
+                  "$ref": "#/components/examples/opt-out-oidc-custom-sub"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: actions
+        subcategory: oidc
+    put:
+      summary: Set the opt-out flag of an OIDC subject claim customization for a repository
+      description: |-
+        Sets the `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        You must authenticate using an access token with the `repo` scope to use this
+        endpoint. GitHub Apps must have the `actions:write` permission to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/set-custom-oidc-sub-claim-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/oidc#set-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/opt-out-oidc-custom-sub"
+            examples:
+              default:
+                "$ref": "#/components/examples/opt-out-oidc-custom-sub"
+      responses:
+        '201':
+          description: Empty response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/empty-object"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '422':
+          "$ref": "#/components/responses/validation_failed_simple"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: actions
+        subcategory: oidc
   "/repos/{owner}/{repo}/actions/permissions":
     get:
       summary: Get GitHub Actions permissions for a repository
@@ -47295,6 +47549,23 @@ components:
       - full_name
       - active_caches_size_in_bytes
       - active_caches_count
+    oidc-custom-sub:
+      title: Actions OIDC Subject customization
+      description: Actions OIDC Subject customization
+      type: object
+      properties:
+        include_claim_keys:
+          type: array
+          items:
+            type: string
+      required:
+      - include_claim_keys
+    empty-object:
+      title: Empty Object
+      description: An object without any properties.
+      type: object
+      properties: {}
+      additionalProperties: false
     enabled-repositories:
       type: string
       description: The policy that controls the repositories in the organization that
@@ -47429,12 +47700,6 @@ components:
       required:
       - key_id
       - key
-    empty-object:
-      title: Empty Object
-      description: An object without any properties.
-      type: object
-      properties: {}
-      additionalProperties: false
     code-scanning-analysis-tool-name:
       type: string
       description: The name of the tool used to generate the code scanning analysis.
@@ -50375,6 +50640,47 @@ components:
       - created_at
       - expires_at
       - updated_at
+    actions-cache-list:
+      title: Repository actions caches
+      description: Repository actions caches
+      type: object
+      properties:
+        total_count:
+          description: Total number of caches
+          type: integer
+          example: 2
+        actions_caches:
+          description: Array of caches
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 2
+              ref:
+                type: string
+                example: refs/heads/main
+              key:
+                type: string
+                example: Linux-node-958aff96db2d75d67787d1e634ae70b659de937b
+              version:
+                type: string
+                example: 73885106f58cc52a7df9ec4d4a5622a5614813162cb516c759a30af6bf56e6f0
+              last_accessed_at:
+                type: string
+                format: date-time
+                example: '2019-01-24T22:45:36.000Z'
+              created_at:
+                type: string
+                format: date-time
+                example: '2019-01-24T22:45:36.000Z'
+              size_in_bytes:
+                type: integer
+                example: 1024
+      required:
+      - total_count
+      - actions_caches
     job:
       title: Job
       description: Information of a job execution in a workflow run
@@ -50538,6 +50844,15 @@ components:
       - runner_name
       - runner_group_id
       - runner_group_name
+    opt-out-oidc-custom-sub:
+      title: The json payload enables/disables the use of sub claim customization
+      description: OIDC Customer Subject
+      type: object
+      properties:
+        use_default:
+          type: boolean
+      required:
+      - use_default
     actions-enabled:
       type: boolean
       description: Whether GitHub Actions is enabled on the repository.
@@ -66482,6 +66797,11 @@ components:
         - full_name: octo-org/server
           active_caches_size_in_bytes: 1022142
           active_caches_count: 2
+    oidc-custom-sub:
+      value:
+        include_claim_keys:
+        - repo
+        - context
     actions-organization-permissions:
       value:
         enabled_repositories: all
@@ -70584,6 +70904,17 @@ components:
         full_name: octo-org/Hello-World
         active_caches_size_in_bytes: 2322142
         active_caches_count: 3
+    actions-cache-list:
+      value:
+        total_count: 1
+        actions_caches:
+        - id: 505
+          ref: refs/heads/main
+          key: Linux-node-958aff96db2d75d67787d1e634ae70b659de937b
+          version: 73885106f58cc52a7df9ec4d4a5622a5614813162cb516c759a30af6bf56e6f0
+          last_accessed_at: '2019-01-24T22:45:36.000Z'
+          created_at: '2019-01-24T22:45:36.000Z'
+          size_in_bytes: 1024
     job:
       value:
         id: 399444496
@@ -70668,6 +70999,9 @@ components:
         runner_name: my runner
         runner_group_id: 2
         runner_group_name: my runner group
+    opt-out-oidc-custom-sub:
+      value:
+        use_default: true
     actions-repository-permissions:
       value:
         enabled: true
@@ -83849,6 +84183,50 @@ components:
       required: true
       schema:
         type: integer
+    git-ref:
+      name: ref
+      description: The Git reference for the results you want to list. The `ref` for
+        a branch can be formatted either as `refs/heads/<branch name>` or simply `<branch
+        name>`. To reference a pull request use `refs/pull/<number>/merge`.
+      in: query
+      required: false
+      schema:
+        "$ref": "#/components/schemas/code-scanning-ref"
+    actions-cache-key:
+      name: key
+      description: An explicit key or prefix for identifying the cache
+      in: query
+      required: false
+      schema:
+        type: string
+    actions-cache-list-sort:
+      name: sort
+      description: The property to sort the results by. `created_at` means when the
+        cache was created. `last_accessed_at` means when the cache was last accessed.
+        `size_in_bytes` is the size of the cache in bytes.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - created_at
+        - last_accessed_at
+        - size_in_bytes
+        default: last_accessed_at
+    actions-cache-key-required:
+      name: key
+      description: A key for identifying the cache.
+      in: query
+      required: true
+      schema:
+        type: string
+    cache-id:
+      name: cache_id
+      description: The unique identifier of the GitHub Actions cache.
+      in: path
+      required: true
+      schema:
+        type: integer
     job-id:
       name: job_id
       description: The unique identifier of the job.
@@ -84000,15 +84378,6 @@ components:
         - queued
         - in_progress
         - completed
-    git-ref:
-      name: ref
-      description: The Git reference for the results you want to list. The `ref` for
-        a branch can be formatted either as `refs/heads/<branch name>` or simply `<branch
-        name>`. To reference a pull request use `refs/pull/<number>/merge`.
-      in: query
-      required: false
-      schema:
-        "$ref": "#/components/schemas/code-scanning-ref"
     alert-number:
       name: alert_number
       in: path
