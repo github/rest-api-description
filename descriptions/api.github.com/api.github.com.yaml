@@ -16515,11 +16515,14 @@ paths:
               properties:
                 key_prefix:
                   type: string
-                  description: The prefix appended by a number will generate a link
-                    any time it is found in an issue, pull request, or commit.
+                  description: The prefix appended by alphanumeric characters will
+                    generate a link any time it is found in an issue, pull request,
+                    or commit.
                 url_template:
                   type: string
-                  description: The URL must contain <num> for the reference number.
+                  description: The URL must contain `<num>` for the reference number.
+                    `<num>` matches alphanumeric characters `A-Z` (case insensitive),
+                    `0-9`, and `-`.
               required:
               - key_prefix
               - url_template
@@ -51576,6 +51579,11 @@ components:
             found.
           example: https://example.com/TICKET?query=<num>
           type: string
+        is_alphanumeric:
+          description: Whether this autolink reference matches alphanumeric characters.
+            If false, this autolink reference is a legacy autolink that only matches
+            numeric characters.
+          type: boolean
       required:
       - id
       - key_prefix
@@ -71734,11 +71742,13 @@ components:
       - id: 1
         key_prefix: TICKET-
         url_template: https://example.com/TICKET?query=<num>
+        is_alphanumeric: true
     autolink:
       value:
         id: 1
         key_prefix: TICKET-
         url_template: https://example.com/TICKET?query=<num>
+        is_alphanumeric: true
     short-branch-with-protection-items:
       value:
       - name: master
