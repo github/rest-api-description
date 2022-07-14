@@ -20472,6 +20472,74 @@ paths:
         enabledForGitHubApps: true
         category: codespaces
         subcategory: machines
+  "/repos/{owner}/{repo}/codespaces/new":
+    get:
+      summary: Get default attributes for a codespace
+      description: |-
+        Gets the default attributes for codespaces created by the user with the repository.
+
+        You must authenticate using an access token with the `codespace` scope to use this endpoint.
+
+        GitHub Apps must have write access to the `codespaces` repository permission to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/pre-flight-with-repo-for-authenticated-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#preview-attributes-for-a-new-codespace
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - name: ref
+        description: The branch or commit to check for a default devcontainer path.
+          If not specified, the default branch will be checked.
+        in: query
+        schema:
+          type: string
+          example: main
+      - name: client_ip
+        description: An alternative IP for default location auto-detection, such as
+          when proxying a request.
+        in: query
+        schema:
+          type: string
+          example: 1.2.3.4
+      responses:
+        '200':
+          description: Response when a user is able to create codespaces from the
+            repository.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  billable_owner:
+                    "$ref": "#/components/schemas/simple-user"
+                  defaults:
+                    type: object
+                    required:
+                    - location
+                    - devcontainer_path
+                    properties:
+                      location:
+                        type: string
+                      devcontainer_path:
+                        type: string
+                        nullable: true
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-list-devcontainers-for-repository"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: codespaces
+        subcategory: 
   "/repos/{owner}/{repo}/codespaces/secrets":
     get:
       summary: List repository secrets
