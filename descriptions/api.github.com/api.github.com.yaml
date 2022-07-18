@@ -3060,6 +3060,73 @@ paths:
         enabledForGitHubApps: false
         category: enterprise-admin
         subcategory: audit-log
+  "/enterprises/{enterprise}/code-scanning/alerts":
+    get:
+      summary: List code scanning alerts for an enterprise
+      description: |-
+        Lists code scanning alerts for the default branch for all eligible repositories in an enterprise. Eligible repositories are repositories that are owned by organizations that you own or for which you are a security manager. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+        To use this endpoint, you must be a member of the enterprise,
+        and you must use an access token with the `repo` scope or `security_events` scope.
+      tags:
+      - code-scanning
+      operationId: code-scanning/list-alerts-for-enterprise
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/code-scanning#list-code-scanning-alerts-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/tool-name"
+      - "$ref": "#/components/parameters/tool-guid"
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/direction"
+      - name: state
+        description: If specified, only code scanning alerts with this state will
+          be returned.
+        in: query
+        required: false
+        schema:
+          "$ref": "#/components/schemas/code-scanning-alert-state"
+      - name: sort
+        description: The property by which to sort the results.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - created
+          - updated
+          default: created
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/code-scanning-organization-alert-items"
+              examples:
+                default:
+                  "$ref": "#/components/examples/code-scanning-organization-alert-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_read"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        previews: []
+        category: code-scanning
+        subcategory: 
   "/enterprises/{enterprise}/secret-scanning/alerts":
     get:
       summary: List secret scanning alerts for an enterprise
@@ -10341,10 +10408,10 @@ paths:
         subcategory: 
     post:
       summary: Create an organization project
-      description: Creates an organization project board. Returns a `404 Not Found`
-        status if projects are disabled in the organization. If you do not have sufficient
-        privileges to perform this action, a `401 Unauthorized` or `410 Gone` status
-        is returned.
+      description: Creates an organization project board. Returns a `410 Gone` status
+        if projects are disabled in the organization or if the organization does not
+        have existing classic projects. If you do not have sufficient privileges to
+        perform this action, a `401 Unauthorized` or `410 Gone` status is returned.
       tags:
       - projects
       operationId: projects/create-for-org
@@ -23281,7 +23348,7 @@ paths:
                 client_payload:
                   type: object
                   description: JSON payload with extra information about the webhook
-                    event that your action or worklow may use.
+                    event that your action or workflow may use.
                   additionalProperties: true
                   maxProperties: 10
             examples:
@@ -28681,10 +28748,10 @@ paths:
         subcategory: 
     post:
       summary: Create a repository project
-      description: Creates a repository project board. Returns a `404 Not Found` status
-        if projects are disabled in the repository. If you do not have sufficient
-        privileges to perform this action, a `401 Unauthorized` or `410 Gone` status
-        is returned.
+      description: Creates a repository project board. Returns a `410 Gone` status
+        if projects are disabled in the repository or if the repository does not have
+        existing classic projects. If you do not have sufficient privileges to perform
+        this action, a `401 Unauthorized` or `410 Gone` status is returned.
       tags:
       - projects
       operationId: projects/create-for-repo
@@ -39648,7 +39715,10 @@ paths:
   "/user/projects":
     post:
       summary: Create a user project
-      description: ''
+      description: Creates a user project board. Returns a `410 Gone` status if the
+        user does not have existing classic projects. If you do not have sufficient
+        privileges to perform this action, a `401 Unauthorized` or `410 Gone` status
+        is returned.
       tags:
       - projects
       operationId: projects/create-for-authenticated-user
@@ -44110,6 +44180,22 @@ components:
         visibility:
           type: string
           description: The repository visibility, for example `public` or `private`.
+    code-scanning-analysis-tool-name:
+      type: string
+      description: The name of the tool used to generate the code scanning analysis.
+    code-scanning-analysis-tool-guid:
+      nullable: true
+      type: string
+      description: The GUID of the tool used to generate the code scanning analysis,
+        if provided in the uploaded SARIF data.
+    code-scanning-alert-state:
+      type: string
+      description: State of a code scanning alert.
+      enum:
+      - open
+      - closed
+      - dismissed
+      - fixed
     alert-number:
       type: integer
       description: The security alert number.
@@ -44119,12 +44205,11 @@ components:
       description: 'The time that the alert was created in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
       format: date-time
       readOnly: true
-    nullable-alert-updated-at:
+    alert-updated-at:
       type: string
       description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
       format: date-time
       readOnly: true
-      nullable: true
     alert-url:
       type: string
       description: The REST API URL of the alert resource.
@@ -44135,24 +44220,170 @@ components:
       description: The GitHub URL of the alert resource.
       format: uri
       readOnly: true
-    secret-scanning-alert-state:
-      description: Sets the state of the secret scanning alert. Can be either `open`
-        or `resolved`. You must provide `resolution` when you set the state to `resolved`.
+    alert-instances-url:
       type: string
-      enum:
-      - open
-      - resolved
-    secret-scanning-alert-resolution:
+      description: The REST API URL for fetching the list of instances for an alert.
+      format: uri
+      readOnly: true
+    code-scanning-alert-fixed-at:
       type: string
-      description: "**Required when the `state` is `resolved`.** The reason for resolving
-        the alert."
+      description: 'The time that the alert was no longer detected and was considered
+        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
+    code-scanning-alert-dismissed-at:
+      type: string
+      description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
+    code-scanning-alert-dismissed-reason:
+      type: string
+      description: "**Required when the state is dismissed.** The reason for dismissing
+        or closing the alert."
       nullable: true
       enum:
       - 
-      - false_positive
-      - wont_fix
-      - revoked
-      - used_in_tests
+      - false positive
+      - won't fix
+      - used in tests
+    code-scanning-alert-dismissed-comment:
+      type: string
+      description: The dismissal comment associated with the dismissal of the alert.
+      nullable: true
+      maxLength: 280
+    code-scanning-alert-rule:
+      type: object
+      properties:
+        id:
+          nullable: true
+          type: string
+          description: A unique identifier for the rule used to detect the alert.
+        name:
+          type: string
+          description: The name of the rule used to detect the alert.
+        severity:
+          nullable: true
+          type: string
+          description: The severity of the alert.
+          enum:
+          - none
+          - note
+          - warning
+          - error
+        security_severity_level:
+          nullable: true
+          type: string
+          description: The security severity of the alert.
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        description:
+          type: string
+          description: A short description of the rule used to detect the alert.
+        full_description:
+          type: string
+          description: description of the rule used to detect the alert.
+        tags:
+          nullable: true
+          type: array
+          description: A set of tags applicable for the rule.
+          items:
+            type: string
+        help:
+          nullable: true
+          type: string
+          description: Detailed documentation for the rule as GitHub Flavored Markdown.
+    code-scanning-analysis-tool-version:
+      nullable: true
+      type: string
+      description: The version of the tool used to generate the code scanning analysis.
+    code-scanning-analysis-tool:
+      type: object
+      properties:
+        name:
+          "$ref": "#/components/schemas/code-scanning-analysis-tool-name"
+        version:
+          "$ref": "#/components/schemas/code-scanning-analysis-tool-version"
+        guid:
+          "$ref": "#/components/schemas/code-scanning-analysis-tool-guid"
+    code-scanning-ref:
+      type: string
+      description: |-
+        The full Git reference, formatted as `refs/heads/<branch name>`,
+        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+    code-scanning-analysis-analysis-key:
+      type: string
+      description: Identifies the configuration under which the analysis was executed.
+        For example, in GitHub Actions this includes the workflow filename and job
+        name.
+    code-scanning-alert-environment:
+      type: string
+      description: Identifies the variable values associated with the environment
+        in which the analysis that generated this alert instance was performed, such
+        as the language that was analyzed.
+    code-scanning-analysis-category:
+      type: string
+      description: Identifies the configuration under which the analysis was executed.
+        Used to distinguish between multiple analyses for the same tool and commit,
+        but performed on different languages or different parts of the code.
+    code-scanning-alert-location:
+      type: object
+      description: Describe a region within a file for the alert.
+      properties:
+        path:
+          type: string
+        start_line:
+          type: integer
+        end_line:
+          type: integer
+        start_column:
+          type: integer
+        end_column:
+          type: integer
+    code-scanning-alert-classification:
+      type: string
+      description: A classification of the file. For example to identify it as generated.
+      nullable: true
+      enum:
+      - source
+      - generated
+      - test
+      - library
+    code-scanning-alert-instance:
+      type: object
+      properties:
+        ref:
+          "$ref": "#/components/schemas/code-scanning-ref"
+        analysis_key:
+          "$ref": "#/components/schemas/code-scanning-analysis-analysis-key"
+        environment:
+          "$ref": "#/components/schemas/code-scanning-alert-environment"
+        category:
+          "$ref": "#/components/schemas/code-scanning-analysis-category"
+        state:
+          "$ref": "#/components/schemas/code-scanning-alert-state"
+        commit_sha:
+          type: string
+        message:
+          type: object
+          properties:
+            text:
+              type: string
+        location:
+          "$ref": "#/components/schemas/code-scanning-alert-location"
+        html_url:
+          type: string
+        classifications:
+          type: array
+          description: |-
+            Classifications that have been applied to the file that triggered the alert.
+            For example identifying it as documentation, or a generated file.
+          items:
+            "$ref": "#/components/schemas/code-scanning-alert-classification"
     simple-repository:
       title: Simple Repository
       description: Simple Repository
@@ -44424,6 +44655,79 @@ components:
       - teams_url
       - trees_url
       - url
+    code-scanning-organization-alert-items:
+      type: object
+      properties:
+        number:
+          "$ref": "#/components/schemas/alert-number"
+        created_at:
+          "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
+        url:
+          "$ref": "#/components/schemas/alert-url"
+        html_url:
+          "$ref": "#/components/schemas/alert-html-url"
+        instances_url:
+          "$ref": "#/components/schemas/alert-instances-url"
+        state:
+          "$ref": "#/components/schemas/code-scanning-alert-state"
+        fixed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
+        dismissed_by:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        dismissed_at:
+          "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
+        dismissed_reason:
+          "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
+        dismissed_comment:
+          "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
+        rule:
+          "$ref": "#/components/schemas/code-scanning-alert-rule"
+        tool:
+          "$ref": "#/components/schemas/code-scanning-analysis-tool"
+        most_recent_instance:
+          "$ref": "#/components/schemas/code-scanning-alert-instance"
+        repository:
+          "$ref": "#/components/schemas/simple-repository"
+      required:
+      - number
+      - created_at
+      - url
+      - html_url
+      - instances_url
+      - state
+      - dismissed_by
+      - dismissed_at
+      - dismissed_reason
+      - rule
+      - tool
+      - most_recent_instance
+      - repository
+    nullable-alert-updated-at:
+      type: string
+      description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
+    secret-scanning-alert-state:
+      description: Sets the state of the secret scanning alert. Can be either `open`
+        or `resolved`. You must provide `resolution` when you set the state to `resolved`.
+      type: string
+      enum:
+      - open
+      - resolved
+    secret-scanning-alert-resolution:
+      type: string
+      description: "**Required when the `state` is `resolved`.** The reason for resolving
+        the alert."
+      nullable: true
+      enum:
+      - 
+      - false_positive
+      - wont_fix
+      - revoked
+      - used_in_tests
     organization-secret-scanning-alert:
       type: object
       properties:
@@ -47583,240 +47887,6 @@ components:
       required:
       - key_id
       - key
-    code-scanning-analysis-tool-name:
-      type: string
-      description: The name of the tool used to generate the code scanning analysis.
-    code-scanning-analysis-tool-guid:
-      nullable: true
-      type: string
-      description: The GUID of the tool used to generate the code scanning analysis,
-        if provided in the uploaded SARIF data.
-    code-scanning-alert-state:
-      type: string
-      description: State of a code scanning alert.
-      enum:
-      - open
-      - closed
-      - dismissed
-      - fixed
-    alert-updated-at:
-      type: string
-      description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
-    alert-instances-url:
-      type: string
-      description: The REST API URL for fetching the list of instances for an alert.
-      format: uri
-      readOnly: true
-    code-scanning-alert-fixed-at:
-      type: string
-      description: 'The time that the alert was no longer detected and was considered
-        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
-      nullable: true
-    code-scanning-alert-dismissed-at:
-      type: string
-      description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
-      nullable: true
-    code-scanning-alert-dismissed-reason:
-      type: string
-      description: "**Required when the state is dismissed.** The reason for dismissing
-        or closing the alert."
-      nullable: true
-      enum:
-      - 
-      - false positive
-      - won't fix
-      - used in tests
-    code-scanning-alert-dismissed-comment:
-      type: string
-      description: The dismissal comment associated with the dismissal of the alert.
-      nullable: true
-      maxLength: 280
-    code-scanning-alert-rule:
-      type: object
-      properties:
-        id:
-          nullable: true
-          type: string
-          description: A unique identifier for the rule used to detect the alert.
-        name:
-          type: string
-          description: The name of the rule used to detect the alert.
-        severity:
-          nullable: true
-          type: string
-          description: The severity of the alert.
-          enum:
-          - none
-          - note
-          - warning
-          - error
-        security_severity_level:
-          nullable: true
-          type: string
-          description: The security severity of the alert.
-          enum:
-          - low
-          - medium
-          - high
-          - critical
-        description:
-          type: string
-          description: A short description of the rule used to detect the alert.
-        full_description:
-          type: string
-          description: description of the rule used to detect the alert.
-        tags:
-          nullable: true
-          type: array
-          description: A set of tags applicable for the rule.
-          items:
-            type: string
-        help:
-          nullable: true
-          type: string
-          description: Detailed documentation for the rule as GitHub Flavored Markdown.
-    code-scanning-analysis-tool-version:
-      nullable: true
-      type: string
-      description: The version of the tool used to generate the code scanning analysis.
-    code-scanning-analysis-tool:
-      type: object
-      properties:
-        name:
-          "$ref": "#/components/schemas/code-scanning-analysis-tool-name"
-        version:
-          "$ref": "#/components/schemas/code-scanning-analysis-tool-version"
-        guid:
-          "$ref": "#/components/schemas/code-scanning-analysis-tool-guid"
-    code-scanning-ref:
-      type: string
-      description: |-
-        The full Git reference, formatted as `refs/heads/<branch name>`,
-        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
-    code-scanning-analysis-analysis-key:
-      type: string
-      description: Identifies the configuration under which the analysis was executed.
-        For example, in GitHub Actions this includes the workflow filename and job
-        name.
-    code-scanning-alert-environment:
-      type: string
-      description: Identifies the variable values associated with the environment
-        in which the analysis that generated this alert instance was performed, such
-        as the language that was analyzed.
-    code-scanning-analysis-category:
-      type: string
-      description: Identifies the configuration under which the analysis was executed.
-        Used to distinguish between multiple analyses for the same tool and commit,
-        but performed on different languages or different parts of the code.
-    code-scanning-alert-location:
-      type: object
-      description: Describe a region within a file for the alert.
-      properties:
-        path:
-          type: string
-        start_line:
-          type: integer
-        end_line:
-          type: integer
-        start_column:
-          type: integer
-        end_column:
-          type: integer
-    code-scanning-alert-classification:
-      type: string
-      description: A classification of the file. For example to identify it as generated.
-      nullable: true
-      enum:
-      - source
-      - generated
-      - test
-      - library
-    code-scanning-alert-instance:
-      type: object
-      properties:
-        ref:
-          "$ref": "#/components/schemas/code-scanning-ref"
-        analysis_key:
-          "$ref": "#/components/schemas/code-scanning-analysis-analysis-key"
-        environment:
-          "$ref": "#/components/schemas/code-scanning-alert-environment"
-        category:
-          "$ref": "#/components/schemas/code-scanning-analysis-category"
-        state:
-          "$ref": "#/components/schemas/code-scanning-alert-state"
-        commit_sha:
-          type: string
-        message:
-          type: object
-          properties:
-            text:
-              type: string
-        location:
-          "$ref": "#/components/schemas/code-scanning-alert-location"
-        html_url:
-          type: string
-        classifications:
-          type: array
-          description: |-
-            Classifications that have been applied to the file that triggered the alert.
-            For example identifying it as documentation, or a generated file.
-          items:
-            "$ref": "#/components/schemas/code-scanning-alert-classification"
-    code-scanning-organization-alert-items:
-      type: object
-      properties:
-        number:
-          "$ref": "#/components/schemas/alert-number"
-        created_at:
-          "$ref": "#/components/schemas/alert-created-at"
-        updated_at:
-          "$ref": "#/components/schemas/alert-updated-at"
-        url:
-          "$ref": "#/components/schemas/alert-url"
-        html_url:
-          "$ref": "#/components/schemas/alert-html-url"
-        instances_url:
-          "$ref": "#/components/schemas/alert-instances-url"
-        state:
-          "$ref": "#/components/schemas/code-scanning-alert-state"
-        fixed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
-        dismissed_by:
-          "$ref": "#/components/schemas/nullable-simple-user"
-        dismissed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
-        dismissed_reason:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
-        dismissed_comment:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
-        rule:
-          "$ref": "#/components/schemas/code-scanning-alert-rule"
-        tool:
-          "$ref": "#/components/schemas/code-scanning-analysis-tool"
-        most_recent_instance:
-          "$ref": "#/components/schemas/code-scanning-alert-instance"
-        repository:
-          "$ref": "#/components/schemas/simple-repository"
-      required:
-      - number
-      - created_at
-      - url
-      - html_url
-      - instances_url
-      - state
-      - dismissed_by
-      - dismissed_at
-      - dismissed_reason
-      - rule
-      - tool
-      - most_recent_instance
-      - repository
     nullable-codespace-machine:
       type: object
       title: Codespace machine
@@ -64972,6 +65042,232 @@ components:
         org: mona-org
         repo: mona-org/mona-test-repo
         visibility: private
+    code-scanning-organization-alert-items:
+      value:
+      - number: 4
+        created_at: '2020-02-13T12:29:18Z'
+        url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4
+        html_url: https://github.com/octocat/hello-world/code-scanning/4
+        state: open
+        dismissed_by: 
+        dismissed_at: 
+        dismissed_reason: 
+        dismissed_comment: 
+        rule:
+          id: js/zipslip
+          severity: error
+          tags:
+          - security
+          - external/cwe/cwe-022
+          description: Arbitrary file write during zip extraction
+          name: js/zipslip
+        tool:
+          name: CodeQL
+          guid: 
+          version: 2.4.0
+        most_recent_instance:
+          ref: refs/heads/main
+          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          environment: "{}"
+          state: open
+          commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
+          message:
+            text: This path depends on a user-provided value.
+          location:
+            path: spec-main/api-session-spec.ts
+            start_line: 917
+            end_line: 917
+            start_column: 7
+            end_column: 18
+          classifications:
+          - test
+        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4/instances
+        repository:
+          id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+      - number: 3
+        created_at: '2020-02-13T12:29:18Z'
+        url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
+        html_url: https://github.com/octocat/hello-world/code-scanning/3
+        state: dismissed
+        dismissed_by:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        dismissed_at: '2020-02-14T12:29:18Z'
+        dismissed_reason: false positive
+        dismissed_comment: This alert is not actually correct, because there's a sanitizer
+          included in the library.
+        rule:
+          id: js/zipslip
+          severity: error
+          tags:
+          - security
+          - external/cwe/cwe-022
+          description: Arbitrary file write during zip extraction
+          name: js/zipslip
+        tool:
+          name: CodeQL
+          guid: 
+          version: 2.4.0
+        most_recent_instance:
+          ref: refs/heads/main
+          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          environment: "{}"
+          state: open
+          commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
+          message:
+            text: This path depends on a user-provided value.
+          location:
+            path: lib/ab12-gen.js
+            start_line: 917
+            end_line: 917
+            start_column: 7
+            end_column: 18
+          classifications: []
+        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3/instances
+        repository:
+          id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
     organization-secret-scanning-alert-list:
       value:
       - number: 2
@@ -67073,232 +67369,6 @@ components:
         received_events_url: https://api.github.com/users/octocat/received_events
         type: User
         site_admin: false
-    code-scanning-organization-alert-items:
-      value:
-      - number: 4
-        created_at: '2020-02-13T12:29:18Z'
-        url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4
-        html_url: https://github.com/octocat/hello-world/code-scanning/4
-        state: open
-        dismissed_by: 
-        dismissed_at: 
-        dismissed_reason: 
-        dismissed_comment: 
-        rule:
-          id: js/zipslip
-          severity: error
-          tags:
-          - security
-          - external/cwe/cwe-022
-          description: Arbitrary file write during zip extraction
-          name: js/zipslip
-        tool:
-          name: CodeQL
-          guid: 
-          version: 2.4.0
-        most_recent_instance:
-          ref: refs/heads/main
-          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-          environment: "{}"
-          state: open
-          commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
-          message:
-            text: This path depends on a user-provided value.
-          location:
-            path: spec-main/api-session-spec.ts
-            start_line: 917
-            end_line: 917
-            start_column: 7
-            end_column: 18
-          classifications:
-          - test
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/4/instances
-        repository:
-          id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
-      - number: 3
-        created_at: '2020-02-13T12:29:18Z'
-        url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3
-        html_url: https://github.com/octocat/hello-world/code-scanning/3
-        state: dismissed
-        dismissed_by:
-          login: octocat
-          id: 1
-          node_id: MDQ6VXNlcjE=
-          avatar_url: https://github.com/images/error/octocat_happy.gif
-          gravatar_id: ''
-          url: https://api.github.com/users/octocat
-          html_url: https://github.com/octocat
-          followers_url: https://api.github.com/users/octocat/followers
-          following_url: https://api.github.com/users/octocat/following{/other_user}
-          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-          subscriptions_url: https://api.github.com/users/octocat/subscriptions
-          organizations_url: https://api.github.com/users/octocat/orgs
-          repos_url: https://api.github.com/users/octocat/repos
-          events_url: https://api.github.com/users/octocat/events{/privacy}
-          received_events_url: https://api.github.com/users/octocat/received_events
-          type: User
-          site_admin: false
-        dismissed_at: '2020-02-14T12:29:18Z'
-        dismissed_reason: false positive
-        dismissed_comment: This alert is not actually correct, because there's a sanitizer
-          included in the library.
-        rule:
-          id: js/zipslip
-          severity: error
-          tags:
-          - security
-          - external/cwe/cwe-022
-          description: Arbitrary file write during zip extraction
-          name: js/zipslip
-        tool:
-          name: CodeQL
-          guid: 
-          version: 2.4.0
-        most_recent_instance:
-          ref: refs/heads/main
-          analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
-          environment: "{}"
-          state: open
-          commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
-          message:
-            text: This path depends on a user-provided value.
-          location:
-            path: lib/ab12-gen.js
-            start_line: 917
-            end_line: 917
-            start_column: 7
-            end_column: 18
-          classifications: []
-        instances_url: https://api.github.com/repos/octocat/hello-world/code-scanning/alerts/3/instances
-        repository:
-          id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
     codespaces-list:
       value:
         total_count: 3
@@ -83648,6 +83718,12 @@ components:
           examples:
             default:
               "$ref": "#/components/examples/runner-labels-readonly"
+    code_scanning_forbidden_read:
+      description: Response if GitHub Advanced Security is not enabled for this repository
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     service_unavailable:
       description: Service unavailable
       content:
@@ -83661,12 +83737,6 @@ components:
                 type: string
               documentation_url:
                 type: string
-    code_scanning_forbidden_read:
-      description: Response if GitHub Advanced Security is not enabled for this repository
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
     forbidden_gist:
       description: Forbidden Gist
       content:
@@ -83972,6 +84042,52 @@ components:
         enum:
         - desc
         - asc
+    tool-name:
+      name: tool_name
+      description: The name of a code scanning tool. Only results by this tool will
+        be listed. You can specify the tool by using either `tool_name` or `tool_guid`,
+        but not both.
+      in: query
+      required: false
+      schema:
+        "$ref": "#/components/schemas/code-scanning-analysis-tool-name"
+    tool-guid:
+      name: tool_guid
+      description: The GUID of a code scanning tool. Only results by this tool will
+        be listed. Note that some code scanning tools may not include a GUID in their
+        analysis data. You can specify the tool by using either `tool_guid` or `tool_name`,
+        but not both.
+      in: query
+      required: false
+      schema:
+        "$ref": "#/components/schemas/code-scanning-analysis-tool-guid"
+    pagination-before:
+      name: before
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events before this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    pagination-after:
+      name: after
+      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
+        If specified, the query only searches for events after this cursor.
+      in: query
+      required: false
+      schema:
+        type: string
+    direction:
+      name: direction
+      description: The direction to sort the results by.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - asc
+        - desc
+        default: desc
     secret-scanning-alert-state:
       name: state
       in: query
@@ -84014,33 +84130,6 @@ components:
         - created
         - updated
         default: created
-    direction:
-      name: direction
-      description: The direction to sort the results by.
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-        - asc
-        - desc
-        default: desc
-    pagination-before:
-      name: before
-      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
-        If specified, the query only searches for events before this cursor.
-      in: query
-      required: false
-      schema:
-        type: string
-    pagination-after:
-      name: after
-      description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
-        If specified, the query only searches for events after this cursor.
-      in: query
-      required: false
-      schema:
-        type: string
     gist-id:
       name: gist_id
       description: The unique identifier of the gist.
@@ -84179,25 +84268,6 @@ components:
       required: true
       schema:
         type: string
-    tool-name:
-      name: tool_name
-      description: The name of a code scanning tool. Only results by this tool will
-        be listed. You can specify the tool by using either `tool_name` or `tool_guid`,
-        but not both.
-      in: query
-      required: false
-      schema:
-        "$ref": "#/components/schemas/code-scanning-analysis-tool-name"
-    tool-guid:
-      name: tool_guid
-      description: The GUID of a code scanning tool. Only results by this tool will
-        be listed. Note that some code scanning tools may not include a GUID in their
-        analysis data. You can specify the tool by using either `tool_guid` or `tool_name`,
-        but not both.
-      in: query
-      required: false
-      schema:
-        "$ref": "#/components/schemas/code-scanning-analysis-tool-guid"
     group-id:
       name: group_id
       description: The unique identifier of the group.
