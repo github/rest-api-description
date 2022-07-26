@@ -57834,6 +57834,13 @@ paths:
                 site.
               nullable: true
               properties:
+                build_type:
+                  type: string
+                  description: The process in which the Page will be built. Possible
+                    values are `"legacy"` and `"workflow"`.
+                  enum:
+                  - legacy
+                  - workflow
                 source:
                   type: object
                   description: The source branch and directory used to publish your
@@ -57857,6 +57864,8 @@ paths:
               anyOf:
               - required:
                 - source
+              - required:
+                - build_type
             examples:
               default:
                 value:
@@ -57917,6 +57926,15 @@ paths:
                     the repository is set to `internal` visibility. This feature is
                     only available to repositories in an organization on an Enterprise
                     plan.
+                build_type:
+                  type: string
+                  description: The process by which the GitHub Pages site will be
+                    built. `workflow` means that the site is built by a custom GitHub
+                    Actions workflow. `legacy` means that the site is built by GitHub
+                    when changes are pushed to a specific branch.
+                  enum:
+                  - legacy
+                  - workflow
                 source:
                   anyOf:
                   - type: string
@@ -57947,6 +57965,8 @@ paths:
                     - branch
                     - path
               anyOf:
+              - required:
+                - build_type
               - required:
                 - source
               - required:
@@ -58222,6 +58242,100 @@ paths:
               schema: *403
               examples:
                 default: *404
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: repos
+        subcategory: pages
+  "/repos/{owner}/{repo}/pages/deployment":
+    post:
+      summary: Create a GitHub Pages deployment
+      description: |-
+        Create a GitHub Pages deployment for a repository.
+
+        Users must have write permissions. GitHub Apps must have the `pages:write` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/create-pages-deployment
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/repos#create-a-github-pages-deployment
+      parameters:
+      - *219
+      - *220
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The object used to create GitHub Pages deployment
+              properties:
+                artifact_url:
+                  type: string
+                  description: The URL of an artifact that contains the .zip or .tar
+                    of static assets to deploy. The artifact belongs to the repository.
+                environment:
+                  type: string
+                  description: The target environment for this GitHub Pages deployment.
+                  default: github-pages
+                pages_build_version:
+                  type: string
+                  description: A unique string that represents the version of the
+                    build for this deployment.
+                  default: GITHUB_SHA
+                oidc_token:
+                  type: string
+                  description: The OIDC token issued by GitHub Actions certifying
+                    the origin of the deployment.
+              required:
+              - artifact_url
+              - pages_build_version
+              - oidc_token
+            examples:
+              default:
+                value:
+                  artifact_url: https://downloadcontent/
+                  environment: github-pages
+                  pages_build_version: 4fd754f7e594640989b406850d0bc8f06a121251
+                  oidc_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IlV2R1h4SUhlY0JFc1JCdEttemUxUEhfUERiVSIsImtpZCI6IjUyRjE5N0M0ODFERTcwMTEyQzQ0MUI0QTlCMzdCNTNDN0ZDRjBEQjUifQ.eyJqdGkiOiJhMWIwNGNjNy0zNzZiLTQ1N2QtOTMzNS05NTY5YmVjZDExYTIiLCJzdWIiOiJyZXBvOnBhcGVyLXNwYS9taW55aTplbnZpcm9ubWVudDpQcm9kdWN0aW9uIiwiYXVkIjoiaHR0cHM6Ly9naXRodWIuY29tL3BhcGVyLXNwYSIsInJlZiI6InJlZnMvaGVhZHMvbWFpbiIsInNoYSI6ImEyODU1MWJmODdiZDk3NTFiMzdiMmM0YjM3M2MxZjU3NjFmYWM2MjYiLCJyZXBvc2l0b3J5IjoicGFwZXItc3BhL21pbnlpIiwicmVwb3NpdG9yeV9vd25lciI6InBhcGVyLXNwYSIsInJ1bl9pZCI6IjE1NDY0NTkzNjQiLCJydW5fbnVtYmVyIjoiMzQiLCJydW5fYXR0ZW1wdCI6IjYiLCJhY3RvciI6IllpTXlzdHkiLCJ3b3JrZmxvdyI6IkNJIiwiaGVhZF9yZWYiOiIiLCJiYXNlX3JlZiI6IiIsImV2ZW50X25hbWUiOiJwdXNoIiwicmVmX3R5cGUiOiJicmFuY2giLCJlbnZpcm9ubWVudCI6IlByb2R1Y3Rpb24iLCJqb2Jfd29ya2Zsb3dfcmVmIjoicGFwZXItc3BhL21pbnlpLy5naXRodWIvd29ya2Zsb3dzL2JsYW5rLnltbEByZWZzL2hlYWRzL21haW4iLCJpc3MiOiJodHRwczovL3Rva2VuLmFjdGlvbnMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwibmJmIjoxNjM5MDAwODU2LCJleHAiOjE2MzkwMDE3NTYsImlhdCI6MTYzOTAwMTQ1Nn0.VP8WictbQECKozE2SgvKb2FqJ9hisWsoMkYRTqfBrQfZTCXi5IcFEdgDMB2X7a99C2DeUuTvHh9RMKXLL2a0zg3-Sd7YrO7a2ll2kNlnvyIypcN6AeIc7BxHsTTnZN9Ud_xmEsTrSRGOEKmzCFkULQ6N4zlVD0sidypmXlMemmWEcv_ZHqhioEI_VMp5vwXQurketWH7qX4oDgG4okyYtPrv5RQHbfQcVo9izaPJ_jnsDd0CBA0QOx9InjPidtIkMYQLyUgJy33HLJy86EFNUnAf8UhBQuQi5mAsEpEzBBuKpG3PDiPtYCHOk64JZkZGd5mR888a5sbHRiaF8hm8YA
+                  preview: false
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: GitHub Pages
+                description: The GitHub Pages deployment status.
+                type: object
+                properties:
+                  status_url:
+                    type: string
+                    description: The URI to monitor GitHub Pages deployment status.
+                    format: uri
+                    example: https://api.github.com/repos/github/hello-world/pages/deployments/4fd754f7e594640989b406850d0bc8f06a121251/status
+                  page_url:
+                    type: string
+                    description: The URI to the deployed GitHub Pages.
+                    format: uri
+                    example: hello-world.github.io
+                  preview_url:
+                    type: string
+                    description: The URI to the deployed GitHub Pages preview.
+                    format: uri
+                    example: monalisa-1231a2312sa32-23sda74.drafts.github.io
+                required:
+                - status_url
+                - page_url
+              examples:
+                default:
+                  value:
+                    status_url: https://api.github.com/repos/github/developer.github.com/pages/deployments/4fd754f7e594640989b406850d0bc8f06a121251/status
+                    page_url: developer.github.com
+        '400': *9
+        '422': *10
+        '404': *16
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
