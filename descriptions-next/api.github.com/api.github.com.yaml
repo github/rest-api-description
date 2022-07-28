@@ -50,6 +50,8 @@ tags:
   description: View various OSS licenses.
 - name: markdown
   description: Render GitHub flavored markdown
+- name: merge-queue
+  description: Interact with GitHub Merge Queues.
 - name: meta
   description: Endpoints that give information about the API.
 - name: migrations
@@ -5362,7 +5364,7 @@ paths:
                       "$ref": "#/components/schemas/organization-custom-repository-role"
               examples:
                 default:
-                  "$ref": "#/components/examples/organization-custom-repository-role-example"
+                  "$ref": "#/components/examples/organization-custom-repository-role-example-old"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -47455,8 +47457,10 @@ components:
       type: object
       properties:
         id:
+          description: The unique identifier of the custom role.
           type: integer
         name:
+          description: The name of the custom role.
           type: string
       required:
       - id
@@ -62865,6 +62869,53 @@ components:
       required:
       - key
       - id
+    simple-installation:
+      title: Simple Installation
+      description: Simple Installation
+      type: object
+      properties:
+        id:
+          description: The ID of the installation.
+          type: integer
+          examples:
+          - 1
+        node_id:
+          description: The global node ID of the installation.
+          type: string
+          examples:
+          - MDQ6VXNlcjU4MzIzMQ==
+      required:
+      - id
+      - node_id
+    merge-group-checks-requested:
+      type: object
+      properties:
+        action:
+          type: string
+        installation:
+          "$ref": "#/components/schemas/simple-installation"
+        organization:
+          "$ref": "#/components/schemas/organization-simple"
+        repository:
+          "$ref": "#/components/schemas/repository"
+        sender:
+          "$ref": "#/components/schemas/simple-user"
+        merge_group:
+          type: object
+          required:
+          - head_sha
+          - head_ref
+          - base_ref
+          properties:
+            head_sha:
+              type: string
+            head_ref:
+              type: string
+            base_ref:
+              type: string
+      required:
+      - action
+      - merge_group
   examples:
     root:
       value:
@@ -67430,7 +67481,7 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
-    organization-custom-repository-role-example:
+    organization-custom-repository-role-example-old:
       value:
         total_count: 2
         custom_roles:
