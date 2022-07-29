@@ -10003,7 +10003,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &179
+              schema: &182
                 type: object
                 properties:
                   total_minutes_used:
@@ -10070,7 +10070,7 @@ paths:
                 - included_minutes
                 - minutes_used_breakdown
               examples:
-                default: &180
+                default: &183
                   value:
                     total_minutes_used: 305
                     total_paid_minutes_used: 0
@@ -10108,7 +10108,7 @@ paths:
           description: Success
           content:
             application/json:
-              schema: &181
+              schema: &184
                 type: object
                 properties:
                   total_advanced_security_committers:
@@ -10153,7 +10153,7 @@ paths:
                 required:
                 - repositories
               examples:
-                default: &182
+                default: &185
                   value:
                     total_advanced_security_committers: 2
                     total_count: 2
@@ -10198,7 +10198,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &183
+              schema: &186
                 type: object
                 properties:
                   total_gigabytes_bandwidth_used:
@@ -10216,7 +10216,7 @@ paths:
                 - total_paid_gigabytes_bandwidth_used
                 - included_gigabytes_bandwidth
               examples:
-                default: &184
+                default: &187
                   value:
                     total_gigabytes_bandwidth_used: 50
                     total_paid_gigabytes_bandwidth_used: 40
@@ -10248,7 +10248,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &185
+              schema: &188
                 type: object
                 properties:
                   days_left_in_billing_cycle:
@@ -10266,7 +10266,7 @@ paths:
                 - estimated_paid_storage_for_month
                 - estimated_storage_for_month
               examples:
-                default: &186
+                default: &189
                   value:
                     days_left_in_billing_cycle: 20
                     estimated_paid_storage_for_month: 15
@@ -21639,7 +21639,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &187
+                items: &190
                   title: Team
                   description: Groups of organization members that gives permissions
                     on specified repositories.
@@ -21696,7 +21696,7 @@ paths:
                     parent:
                       anyOf:
                       - type: 'null'
-                      - &189
+                      - &179
                         title: Team Simple
                         description: Groups of organization members that gives permissions
                           on specified repositories.
@@ -21788,7 +21788,7 @@ paths:
                   - slug
                   - parent
               examples:
-                default: &188
+                default: &180
                   value:
                   - id: 1
                     node_id: MDQ6VGVhbTE=
@@ -24891,6 +24891,101 @@ paths:
         enabledForGitHubApps: true
         category: secret-scanning
         subcategory: 
+  "/orgs/{org}/security-managers":
+    get:
+      summary: List security manager teams
+      description: |-
+        Lists teams that are security managers for an organization. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+        To use this endpoint, you must be an administrator or security manager for the organization, and you must use an access token with the `read:org` scope.
+
+        GitHub Apps must have the `administration` organization read permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/list-security-manager-teams
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#list-security-manager-teams
+      parameters:
+      - *100
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *179
+              examples:
+                default: *180
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
+  "/orgs/{org}/security-managers/teams/{team_slug}":
+    put:
+      summary: Add a security manager team
+      description: |-
+        Adds a team as a security manager for an organization. For more information, see "[Managing security for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization) for an organization."
+
+        To use this endpoint, you must be an administrator for the organization, and you must use an access token with the `write:org` scope.
+
+        GitHub Apps must have the `administration` organization read-write permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/add-security-manager-team
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#add-a-security-manager-team
+      parameters:
+      - *100
+      - &181
+        name: team_slug
+        description: The slug of the team name.
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Response
+        '409':
+          description: The organization has reached the maximum number of security
+            manager teams.
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
+    delete:
+      summary: Remove a security manager team
+      description: |-
+        Removes the security manager role from a team for an organization. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization) team from an organization."
+
+        To use this endpoint, you must be an administrator for the organization, and you must use an access token with the `admin:org` scope.
+
+        GitHub Apps must have the `administration` organization read-write permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/remove-security-manager-team
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#remove-a-security-manager-team
+      parameters:
+      - *100
+      - *181
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
   "/orgs/{org}/settings/billing/actions":
     get:
       summary: Get GitHub Actions billing for an organization
@@ -24913,9 +25008,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *179
+              schema: *182
               examples:
-                default: *180
+                default: *183
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -24947,9 +25042,9 @@ paths:
           description: Success
           content:
             application/json:
-              schema: *181
+              schema: *184
               examples:
-                default: *182
+                default: *185
         '403': *69
       x-github:
         githubCloudOnly: false
@@ -24978,9 +25073,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *183
+              schema: *186
               examples:
-                default: *184
+                default: *187
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -25008,9 +25103,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *185
+              schema: *188
               examples:
-                default: *186
+                default: *189
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -25137,9 +25232,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
           headers:
             Link: *19
         '403': *20
@@ -25224,7 +25319,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &190
+              schema: &191
                 title: Full Team
                 description: Groups of organization members that gives permissions
                   on specified repositories.
@@ -25290,7 +25385,7 @@ paths:
                   parent:
                     anyOf:
                     - type: 'null'
-                    - *189
+                    - *179
                   members_count:
                     type: integer
                     examples:
@@ -25333,7 +25428,7 @@ paths:
                 - repos_count
                 - organization
               examples:
-                default: &191
+                default: &192
                   value:
                     id: 1
                     node_id: MDQ6VGVhbTE=
@@ -25402,21 +25497,15 @@ paths:
         url: https://docs.github.com/rest/reference/teams#get-a-team-by-name
       parameters:
       - *100
-      - &192
-        name: team_slug
-        description: The slug of the team name.
-        in: path
-        required: true
-        schema:
-          type: string
+      - *181
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *190
+              schema: *191
               examples:
-                default: *191
+                default: *192
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -25437,7 +25526,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#update-a-team
       parameters:
       - *100
-      - *192
+      - *181
       requestBody:
         required: false
         content:
@@ -25489,9 +25578,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *190
+              schema: *191
               examples:
-                default: *191
+                default: *192
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -25513,7 +25602,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#delete-a-team
       parameters:
       - *100
-      - *192
+      - *181
       responses:
         '204':
           description: Response
@@ -25537,7 +25626,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-discussions
       parameters:
       - *100
-      - *192
+      - *181
       - *59
       - *12
       - *18
@@ -25737,7 +25826,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#create-a-discussion
       parameters:
       - *100
-      - *192
+      - *181
       requestBody:
         required: true
         content:
@@ -25843,7 +25932,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#get-a-discussion
       parameters:
       - *100
-      - *192
+      - *181
       - &195
         name: discussion_number
         description: The number that identifies the discussion.
@@ -25878,7 +25967,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#update-a-discussion
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       requestBody:
         required: false
@@ -25972,7 +26061,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#delete-a-discussion
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       responses:
         '204':
@@ -25997,7 +26086,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-discussion-comments
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *59
       - *12
@@ -26155,7 +26244,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#create-a-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       requestBody:
         required: true
@@ -26244,7 +26333,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#get-a-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - &198
         name: comment_number
@@ -26280,7 +26369,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#update-a-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *198
       requestBody:
@@ -26368,7 +26457,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#delete-a-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *198
       responses:
@@ -26394,7 +26483,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#list-reactions-for-a-team-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *198
       - name: content
@@ -26512,7 +26601,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#create-reaction-for-a-team-discussion-comment
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *198
       requestBody:
@@ -26601,7 +26690,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#delete-team-discussion-comment-reaction
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *198
       - &202
@@ -26634,7 +26723,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#list-reactions-for-a-team-discussion
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - name: content
         description: Returns a single [reaction type](https://docs.github.com/rest/reference/reactions#reaction-types).
@@ -26685,7 +26774,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#create-reaction-for-a-team-discussion
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       requestBody:
         required: true
@@ -26748,7 +26837,7 @@ paths:
         url: https://docs.github.com/rest/reference/reactions#delete-team-discussion-reaction
       parameters:
       - *100
-      - *192
+      - *181
       - *195
       - *202
       responses:
@@ -26774,7 +26863,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-external-idp-group-team-connection
       parameters:
       - *100
-      - *192
+      - *181
       responses:
         '200':
           description: Response
@@ -26802,7 +26891,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#link-external-idp-group-team-connection
       parameters:
       - *100
-      - *192
+      - *181
       requestBody:
         required: true
         content:
@@ -26848,7 +26937,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#unlink-external-idp-group-team-connection
       parameters:
       - *100
-      - *192
+      - *181
       responses:
         '204':
           description: Response
@@ -26872,7 +26961,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-pending-team-invitations
       parameters:
       - *100
-      - *192
+      - *181
       - *12
       - *18
       responses:
@@ -26907,7 +26996,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-team-members
       parameters:
       - *100
-      - *192
+      - *181
       - name: role
         description: Filters members returned by their role in the team.
         in: query
@@ -26960,7 +27049,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#get-team-membership-for-a-user
       parameters:
       - *100
-      - *192
+      - *181
       - *133
       responses:
         '200':
@@ -27030,7 +27119,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#add-or-update-team-membership-for-a-user
       parameters:
       - *100
-      - *192
+      - *181
       - *133
       requestBody:
         required: false
@@ -27092,7 +27181,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#remove-team-membership-for-a-user
       parameters:
       - *100
-      - *192
+      - *181
       - *133
       responses:
         '204':
@@ -27119,7 +27208,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-team-projects
       parameters:
       - *100
-      - *192
+      - *181
       - *12
       - *18
       responses:
@@ -27259,7 +27348,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#check-team-permissions-for-a-project
       parameters:
       - *100
-      - *192
+      - *181
       - &209
         name: project_id
         description: The unique identifier of the project.
@@ -27334,7 +27423,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#add-or-update-team-project-permissions
       parameters:
       - *100
-      - *192
+      - *181
       - *209
       requestBody:
         required: false
@@ -27400,7 +27489,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#remove-a-project-from-a-team
       parameters:
       - *100
-      - *192
+      - *181
       - *209
       responses:
         '204':
@@ -27425,7 +27514,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-team-repositories
       parameters:
       - *100
-      - *192
+      - *181
       - *12
       - *18
       responses:
@@ -27464,7 +27553,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams/#check-team-permissions-for-a-repository
       parameters:
       - *100
-      - *192
+      - *181
       - *210
       - *211
       responses:
@@ -28229,7 +28318,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams/#add-or-update-team-repository-permissions
       parameters:
       - *100
-      - *192
+      - *181
       - *210
       - *211
       requestBody:
@@ -28282,7 +28371,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams/#remove-a-repository-from-a-team
       parameters:
       - *100
-      - *192
+      - *181
       - *210
       - *211
       responses:
@@ -28310,7 +28399,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-idp-groups-for-a-team
       parameters:
       - *100
-      - *192
+      - *181
       responses:
         '200':
           description: Response
@@ -28340,7 +28429,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#create-or-update-idp-group-connections
       parameters:
       - *100
-      - *192
+      - *181
       requestBody:
         required: true
         content:
@@ -28415,7 +28504,7 @@ paths:
         url: https://docs.github.com/rest/reference/teams#list-child-teams
       parameters:
       - *100
-      - *192
+      - *181
       - *12
       - *18
       responses:
@@ -28425,7 +28514,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
                 response-if-child-teams-exist: &451
                   value:
@@ -34769,7 +34858,7 @@ paths:
                           reviewer:
                             anyOf:
                             - *13
-                            - *187
+                            - *190
                   required:
                   - environment
                   - wait_timer
@@ -36385,7 +36474,7 @@ paths:
                                   description: The list of teams with review dismissal
                                     access.
                                   type: array
-                                  items: *187
+                                  items: *190
                                 apps:
                                   description: The list of apps with review dismissal
                                     access.
@@ -36417,7 +36506,7 @@ paths:
                                   description: The list of teams allowed to bypass
                                     pull request requirements.
                                   type: array
-                                  items: *187
+                                  items: *190
                                 apps:
                                   description: The list of apps allowed to bypass
                                     pull request requirements.
@@ -37559,7 +37648,7 @@ paths:
                             items: *13
                           teams:
                             type: array
-                            items: *187
+                            items: *190
                           apps:
                             type: array
                             items: *1
@@ -37577,7 +37666,7 @@ paths:
                             items: *13
                           teams:
                             type: array
-                            items: *187
+                            items: *190
                           apps:
                             type: array
                             items: *1
@@ -38863,9 +38952,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -38921,9 +39010,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -38980,9 +39069,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -39038,9 +39127,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
         '422': *10
       x-github:
         githubCloudOnly: false
@@ -45378,7 +45467,7 @@ paths:
                       type:
                       - array
                       - 'null'
-                      items: *187
+                      items: *190
                     head:
                       type: object
                       properties:
@@ -50054,7 +50143,7 @@ paths:
                                       reviewer:
                                         anyOf:
                                         - *13
-                                        - *187
+                                        - *190
                               required:
                               - id
                               - node_id
@@ -54722,7 +54811,7 @@ paths:
                       anyOf:
                       - type: 'null'
                       - *13
-                    requested_team: *187
+                    requested_team: *190
                     dismissed_review:
                       title: Issue Event Dismissed Review
                       type: object
@@ -55919,7 +56008,7 @@ paths:
                         - type: 'null'
                         - *1
                       review_requester: *13
-                      requested_team: *187
+                      requested_team: *190
                       requested_reviewer: *13
                     required:
                     - review_requester
@@ -55961,7 +56050,7 @@ paths:
                         - type: 'null'
                         - *1
                       review_requester: *13
-                      requested_team: *187
+                      requested_team: *190
                       requested_reviewer: *13
                     required:
                     - review_requester
@@ -60486,7 +60575,7 @@ paths:
                     type:
                     - array
                     - 'null'
-                    items: *189
+                    items: *179
                   head:
                     type: object
                     properties:
@@ -63189,7 +63278,7 @@ paths:
                     items: *13
                   teams:
                     type: array
-                    items: *187
+                    items: *190
                 required:
                 - users
                 - teams
@@ -68054,9 +68143,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
-                default: *188
+                default: *180
           headers:
             Link: *19
       x-github:
@@ -73319,9 +73408,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *190
+              schema: *191
               examples:
-                default: *191
+                default: *192
         '404': *15
       x-github:
         githubCloudOnly: false
@@ -73399,16 +73488,16 @@ paths:
           description: Response when the updated information already exists
           content:
             application/json:
-              schema: *190
+              schema: *191
               examples:
-                default: *191
+                default: *192
         '201':
           description: Response
           content:
             application/json:
-              schema: *190
+              schema: *191
               examples:
-                default: *191
+                default: *192
         '404': *15
         '422': *10
         '403': *20
@@ -75110,7 +75199,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *187
+                items: *190
               examples:
                 response-if-child-teams-exist: *451
           headers:
@@ -80706,7 +80795,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *190
+                items: *191
               examples:
                 default:
                   value:
@@ -82163,9 +82252,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *179
+              schema: *182
               examples:
-                default: *180
+                default: *183
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -82193,9 +82282,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *183
+              schema: *186
               examples:
-                default: *184
+                default: *187
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -82223,9 +82312,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *185
+              schema: *188
               examples:
-                default: *186
+                default: *189
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
