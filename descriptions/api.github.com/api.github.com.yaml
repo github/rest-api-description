@@ -10858,6 +10858,97 @@ paths:
         enabledForGitHubApps: true
         category: secret-scanning
         subcategory: 
+  "/orgs/{org}/security-managers":
+    get:
+      summary: List security manager teams
+      description: |-
+        Lists teams that are security managers for an organization. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+        To use this endpoint, you must be an administrator or security manager for the organization, and you must use an access token with the `read:org` scope.
+
+        GitHub Apps must have the `administration` organization read permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/list-security-manager-teams
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#list-security-manager-teams
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/team-simple"
+              examples:
+                default:
+                  "$ref": "#/components/examples/team-items"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
+  "/orgs/{org}/security-managers/teams/{team_slug}":
+    put:
+      summary: Add a security manager team
+      description: |-
+        Adds a team as a security manager for an organization. For more information, see "[Managing security for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization) for an organization."
+
+        To use this endpoint, you must be an administrator for the organization, and you must use an access token with the `write:org` scope.
+
+        GitHub Apps must have the `administration` organization read-write permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/add-security-manager-team
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#add-a-security-manager-team
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/team-slug"
+      responses:
+        '204':
+          description: Response
+        '409':
+          description: The organization has reached the maximum number of security
+            manager teams.
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
+    delete:
+      summary: Remove a security manager team
+      description: |-
+        Removes the security manager role from a team for an organization. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization) team from an organization."
+
+        To use this endpoint, you must be an administrator for the organization, and you must use an access token with the `admin:org` scope.
+
+        GitHub Apps must have the `administration` organization read-write permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/remove-security-manager-team
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#remove-a-security-manager-team
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/team-slug"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: security-managers
   "/orgs/{org}/settings/billing/actions":
     get:
       summary: Get GitHub Actions billing for an organization
@@ -49429,6 +49520,70 @@ components:
       - columns_url
       - created_at
       - updated_at
+    team-simple:
+      title: Team Simple
+      description: Groups of organization members that gives permissions on specified
+        repositories.
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the team
+          type: integer
+          example: 1
+        node_id:
+          type: string
+          example: MDQ6VGVhbTE=
+        url:
+          description: URL for the team
+          type: string
+          format: uri
+          example: https://api.github.com/organizations/1/team/1
+        members_url:
+          type: string
+          example: https://api.github.com/organizations/1/team/1/members{/member}
+        name:
+          description: Name of the team
+          type: string
+          example: Justice League
+        description:
+          description: Description of the team
+          type: string
+          nullable: true
+          example: A great team.
+        permission:
+          description: Permission that the team will have for its repositories
+          type: string
+          example: admin
+        privacy:
+          description: The level of privacy this team should have
+          type: string
+          example: closed
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/orgs/rails/teams/core
+        repositories_url:
+          type: string
+          format: uri
+          example: https://api.github.com/organizations/1/team/1/repos
+        slug:
+          type: string
+          example: justice-league
+        ldap_dn:
+          description: Distinguished Name (DN) that team maps to within LDAP environment
+          example: uid=example,ou=users,dc=github,dc=com
+          type: string
+      required:
+      - id
+      - node_id
+      - url
+      - members_url
+      - name
+      - description
+      - permission
+      - html_url
+      - repositories_url
+      - slug
     group-mapping:
       title: GroupMapping
       description: External Groups to be mapped to a team for membership
@@ -58389,70 +58544,6 @@ components:
             caa_error:
               type: string
               nullable: true
-    team-simple:
-      title: Team Simple
-      description: Groups of organization members that gives permissions on specified
-        repositories.
-      type: object
-      properties:
-        id:
-          description: Unique identifier of the team
-          type: integer
-          example: 1
-        node_id:
-          type: string
-          example: MDQ6VGVhbTE=
-        url:
-          description: URL for the team
-          type: string
-          format: uri
-          example: https://api.github.com/organizations/1/team/1
-        members_url:
-          type: string
-          example: https://api.github.com/organizations/1/team/1/members{/member}
-        name:
-          description: Name of the team
-          type: string
-          example: Justice League
-        description:
-          description: Description of the team
-          type: string
-          nullable: true
-          example: A great team.
-        permission:
-          description: Permission that the team will have for its repositories
-          type: string
-          example: admin
-        privacy:
-          description: The level of privacy this team should have
-          type: string
-          example: closed
-        html_url:
-          type: string
-          format: uri
-          example: https://github.com/orgs/rails/teams/core
-        repositories_url:
-          type: string
-          format: uri
-          example: https://api.github.com/organizations/1/team/1/repos
-        slug:
-          type: string
-          example: justice-league
-        ldap_dn:
-          description: Distinguished Name (DN) that team maps to within LDAP environment
-          example: uid=example,ou=users,dc=github,dc=com
-          type: string
-      required:
-      - id
-      - node_id
-      - url
-      - members_url
-      - name
-      - description
-      - permission
-      - html_url
-      - repositories_url
-      - slug
     pull-request:
       type: object
       title: Pull Request
