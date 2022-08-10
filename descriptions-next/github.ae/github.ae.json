@@ -6417,10 +6417,16 @@
             "$ref": "#/components/parameters/before"
           },
           {
-            "$ref": "#/components/parameters/per-page"
+            "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/page"
+            "name": "per_page",
+            "description": "The number of results per page (max 50).",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
           }
         ],
         "responses": {
@@ -26242,9 +26248,10 @@
           },
           {
             "name": "ref",
-            "description": "ref parameter",
+            "description": "The name of the fully qualified reference to update. For example, `refs/heads/master`. If the value doesn't start with `refs` and have at least two slashes, it will be rejected.",
             "in": "path",
             "required": true,
+            "example": "refs/head/master",
             "schema": {
               "type": "string"
             },
@@ -26547,7 +26554,7 @@
     "/repos/{owner}/{repo}/git/trees": {
       "post": {
         "summary": "Create a tree",
-        "description": "The tree creation API accepts nested entries. If you specify both a tree and a nested path modifying that tree, this endpoint will overwrite the contents of the tree with the new path contents, and create a new tree structure.\n\nIf you use this endpoint to add, delete, or modify the file contents in a tree, you will need to commit the tree and then update a branch to point to the commit. For more information see \"[Create a commit](https://docs.github.com/github-ae@latest/rest/reference/git#create-a-commit)\" and \"[Update a reference](https://docs.github.com/github-ae@latest/rest/reference/git#update-a-reference).\"",
+        "description": "The tree creation API accepts nested entries. If you specify both a tree and a nested path modifying that tree, this endpoint will overwrite the contents of the tree with the new path contents, and create a new tree structure.\n\nIf you use this endpoint to add, delete, or modify the file contents in a tree, you will need to commit the tree and then update a branch to point to the commit. For more information see \"[Create a commit](https://docs.github.com/github-ae@latest/rest/reference/git#create-a-commit)\" and \"[Update a reference](https://docs.github.com/github-ae@latest/rest/reference/git#update-a-reference).\"\n\nReturns an error if you try to delete a file that does not exist.",
         "tags": [
           "git"
         ],
@@ -32520,7 +32527,7 @@
       },
       "post": {
         "summary": "Create a pull request",
-        "description": "Draft pull requests are available in public repositories with GitHub Free and GitHub Free for organizations, GitHub Pro, and legacy per-repository billing plans, and in public and private repositories with GitHub Team and GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.\n\nTo open or update a pull request in a public repository, you must have write access to the head or the source branch. For organization-owned repositories, you must be a member of the organization that owns the repository to open or update a pull request.\n\nYou can create a new pull request.\n\nThis endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-rate-limits)\" for details.",
+        "description": "Draft pull requests are available in public repositories with GitHub Free and GitHub Free for organizations, GitHub Pro, and legacy per-repository billing plans, and in public and private repositories with GitHub Team and GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.\n\nTo open or update a pull request in a public repository, you must have write access to the head or the source branch. For organization-owned repositories, you must be a member of the organization that owns the repository to open or update a pull request.\n\nThis endpoint triggers [notifications](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See \"[Secondary rate limits](https://docs.github.com/github-ae@latest/rest/overview/resources-in-the-rest-api#secondary-rate-limits)\" and \"[Dealing with secondary rate limits](https://docs.github.com/github-ae@latest/rest/guides/best-practices-for-integrators#dealing-with-rate-limits)\" for details.",
         "tags": [
           "pulls"
         ],
@@ -32546,7 +32553,7 @@
                 "properties": {
                   "title": {
                     "type": "string",
-                    "description": "The title of the new pull request."
+                    "description": "The title of the new pull request. Required unless `issue` is specified."
                   },
                   "head": {
                     "type": "string",
@@ -32570,6 +32577,7 @@
                   },
                   "issue": {
                     "type": "integer",
+                    "description": "An issue in the repository to convert to a pull request. The issue title, body, and comments will become the title, body, and comments on the new pull request. Required unless `title` is specified.",
                     "examples": [
                       1
                     ]
@@ -33905,15 +33913,15 @@
     },
     "/repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers": {
       "get": {
-        "summary": "List requested reviewers for a pull request",
-        "description": "Lists the users or teams whose review is requested for a pull request. Once a requested reviewer submits a review, they are no longer considered a requested reviewer. Their review will instead be returned by the [List reviews for a pull request](https://docs.github.com/github-ae@latest/rest/pulls/reviews#list-reviews-for-a-pull-request) operation.",
+        "summary": "Get all requested reviewers for a pull request",
+        "description": "Gets the users or teams whose review is requested for a pull request. Once a requested reviewer submits a review, they are no longer considered a requested reviewer. Their review will instead be returned by the [List reviews for a pull request](https://docs.github.com/github-ae@latest/rest/pulls/reviews#list-reviews-for-a-pull-request) operation.",
         "tags": [
           "pulls"
         ],
         "operationId": "pulls/list-requested-reviewers",
         "externalDocs": {
           "description": "API method documentation",
-          "url": "https://docs.github.com/github-ae@latest/rest/reference/pulls#list-requested-reviewers-for-a-pull-request"
+          "url": "https://docs.github.com/github-ae@latest/rest/reference/pulls#get-all-requested-reviewers-for-a-pull-request"
         },
         "parameters": [
           {
@@ -33924,12 +33932,6 @@
           },
           {
             "$ref": "#/components/parameters/pull-number"
-          },
-          {
-            "$ref": "#/components/parameters/per-page"
-          },
-          {
-            "$ref": "#/components/parameters/page"
           }
         ],
         "responses": {
@@ -89856,7 +89858,7 @@
       },
       "workflow-run-status": {
         "name": "status",
-        "description": "Returns workflow runs with the check run `status` or `conclusion` that you specify. For example, a conclusion can be `success` or a status can be `in_progress`. Only GitHub can set a status of `waiting` or `requested`. For a list of the possible `status` and `conclusion` options, see \"[Create a check run](https://docs.github.com/github-ae@latest/rest/reference/checks#create-a-check-run).\"",
+        "description": "Returns workflow runs with the check run `status` or `conclusion` that you specify. For example, a conclusion can be `success` or a status can be `in_progress`. Only GitHub can set a status of `waiting` or `requested`.",
         "in": "query",
         "required": false,
         "schema": {
