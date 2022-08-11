@@ -12560,12 +12560,6 @@ paths:
                     If no permission is specified, the team's `permission` attribute
                     will be used to determine what permission to grant the team on
                     this repository.
-                  enum:
-                  - pull
-                  - push
-                  - admin
-                  - maintain
-                  - triage
                   default: push
             examples:
               default:
@@ -14415,8 +14409,7 @@ paths:
       summary: Get the level of access for workflows outside of the repository
       description: |-
         Gets the level of access that workflows outside of the repository have to actions and reusable workflows in the repository.
-        This endpoint only applies to internal repositories.
-        For more information, see "[Managing GitHub Actions settings for a repository](https://docs.github.com/enterprise-server@3.6/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#allowing-access-to-components-in-an-internal-repository)."
+        This endpoint only applies to internal repositories. For more information, see "[Managing GitHub Actions settings for a repository](https://docs.github.com/enterprise-server@3.6/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#allowing-access-to-components-in-an-internal-repository)."
 
         You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the
         repository `administration` permission to use this endpoint.
@@ -14449,8 +14442,7 @@ paths:
       summary: Set the level of access for workflows outside of the repository
       description: |-
         Sets the level of access that workflows outside of the repository have to actions and reusable workflows in the repository.
-        This endpoint only applies to internal repositories.
-        For more information, see "[Managing GitHub Actions settings for a repository](https://docs.github.com/enterprise-server@3.6/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#allowing-access-to-components-in-an-internal-repository)."
+        This endpoint only applies to internal repositories. For more information, see "[Managing GitHub Actions settings for a repository](https://docs.github.com/enterprise-server@3.6/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#allowing-access-to-components-in-an-internal-repository)."
 
         You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the
         repository `administration` permission to use this endpoint.
@@ -20027,12 +20019,6 @@ paths:
                   type: string
                   description: The permission to grant the collaborator. **Only valid
                     on organization-owned repositories.**
-                  enum:
-                  - pull
-                  - push
-                  - admin
-                  - maintain
-                  - triage
                   default: push
             examples:
               new-invitation-is-created:
@@ -22285,9 +22271,9 @@ paths:
         subcategory: 
   "/repos/{owner}/{repo}/environments":
     get:
-      summary: Get all environments
+      summary: List environments
       description: |-
-        Get all environments for a repository.
+        Lists the environments for a repository.
 
         Anyone with read access to the repository can use this endpoint. If the repository is private, you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
       tags:
@@ -22295,7 +22281,7 @@ paths:
       operationId: repos/get-all-environments
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#get-all-environments
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/environments#list-environments
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -22324,14 +22310,17 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
   "/repos/{owner}/{repo}/environments/{environment_name}":
     get:
       summary: Get an environment
-      description: Anyone with read access to the repository can use this endpoint.
-        If the repository is private, you must use an access token with the `repo`
-        scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      description: |-
+        **Note:** To get information about name patterns that branches must match in order to deploy to this environment, see "[Get a deployment branch policy](/rest/deployments/branch-policies#get-a-deployment-branch-policy)."
+
+        Anyone with read access to the repository can use this endpoint. If the
+        repository is private, you must use an access token with the `repo` scope. GitHub
+        Apps must have the `actions:read` permission to use this endpoint.
       tags:
       - repos
       operationId: repos/get-environment
@@ -22362,11 +22351,11 @@ paths:
       description: |-
         Create or update an environment with protection rules, such as required reviewers. For more information about environment protection rules, see "[Environments](/actions/reference/environments#environment-protection-rules)."
 
-        **Note:** Although you can use this operation to specify that only branches that match specified name patterns can deploy to this environment, you must use the UI to set the name patterns. For more information, see "[Environments](/actions/reference/environments#deployment-branches)."
+        **Note:** To create or update name patterns that branches must match in order to deploy to this environment, see "[Deployment branch policies](/rest/deployments/branch-policies)."
 
         **Note:** To create or update secrets for an environment, see "[Secrets](/rest/reference/actions#secrets)."
 
-        You must authenticate using an access token with the repo scope to use this endpoint.
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration:write` permission for the repository to use this endpoint.
       tags:
       - repos
       operationId: repos/create-or-update-environment
@@ -22409,8 +22398,20 @@ paths:
                         examples:
                         - 4532992
                 deployment_branch_policy:
-                  "$ref": "#/components/schemas/deployment-branch-policy"
+                  "$ref": "#/components/schemas/deployment-branch-policy-settings"
               additionalProperties: false
+            examples:
+              default:
+                value:
+                  wait_timer: 30
+                  reviewers:
+                  - type: User
+                    id: 1
+                  - type: Team
+                    id: 1
+                  deployment_branch_policy:
+                    protected_branches: false
+                    custom_branch_policies: true
       responses:
         '200':
           description: Response
@@ -22456,6 +22457,207 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: environments
+  "/repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies":
+    get:
+      summary: List deployment branch policies
+      description: |-
+        Lists the deployment branch policies for an environment.
+
+        Anyone with read access to the repository can use this endpoint. If the repository is private, you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/list-deployment-branch-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/branch-policies#list-deployment-branch-policies
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    description: The number of deployment branch policies for the
+                      environment.
+                    type: integer
+                    examples:
+                    - 2
+                  branch_policies:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/deployment-branch-policy"
+                required:
+                - total_count
+                - branch_policies
+              examples:
+                default:
+                  "$ref": "#/components/examples/deployment-branch-policies-list"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: deployments
+        subcategory: branch-policies
+    post:
+      summary: Create a deployment branch policy
+      description: |-
+        Creates a deployment branch policy for an environment.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration:write` permission for the repository to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/create-deployment-branch-policy
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/branch-policies#create-deployment-branch-policy
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/deployment-branch-policy-name-pattern"
+            examples:
+              example-wildcard:
+                summary: Example of a wildcard name pattern
+                value:
+                  name: release/*
+              example-single-branch:
+                summary: Example of a single branch name pattern
+                value:
+                  name: main
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/deployment-branch-policy"
+              examples:
+                example-wildcard:
+                  "$ref": "#/components/examples/deployment-branch-policy-wildcard"
+                example-single-branch:
+                  "$ref": "#/components/examples/deployment-branch-policy-single-branch"
+        '404':
+          description: Not Found or `deployment_branch_policy.custom_branch_policies`
+            property for the environment is set to false
+        '303':
+          description: Response if the same branch name pattern already exists
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: deployments
+        subcategory: branch-policies
+  "/repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies/{branch_policy_id}":
+    get:
+      summary: Get a deployment branch policy
+      description: |-
+        Gets a deployment branch policy for an environment.
+
+        Anyone with read access to the repository can use this endpoint. If the repository is private, you must use an access token with the `repo` scope. GitHub Apps must have the `actions:read` permission to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/get-deployment-branch-policy
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/branch-policies#get-deployment-branch-policy
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      - "$ref": "#/components/parameters/branch-policy-id"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/deployment-branch-policy"
+              examples:
+                default:
+                  "$ref": "#/components/examples/deployment-branch-policy-wildcard"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: deployments
+        subcategory: branch-policies
+    put:
+      summary: Update a deployment branch policy
+      description: |-
+        Updates a deployment branch policy for an environment.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration:write` permission for the repository to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/update-deployment-branch-policy
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/branch-policies#update-deployment-branch-policy
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      - "$ref": "#/components/parameters/branch-policy-id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/deployment-branch-policy-name-pattern"
+            examples:
+              default:
+                value:
+                  name: release/*
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/deployment-branch-policy"
+              examples:
+                default:
+                  "$ref": "#/components/examples/deployment-branch-policy-wildcard"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: deployments
+        subcategory: branch-policies
+    delete:
+      summary: Delete a deployment branch policy
+      description: |-
+        Deletes a deployment branch policy for an environment.
+
+        You must authenticate using an access token with the `repo` scope to use this endpoint. GitHub Apps must have the `administration:write` permission for the repository to use this endpoint.
+      tags:
+      - repos
+      operationId: repos/delete-deployment-branch-policy
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/branch-policies#delete-deployment-branch-policy
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/environment-name"
+      - "$ref": "#/components/parameters/branch-policy-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: deployments
+        subcategory: branch-policies
   "/repos/{owner}/{repo}/events":
     get:
       summary: List repository events
@@ -49873,7 +50075,7 @@ components:
         The time (in minutes) must be an integer between 0 and 43,200 (30 days).
       examples:
       - 30
-    deployment-branch-policy:
+    deployment-branch-policy-settings:
       type:
       - object
       - 'null'
@@ -50012,7 +50214,7 @@ components:
               - node_id
               - type
         deployment_branch_policy:
-          "$ref": "#/components/schemas/deployment-branch-policy"
+          "$ref": "#/components/schemas/deployment-branch-policy-settings"
       required:
       - id
       - node_id
@@ -50021,6 +50223,41 @@ components:
       - html_url
       - created_at
       - updated_at
+    deployment-branch-policy:
+      title: Deployment branch policy
+      description: Details of a deployment branch policy.
+      type: object
+      properties:
+        id:
+          description: The unique identifier of the branch policy.
+          type: integer
+          examples:
+          - 361471
+        node_id:
+          type: string
+          examples:
+          - MDE2OkdhdGVCcmFuY2hQb2xpY3kzNjE0NzE=
+        name:
+          description: The name pattern that branches must match in order to deploy
+            to the environment.
+          type: string
+          examples:
+          - release/*
+    deployment-branch-policy-name-pattern:
+      title: Deployment branch policy name pattern
+      type: object
+      properties:
+        name:
+          description: |-
+            The name pattern that branches must match in order to deploy to the environment.
+
+            Wildcard characters will not match `/`. For example, to match branches that begin with `release/` and contain an additional single slash, use `release/*/*`.
+            For more information about pattern matching syntax, see the [Ruby File.fnmatch documentation](https://ruby-doc.org/core-2.5.1/File.html#method-c-fnmatch).
+          type: string
+          examples:
+          - release/*
+      required:
+      - name
     short-blob:
       title: Short Blob
       description: Short Blob
@@ -69234,6 +69471,26 @@ components:
         deployment_branch_policy:
           protected_branches: false
           custom_branch_policies: true
+    deployment-branch-policies-list:
+      value:
+        total_count: 2
+        branch_policies:
+        - id: 361471
+          node_id: MDE2OkdhdGVCcmFuY2hQb2xpY3kzNjE0NzE=
+          name: release/*
+        - id: 361472
+          node_id: MDE2OkdhdGVCcmFuY2hQb2xpY3kzNjE0NzI=
+          name: main
+    deployment-branch-policy-wildcard:
+      value:
+        id: 364662
+        node_id: MDE2OkdhdGVCcmFuY2hQb2xpY3kzNjQ2NjI=
+        name: release/*
+    deployment-branch-policy-single-branch:
+      value:
+        id: 364663
+        node_id: MDE2OkdhdGVCcmFuY2hQb2xpY3kzNjQ2NjM=
+        name: main
     repo-events-items:
       value:
       - id: '22249084964'
@@ -77161,9 +77418,16 @@ components:
       name: environment_name
       in: path
       required: true
-      description: The name of the environment
+      description: The name of the environment.
       schema:
         type: string
+    branch-policy-id:
+      name: branch_policy_id
+      in: path
+      required: true
+      description: The unique identifier of the branch policy.
+      schema:
+        type: integer
     invitation-id:
       name: invitation_id
       description: The unique identifier of the invitation.
