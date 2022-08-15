@@ -2478,6 +2478,73 @@ paths:
         previews: []
         category: code-scanning
         subcategory: 
+  "/enterprises/{enterprise}/consumed-licenses":
+    get:
+      summary: List enterprise consumed licenses
+      description: |-
+        Lists the license consumption information for all users, including those from connected servers, associated with an enterprise.
+        To use this endpoint, you must be an enterprise admin, and you must use an access
+        token with the `read:enterprise` scope.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-consumed-licenses
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/enterprise-admin#list-enterprise-consumed-licenses
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Consumed Licenses Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/get-consumed-licenses"
+              examples:
+                default:
+                  "$ref": "#/components/examples/get-consumed-licenses"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: license
+  "/enterprises/{enterprise}/license-sync-status":
+    get:
+      summary: Get a license sync status
+      description: |-
+        Gets information about the status of a license sync job for an enterprise.
+        To use this endpoint, you must be an enterprise admin, and you must use an access
+        token with the `read:enterprise` scope.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-license-sync-status
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/enterprise-admin#get-a-license-sync-status
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: License Sync Status Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/get-license-sync-status"
+              examples:
+                default:
+                  "$ref": "#/components/examples/get-license-sync-status"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: false
+        previews: []
+        category: enterprise-admin
+        subcategory: license
   "/enterprises/{enterprise}/secret-scanning/alerts":
     get:
       summary: List secret scanning alerts for an enterprise
@@ -41308,6 +41375,10 @@ paths:
             text/plain:
               schema:
                 type: string
+              examples:
+                default:
+                  summary: Example response
+                  value: Responsive is better than fast
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -44404,6 +44475,89 @@ components:
       - tool
       - most_recent_instance
       - repository
+    get-consumed-licenses:
+      title: Enterprise Consumed Licenses
+      description: A breakdown of the licenses consumed by an enterprise.
+      properties:
+        total_seats_consumed:
+          type: integer
+        total_seats_purchased:
+          type: integer
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              github_com_login:
+                type: string
+              github_com_name:
+                type: string
+                nullable: true
+              github_com_profile:
+                type: string
+                nullable: true
+              license_type:
+                type: string
+              github_com_member_roles:
+                type: array
+                items:
+                  type: string
+              github_com_enterprise_role:
+                type: string
+                nullable: true
+              visual_studio_subscription_user:
+                type: boolean
+              github_com_verified_domain_emails:
+                type: array
+                items:
+                  type: string
+              github_com_saml_name_id:
+                type: string
+                nullable: true
+              enterprise_server_user:
+                type: boolean
+                nullable: true
+              enterprise_server_emails:
+                type: array
+                items:
+                  type: string
+              github_com_user:
+                type: boolean
+              total_user_accounts:
+                type: integer
+              enterprise_server_user_ids:
+                type: array
+                items:
+                  type: string
+              github_com_orgs_with_pending_invites:
+                type: array
+                items:
+                  type: string
+              visual_studio_subscription_email:
+                type: string
+                nullable: true
+    get-license-sync-status:
+      title: License Sync Status
+      description: Information about the status of a license sync job for an enterprise.
+      properties:
+        server_instances:
+          type: array
+          items:
+            type: object
+            properties:
+              server_id:
+                type: string
+              hostname:
+                type: string
+              last_sync:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  status:
+                    type: string
+                  error:
+                    type: string
     nullable-alert-updated-at:
       type: string
       description: 'The time that the alert was last updated in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
@@ -64966,6 +65120,68 @@ components:
           teams_url: https://api.github.com/repos/octocat/Hello-World/teams
           trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
           hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
+    get-consumed-licenses:
+      value:
+        total_seats_consumed: 5000
+        total_seats_purchased: 4500
+        users:
+        - enterprise_server_emails:
+          - monalisa@github.com
+          github_com_login: monalisa
+          github_com_name: Mona Lisa
+          github_com_profile: https://github.com/monalisa
+          license_type: enterprise
+          github_com_member_roles:
+          - org1:Owner
+          - org2:Owner
+          github_com_enterprise_role: owner
+          visual_studio_subscription_user: false
+          github_com_verified_domain_emails:
+          - monalisa@github.com
+          github_com_saml_name_id: monalisa
+          enterprise_server_user: true
+          github_com_user: true
+          total_user_accounts: 3
+          enterprise_server_user_ids:
+          - example_host_name.com:123
+          - example_host_name_2:222
+          github_com_orgs_with_pending_invites:
+          - org1
+          - org2
+          visual_studio_subscription_email: ''
+        - enterprise_server_emails:
+          - deleonjavier@example.com
+          github_com_login: ''
+          github_com_name: ''
+          github_com_profile: ''
+          license_type: enterprise
+          github_com_member_roles: []
+          github_com_enterprise_role: ''
+          visual_studio_subscription_user: false
+          github_com_verified_domain_emails: []
+          github_com_saml_name_id: ''
+          enterprise_server_user: true
+          github_com_user: false
+          total_user_accounts: 1
+          enterprise_server_user_ids:
+          - example_host_name:123
+          github_com_orgs_with_pending_invites: []
+          visual_studio_subscription_email: ''
+    get-license-sync-status:
+      value:
+        server_instances:
+        - server_id: deadbeef1
+          hostname: github.example.com
+          last_sync:
+            date: '2020-01-01T00:00:00Z'
+            status: success
+            error: ''
+        - server_id: filetoffish1
+          hostname: github2.example.com
+          last_sync:
+            date: '2020-01-01T00:00:00Z'
+            status: success
+            error: ''
     organization-secret-scanning-alert-list:
       value:
       - number: 2
