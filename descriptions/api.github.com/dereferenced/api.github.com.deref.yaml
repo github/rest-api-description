@@ -14703,6 +14703,53 @@ paths:
                   updated_at:
                     type: string
                     format: date-time
+                  advanced_security_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether GitHub Advanced Security is enabled for new repositories and repositories transferred to this organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
+                  dependabot_alerts_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether GitHub Advanced Security is automatically enabled for new repositories and repositories transferred to
+                      this organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
+                  dependabot_security_updates_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether dependabot security updates are automatically enabled for new repositories and repositories transferred
+                      to this organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
+                  dependency_graph_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether dependency graph is automatically enabled for new repositories and repositories transferred to this
+                      organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
+                  secret_scanning_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether secret scanning is automatically enabled for new repositories and repositories transferred to this
+                      organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
+                  secret_scanning_push_protection_enabled_for_new_repositories:
+                    type: boolean
+                    example: false
+                    description: |-
+                      Whether secret scanning push protection is automatically enabled for new repositories and repositories
+                      transferred to this organization.
+
+                      This field is only visible to organization owners or members of a team with the security manager role.
                 required:
                 - login
                 - url
@@ -14917,6 +14964,54 @@ paths:
                 blog:
                   type: string
                   example: '"http://github.blog"'
+                advanced_security_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether GitHub Advanced Security is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependabot_alerts_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether Dependabot alerts is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependabot_security_updates_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether Dependabot security updates is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependency_graph_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether dependency graph is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                secret_scanning_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether secret scanning is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                secret_scanning_push_protection_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether secret scanning push protection is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
             examples:
               default:
                 value:
@@ -27586,6 +27681,64 @@ paths:
         enabledForGitHubApps: true
         category: teams
         subcategory: 
+  "/orgs/{org}/{security_product}/{enablement}":
+    post:
+      summary: Enable or disable a security feature for an organization
+      description: |-
+        Enables or disables the specified security feature for all repositories in an organization.
+
+        To use this endpoint, you must be an organization owner or be member of a team with the security manager role.
+        A token with the 'write:org' scope is also required.
+
+        GitHub Apps must have the `organization_administration:write` permission to use this endpoint.
+
+        For more information, see "[Managing security managers in your organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+      tags:
+      - orgs
+      operationId: orgs/enable-or-disable-security-product-on-all-org-repos
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#enable-or-disable-security-product-on-all-org-repos
+      parameters:
+      - *100
+      - name: security_product
+        in: path
+        description: The security feature to enable or disable.
+        required: true
+        schema:
+          type: string
+          enum:
+          - dependency_graph
+          - dependabot_alerts
+          - dependabot_security_updates
+          - advanced_security
+          - secret_scanning
+          - secret_scanning_push_protection
+      - name: enablement
+        in: path
+        description: |-
+          The action to take.
+
+          `enable_all` means to enable the specified security feature for all repositories in the organization.
+          `disable_all` means to disable the specified security feature for all repositories in the organization.
+        required: true
+        schema:
+          type: string
+          enum:
+          - enable_all
+          - disable_all
+      responses:
+        '204':
+          description: Action started
+        '422':
+          description: The action could not be taken due to an in progress enablement,
+            or a policy is preventing enablement
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: orgs
   "/projects/columns/cards/{card_id}":
     get:
       summary: Get a project card
