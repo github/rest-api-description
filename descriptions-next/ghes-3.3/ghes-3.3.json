@@ -12280,17 +12280,6 @@
               }
             }
           },
-          "302": {
-            "description": "Response if requester is not an organization member",
-            "headers": {
-              "Location": {
-                "example": "https://api.github.com/orgs/github/public_members",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
           "422": {
             "$ref": "#/components/responses/validation_failed"
           }
@@ -20232,6 +20221,11 @@
                   "url_template": {
                     "type": "string",
                     "description": "The URL must contain `<num>` for the reference number."
+                  },
+                  "is_alphanumeric": {
+                    "type": "boolean",
+                    "default": "true",
+                    "description": "Whether this autolink reference matches alphanumeric characters. If true, the `<num>` parameter of the `url_template` matches alphanumeric characters `A-Z` (case insensitive), `0-9`, and `-`. If false, this autolink reference only matches numeric characters."
                   }
                 },
                 "required": [
@@ -20243,7 +20237,8 @@
                 "default": {
                   "value": {
                     "key_prefix": "TICKET-",
-                    "url_template": "https://example.com/TICKET?query=<num>"
+                    "url_template": "https://example.com/TICKET?query=<num>",
+                    "is_alphanumeric": true
                   }
                 }
               }
@@ -26177,6 +26172,9 @@
           },
           "500": {
             "$ref": "#/components/responses/internal_error"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
           }
         },
         "x-github": {
@@ -26576,11 +26574,14 @@
               }
             }
           },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
           "500": {
             "$ref": "#/components/responses/internal_error"
           },
-          "404": {
-            "$ref": "#/components/responses/not_found"
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
           }
         },
         "x-github": {
@@ -36395,11 +36396,14 @@
           "304": {
             "$ref": "#/components/responses/not_modified"
           },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
           "500": {
             "$ref": "#/components/responses/internal_error"
           },
-          "404": {
-            "$ref": "#/components/responses/not_found"
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
           }
         },
         "x-github": {
@@ -36943,6 +36947,9 @@
           },
           "500": {
             "$ref": "#/components/responses/internal_error"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
           }
         },
         "x-github": {
@@ -40707,7 +40714,7 @@
     "/repos/{template_owner}/{template_repo}/generate": {
       "post": {
         "summary": "Create a repository using a template",
-        "description": "Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. The authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.\n\n**OAuth scope requirements**\n\nWhen using [OAuth](https://docs.github.com/enterprise-server@3.3/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/), authorizations must include:\n\n*   `public_repo` scope or `repo` scope to create a public repository. Note: For GitHub AE, use `repo` scope to create an internal repository.\n*   `repo` scope to create a private repository",
+        "description": "Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. If the repository is not public, the authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.\n\n**OAuth scope requirements**\n\nWhen using [OAuth](https://docs.github.com/enterprise-server@3.3/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/), authorizations must include:\n\n*   `public_repo` scope or `repo` scope to create a public repository. Note: For GitHub AE, use `repo` scope to create an internal repository.\n*   `repo` scope to create a private repository",
         "tags": [
           "repos"
         ],
@@ -52225,6 +52232,10 @@
             "examples": [
               "\"2020-07-09T00:17:42Z\""
             ]
+          },
+          "anonymous_access_enabled": {
+            "type": "boolean",
+            "description": "Whether anonymous git access is enabled for this repository"
           }
         },
         "required": [
