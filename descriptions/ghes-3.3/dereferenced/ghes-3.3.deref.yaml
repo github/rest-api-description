@@ -4838,6 +4838,10 @@ paths:
                         starred_at:
                           type: string
                           example: '"2020-07-09T00:17:42Z"'
+                        anonymous_access_enabled:
+                          type: boolean
+                          description: Whether anonymous git access is enabled for
+                            this repository
                       required: &103
                       - archive_url
                       - assignees_url
@@ -18497,13 +18501,6 @@ paths:
                     site_admin: false
           headers:
             Link: *6
-        '302':
-          description: Response if requester is not an organization member
-          headers:
-            Location:
-              example: https://api.github.com/orgs/github/public_members
-              schema:
-                type: string
         '422': *31
       x-github:
         githubCloudOnly: false
@@ -30103,6 +30100,14 @@ paths:
                 url_template:
                   type: string
                   description: The URL must contain `<num>` for the reference number.
+                is_alphanumeric:
+                  type: boolean
+                  default: 'true'
+                  description: Whether this autolink reference matches alphanumeric
+                    characters. If true, the `<num>` parameter of the `url_template`
+                    matches alphanumeric characters `A-Z` (case insensitive), `0-9`,
+                    and `-`. If false, this autolink reference only matches numeric
+                    characters.
               required:
               - key_prefix
               - url_template
@@ -30111,6 +30116,7 @@ paths:
                 value:
                   key_prefix: TICKET-
                   url_template: https://example.com/TICKET?query=<num>
+                  is_alphanumeric: true
       responses:
         '201':
           description: response
@@ -39032,6 +39038,7 @@ paths:
         '422': *31
         '404': *35
         '500': *260
+        '503': *149
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -40018,8 +40025,9 @@ paths:
                       contents_url: https://api.github.com/repos/octocat/Hello-World/contents/file1.txt?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e
                       patch: "@@ -132,7 +132,7 @@ module Test @@ -1000,7 +1000,7 @@
                         module Test"
-        '500': *260
         '404': *35
+        '500': *260
+        '503': *149
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -53699,8 +53707,9 @@ paths:
               examples:
                 default: *347
         '304': *40
-        '500': *260
         '404': *35
+        '500': *260
+        '503': *149
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -54181,6 +54190,7 @@ paths:
             Link: *6
         '422': *31
         '500': *260
+        '503': *149
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -59355,7 +59365,7 @@ paths:
     post:
       summary: Create a repository using a template
       description: |-
-        Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. The authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.
+        Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. If the repository is not public, the authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/enterprise-server@3.3/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.
 
         **OAuth scope requirements**
 

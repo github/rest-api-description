@@ -4887,6 +4887,54 @@ paths:
                 blog:
                   type: string
                   example: '"http://github.blog"'
+                advanced_security_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether GitHub Advanced Security is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependabot_alerts_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether Dependabot alerts is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependabot_security_updates_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether Dependabot security updates is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                dependency_graph_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether dependency graph is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                secret_scanning_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether secret scanning is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
+                secret_scanning_push_protection_enabled_for_new_repositories:
+                  type: boolean
+                  description: |-
+                    Whether secret scanning push protection is automatically enabled for new repositories.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/github-ae@latest/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    You can check which security and analysis features are currently enabled by using a `GET /orgs/{org}` request.
             examples:
               default:
                 value:
@@ -6901,13 +6949,6 @@ paths:
           headers:
             Link:
               "$ref": "#/components/headers/link"
-        '302':
-          description: Response if requester is not an organization member
-          headers:
-            Location:
-              example: https://api.github.com/orgs/github/public_members
-              schema:
-                type: string
         '422':
           "$ref": "#/components/responses/validation_failed"
       x-github:
@@ -12555,6 +12596,14 @@ paths:
                 url_template:
                   type: string
                   description: The URL must contain `<num>` for the reference number.
+                is_alphanumeric:
+                  type: boolean
+                  default: 'true'
+                  description: Whether this autolink reference matches alphanumeric
+                    characters. If true, the `<num>` parameter of the `url_template`
+                    matches alphanumeric characters `A-Z` (case insensitive), `0-9`,
+                    and `-`. If false, this autolink reference only matches numeric
+                    characters.
               required:
               - key_prefix
               - url_template
@@ -12563,6 +12612,7 @@ paths:
                 value:
                   key_prefix: TICKET-
                   url_template: https://example.com/TICKET?query=<num>
+                  is_alphanumeric: true
       responses:
         '201':
           description: response
@@ -17008,6 +17058,8 @@ paths:
           "$ref": "#/components/responses/not_found"
         '500':
           "$ref": "#/components/responses/internal_error"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -17310,10 +17362,12 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/commit-comparison"
-        '500':
-          "$ref": "#/components/responses/internal_error"
         '404':
           "$ref": "#/components/responses/not_found"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -23948,10 +24002,12 @@ paths:
                   "$ref": "#/components/examples/pull-request"
         '304':
           "$ref": "#/components/responses/not_modified"
-        '500':
-          "$ref": "#/components/responses/internal_error"
         '404':
           "$ref": "#/components/responses/not_found"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -24342,6 +24398,8 @@ paths:
           "$ref": "#/components/responses/validation_failed"
         '500':
           "$ref": "#/components/responses/internal_error"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -26789,7 +26847,7 @@ paths:
     post:
       summary: Create a repository using a template
       description: |-
-        Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. The authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/github-ae@latest/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.
+        Creates a new repository using a repository template. Use the `template_owner` and `template_repo` route parameters to specify the repository to use as the template. If the repository is not public, the authenticated user must own or be a member of an organization that owns the repository. To check if a repository is available to use as a template, get the repository's information using the [Get a repository](https://docs.github.com/github-ae@latest/rest/reference/repos#get-a-repository) endpoint and check that the `is_template` key is `true`.
 
         **OAuth scope requirements**
 
@@ -33737,6 +33795,9 @@ components:
         starred_at:
           type: string
           example: '"2020-07-09T00:17:42Z"'
+        anonymous_access_enabled:
+          type: boolean
+          description: Whether anonymous git access is enabled for this repository
       required:
       - archive_url
       - assignees_url
@@ -36264,6 +36325,9 @@ components:
         starred_at:
           type: string
           example: '"2020-07-09T00:17:42Z"'
+        anonymous_access_enabled:
+          type: boolean
+          description: Whether anonymous git access is enabled for this repository
       required:
       - archive_url
       - assignees_url
@@ -36929,6 +36993,53 @@ components:
         updated_at:
           type: string
           format: date-time
+        advanced_security_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether GitHub Advanced Security is enabled for new repositories and repositories transferred to this organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
+        dependabot_alerts_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether GitHub Advanced Security is automatically enabled for new repositories and repositories transferred to
+            this organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
+        dependabot_security_updates_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether dependabot security updates are automatically enabled for new repositories and repositories transferred
+            to this organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
+        dependency_graph_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether dependency graph is automatically enabled for new repositories and repositories transferred to this
+            organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
+        secret_scanning_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether secret scanning is automatically enabled for new repositories and repositories transferred to this
+            organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
+        secret_scanning_push_protection_enabled_for_new_repositories:
+          type: boolean
+          example: false
+          description: |-
+            Whether secret scanning push protection is automatically enabled for new repositories and repositories
+            transferred to this organization.
+
+            This field is only visible to organization owners or members of a team with the security manager role.
       required:
       - login
       - url
