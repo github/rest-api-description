@@ -4781,7 +4781,7 @@ paths:
                       "$ref": "#/components/schemas/organization-custom-repository-role"
               examples:
                 default:
-                  "$ref": "#/components/examples/organization-custom-repository-role-example-old"
+                  "$ref": "#/components/examples/organization-custom-repository-role-example"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -7265,6 +7265,247 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: 
+  "/orgs/{org}/custom_roles":
+    post:
+      summary: Create a custom role
+      description: |-
+        **Note**: This operation is in beta and is subject to change.
+
+        Creates a custom repository role that can be used by all repositories owned by the organization.
+
+        To use this endpoint the authenticated user must be an administrator for the organization and must use an access token with `admin:org` scope.
+        GitHub Apps must have the `organization_custom_roles:write` organization permission to use this endpoint.
+
+        For more information on custom repository roles, see "[Managing custom repository roles for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-custom-repository-roles-for-an-organization)."
+      tags:
+      - orgs
+      operationId: orgs/create-custom-role
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#create-a-custom-role
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the custom role.
+                description:
+                  type: string
+                  description: A short description about the intended usage of this
+                    role or what permissions it grants.
+                base_role:
+                  type: string
+                  enum:
+                  - read
+                  - triage
+                  - write
+                  - maintain
+                  description: The system role from which this role inherits permissions.
+                permissions:
+                  type: array
+                  description: A list of additional permissions included in this role.
+                  items:
+                    type: string
+              required:
+              - name
+              - base_role
+              - permissions
+            examples:
+              default:
+                value:
+                  name: Labeler
+                  description: A role for issue and PR labelers
+                  base_role: read
+                  permissions:
+                  - add_label
+      responses:
+        '201':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/organization-custom-repository-role"
+              examples:
+                default:
+                  value:
+                    id: 8030
+                    name: Labeler
+                    description: A role for issue and PR labelers
+                    base_role: read
+                    permissions:
+                    - add_label
+                    organization:
+                      login: github
+                      id: 9919
+                      node_id: MDEyOk9yZ2FuaXphdGlvbjk5MTk=
+                      avatar_url: https://avatars.githubusercontent.com/u/9919?v=4
+                      gravatar_id: ''
+                      url: https://api.github.com/users/github
+                      html_url: https://github.com/github
+                      followers_url: https://api.github.com/users/github/followers
+                      following_url: https://api.github.com/users/github/following{/other_user}
+                      gists_url: https://api.github.com/users/github/gists{/gist_id}
+                      starred_url: https://api.github.com/users/github/starred{/owner}{/repo}
+                      subscriptions_url: https://api.github.com/users/github/subscriptions
+                      organizations_url: https://api.github.com/users/github/orgs
+                      repos_url: https://api.github.com/users/github/repos
+                      events_url: https://api.github.com/users/github/events{/privacy}
+                      received_events_url: https://api.github.com/users/github/received_events
+                      type: Organization
+                      site_admin: false
+                    created_at: '2022-07-04T22:19:11Z'
+                    updated_at: '2022-07-04T22:19:11Z'
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: custom-roles
+  "/orgs/{org}/custom_roles/{role_id}":
+    patch:
+      summary: Update a custom role
+      description: |-
+        **Note**: This operation is in beta and subject to change.
+
+        Updates a custom repository role that can be used by all repositories owned by the organization.
+
+        To use this endpoint the authenticated user must be an administrator for the organization and must use an access token with `admin:org` scope.
+        GitHub Apps must have the `organization_custom_roles:write` organization permission to use this endpoint.
+
+        For more information about custom repository roles, see "[Managing custom repository roles for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-custom-repository-roles-for-an-organization)."
+      tags:
+      - orgs
+      operationId: orgs/update-custom-role
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#update-a-custom-role
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/role-id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the custom role.
+                description:
+                  type: string
+                  description: A short description about who this role is for or what
+                    permissions it grants.
+                base_role:
+                  type: string
+                  enum:
+                  - read
+                  - triage
+                  - write
+                  - maintain
+                  description: The system role from which this role inherits permissions.
+                permissions:
+                  type: array
+                  description: A list of additional permissions included in this role.
+                    If specified, these permissions will replace any currently set
+                    on the role.
+                  items:
+                    type: string
+            examples:
+              default:
+                value:
+                  name: Labeler
+                  description: A role for issue and PR labelers
+                  base_role: read
+                  permissions:
+                  - add_label
+                  - remove_label
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/organization-custom-repository-role"
+              examples:
+                default:
+                  value:
+                    id: 8030
+                    name: Labeler
+                    description: A role for issue and PR labelers
+                    base_role: read
+                    permissions:
+                    - add_label
+                    - remove_label
+                    organization:
+                      login: github
+                      id: 9919
+                      node_id: MDEyOk9yZ2FuaXphdGlvbjk5MTk=
+                      avatar_url: https://avatars.githubusercontent.com/u/9919?v=4
+                      gravatar_id: ''
+                      url: https://api.github.com/users/github
+                      html_url: https://github.com/github
+                      followers_url: https://api.github.com/users/github/followers
+                      following_url: https://api.github.com/users/github/following{/other_user}
+                      gists_url: https://api.github.com/users/github/gists{/gist_id}
+                      starred_url: https://api.github.com/users/github/starred{/owner}{/repo}
+                      subscriptions_url: https://api.github.com/users/github/subscriptions
+                      organizations_url: https://api.github.com/users/github/orgs
+                      repos_url: https://api.github.com/users/github/repos
+                      events_url: https://api.github.com/users/github/events{/privacy}
+                      received_events_url: https://api.github.com/users/github/received_events
+                      type: Organization
+                      site_admin: false
+                    created_at: '2022-07-04T22:19:11Z'
+                    updated_at: '2022-07-04T22:19:11Z'
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: custom-roles
+    delete:
+      summary: Delete a custom role
+      description: |-
+        **Note**: This operation is in beta and is subject to change.
+
+        Deletes a custom role from an organization. Once the custom role has been deleted, any
+        user, team, or invitation with the deleted custom role will be reassigned the inherited role.
+
+        To use this endpoint the authenticated user must be an administrator for the organization and must use an access token with `admin:org` scope.
+        GitHub Apps must have the `organization_custom_roles:write` organization permission to use this endpoint.
+
+        For more information about custom repository roles, see "[Managing custom repository roles for an organization](https://docs.github.com/organizations/managing-peoples-access-to-your-organization-with-roles/managing-custom-repository-roles-for-an-organization)."
+      tags:
+      - orgs
+      operationId: orgs/delete-custom-role
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#delete-a-custom-role
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/role-id"
+      responses:
+        '204':
+          description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: custom-roles
   "/orgs/{org}/dependabot/secrets":
     get:
       summary: List organization secrets
@@ -7854,6 +8095,42 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: members
+  "/orgs/{org}/fine_grained_permissions":
+    get:
+      summary: List fine-grained permissions for an organization
+      description: |-
+        **Note**: This operation is in beta and subject to change.
+
+        Lists the fine-grained permissions available for an organization.
+
+        To use this endpoint the authenticated user must be an administrator for the organization or of an repository of the organizaiton and must use an access token with `admin:org repo` scope.
+        GitHub Apps must have the `organization_custom_roles:read` organization permission to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/list-fine-grained-permissions
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/orgs#list-fine-grained-permissions-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/organization-fine-grained-permission"
+              examples:
+                default:
+                  "$ref": "#/components/examples/organization-fine-grained-permission-example"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: orgs
+        subcategory: custom-roles
   "/orgs/{org}/hooks":
     get:
       summary: List organization webhooks
@@ -22210,7 +22487,7 @@ paths:
                   description: The commit message.
                 sha:
                   type: string
-                  description: The blob SHA of the file being replaced.
+                  description: The blob SHA of the file being deleted.
                 branch:
                   type: string
                   description: 'The branch name. Default: the repository’s default
@@ -47896,6 +48173,33 @@ components:
         name:
           description: The name of the custom role.
           type: string
+        description:
+          description: A short description about who this role is for or what permissions
+            it grants.
+          type:
+          - string
+          - 'null'
+        base_role:
+          type: string
+          description: The system role from which this role inherits permissions.
+          enum:
+          - read
+          - triage
+          - write
+          - maintain
+        permissions:
+          description: A list of additional permissions included in this role.
+          type: array
+          items:
+            type: string
+        organization:
+          "$ref": "#/components/schemas/simple-user"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
       required:
       - id
       - name
@@ -49019,6 +49323,18 @@ components:
       - team_count
       - invitation_teams_url
       - node_id
+    organization-fine-grained-permission:
+      title: Organization Fine-Grained Permission
+      description: Fine-grained permissions available for the organization
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - name
+      - description
     org-hook:
       title: Org Hook
       description: Org Hook
@@ -68325,14 +68641,70 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
-    organization-custom-repository-role-example-old:
+    organization-custom-repository-role-example:
       value:
         total_count: 2
         custom_roles:
         - id: 8030
-          name: Developer
+          name: Security Engineer
+          description: Able to contribute code and maintain the security pipeline
+          base_role: maintain
+          permissions:
+          - delete_alerts_code_scanning
+          organization:
+            login: github
+            id: 9919
+            node_id: MDEyOk9yZ2FuaXphdGlvbjk5MTk=
+            avatar_url: https://avatars.githubusercontent.com/u/9919?v=4
+            gravatar_id: ''
+            url: https://api.github.com/users/github
+            html_url: https://github.com/github
+            followers_url: https://api.github.com/users/github/followers
+            following_url: https://api.github.com/users/github/following{/other_user}
+            gists_url: https://api.github.com/users/github/gists{/gist_id}
+            starred_url: https://api.github.com/users/github/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/github/subscriptions
+            organizations_url: https://api.github.com/users/github/orgs
+            repos_url: https://api.github.com/users/github/repos
+            events_url: https://api.github.com/users/github/events{/privacy}
+            received_events_url: https://api.github.com/users/github/received_events
+            type: Organization
+            site_admin: false
+          created_at: '2022-07-04T22:19:11Z'
+          updated_at: '2022-07-04T22:20:11Z'
         - id: 8031
-          name: Designer
+          name: Community manager
+          description: Able to handle all the community interactions without being
+            able to contribute code
+          base_role: read
+          permissions:
+          - mark_as_duplicate
+          - manage_settings_pages
+          - manage_settings_wiki
+          - set_social_preview
+          - edit_repo_metadata
+          - toggle_discussion_comment_minimize
+          organization:
+            login: github
+            id: 9919
+            node_id: MDEyOk9yZ2FuaXphdGlvbjk5MTk=
+            avatar_url: https://avatars.githubusercontent.com/u/9919?v=4
+            gravatar_id: ''
+            url: https://api.github.com/users/github
+            html_url: https://github.com/github
+            followers_url: https://api.github.com/users/github/followers
+            following_url: https://api.github.com/users/github/following{/other_user}
+            gists_url: https://api.github.com/users/github/gists{/gist_id}
+            starred_url: https://api.github.com/users/github/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/github/subscriptions
+            organizations_url: https://api.github.com/users/github/orgs
+            repos_url: https://api.github.com/users/github/repos
+            events_url: https://api.github.com/users/github/events{/privacy}
+            received_events_url: https://api.github.com/users/github/received_events
+            type: Organization
+            site_admin: false
+          created_at: '2022-07-05T12:01:11Z'
+          updated_at: '2022-07-05T12:20:11Z'
     organization-full-default-response:
       summary: Default response
       value:
@@ -69561,6 +69933,14 @@ components:
           site_admin: false
         team_count: 2
         invitation_teams_url: https://api.github.com/organizations/2/invitations/1/teams
+    organization-fine-grained-permission-example:
+      value:
+      - name: add_assignee
+        description: Assign or remove a user
+      - name: remove_assignee
+        description: Remove an assigned user
+      - name: add_label
+        description: Add or remove a label
     org-hook-items:
       value:
       - id: 1
@@ -86546,6 +86926,13 @@ components:
       required: true
       schema:
         type: string
+    role-id:
+      name: role_id
+      description: The unique identifier of the role.
+      in: path
+      required: true
+      schema:
+        type: integer
     group-id:
       name: group_id
       description: The unique identifier of the group.
