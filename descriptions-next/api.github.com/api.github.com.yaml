@@ -2493,6 +2493,9 @@ paths:
         Lists the license consumption information for all users, including those from connected servers, associated with an enterprise.
         To use this endpoint, you must be an enterprise admin, and you must use an access
         token with the `read:enterprise` scope.
+
+        **Note:** The license consumption API endpoints for enterprise accounts are currently
+        in Beta and are subject to change.
       tags:
       - enterprise-admin
       operationId: enterprise-admin/get-consumed-licenses
@@ -22350,6 +22353,8 @@ paths:
     put:
       summary: Create or update file contents
       description: Creates a new file or replaces an existing file in a repository.
+        You must authenticate using an access token with the `workflow` scope to use
+        this endpoint.
       tags:
       - repos
       operationId: repos/create-or-update-file-contents
@@ -25002,7 +25007,8 @@ paths:
   "/repos/{owner}/{repo}/hooks":
     get:
       summary: List repository webhooks
-      description: ''
+      description: Lists webhooks for a repository. `last response` may return null
+        if there have not been any deliveries within 30 days.
       tags:
       - repos
       operationId: repos/list-webhooks
@@ -45880,6 +45886,13 @@ components:
                 type:
                 - string
                 - 'null'
+                description: 'Deprecated: The most permissive enterprise role for
+                  a user.'
+              github_com_enterprise_roles:
+                type: array
+                description: All enterprise roles for a user.
+                items:
+                  type: string
               visual_studio_subscription_user:
                 type: boolean
               github_com_verified_domain_emails:
@@ -67197,6 +67210,8 @@ components:
           - org1:Owner
           - org2:Owner
           github_com_enterprise_role: owner
+          github_com_enterprise_roles:
+          - owner
           visual_studio_subscription_user: false
           github_com_verified_domain_emails:
           - monalisa@github.com
@@ -67219,6 +67234,7 @@ components:
           license_type: enterprise
           github_com_member_roles: []
           github_com_enterprise_role: ''
+          github_com_enterprise_roles: []
           visual_studio_subscription_user: false
           github_com_verified_domain_emails: []
           github_com_saml_name_id: ''
