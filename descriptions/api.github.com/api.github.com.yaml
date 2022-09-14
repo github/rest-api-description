@@ -20158,6 +20158,102 @@ paths:
         enabledForGitHubApps: true
         githubCloudOnly: false
         category: code-scanning
+  "/repos/{owner}/{repo}/code-scanning/codeql/databases":
+    get:
+      summary: List CodeQL databases for a repository
+      description: |-
+        Lists the CodeQL databases that are available in a repository.
+
+        For private repositories, you must use an access token with the `security_events` scope.
+        For public repositories, you can use tokens with the `security_events` or `public_repo` scope.
+        GitHub Apps must have the `contents` read permission to use this endpoint.
+      tags:
+      - code-scanning
+      operationId: code-scanning/list-codeql-databases
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/code-scanning#list-codeql-databases
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/code-scanning-codeql-database"
+              examples:
+                default:
+                  "$ref": "#/components/examples/code-scanning-codeql-databases"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_read"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: code-scanning
+        subcategory: 
+  "/repos/{owner}/{repo}/code-scanning/codeql/databases/{language}":
+    get:
+      summary: Get a CodeQL database for a repository
+      description: |-
+        Gets a CodeQL database for a language in a repository.
+
+        By default this endpoint returns JSON metadata about the CodeQL database. To
+        download the CodeQL database binary content, set the `Accept` header of the request
+        to [`application/zip`](https://docs.github.com/rest/overview/media-types), and make sure
+        your HTTP client is configured to follow redirects or use the `Location` header
+        to make a second request to get the redirect URL.
+
+        For private repositories, you must use an access token with the `security_events` scope.
+        For public repositories, you can use tokens with the `security_events` or `public_repo` scope.
+        GitHub Apps must have the `contents` read permission to use this endpoint.
+      tags:
+      - code-scanning
+      operationId: code-scanning/get-codeql-database
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/code-scanning#get-codeql-database
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - name: language
+        in: path
+        description: The language of the CodeQL database.
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/code-scanning-codeql-database"
+              examples:
+                default:
+                  "$ref": "#/components/examples/code-scanning-codeql-database"
+        '302':
+          "$ref": "#/components/responses/found"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_read"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: code-scanning
+        subcategory: 
   "/repos/{owner}/{repo}/code-scanning/sarifs":
     post:
       summary: Upload an analysis as SARIF data
@@ -54635,6 +54731,53 @@ components:
       required:
       - next_analysis_url
       - confirm_delete_url
+    code-scanning-codeql-database:
+      title: CodeQL Database
+      description: A CodeQL database.
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the CodeQL database.
+        name:
+          type: string
+          description: The name of the CodeQL database.
+        language:
+          type: string
+          description: The language of the CodeQL database.
+        uploader:
+          "$ref": "#/components/schemas/simple-user"
+        content_type:
+          type: string
+          description: The MIME type of the CodeQL database file.
+        size:
+          type: integer
+          description: The size of the CodeQL database file in bytes.
+        created_at:
+          type: string
+          format: date-time
+          description: The date and time at which the CodeQL database was created,
+            in ISO 8601 format':' YYYY-MM-DDTHH:MM:SSZ.
+        updated_at:
+          type: string
+          format: date-time
+          description: The date and time at which the CodeQL database was last updated,
+            in ISO 8601 format':' YYYY-MM-DDTHH:MM:SSZ.
+        url:
+          type: string
+          format: uri
+          description: The URL at which to download the CodeQL database. The `Accept`
+            header must be set to the value of the `content_type` property.
+      required:
+      - id
+      - name
+      - language
+      - uploader
+      - content_type
+      - size
+      - created_at
+      - updated_at
+      - url
     code-scanning-analysis-sarif-file:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -75214,6 +75357,91 @@ components:
       value:
         next_analysis_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41
         confirm_delete_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41?confirm_delete
+    code-scanning-codeql-databases:
+      value:
+      - id: 1
+        name: database.zip
+        language: java
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/java
+      - id: 2
+        name: database.zip
+        language: ruby
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/ruby
+    code-scanning-codeql-database:
+      value:
+        id: 1
+        name: database.zip
+        language: java
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/java
     code-scanning-sarif-upload:
       summary: Default response
       value:
@@ -85923,7 +86151,7 @@ components:
           schema:
             "$ref": "#/components/schemas/basic-error"
     code_scanning_forbidden_write:
-      description: Response if the repository is archived or if github advanced security
+      description: Response if the repository is archived or if GitHub Advanced Security
         is not enabled for this repository
       content:
         application/json:
