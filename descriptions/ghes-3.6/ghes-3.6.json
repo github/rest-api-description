@@ -12849,6 +12849,120 @@
         }
       }
     },
+    "/orgs/{org}/external-group/{group_id}": {
+      "get": {
+        "summary": "Get an external group",
+        "description": "Displays information about the specific group's usage.  Provides a list of the group's external members as well as a list of teams that this group is connected to.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/enterprise-server@3.6/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/external-idp-group-info-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.6/rest/reference/teams#external-idp-group-info-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/group-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-group"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-group"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
+    "/orgs/{org}/external-groups": {
+      "get": {
+        "summary": "List external groups in an organization",
+        "description": "Lists external groups available in an organization. You can query the groups using the `display_name` parameter, only groups with a `group_name` containing the text provided in the `display_name` parameter will be returned.  You can also limit your page results using the `per_page` parameter. GitHub Enterprise Server generates a url-encoded `page` token using a cursor value for where the next page begins. For more information on cursor pagination, see \"[Offset and Cursor Pagination explained](https://dev.to/jackmarchant/offset-and-cursor-pagination-explained-b89).\"\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/enterprise-server@3.6/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/list-external-idp-groups-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.6/rest/reference/teams#list-external-idp-groups-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "name": "page",
+            "description": "Page token",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "display_name",
+            "description": "Limits the list to groups containing the text in the group name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-groups"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-groups"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "example": "<https://api.github.com/resource?per_page=2&page=url-encoded-next-page-token>; rel=\"next\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      }
+    },
     "/orgs/{org}/hooks": {
       "get": {
         "summary": "List organization webhooks",
@@ -16996,6 +17110,152 @@
           "enabledForGitHubApps": true,
           "category": "reactions",
           "subcategory": null
+        }
+      }
+    },
+    "/orgs/{org}/teams/{team_slug}/external-groups": {
+      "get": {
+        "summary": "List a connection between an external group and a team",
+        "description": "Lists a connection between a team and an external group.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/enterprise-server@3.6/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/list-linked-external-idp-groups-to-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.6/rest/reference/teams#list-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-groups"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-groups"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      },
+      "patch": {
+        "summary": "Update the connection between an external group and a team",
+        "description": "Creates a connection between a team and an external group.  Only one external group can be linked to a team.\n\nYou can manage team membership with your identity provider using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see \"[GitHub's products](https://docs.github.com/enterprise-server@3.6/github/getting-started-with-github/githubs-products)\" in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/link-external-idp-group-to-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.6/rest/reference/teams#link-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group_id": {
+                    "type": "integer",
+                    "description": "External Group Id",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "group_id"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "group_id": 123
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/external-group"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/external-group"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": false,
+          "category": "teams",
+          "subcategory": "external-groups"
+        }
+      },
+      "delete": {
+        "summary": "Remove the connection between an external group and a team",
+        "description": "Deletes a connection between a team and an external group.\n\nYou can manage team membership with your IdP using Enterprise Managed Users for GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.6/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.",
+        "tags": [
+          "teams"
+        ],
+        "operationId": "teams/unlink-external-idp-group-from-team-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.6/rest/reference/teams#unlink-external-idp-group-team-connection"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/team-slug"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": false,
+          "category": "teams",
+          "subcategory": "external-groups"
         }
       }
     },
@@ -61016,6 +61276,164 @@
           "key"
         ]
       },
+      "external-group": {
+        "title": "ExternalGroup",
+        "description": "Information about an external group's usage and its members",
+        "type": "object",
+        "required": [
+          "group_id",
+          "group_name",
+          "teams",
+          "members"
+        ],
+        "properties": {
+          "group_id": {
+            "description": "The internal ID of the group",
+            "example": 1,
+            "type": "integer"
+          },
+          "group_name": {
+            "description": "The display name for the group",
+            "example": "group-azuread-test",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "The date when the group was last updated_at",
+            "example": "2021-01-03 22:27:15:000 -700",
+            "type": "string"
+          },
+          "teams": {
+            "description": "An array of teams linked to this group",
+            "example": [
+              {
+                "team_id": 1,
+                "team_name": "team-test"
+              },
+              {
+                "team_id": 2,
+                "team_name": "team-test2"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "team_id",
+                "team_name"
+              ],
+              "properties": {
+                "team_id": {
+                  "description": "The id for a team",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "team_name": {
+                  "description": "The name of the team",
+                  "example": "team-test",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "members": {
+            "description": "An array of external members linked to this group",
+            "example": [
+              {
+                "member_id": 1,
+                "member_login": "mona-lisa_eocsaxrs",
+                "member_name": "Mona Lisa",
+                "member_email": "mona_lisa@github.com"
+              },
+              {
+                "member_id": 2,
+                "member_login": "octo-lisa_eocsaxrs",
+                "member_name": "Octo Lisa",
+                "member_email": "octo_lisa@github.com"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "member_id",
+                "member_login",
+                "member_name",
+                "member_email"
+              ],
+              "properties": {
+                "member_id": {
+                  "description": "The internal user ID of the identity",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "member_login": {
+                  "description": "The handle/login for the user",
+                  "example": "mona-lisa_eocsaxrs",
+                  "type": "string"
+                },
+                "member_name": {
+                  "description": "The user display name/profile name",
+                  "example": "Mona Lisa",
+                  "type": "string"
+                },
+                "member_email": {
+                  "description": "An email attached to a user",
+                  "example": "mona_lisa@github.com",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "external-groups": {
+        "title": "ExternalGroups",
+        "description": "A list of external groups available to be connected to a team",
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "An array of external groups available to be mapped to a team",
+            "example": [
+              {
+                "group_id": 1,
+                "group_name": "group-azuread-test",
+                "updated_at": "2021-01-03 22:27:15:000 -700"
+              },
+              {
+                "group_id": 2,
+                "group_name": "group-azuread-test2",
+                "updated_at": "2021-06-03 22:27:15:000 -700"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "group_name",
+                "updated_at"
+              ],
+              "properties": {
+                "group_id": {
+                  "description": "The internal ID of the group",
+                  "example": 1,
+                  "type": "integer"
+                },
+                "group_name": {
+                  "description": "The display name of the group",
+                  "example": "group-azuread-test",
+                  "type": "string"
+                },
+                "updated_at": {
+                  "description": "The time of the last update for this group",
+                  "example": "2019-06-03 22:27:15:000 -700",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
       "org-hook": {
         "title": "Org Hook",
         "description": "Org Hook",
@@ -83403,6 +83821,53 @@
           }
         ]
       },
+      "external-group": {
+        "value": {
+          "group_id": "123",
+          "group_name": "Octocat admins",
+          "updated_at": "2021-01-24T11:31:04-06:00",
+          "teams": [
+            {
+              "team_id": 1,
+              "team_name": "team-test"
+            },
+            {
+              "team_id": 2,
+              "team_name": "team-test2"
+            }
+          ],
+          "members": [
+            {
+              "member_id": 1,
+              "member_login": "mona-lisa_eocsaxrs",
+              "member_name": "Mona Lisa",
+              "member_email": "mona_lisa@github.com"
+            },
+            {
+              "member_id": 2,
+              "member_login": "octo-lisa_eocsaxrs",
+              "member_name": "Octo Lisa",
+              "member_email": "octo_lisa@github.com"
+            }
+          ]
+        }
+      },
+      "external-groups": {
+        "value": {
+          "groups": [
+            {
+              "group_id": "123",
+              "group_name": "Octocat admins",
+              "updated_at": "2021-01-24T11:31:04-06:00"
+            },
+            {
+              "group_id": "456",
+              "group_name": "Octocat docs members",
+              "updated_at": "2021-03-24T11:31:04-06:00"
+            }
+          ]
+        }
+      },
       "org-hook-items": {
         "value": [
           {
@@ -100628,6 +101093,15 @@
         "required": false,
         "schema": {
           "$ref": "#/components/schemas/code-scanning-analysis-tool-guid"
+        }
+      },
+      "group-id": {
+        "name": "group_id",
+        "description": "The unique identifier of the group.",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
         }
       },
       "migration-id": {
