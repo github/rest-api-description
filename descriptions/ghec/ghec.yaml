@@ -4768,6 +4768,465 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: custom_roles
+  "/organizations/{org}/codespaces/secrets":
+    get:
+      summary: List organization secrets
+      description: |-
+        Lists all Codespaces secrets available at the organization-level without revealing their encrypted values.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-org-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#list-organization-secrets
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/codespaces-org-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/organizations/{org}/codespaces/secrets/public-key":
+    get:
+      summary: Get an organization public key
+      description: Gets a public key for an organization, which is required in order
+        to encrypt secrets. You need to encrypt the value of a secret before you can
+        create or update secrets. You must authenticate using an access token with
+        the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-org-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#get-an-organization-public-key
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespaces-public-key"
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-public-key"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/organizations/{org}/codespaces/secrets/{secret_name}":
+    get:
+      summary: Get an organization secret
+      description: |-
+        Gets an organization secret without revealing its encrypted value.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#get-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespaces-org-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    put:
+      summary: Create or update an organization secret
+      description: |-
+        Creates or updates an organization secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `admin:org` scope to use this endpoint.
+
+        #### Example encrypting a secret using Node.js
+
+        Encrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.
+
+        ```
+        // Written with ❤️ by PSJ and free to use under The Unlicense.
+        const sodium=require('libsodium-wrappers')
+        const secret = 'plain-text-secret' // replace with secret before running the script.
+        const key = 'base64-encoded-public-key' // replace with the Base64 encoded public key.
+
+        //Check if libsodium is ready and then proceed.
+
+        sodium.ready.then( ()=>{
+
+        // Convert Secret & Base64 key to Uint8Array.
+        let binkey= sodium.from_base64(key, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(key, 'base64')
+        let binsec= sodium.from_string(secret) // Equivalent of Buffer.from(secret)
+
+        //Encrypt the secret using LibSodium
+        let encBytes= sodium.crypto_box_seal(binsec,binkey) // Similar to tweetsodium.seal(binsec,binkey)
+
+        // Convert encrypted Uint8Array to Base64
+        let output=sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(encBytes).toString('base64')
+
+        console.log(output)
+        });
+        ```
+
+        #### Example encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - codespaces
+      operationId: codespaces/create-or-update-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#create-or-update-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: The value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get an organization public
+                    key](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#get-an-organization-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: The ID of the key you used to encrypt the secret.
+                visibility:
+                  type: string
+                  description: Which type of organization repositories have access
+                    to the organization secret. `selected` means only the repositories
+                    specified by `selected_repository_ids` can access the secret.
+                  enum:
+                  - all
+                  - private
+                  - selected
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository IDs that can access the organization
+                    secret. You can only provide a list of repository IDs when the
+                    `visibility` is set to `selected`. You can manage the list of
+                    selected repositories using the [List selected repositories for
+                    an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#list-selected-repositories-for-an-organization-secret),
+                    [Set selected repositories for an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#set-selected-repositories-for-an-organization-secret),
+                    and [Remove selected repository from an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: integer
+              required:
+              - visibility
+            examples:
+              default:
+                value:
+                  encrypted_value: c2VjcmV0
+                  key_id: '012345678912345678'
+                  visibility: selected
+                  selected_repository_ids:
+                  - 1296269
+                  - 1296280
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/empty-object"
+              examples:
+                default:
+                  value: 
+        '204':
+          description: Response when updating a secret
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    delete:
+      summary: Delete an organization secret
+      description: Deletes an organization secret using the secret name. You must
+        authenticate using an access token with the `admin:org` scope to use this
+        endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/delete-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#delete-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/organizations/{org}/codespaces/secrets/{secret_name}/repositories":
+    get:
+      summary: List selected repositories for an organization secret
+      description: Lists all repositories that have been selected when the `visibility`
+        for repository access to a secret is set to `selected`. You must authenticate
+        using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#list-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - repositories
+                properties:
+                  total_count:
+                    type: integer
+                  repositories:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/minimal-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/public-repository-paginated"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    put:
+      summary: Set selected repositories for an organization secret
+      description: Replaces all repositories for an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/set-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#set-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository ids that can access the organization
+                    secret. You can only provide a list of repository ids when the
+                    `visibility` is set to `selected`. You can add and remove individual
+                    repositories using the [Set selected repositories for an organization
+                    secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#set-selected-repositories-for-an-organization-secret)
+                    and [Remove selected repository from an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: integer
+              required:
+              - selected_repository_ids
+            examples:
+              default:
+                value:
+                  selected_repository_ids:
+                  - 64780797
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type not set to selected
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/organizations/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}":
+    put:
+      summary: Add selected repository to an organization secret
+      description: Adds a repository to an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/add-selected-repo-to-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#add-selected-repository-to-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: No Content when repository was added to the selected list
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type is not set to selected
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    delete:
+      summary: Remove selected repository from an organization secret
+      description: Removes a repository from an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/remove-selected-repo-from-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#remove-selected-repository-from-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Response when repository was removed from the selected list
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type not set to selected
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
   "/orgs/{org}":
     get:
       summary: Get an organization
@@ -20159,6 +20618,102 @@ paths:
         enabledForGitHubApps: true
         githubCloudOnly: false
         category: code-scanning
+  "/repos/{owner}/{repo}/code-scanning/codeql/databases":
+    get:
+      summary: List CodeQL databases for a repository
+      description: |-
+        Lists the CodeQL databases that are available in a repository.
+
+        For private repositories, you must use an access token with the `security_events` scope.
+        For public repositories, you can use tokens with the `security_events` or `public_repo` scope.
+        GitHub Apps must have the `contents` read permission to use this endpoint.
+      tags:
+      - code-scanning
+      operationId: code-scanning/list-codeql-databases
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/code-scanning#list-codeql-databases
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/code-scanning-codeql-database"
+              examples:
+                default:
+                  "$ref": "#/components/examples/code-scanning-codeql-databases"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_read"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: code-scanning
+        subcategory: 
+  "/repos/{owner}/{repo}/code-scanning/codeql/databases/{language}":
+    get:
+      summary: Get a CodeQL database for a repository
+      description: |-
+        Gets a CodeQL database for a language in a repository.
+
+        By default this endpoint returns JSON metadata about the CodeQL database. To
+        download the CodeQL database binary content, set the `Accept` header of the request
+        to [`application/zip`](https://docs.github.com/enterprise-cloud@latest//rest/overview/media-types), and make sure
+        your HTTP client is configured to follow redirects or use the `Location` header
+        to make a second request to get the redirect URL.
+
+        For private repositories, you must use an access token with the `security_events` scope.
+        For public repositories, you can use tokens with the `security_events` or `public_repo` scope.
+        GitHub Apps must have the `contents` read permission to use this endpoint.
+      tags:
+      - code-scanning
+      operationId: code-scanning/get-codeql-database
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/code-scanning#get-codeql-database
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - name: language
+        in: path
+        description: The language of the CodeQL database.
+        schema:
+          type: string
+        required: true
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/code-scanning-codeql-database"
+              examples:
+                default:
+                  "$ref": "#/components/examples/code-scanning-codeql-database"
+        '302':
+          "$ref": "#/components/responses/found"
+        '403':
+          "$ref": "#/components/responses/code_scanning_forbidden_read"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        previews: []
+        category: code-scanning
+        subcategory: 
   "/repos/{owner}/{repo}/code-scanning/sarifs":
     post:
       summary: Upload an analysis as SARIF data
@@ -48501,6 +49056,78 @@ components:
       required:
       - id
       - name
+    codespaces-org-secret:
+      title: Codespaces Secret
+      description: Secrets for a GitHub Codespace.
+      type: object
+      properties:
+        name:
+          description: The name of the secret
+          example: SECRET_NAME
+          type: string
+        created_at:
+          description: The date and time at which the secret was created, in ISO 8601
+            format':' YYYY-MM-DDTHH:MM:SSZ.
+          type: string
+          format: date-time
+        updated_at:
+          description: The date and time at which the secret was created, in ISO 8601
+            format':' YYYY-MM-DDTHH:MM:SSZ.
+          type: string
+          format: date-time
+        visibility:
+          description: The type of repositories in the organization that the secret
+            is visible to
+          enum:
+          - all
+          - private
+          - selected
+          type: string
+        selected_repositories_url:
+          description: The API URL at which the list of repositories this secret is
+            visible to can be retrieved
+          type: string
+          format: uri
+          example: https://api.github.com/orgs/ORGANIZATION/codespaces/secrets/SECRET_NAME/repositories
+      required:
+      - name
+      - created_at
+      - updated_at
+      - visibility
+    codespaces-public-key:
+      title: CodespacesPublicKey
+      description: The public key used for setting Codespaces secrets.
+      type: object
+      properties:
+        key_id:
+          description: The identifier for the key.
+          type: string
+          example: '1234567'
+        key:
+          description: The Base64 encoded public key.
+          type: string
+          example: hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
+        id:
+          type: integer
+          example: 2
+        url:
+          type: string
+          example: https://api.github.com/user/keys/2
+        title:
+          type: string
+          example: ssh-rsa AAAAB3NzaC1yc2EAAA
+        created_at:
+          type: string
+          example: '2011-01-26T19:01:12Z'
+      required:
+      - key_id
+      - key
+    empty-object:
+      title: Empty Object
+      description: An object without any properties.
+      type: object
+      properties: {}
+      additionalProperties: false
     organization-full:
       title: Organization Full
       description: Organization Full
@@ -48784,12 +49411,6 @@ components:
             type: string
       required:
       - include_claim_keys
-    empty-object:
-      title: Empty Object
-      description: An object without any properties.
-      type: object
-      properties: {}
-      additionalProperties: false
     enabled-repositories:
       type: string
       description: The policy that controls the repositories in the organization that
@@ -54655,6 +55276,53 @@ components:
       required:
       - next_analysis_url
       - confirm_delete_url
+    code-scanning-codeql-database:
+      title: CodeQL Database
+      description: A CodeQL database.
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the CodeQL database.
+        name:
+          type: string
+          description: The name of the CodeQL database.
+        language:
+          type: string
+          description: The language of the CodeQL database.
+        uploader:
+          "$ref": "#/components/schemas/simple-user"
+        content_type:
+          type: string
+          description: The MIME type of the CodeQL database file.
+        size:
+          type: integer
+          description: The size of the CodeQL database file in bytes.
+        created_at:
+          type: string
+          format: date-time
+          description: The date and time at which the CodeQL database was created,
+            in ISO 8601 format':' YYYY-MM-DDTHH:MM:SSZ.
+        updated_at:
+          type: string
+          format: date-time
+          description: The date and time at which the CodeQL database was last updated,
+            in ISO 8601 format':' YYYY-MM-DDTHH:MM:SSZ.
+        url:
+          type: string
+          format: uri
+          description: The URL at which to download the CodeQL database. The `Accept`
+            header must be set to the value of the `content_type` property.
+      required:
+      - id
+      - name
+      - language
+      - uploader
+      - content_type
+      - size
+      - created_at
+      - updated_at
+      - url
     code-scanning-analysis-sarif-file:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -54823,34 +55491,6 @@ components:
       - name
       - created_at
       - updated_at
-    codespaces-public-key:
-      title: CodespacesPublicKey
-      description: The public key used for setting Codespaces secrets.
-      type: object
-      properties:
-        key_id:
-          description: The identifier for the key.
-          type: string
-          example: '1234567'
-        key:
-          description: The Base64 encoded public key.
-          type: string
-          example: hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
-        id:
-          type: integer
-          example: 2
-        url:
-          type: string
-          example: https://api.github.com/user/keys/2
-        title:
-          type: string
-          example: ssh-rsa AAAAB3NzaC1yc2EAAA
-        created_at:
-          type: string
-          example: '2011-01-26T19:01:12Z'
-      required:
-      - key_id
-      - key
     collaborator:
       title: Collaborator
       description: Collaborator
@@ -68139,6 +68779,98 @@ components:
             site_admin: false
           created_at: '2022-07-05T12:01:11Z'
           updated_at: '2022-07-05T12:20:11Z'
+    repo-codespaces-secret-paginated:
+      value:
+        total_count: 2
+        secrets:
+        - name: GH_TOKEN
+          created_at: '2019-08-10T14:59:22Z'
+          updated_at: '2020-01-10T14:59:22Z'
+          visibility: all
+        - name: GIST_ID
+          created_at: '2020-01-10T10:59:22Z'
+          updated_at: '2020-01-11T11:59:22Z'
+          visibility: all
+    codespaces-public-key:
+      value:
+        key_id: '012345678912345678'
+        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
+    repo-codespaces-secret:
+      value:
+        name: GH_TOKEN
+        created_at: '2019-08-10T14:59:22Z'
+        updated_at: '2020-01-10T14:59:22Z'
+        visibility: all
+    public-repository-paginated:
+      value:
+        total_count: 1
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
     organization-full-default-response:
       summary: Default response
       value:
@@ -68713,76 +69445,6 @@ components:
         updated_at: '2020-01-10T14:59:22Z'
         visibility: selected
         selected_repositories_url: https://api.github.com/orgs/octo-org/actions/secrets/SUPER_SECRET/repositories
-    public-repository-paginated:
-      value:
-        total_count: 1
-        repositories:
-        - id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          git_url: git:github.com/octocat/Hello-World.git
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          ssh_url: git@github.com:octocat/Hello-World.git
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
     simple-user-items:
       value:
       - login: octocat
@@ -75190,6 +75852,91 @@ components:
       value:
         next_analysis_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41
         confirm_delete_url: https://api.github.com/repos/octocat/hello-world/code-scanning/analyses/41?confirm_delete
+    code-scanning-codeql-databases:
+      value:
+      - id: 1
+        name: database.zip
+        language: java
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/java
+      - id: 2
+        name: database.zip
+        language: ruby
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/ruby
+    code-scanning-codeql-database:
+      value:
+        id: 1
+        name: database.zip
+        language: java
+        uploader:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        content_type: application/zip
+        size: 1024
+        created_at: '2022-09-12T12:14:32Z'
+        updated_at: '2022-09-12T12:14:32Z'
+        url: https://api.github.com/repos/octocat/Hello-World/code-scanning/codeql/databases/java
     code-scanning-sarif-upload:
       summary: Default response
       value:
@@ -75524,28 +76271,6 @@ components:
           storage_in_bytes: 68719476736
           memory_in_bytes: 17179869184
           cpus: 8
-    repo-codespaces-secret-paginated:
-      value:
-        total_count: 2
-        secrets:
-        - name: GH_TOKEN
-          created_at: '2019-08-10T14:59:22Z'
-          updated_at: '2020-01-10T14:59:22Z'
-          visibility: all
-        - name: GIST_ID
-          created_at: '2020-01-10T10:59:22Z'
-          updated_at: '2020-01-11T11:59:22Z'
-          visibility: all
-    codespaces-public-key:
-      value:
-        key_id: '012345678912345678'
-        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
-    repo-codespaces-secret:
-      value:
-        name: GH_TOKEN
-        created_at: '2019-08-10T14:59:22Z'
-        updated_at: '2020-01-10T14:59:22Z'
-        visibility: all
     collaborator-items:
       value:
       - login: octocat
@@ -86332,6 +87057,13 @@ components:
       required: true
       schema:
         type: string
+    secret-name:
+      name: secret_name
+      description: The name of the secret.
+      in: path
+      required: true
+      schema:
+        type: string
     repository-id:
       name: repository_id
       description: The unique identifier of the repository.
@@ -86344,13 +87076,6 @@ components:
       description: Only return runner groups that are allowed to be used by this repository.
       in: query
       required: false
-      schema:
-        type: string
-    secret-name:
-      name: secret_name
-      description: The name of the secret.
-      in: path
-      required: true
       schema:
         type: string
     username:
