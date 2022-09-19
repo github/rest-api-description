@@ -31724,6 +31724,8 @@ paths:
                   "$ref": "#/components/schemas/secret-scanning-alert-state"
                 resolution:
                   "$ref": "#/components/schemas/secret-scanning-alert-resolution"
+                resolution_comment:
+                  "$ref": "#/components/schemas/secret-scanning-alert-resolution-comment"
               required:
               - state
             examples:
@@ -31741,11 +31743,14 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/secret-scanning-alert-resolved"
+        '400':
+          description: Bad request, resolution comment is invalid or the resolution
+            was not changed.
         '404':
           description: Repository is public, or secret scanning is disabled for the
             repository, or the resource is not found
         '422':
-          description: State does not match the resolution
+          description: State does not match the resolution or resolution comment
         '503':
           "$ref": "#/components/responses/service_unavailable"
       x-github:
@@ -44084,6 +44089,11 @@ components:
           format: date-time
           description: 'The time that push protection was bypassed in ISO 8601 format:
             `YYYY-MM-DDTHH:MM:SSZ`.'
+        resolution_comment:
+          type:
+          - string
+          - 'null'
+          description: The comment that was optionally added when this alert was closed
     advanced-security-active-committers-user:
       type: object
       properties:
@@ -59558,6 +59568,17 @@ components:
           format: date-time
           description: 'The time that push protection was bypassed in ISO 8601 format:
             `YYYY-MM-DDTHH:MM:SSZ`.'
+        resolution_comment:
+          type:
+          - string
+          - 'null'
+          description: The comment that was optionally added when this alert was closed
+    secret-scanning-alert-resolution-comment:
+      description: Sets an optional comment when closing an alert. Must be null when
+        changing `state` to `open`.
+      type:
+      - string
+      - 'null'
     secret-scanning-location-commit:
       description: Represents a 'commit' secret scanning location type. This location
         type shows that a secret was detected inside a commit to a repository.
@@ -64698,6 +64719,7 @@ components:
           site_admin: true
         push_protection_bypassed: true
         push_protection_bypassed_at: '2020-11-06T21:48:51Z'
+        resolution_comment: Example comment
       - number: 1
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
@@ -64778,6 +64800,7 @@ components:
         push_protection_bypassed_by: 
         push_protection_bypassed: false
         push_protection_bypassed_at: 
+        resolution_comment: 
     advanced-security-active-committers:
       value:
         total_advanced_security_committers: 2
@@ -79677,6 +79700,7 @@ components:
           site_admin: true
         push_protection_bypassed: true
         push_protection_bypassed_at: '2020-11-06T21:48:51Z'
+        resolution_comment: Example comment
       - number: 1
         created_at: '2020-11-06T18:18:30Z'
         url: https://api.github.com/repos/owner/repo/secret-scanning/alerts/1
@@ -79692,6 +79716,7 @@ components:
         push_protection_bypassed_by: 
         push_protection_bypassed: false
         push_protection_bypassed_at: 
+        resolution_comment: 
     secret-scanning-alert-open:
       value:
         number: 42
@@ -79709,6 +79734,7 @@ components:
         push_protection_bypassed_by: 
         push_protection_bypassed: false
         push_protection_bypassed_at: 
+        resolution_comment: 
     secret-scanning-alert-resolved:
       value:
         number: 42
@@ -79744,6 +79770,7 @@ components:
         push_protection_bypassed: false
         push_protection_bypassed_by: 
         push_protection_bypassed_at: 
+        resolution_comment: Example comment
     secret-scanning-location-list:
       value:
       - type: commit

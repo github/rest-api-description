@@ -26206,6 +26206,8 @@ paths:
                   "$ref": "#/components/schemas/secret-scanning-alert-state"
                 resolution:
                   "$ref": "#/components/schemas/secret-scanning-alert-resolution"
+                resolution_comment:
+                  "$ref": "#/components/schemas/secret-scanning-alert-resolution-comment"
               required:
               - state
             examples:
@@ -26223,11 +26225,14 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/secret-scanning-alert-resolved"
+        '400':
+          description: Bad request, resolution comment is invalid or the resolution
+            was not changed.
         '404':
           description: Repository is public, or secret scanning is disabled for the
             repository, or the resource is not found
         '422':
-          description: State does not match the resolution
+          description: State does not match the resolution or resolution comment
         '503':
           "$ref": "#/components/responses/service_unavailable"
       x-github:
@@ -48464,6 +48469,17 @@ components:
         secret:
           type: string
           description: The secret that was detected.
+        resolution_comment:
+          type:
+          - string
+          - 'null'
+          description: The comment that was optionally added when this alert was closed
+    secret-scanning-alert-resolution-comment:
+      description: Sets an optional comment when closing an alert. Must be null when
+        changing `state` to `open`.
+      type:
+      - string
+      - 'null'
     stargazer:
       title: Stargazer
       description: Stargazer
@@ -65756,6 +65772,7 @@ components:
           site_admin: true
         secret_type: mailchimp_api_key
         secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-us2
+        resolution_comment: Example comment
     simple-user-items-default-response:
       summary: Default response
       value:
