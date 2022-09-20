@@ -19898,6 +19898,14 @@ paths:
                       "$ref": "#/components/schemas/webhook-config-secret"
                     insecure_ssl:
                       "$ref": "#/components/schemas/webhook-config-insecure-ssl"
+                    token:
+                      type: string
+                      examples:
+                      - '"abc"'
+                    digest:
+                      type: string
+                      examples:
+                      - '"sha256"'
                 events:
                   type: array
                   description: Determines what [events](https://docs.github.com/github-ae@latest/webhooks/event-payloads)
@@ -23295,6 +23303,8 @@ paths:
           "$ref": "#/components/responses/validation_failed"
         '400':
           "$ref": "#/components/responses/bad_request"
+        '409':
+          "$ref": "#/components/responses/conflict"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -23318,6 +23328,8 @@ paths:
           "$ref": "#/components/responses/validation_failed"
         '404':
           "$ref": "#/components/responses/not_found"
+        '409':
+          "$ref": "#/components/responses/conflict"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -27067,316 +27079,6 @@ paths:
         enabledForGitHubApps: false
         category: repos
         subcategory: 
-  "/scim/v2/enterprises/{enterprise}/Groups":
-    get:
-      summary: List provisioned SCIM groups for an enterprise
-      description: "**Note:** The SCIM API endpoints for enterprise accounts are currently
-        in beta and are subject to change."
-      operationId: enterprise-admin/list-provisioned-groups-enterprise
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#list-provisioned-scim-groups-for-an-enterprise
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/start-index"
-      - "$ref": "#/components/parameters/count"
-      - name: filter
-        description: filter results
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: excludedAttributes
-        description: attributes to exclude
-        in: query
-        required: false
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/scim-group-list-enterprise"
-              examples:
-                default:
-                  "$ref": "#/components/examples/scim-enterprise-group-list"
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
-    post:
-      summary: Provision a SCIM enterprise group and invite users
-      description: |-
-        **Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.
-
-        Provision an enterprise group, and invite users to the group. This sends invitation emails to the email address of the invited users to join the GitHub organization that the SCIM group corresponds to.
-      operationId: enterprise-admin/provision-and-invite-enterprise-group
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#provision-a-scim-enterprise-group-and-invite-users
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                schemas:
-                  type: array
-                  description: The SCIM schema URIs.
-                  items:
-                    type: string
-                displayName:
-                  type: string
-                  description: The name of the SCIM group. This must match the GitHub
-                    organization that the group maps to.
-                members:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      value:
-                        type: string
-                        description: The SCIM user ID for a user.
-                    required:
-                    - value
-              required:
-              - schemas
-              - displayName
-            examples:
-              default:
-                value:
-                  schemas:
-                  - urn:ietf:params:scim:schemas:core:2.0:Group
-                  displayName: octo-org
-                  members:
-                  - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-                  - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-      responses:
-        '201':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/scim-enterprise-group"
-              examples:
-                default:
-                  "$ref": "#/components/examples/scim-enterprise-group"
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
-  "/scim/v2/enterprises/{enterprise}/Groups/{scim_group_id}":
-    get:
-      summary: Get SCIM provisioning information for an enterprise group
-      description: "**Note:** The SCIM API endpoints for enterprise accounts are currently
-        in beta and are subject to change."
-      operationId: enterprise-admin/get-provisioning-information-for-enterprise-group
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#get-scim-provisioning-information-for-an-enterprise-group
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/scim-group-id"
-      - name: excludedAttributes
-        description: Attributes to exclude.
-        in: query
-        required: false
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/scim-enterprise-group"
-              examples:
-                default:
-                  "$ref": "#/components/examples/scim-enterprise-group"
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
-    put:
-      summary: Set SCIM information for a provisioned enterprise group
-      description: |-
-        **Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.
-
-        Replaces an existing provisioned group’s information. You must provide all the information required for the group as if you were provisioning it for the first time. Any existing group information that you don't provide will be removed, including group membership. If you want to only update a specific attribute, use the [Update an attribute for a SCIM enterprise group](#update-an-attribute-for-a-scim-enterprise-group) endpoint instead.
-      operationId: enterprise-admin/set-information-for-provisioned-enterprise-group
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#set-scim-information-for-a-provisioned-enterprise-group
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/scim-group-id"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                schemas:
-                  type: array
-                  description: The SCIM schema URIs.
-                  items:
-                    type: string
-                displayName:
-                  type: string
-                  description: The name of the SCIM group. This must match the GitHub
-                    organization that the group maps to.
-                members:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      value:
-                        type: string
-                        description: The SCIM user ID for a user.
-                    required:
-                    - value
-              required:
-              - schemas
-              - displayName
-            examples:
-              default:
-                value:
-                  schemas:
-                  - urn:ietf:params:scim:schemas:core:2.0:Group
-                  displayName: octo-org
-                  members:
-                  - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-                  - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/scim-enterprise-group"
-              examples:
-                default:
-                  "$ref": "#/components/examples/scim-enterprise-group"
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
-    patch:
-      summary: Update an attribute for a SCIM enterprise group
-      description: |-
-        **Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.
-
-        Allows you to change a provisioned group’s individual attributes. To change a group’s values, you must provide a specific Operations JSON format that contains at least one of the add, remove, or replace operations. For examples and more information on the SCIM operations format, see the [SCIM specification](https://tools.ietf.org/html/rfc7644#section-3.5.2).
-      operationId: enterprise-admin/update-attribute-for-enterprise-group
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#update-an-attribute-for-a-scim-enterprise-group
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/scim-group-id"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                schemas:
-                  type: array
-                  description: The SCIM schema URIs.
-                  items:
-                    type: string
-                Operations:
-                  type: array
-                  description: Array of [SCIM operations](https://tools.ietf.org/html/rfc7644#section-3.5.2).
-                  minItems: 1
-                  items:
-                    type: object
-                    properties:
-                      op:
-                        type: string
-                        enum:
-                        - add
-                        - Add
-                        - remove
-                        - Remove
-                        - replace
-                        - Replace
-                      path:
-                        type: string
-                      value:
-                        description: Can be any value - string, number, array or object.
-                    required:
-                    - op
-              required:
-              - schemas
-              - Operations
-            examples:
-              default:
-                value:
-                  schemas:
-                  - urn:ietf:params:scim:api:messages:2.0:PatchOp
-                  Operations:
-                  - op: remove
-                    path: members
-                    value:
-                    - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/scim-enterprise-group"
-              examples:
-                default:
-                  "$ref": "#/components/examples/scim-enterprise-group-2"
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
-    delete:
-      summary: Delete a SCIM group from an enterprise
-      description: "**Note:** The SCIM API endpoints for enterprise accounts are currently
-        in beta and are subject to change."
-      operationId: enterprise-admin/delete-scim-group-from-enterprise
-      tags:
-      - enterprise-admin
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/github-ae@latest/rest/reference/enterprise-admin#delete-a-scim-group-from-an-enterprise
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/scim-group-id"
-      responses:
-        '204':
-          description: Response
-      x-github:
-        enabledForGitHubApps: true
-        githubCloudOnly: true
-        category: enterprise-admin
-        subcategory: scim
   "/search/code":
     get:
       summary: Search code
@@ -44637,8 +44339,16 @@ components:
               "$ref": "#/components/schemas/webhook-config-insecure-ssl"
             content_type:
               "$ref": "#/components/schemas/webhook-config-content-type"
+            digest:
+              type: string
+              examples:
+              - '"sha256"'
             secret:
               "$ref": "#/components/schemas/webhook-config-secret"
+            token:
+              type: string
+              examples:
+              - '"abc"'
         updated_at:
           type: string
           format: date-time
@@ -48669,107 +48379,6 @@ components:
             type: string
       required:
       - names
-    scim-group-list-enterprise:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-        totalResults:
-          type: number
-        itemsPerPage:
-          type: number
-        startIndex:
-          type: number
-        Resources:
-          type: array
-          items:
-            type: object
-            properties:
-              schemas:
-                type: array
-                items:
-                  type: string
-              id:
-                type: string
-              externalId:
-                type:
-                - string
-                - 'null'
-              displayName:
-                type: string
-              members:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    value:
-                      type: string
-                    "$ref":
-                      type: string
-                    display:
-                      type: string
-              meta:
-                type: object
-                properties:
-                  resourceType:
-                    type: string
-                  created:
-                    type: string
-                  lastModified:
-                    type: string
-                  location:
-                    type: string
-            required:
-            - schemas
-            - id
-      required:
-      - schemas
-      - totalResults
-      - itemsPerPage
-      - startIndex
-      - Resources
-    scim-enterprise-group:
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-        id:
-          type: string
-        externalId:
-          type:
-          - string
-          - 'null'
-        displayName:
-          type: string
-        members:
-          type: array
-          items:
-            type: object
-            properties:
-              value:
-                type: string
-              "$ref":
-                type: string
-              display:
-                type: string
-        meta:
-          type: object
-          properties:
-            resourceType:
-              type: string
-            created:
-              type: string
-            lastModified:
-              type: string
-            location:
-              type: string
-      required:
-      - schemas
-      - id
     search-result-text-matches:
       title: Search Result Text Matches
       type: array
@@ -66373,80 +65982,6 @@ components:
           spdx_id: MIT
           node_id: MDc6TGljZW5zZW1pdA==
           html_url: https://github.com/licenses/mit
-    scim-enterprise-group-list:
-      value:
-        schemas:
-        - urn:ietf:params:scim:api:messages:2.0:ListResponse
-        totalResults: 2
-        itemsPerPage: 2
-        startIndex: 1
-        Resources:
-        - schemas:
-          - urn:ietf:params:scim:schemas:core:2.0:Group
-          id: abcd27f8-a9aa-11ea-8221-f59b2be9cccc
-          externalId: 
-          displayName: octo-org
-          members:
-          - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-            "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-            display: octocat@github.com
-          - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-            "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-            display: hubot@example.com
-          meta:
-            resourceType: Group
-            created: '2020-06-09T03:10:17.000+10:00'
-            lastModified: '2020-06-09T03:10:17.000+10:00'
-            location: https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc
-        - schemas:
-          - urn:ietf:params:scim:schemas:core:2.0:Group
-          id: 5e75bbbb-aa1a-11ea-8644-75ff655cdddd
-          externalId: 
-          displayName: octo-docs-org
-          members:
-          - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-            "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-            display: octocat@github.com
-          meta:
-            resourceType: Group
-            created: '2020-06-09T16:28:01.000+10:00'
-            lastModified: '2020-06-09T16:28:01.000+10:00'
-            location: https://api.github.com/scim/v2/enterprises/octo-corp/Groups/5e75bbbb-aa1a-11ea-8644-75ff655cdddd
-    scim-enterprise-group:
-      value:
-        schemas:
-        - urn:ietf:params:scim:schemas:core:2.0:Group
-        id: abcd27f8-a9aa-11ea-8221-f59b2be9cccc
-        externalId: 
-        displayName: octo-org
-        members:
-        - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-          "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-          display: octocat@github.com
-        - value: aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-          "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5
-          display: hubot@example.com
-        meta:
-          resourceType: Group
-          created: 2020-06-09T03:10:17.000+10:0
-          lastModified: '2020-06-09T03:10:17.000+10:00'
-          location: https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc
-    scim-enterprise-group-2:
-      value:
-        schemas:
-        - urn:ietf:params:scim:schemas:core:2.0:Group
-        id: abcd27f8-a9aa-11ea-8221-f59b2be9cccc
-        externalId: 
-        displayName: octo-org
-        members:
-        - value: 92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-          "$ref": https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc
-          display: octocat@github.com
-        meta:
-          resourceType: Group
-          created: '2020-06-09T03:10:17.000+10:00'
-          lastModified: '2020-06-09T03:10:17.000+10:00'
-          location: https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc
     code-search-result-item-paginated:
       value:
         total_count: 7
@@ -69165,27 +68700,6 @@ components:
         with one of these resolutions are listed. Valid resolutions are `false_positive`,
         `wont_fix`, `revoked`, `pattern_edited`, `pattern_deleted` or `used_in_tests`.
       required: false
-      schema:
-        type: string
-    start-index:
-      name: startIndex
-      description: 'Used for pagination: the index of the first result to return.'
-      in: query
-      required: false
-      schema:
-        type: integer
-    count:
-      name: count
-      description: 'Used for pagination: the number of results to return.'
-      in: query
-      required: false
-      schema:
-        type: integer
-    scim-group-id:
-      name: scim_group_id
-      description: Identifier generated by the GitHub SCIM endpoint.
-      in: path
-      required: true
       schema:
         type: string
     order:
