@@ -23111,6 +23111,163 @@ paths:
         enabledForGitHubApps: true
         category: repos
         subcategory: 
+  "/repos/{owner}/{repo}/dependabot/alerts":
+    get:
+      summary: List Dependabot alerts for a repository
+      description: |-
+        You must use an access token with the `security_events` scope to use this endpoint with private repositories.
+        You can also use tokens with the `public_repo` scope for public repositories only.
+        GitHub Apps must have **Dependabot alerts** read permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/list-alerts-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/dependabot#list-dependabot-alerts-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/dependabot-alert-state"
+      - "$ref": "#/components/parameters/dependabot-alert-severity"
+      - "$ref": "#/components/parameters/dependabot-alert-ecosystem"
+      - "$ref": "#/components/parameters/dependabot-alert-package"
+      - "$ref": "#/components/parameters/dependabot-alert-manifest"
+      - "$ref": "#/components/parameters/dependabot-alert-scope"
+      - "$ref": "#/components/parameters/dependabot-alert-sort"
+      - "$ref": "#/components/parameters/direction"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/dependabot-alert"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-alerts"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed_simple"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: dependabot
+        subcategory: alerts
+  "/repos/{owner}/{repo}/dependabot/alerts/{alert_number}":
+    get:
+      summary: Get a Dependabot alert
+      description: |-
+        You must use an access token with the `security_events` scope to use this endpoint with private repositories.
+        You can also use tokens with the `public_repo` scope for public repositories only.
+        GitHub Apps must have **Dependabot alerts** read permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/get-alert
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/dependabot#get-a-dependabot-alert
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/dependabot-alert-number"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dependabot-alert"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-alert-open"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: dependabot
+        subcategory: alerts
+    patch:
+      summary: Update a Dependabot alert
+      description: |-
+        You must use an access token with the `security_events` scope to use this endpoint with private repositories.
+        You can also use tokens with the `public_repo` scope for public repositories only.
+        GitHub Apps must have **Dependabot alerts** write permission to use this endpoint.
+      tags:
+      - dependabot
+      operationId: dependabot/update-alert
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/dependabot#update-a-dependabot-alert
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/dependabot-alert-number"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  "$ref": "#/components/schemas/dependabot-alert-set-state"
+                dismissed_reason:
+                  "$ref": "#/components/schemas/dependabot-alert-dismissed-reason"
+                dismissed_comment:
+                  "$ref": "#/components/schemas/dependabot-alert-dismissed-comment"
+              required:
+              - state
+              additionalProperties: false
+            examples:
+              default:
+                value:
+                  state: dismissed
+                  dismissed_reason: tolerable_risk
+                  dismissed_comment: This alert is accurate but we use a sanitizer.
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/dependabot-alert"
+              examples:
+                default:
+                  "$ref": "#/components/examples/dependabot-alert-dismissed"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          "$ref": "#/components/responses/conflict"
+        '422':
+          "$ref": "#/components/responses/validation_failed_simple"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        previews: []
+        category: dependabot
+        subcategory: alerts
   "/repos/{owner}/{repo}/dependabot/secrets":
     get:
       summary: List repository secrets
@@ -56313,6 +56470,274 @@ components:
       required:
       - contributions
       - type
+    dependabot-alert-scope:
+      type: string
+      description: The scope of the vulnerable dependency.
+      nullable: true
+      readOnly: true
+      enum:
+      - development
+      - runtime
+    dependabot-alert-state:
+      type: string
+      description: State of a Dependabot alert.
+      enum:
+      - dismissed
+      - fixed
+      - open
+    dependabot-alert-package:
+      type: object
+      description: The details of the vulnerable package.
+      readOnly: true
+      properties:
+        ecosystem:
+          type: string
+        name:
+          type: string
+    dependabot-alert-dependency:
+      type: object
+      readOnly: true
+      properties:
+        package:
+          "$ref": "#/components/schemas/dependabot-alert-package"
+        manifest_path:
+          type: string
+          description: The path to the manifest filename.
+          readOnly: true
+        scope:
+          "$ref": "#/components/schemas/dependabot-alert-scope"
+    dependabot-alert-security-advisory:
+      type: object
+      description: The details of the security advisory, including summary, description,
+        and severity.
+      readOnly: true
+      properties:
+        ghsa_id:
+          type: string
+        cve_id:
+          type: string
+          nullable: true
+        summary:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        identifiers:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                - GHSA
+                - CVE
+              value:
+                type: string
+            required:
+            - value
+            - type
+            additionalProperties: false
+        references:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+            required:
+            - url
+            additionalProperties: false
+        cvss:
+          type: object
+          properties:
+            score:
+              type: number
+            vector_string:
+              type: string
+              nullable: true
+          required:
+          - vector_string
+          - score
+          additionalProperties: false
+        cwes:
+          type: array
+          items:
+            type: object
+            properties:
+              cwe_id:
+                type: string
+              name:
+                type: string
+            required:
+            - cwe_id
+            - name
+            additionalProperties: false
+        published_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        vulnerabilities:
+          type: array
+          items:
+            type: object
+            properties:
+              first_patched_version:
+                type: object
+                nullable: true
+                properties:
+                  identifier:
+                    type: string
+                required:
+                - identifier
+                additionalProperties: false
+              package:
+                type: object
+                properties:
+                  ecosystem:
+                    type: string
+                  name:
+                    type: string
+                required:
+                - ecosystem
+                - name
+                additionalProperties: false
+              severity:
+                type: string
+              vulnerable_version_range:
+                type: string
+            required:
+            - package
+            - severity
+            - vulnerable_version_range
+            - first_patched_version
+            additionalProperties: false
+        withdrawn_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - cvss
+      - cwes
+      - ghsa_id
+      - summary
+      - description
+      - severity
+      - identifiers
+      - references
+      - published_at
+      - updated_at
+      - withdrawn_at
+      - vulnerabilities
+      additionalProperties: false
+    dependabot-alert-security-vulnerability:
+      type: object
+      description: The details of the vulnerability of a security advisory.
+      readOnly: true
+      properties:
+        package:
+          "$ref": "#/components/schemas/dependabot-alert-package"
+        severity:
+          type: string
+        vulnerable_version_range:
+          type: string
+        first_patched_version:
+          type: object
+          properties:
+            identifier:
+              type: string
+    dependabot-alert-dismissed_at:
+      type: string
+      description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
+    dependabot-alert-dismissed-reason:
+      type: string
+      description: "**Required when the `state` is `dismissed`.** The reason for dismissing
+        the Dependabot alert."
+      nullable: true
+      enum:
+      - fix_started
+      - inaccurate
+      - no_bandwidth
+      - not_used
+      - tolerable_risk
+    dependabot-alert-dismissed-comment:
+      type: string
+      description: An optional comment associated with the alert's dismissal. The
+        maximum size is 280 characters.
+      nullable: true
+      maxLength: 280
+    dependabot-alert-fixed-at:
+      type: string
+      description: 'The time that the alert was no longer detected and was considered
+        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      format: date-time
+      readOnly: true
+      nullable: true
+    dependabot-alert:
+      type: object
+      properties:
+        number:
+          "$ref": "#/components/schemas/alert-number"
+        state:
+          "$ref": "#/components/schemas/dependabot-alert-state"
+        dependency:
+          "$ref": "#/components/schemas/dependabot-alert-dependency"
+        security_advisory:
+          "$ref": "#/components/schemas/dependabot-alert-security-advisory"
+        security_vulnerability:
+          "$ref": "#/components/schemas/dependabot-alert-security-vulnerability"
+        created_at:
+          "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
+        url:
+          "$ref": "#/components/schemas/alert-url"
+        html_url:
+          "$ref": "#/components/schemas/alert-html-url"
+        dismissed_at:
+          "$ref": "#/components/schemas/dependabot-alert-dismissed_at"
+        dismissed_by:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        dismissed_reason:
+          "$ref": "#/components/schemas/dependabot-alert-dismissed-reason"
+        dismissed_comment:
+          "$ref": "#/components/schemas/dependabot-alert-dismissed-comment"
+        fixed_at:
+          "$ref": "#/components/schemas/dependabot-alert-fixed-at"
+      required:
+      - number
+      - state
+      - dependency
+      - security_advisory
+      - security_vulnerability
+      - url
+      - html_url
+      - dismissed_at
+      - dismissed_by
+      - dismissed_reason
+      - dismissed_comment
+      - fixed_at
+      - created_at
+      - updated_at
+    dependabot-alert-set-state:
+      description: Sets the status of the dependabot alert. You must provide `dismissed_reason`
+        when you set the state to `dismissed`.
+      type: string
+      enum:
+      - dismissed
+      - open
     dependabot-secret:
       title: Dependabot Secret
       description: Set secrets for Dependabot.
@@ -77069,6 +77494,342 @@ components:
         type: User
         site_admin: false
         contributions: 32
+    dependabot-alerts:
+      value:
+      - number: 2
+        state: dismissed
+        dependency:
+          package:
+            ecosystem: pip
+            name: django
+          manifest_path: path/to/requirements.txt
+          scope: runtime
+        security_advisory:
+          ghsa_id: GHSA-rf4j-j272-fj86
+          cve_id: CVE-2018-6188
+          summary: Django allows remote attackers to obtain potentially sensitive
+            information by leveraging data exposure from the confirm_login_allowed()
+            method, as demonstrated by discovering whether a user account is inactive
+          description: django.contrib.auth.forms.AuthenticationForm in Django 2.0
+            before 2.0.2, and 1.11.8 and 1.11.9, allows remote attackers to obtain
+            potentially sensitive information by leveraging data exposure from the
+            confirm_login_allowed() method, as demonstrated by discovering whether
+            a user account is inactive.
+          severity: high
+          identifiers:
+          - type: GHSA
+            value: GHSA-rf4j-j272-fj86
+          - type: CVE
+            value: CVE-2018-6188
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
+          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
+          - url: https://usn.ubuntu.com/3559-1/
+          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
+          - url: http://www.securitytracker.com/id/1040422
+          published_at: '2018-10-03T21:13:54Z'
+          updated_at: '2022-04-26T18:35:37Z'
+          withdrawn_at: 
+          vulnerabilities:
+          - package:
+              ecosystem: pip
+              name: django
+            severity: high
+            vulnerable_version_range: ">= 2.0.0, < 2.0.2"
+            first_patched_version:
+              identifier: 2.0.2
+          - package:
+              ecosystem: pip
+              name: django
+            severity: high
+            vulnerable_version_range: ">= 1.11.8, < 1.11.10"
+            first_patched_version:
+              identifier: 1.11.10
+          cvss:
+            vector_string: CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+            score: 7.5
+          cwes:
+          - cwe_id: CWE-200
+            name: Exposure of Sensitive Information to an Unauthorized Actor
+        security_vulnerability:
+          package:
+            ecosystem: pip
+            name: django
+          severity: high
+          vulnerable_version_range: ">= 2.0.0, < 2.0.2"
+          first_patched_version:
+            identifier: 2.0.2
+        url: https://api.github.com/repos/octocat/hello-world/dependabot/alerts/2
+        html_url: https://github.com/octocat/hello-world/security/dependabot/2
+        created_at: '2022-06-15T07:43:03Z'
+        updated_at: '2022-08-23T14:29:47Z'
+        dismissed_at: '2022-08-23T14:29:47Z'
+        dismissed_by:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        dismissed_reason: tolerable_risk
+        dismissed_comment: This alert is accurate but we use a sanitizer.
+        fixed_at: 
+      - number: 1
+        state: open
+        dependency:
+          package:
+            ecosystem: pip
+            name: ansible
+          manifest_path: path/to/requirements.txt
+          scope: runtime
+        security_advisory:
+          ghsa_id: GHSA-8f4m-hccc-8qph
+          cve_id: CVE-2021-20191
+          summary: Insertion of Sensitive Information into Log File in ansible
+          description: A flaw was found in ansible. Credentials, such as secrets,
+            are being disclosed in console log by default and not protected by no_log
+            feature when using those modules. An attacker can take advantage of this
+            information to steal those credentials. The highest threat from this vulnerability
+            is to data confidentiality.
+          severity: medium
+          identifiers:
+          - type: GHSA
+            value: GHSA-8f4m-hccc-8qph
+          - type: CVE
+            value: CVE-2021-20191
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
+          - url: https://access.redhat.com/security/cve/cve-2021-20191
+          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
+          published_at: '2021-06-01T17:38:00Z'
+          updated_at: '2021-08-12T23:06:00Z'
+          withdrawn_at: 
+          vulnerabilities:
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: ">= 2.9.0, < 2.9.18"
+            first_patched_version:
+              identifier: 2.9.18
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: "< 2.8.19"
+            first_patched_version:
+              identifier: 2.8.19
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: ">= 2.10.0, < 2.10.7"
+            first_patched_version:
+              identifier: 2.10.7
+          cvss:
+            vector_string: CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
+            score: 5.5
+          cwes:
+          - cwe_id: CWE-532
+            name: Insertion of Sensitive Information into Log File
+        security_vulnerability:
+          package:
+            ecosystem: pip
+            name: ansible
+          severity: medium
+          vulnerable_version_range: "< 2.8.19"
+          first_patched_version:
+            identifier: 2.8.19
+        url: https://api.github.com/repos/octocat/hello-world/dependabot/alerts/1
+        html_url: https://github.com/octocat/hello-world/security/dependabot/1
+        created_at: '2022-06-14T15:21:52Z'
+        updated_at: '2022-06-14T15:21:52Z'
+        dismissed_at: 
+        dismissed_by: 
+        dismissed_reason: 
+        dismissed_comment: 
+        fixed_at: 
+    dependabot-alert-open:
+      value:
+        number: 1
+        state: open
+        dependency:
+          package:
+            ecosystem: pip
+            name: ansible
+          manifest_path: path/to/requirements.txt
+          scope: runtime
+        security_advisory:
+          ghsa_id: GHSA-8f4m-hccc-8qph
+          cve_id: CVE-2021-20191
+          summary: Insertion of Sensitive Information into Log File in ansible
+          description: A flaw was found in ansible. Credentials, such as secrets,
+            are being disclosed in console log by default and not protected by no_log
+            feature when using those modules. An attacker can take advantage of this
+            information to steal those credentials. The highest threat from this vulnerability
+            is to data confidentiality.
+          severity: medium
+          identifiers:
+          - type: GHSA
+            value: GHSA-8f4m-hccc-8qph
+          - type: CVE
+            value: CVE-2021-20191
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
+          - url: https://access.redhat.com/security/cve/cve-2021-20191
+          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
+          published_at: '2021-06-01T17:38:00Z'
+          updated_at: '2021-08-12T23:06:00Z'
+          withdrawn_at: 
+          vulnerabilities:
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: ">= 2.9.0, < 2.9.18"
+            first_patched_version:
+              identifier: 2.9.18
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: "< 2.8.19"
+            first_patched_version:
+              identifier: 2.8.19
+          - package:
+              ecosystem: pip
+              name: ansible
+            severity: medium
+            vulnerable_version_range: ">= 2.10.0, < 2.10.7"
+            first_patched_version:
+              identifier: 2.10.7
+          cvss:
+            vector_string: CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
+            score: 5.5
+          cwes:
+          - cwe_id: CWE-532
+            name: Insertion of Sensitive Information into Log File
+        security_vulnerability:
+          package:
+            ecosystem: pip
+            name: ansible
+          severity: medium
+          vulnerable_version_range: "< 2.8.19"
+          first_patched_version:
+            identifier: 2.8.19
+        url: https://api.github.com/repos/octocat/hello-world/dependabot/alerts/1
+        html_url: https://github.com/octocat/hello-world/security/dependabot/1
+        created_at: '2022-06-14T15:21:52Z'
+        updated_at: '2022-06-14T15:21:52Z'
+        dismissed_at: 
+        dismissed_by: 
+        dismissed_reason: 
+        dismissed_comment: 
+        fixed_at: 
+    dependabot-alert-dismissed:
+      value:
+        number: 2
+        state: dismissed
+        dependency:
+          package:
+            ecosystem: pip
+            name: django
+          manifest_path: path/to/requirements.txt
+          scope: runtime
+        security_advisory:
+          ghsa_id: GHSA-rf4j-j272-fj86
+          cve_id: CVE-2018-6188
+          summary: Django allows remote attackers to obtain potentially sensitive
+            information by leveraging data exposure from the confirm_login_allowed()
+            method, as demonstrated by discovering whether a user account is inactive
+          description: django.contrib.auth.forms.AuthenticationForm in Django 2.0
+            before 2.0.2, and 1.11.8 and 1.11.9, allows remote attackers to obtain
+            potentially sensitive information by leveraging data exposure from the
+            confirm_login_allowed() method, as demonstrated by discovering whether
+            a user account is inactive.
+          severity: high
+          identifiers:
+          - type: GHSA
+            value: GHSA-rf4j-j272-fj86
+          - type: CVE
+            value: CVE-2018-6188
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
+          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
+          - url: https://usn.ubuntu.com/3559-1/
+          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
+          - url: http://www.securitytracker.com/id/1040422
+          published_at: '2018-10-03T21:13:54Z'
+          updated_at: '2022-04-26T18:35:37Z'
+          withdrawn_at: 
+          vulnerabilities:
+          - package:
+              ecosystem: pip
+              name: django
+            severity: high
+            vulnerable_version_range: ">= 2.0.0, < 2.0.2"
+            first_patched_version:
+              identifier: 2.0.2
+          - package:
+              ecosystem: pip
+              name: django
+            severity: high
+            vulnerable_version_range: ">= 1.11.8, < 1.11.10"
+            first_patched_version:
+              identifier: 1.11.10
+          cvss:
+            vector_string: CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
+            score: 7.5
+          cwes:
+          - cwe_id: CWE-200
+            name: Exposure of Sensitive Information to an Unauthorized Actor
+        security_vulnerability:
+          package:
+            ecosystem: pip
+            name: django
+          severity: high
+          vulnerable_version_range: ">= 2.0.0, < 2.0.2"
+          first_patched_version:
+            identifier: 2.0.2
+        url: https://api.github.com/repos/octocat/hello-world/dependabot/alerts/2
+        html_url: https://github.com/octocat/hello-world/security/dependabot/2
+        created_at: '2022-06-15T07:43:03Z'
+        updated_at: '2022-08-23T14:29:47Z'
+        dismissed_at: '2022-08-23T14:29:47Z'
+        dismissed_by:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        dismissed_reason: tolerable_risk
+        dismissed_comment: This alert is accurate but we use a sanitizer.
+        fixed_at: 
     dependabot-secret-paginated:
       value:
         total_count: 2
@@ -86468,6 +87229,77 @@ components:
       schema:
         type: string
       x-multi-segment: true
+    dependabot-alert-state:
+      name: state
+      description: |-
+        A comma-separated list of states. If specified, only alerts with these states will be returned.
+
+        Can be: `dismissed`, `fixed`, `open`
+      in: query
+      schema:
+        type: string
+    dependabot-alert-severity:
+      name: severity
+      description: |-
+        A comma-separated list of severities. If specified, only alerts with these severities will be returned.
+
+        Can be: `low`, `medium`, `high`, `critical`
+      in: query
+      schema:
+        type: string
+    dependabot-alert-ecosystem:
+      name: ecosystem
+      description: |-
+        A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.
+
+        Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `rubygems`, `rust`
+      in: query
+      schema:
+        type: string
+    dependabot-alert-package:
+      name: package
+      description: A comma-separated list of package names. If specified, only alerts
+        for these packages will be returned.
+      in: query
+      schema:
+        type: string
+    dependabot-alert-manifest:
+      name: manifest
+      description: A comma-separated list of full manifest paths. If specified, only
+        alerts for these manifests will be returned.
+      in: query
+      schema:
+        type: string
+    dependabot-alert-scope:
+      name: scope
+      description: Scope of the dependency on a Dependabot alert.
+      in: query
+      schema:
+        "$ref": "#/components/schemas/dependabot-alert-scope"
+    dependabot-alert-sort:
+      name: sort
+      description: |-
+        The property by which to sort the results.
+        `created` means when the alert was created.
+        `updated` means when the alert's state last changed.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - created
+        - updated
+        default: created
+    dependabot-alert-number:
+      name: alert_number
+      in: path
+      description: The number that identifies a Dependabot alert in its repository.
+        You can find this at the end of the URL for a Dependabot alert within GitHub,
+        or in `number` fields in the response from the `GET /repos/{owner}/{repo}/dependabot/alerts`
+        operation.
+      required: true
+      schema:
+        "$ref": "#/components/schemas/alert-number"
     manifest-path:
       name: name
       description: The full path, relative to the repository root, of the dependency
