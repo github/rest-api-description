@@ -22359,11 +22359,11 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - "$ref": "#/components/parameters/dependabot-alert-state"
-      - "$ref": "#/components/parameters/dependabot-alert-severity"
-      - "$ref": "#/components/parameters/dependabot-alert-ecosystem"
-      - "$ref": "#/components/parameters/dependabot-alert-package"
-      - "$ref": "#/components/parameters/dependabot-alert-manifest"
+      - "$ref": "#/components/parameters/dependabot-alert-comma-separated-states"
+      - "$ref": "#/components/parameters/dependabot-alert-comma-separated-severities"
+      - "$ref": "#/components/parameters/dependabot-alert-comma-separated-ecosystems"
+      - "$ref": "#/components/parameters/dependabot-alert-comma-separated-packages"
+      - "$ref": "#/components/parameters/dependabot-alert-comma-separated-manifests"
       - "$ref": "#/components/parameters/dependabot-alert-scope"
       - "$ref": "#/components/parameters/dependabot-alert-sort"
       - "$ref": "#/components/parameters/direction"
@@ -22458,11 +22458,28 @@ paths:
               type: object
               properties:
                 state:
-                  "$ref": "#/components/schemas/dependabot-alert-set-state"
+                  type: string
+                  description: |-
+                    The state of the Dependabot alert.
+                    A `dismissed_reason` must be provided when setting the state to `dismissed`.
+                  enum:
+                  - dismissed
+                  - open
                 dismissed_reason:
-                  "$ref": "#/components/schemas/dependabot-alert-dismissed-reason"
+                  type: string
+                  description: "**Required when `state` is `dismissed`.** A reason
+                    for dismissing the alert."
+                  enum:
+                  - fix_started
+                  - inaccurate
+                  - no_bandwidth
+                  - not_used
+                  - tolerable_risk
                 dismissed_comment:
-                  "$ref": "#/components/schemas/dependabot-alert-dismissed-comment"
+                  type: string
+                  description: An optional comment associated with dismissing the
+                    alert.
+                  maxLength: 280
               required:
               - state
               additionalProperties: false
@@ -22482,8 +22499,6 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/dependabot-alert-dismissed"
-        '304':
-          "$ref": "#/components/responses/not_modified"
         '400':
           "$ref": "#/components/responses/bad_request"
         '403':
@@ -43766,7 +43781,7 @@ components:
       description: The REST API URL for fetching the list of instances for an alert.
       format: uri
       readOnly: true
-    code-scanning-alert-fixed-at:
+    alert-fixed-at:
       type:
       - string
       - 'null'
@@ -43774,7 +43789,7 @@ components:
         fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
       format: date-time
       readOnly: true
-    code-scanning-alert-dismissed-at:
+    alert-dismissed-at:
       type:
       - string
       - 'null'
@@ -44278,13 +44293,13 @@ components:
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         fixed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
+          "$ref": "#/components/schemas/alert-fixed-at"
         dismissed_by:
           anyOf:
           - type: 'null'
           - "$ref": "#/components/schemas/simple-user"
         dismissed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
+          "$ref": "#/components/schemas/alert-dismissed-at"
         dismissed_reason:
           "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
         dismissed_comment:
@@ -52806,13 +52821,13 @@ components:
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         fixed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
+          "$ref": "#/components/schemas/alert-fixed-at"
         dismissed_by:
           anyOf:
           - type: 'null'
           - "$ref": "#/components/schemas/simple-user"
         dismissed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
+          "$ref": "#/components/schemas/alert-dismissed-at"
         dismissed_reason:
           "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
         dismissed_comment:
@@ -52854,13 +52869,13 @@ components:
         state:
           "$ref": "#/components/schemas/code-scanning-alert-state"
         fixed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-fixed-at"
+          "$ref": "#/components/schemas/alert-fixed-at"
         dismissed_by:
           anyOf:
           - type: 'null'
           - "$ref": "#/components/schemas/simple-user"
         dismissed_at:
-          "$ref": "#/components/schemas/code-scanning-alert-dismissed-at"
+          "$ref": "#/components/schemas/alert-dismissed-at"
         dismissed_reason:
           "$ref": "#/components/schemas/code-scanning-alert-dismissed-reason"
         dismissed_comment:
@@ -54671,265 +54686,298 @@ components:
       required:
       - contributions
       - type
-    dependabot-alert-scope:
-      type:
-      - string
-      - 'null'
-      description: The scope of the vulnerable dependency.
-      readOnly: true
-      enum:
-      - development
-      - runtime
-      - 
-    dependabot-alert-state:
-      type: string
-      description: State of a Dependabot alert.
-      enum:
-      - dismissed
-      - fixed
-      - open
     dependabot-alert-package:
       type: object
-      description: The details of the vulnerable package.
+      description: Details for the vulnerable package.
       readOnly: true
       properties:
         ecosystem:
           type: string
+          description: The package's language or package management ecosystem.
+          readOnly: true
         name:
           type: string
-    dependabot-alert-dependency:
+          description: The unique package name within its ecosystem.
+          readOnly: true
+      required:
+      - ecosystem
+      - name
+      additionalProperties: false
+    dependabot-alert-security-vulnerability:
       type: object
+      description: Details pertaining to one vulnerable version range for the advisory.
       readOnly: true
       properties:
         package:
           "$ref": "#/components/schemas/dependabot-alert-package"
-        manifest_path:
-          type: string
-          description: The path to the manifest filename.
-          readOnly: true
-        scope:
-          "$ref": "#/components/schemas/dependabot-alert-scope"
-    dependabot-alert-security-advisory:
-      type: object
-      description: The details of the security advisory, including summary, description,
-        and severity.
-      readOnly: true
-      properties:
-        ghsa_id:
-          type: string
-        cve_id:
-          type:
-          - string
-          - 'null'
-        summary:
-          type: string
-        description:
-          type: string
         severity:
           type: string
+          description: The severity of the vulnerability.
+          readOnly: true
           enum:
           - low
           - medium
           - high
           - critical
-        identifiers:
+        vulnerable_version_range:
+          type: string
+          description: Conditions that identify vulnerable versions of this vulnerability's
+            package.
+          readOnly: true
+        first_patched_version:
+          type:
+          - object
+          - 'null'
+          description: Details pertaining to the package version that patches this
+            vulnerability.
+          readOnly: true
+          properties:
+            identifier:
+              type: string
+              description: The package version that patches this vulnerability.
+              readOnly: true
+          required:
+          - identifier
+          additionalProperties: false
+      required:
+      - package
+      - severity
+      - vulnerable_version_range
+      - first_patched_version
+      additionalProperties: false
+    dependabot-alert-security-advisory:
+      type: object
+      description: Details for the GitHub Security Advisory.
+      readOnly: true
+      properties:
+        ghsa_id:
+          type: string
+          description: The unique GitHub Security Advisory ID assigned to the advisory.
+          readOnly: true
+        cve_id:
+          type:
+          - string
+          - 'null'
+          description: The unique CVE ID assigned to the advisory.
+          readOnly: true
+        summary:
+          type: string
+          description: A short, plain text summary of the advisory.
+          readOnly: true
+          maxLength: 1024
+        description:
+          type: string
+          description: A long-form Markdown-supported description of the advisory.
+          readOnly: true
+        vulnerabilities:
           type: array
+          description: Vulnerable version range information for the advisory.
+          readOnly: true
+          items:
+            "$ref": "#/components/schemas/dependabot-alert-security-vulnerability"
+        severity:
+          type: string
+          description: The severity of the advisory.
+          readOnly: true
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        cvss:
+          type: object
+          description: Details for the advisory pertaining to the Common Vulnerability
+            Scoring System.
+          readOnly: true
+          properties:
+            score:
+              type: number
+              description: The overall CVSS score of the advisory.
+              minimum: 0
+              maximum: 10
+              readOnly: true
+            vector_string:
+              type:
+              - string
+              - 'null'
+              description: The full CVSS vector string for the advisory.
+              readOnly: true
+          required:
+          - score
+          - vector_string
+          additionalProperties: false
+        cwes:
+          type: array
+          description: Details for the advisory pertaining to Common Weakness Enumeration.
+          readOnly: true
           items:
             type: object
+            description: A CWE weakness assigned to the advisory.
+            readOnly: true
+            properties:
+              cwe_id:
+                type: string
+                description: The unique CWE ID.
+                readOnly: true
+              name:
+                type: string
+                description: The short, plain text name of the CWE.
+                readOnly: true
+            required:
+            - cwe_id
+            - name
+            additionalProperties: false
+        identifiers:
+          type: array
+          description: Values that identify this advisory among security information
+            sources.
+          readOnly: true
+          items:
+            type: object
+            description: An advisory identifier.
+            readOnly: true
             properties:
               type:
                 type: string
+                description: The type of advisory identifier.
+                readOnly: true
                 enum:
-                - GHSA
                 - CVE
+                - GHSA
               value:
                 type: string
+                description: The value of the advisory identifer.
+                readOnly: true
             required:
             - value
             - type
             additionalProperties: false
         references:
           type: array
+          description: Links to additional advisory information.
+          readOnly: true
           items:
             type: object
+            description: A link to additional advisory information.
+            readOnly: true
             properties:
               url:
                 type: string
+                description: The URL of the reference.
                 format: uri
+                readOnly: true
             required:
             - url
             additionalProperties: false
-        cvss:
-          type: object
-          properties:
-            score:
-              type: number
-            vector_string:
-              type:
-              - string
-              - 'null'
-          required:
-          - vector_string
-          - score
-          additionalProperties: false
-        cwes:
-          type: array
-          items:
-            type: object
-            properties:
-              cwe_id:
-                type: string
-              name:
-                type: string
-            required:
-            - cwe_id
-            - name
-            additionalProperties: false
         published_at:
           type: string
+          description: 'The time that the advisory was published in ISO 8601 format:
+            `YYYY-MM-DDTHH:MM:SSZ`.'
           format: date-time
+          readOnly: true
         updated_at:
           type: string
+          description: 'The time that the advisory was last modified in ISO 8601 format:
+            `YYYY-MM-DDTHH:MM:SSZ`.'
           format: date-time
-        vulnerabilities:
-          type: array
-          items:
-            type: object
-            properties:
-              first_patched_version:
-                type:
-                - object
-                - 'null'
-                properties:
-                  identifier:
-                    type: string
-                required:
-                - identifier
-                additionalProperties: false
-              package:
-                type: object
-                properties:
-                  ecosystem:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - ecosystem
-                - name
-                additionalProperties: false
-              severity:
-                type: string
-              vulnerable_version_range:
-                type: string
-            required:
-            - package
-            - severity
-            - vulnerable_version_range
-            - first_patched_version
-            additionalProperties: false
+          readOnly: true
         withdrawn_at:
           type:
           - string
           - 'null'
+          description: 'The time that the advisory was withdrawn in ISO 8601 format:
+            `YYYY-MM-DDTHH:MM:SSZ`.'
           format: date-time
+          readOnly: true
       required:
-      - cvss
-      - cwes
       - ghsa_id
+      - cve_id
       - summary
       - description
+      - vulnerabilities
       - severity
+      - cvss
+      - cwes
       - identifiers
       - references
       - published_at
       - updated_at
       - withdrawn_at
-      - vulnerabilities
       additionalProperties: false
-    dependabot-alert-security-vulnerability:
-      type: object
-      description: The details of the vulnerability of a security advisory.
-      readOnly: true
-      properties:
-        package:
-          "$ref": "#/components/schemas/dependabot-alert-package"
-        severity:
-          type: string
-        vulnerable_version_range:
-          type: string
-        first_patched_version:
-          type: object
-          properties:
-            identifier:
-              type: string
-    dependabot-alert-dismissed_at:
-      type:
-      - string
-      - 'null'
-      description: 'The time that the alert was dismissed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
-    dependabot-alert-dismissed-reason:
-      type:
-      - string
-      - 'null'
-      description: "**Required when the `state` is `dismissed`.** The reason for dismissing
-        the Dependabot alert."
-      enum:
-      - fix_started
-      - inaccurate
-      - no_bandwidth
-      - not_used
-      - tolerable_risk
-      - 
-    dependabot-alert-dismissed-comment:
-      type:
-      - string
-      - 'null'
-      description: An optional comment associated with the alert's dismissal. The
-        maximum size is 280 characters.
-      maxLength: 280
-    dependabot-alert-fixed-at:
-      type:
-      - string
-      - 'null'
-      description: 'The time that the alert was no longer detected and was considered
-        fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.'
-      format: date-time
-      readOnly: true
     dependabot-alert:
       type: object
+      description: A Dependabot alert.
       properties:
         number:
           "$ref": "#/components/schemas/alert-number"
         state:
-          "$ref": "#/components/schemas/dependabot-alert-state"
+          type: string
+          description: The state of the Dependabot alert.
+          readOnly: true
+          enum:
+          - dismissed
+          - fixed
+          - open
         dependency:
-          "$ref": "#/components/schemas/dependabot-alert-dependency"
+          type: object
+          description: Details for the vulnerable dependency.
+          readOnly: true
+          properties:
+            package:
+              "$ref": "#/components/schemas/dependabot-alert-package"
+            manifest_path:
+              type: string
+              description: The full path to the dependency manifest file, relative
+                to the root of the repository.
+              readOnly: true
+            scope:
+              type:
+              - string
+              - 'null'
+              description: The execution scope of the vulnerable dependency.
+              readOnly: true
+              enum:
+              - development
+              - runtime
+              - 
         security_advisory:
           "$ref": "#/components/schemas/dependabot-alert-security-advisory"
         security_vulnerability:
           "$ref": "#/components/schemas/dependabot-alert-security-vulnerability"
-        created_at:
-          "$ref": "#/components/schemas/alert-created-at"
-        updated_at:
-          "$ref": "#/components/schemas/alert-updated-at"
         url:
           "$ref": "#/components/schemas/alert-url"
         html_url:
           "$ref": "#/components/schemas/alert-html-url"
+        created_at:
+          "$ref": "#/components/schemas/alert-created-at"
+        updated_at:
+          "$ref": "#/components/schemas/alert-updated-at"
         dismissed_at:
-          "$ref": "#/components/schemas/dependabot-alert-dismissed_at"
+          "$ref": "#/components/schemas/alert-dismissed-at"
         dismissed_by:
           anyOf:
           - type: 'null'
           - "$ref": "#/components/schemas/simple-user"
         dismissed_reason:
-          "$ref": "#/components/schemas/dependabot-alert-dismissed-reason"
+          type:
+          - string
+          - 'null'
+          description: The reason that the alert was dismissed.
+          enum:
+          - fix_started
+          - inaccurate
+          - no_bandwidth
+          - not_used
+          - tolerable_risk
+          - 
         dismissed_comment:
-          "$ref": "#/components/schemas/dependabot-alert-dismissed-comment"
+          type:
+          - string
+          - 'null'
+          description: An optional comment associated with the alert's dismissal.
+          maxLength: 280
         fixed_at:
-          "$ref": "#/components/schemas/dependabot-alert-fixed-at"
+          "$ref": "#/components/schemas/alert-fixed-at"
       required:
       - number
       - state
@@ -54938,20 +54986,14 @@ components:
       - security_vulnerability
       - url
       - html_url
+      - created_at
+      - updated_at
       - dismissed_at
       - dismissed_by
       - dismissed_reason
       - dismissed_comment
       - fixed_at
-      - created_at
-      - updated_at
-    dependabot-alert-set-state:
-      description: Sets the status of the dependabot alert. You must provide `dismissed_reason`
-        when you set the state to `dismissed`.
-      type: string
-      enum:
-      - dismissed
-      - open
+      additionalProperties: false
     dependabot-secret:
       title: Dependabot Secret
       description: Set secrets for Dependabot.
@@ -76043,21 +76085,6 @@ components:
             potentially sensitive information by leveraging data exposure from the
             confirm_login_allowed() method, as demonstrated by discovering whether
             a user account is inactive.
-          severity: high
-          identifiers:
-          - type: GHSA
-            value: GHSA-rf4j-j272-fj86
-          - type: CVE
-            value: CVE-2018-6188
-          references:
-          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
-          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
-          - url: https://usn.ubuntu.com/3559-1/
-          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
-          - url: http://www.securitytracker.com/id/1040422
-          published_at: '2018-10-03T21:13:54Z'
-          updated_at: '2022-04-26T18:35:37Z'
-          withdrawn_at: 
           vulnerabilities:
           - package:
               ecosystem: pip
@@ -76073,12 +76100,27 @@ components:
             vulnerable_version_range: ">= 1.11.8, < 1.11.10"
             first_patched_version:
               identifier: 1.11.10
+          severity: high
           cvss:
             vector_string: CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
             score: 7.5
           cwes:
           - cwe_id: CWE-200
             name: Exposure of Sensitive Information to an Unauthorized Actor
+          identifiers:
+          - type: GHSA
+            value: GHSA-rf4j-j272-fj86
+          - type: CVE
+            value: CVE-2018-6188
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
+          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
+          - url: https://usn.ubuntu.com/3559-1/
+          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
+          - url: http://www.securitytracker.com/id/1040422
+          published_at: '2018-10-03T21:13:54Z'
+          updated_at: '2022-04-26T18:35:37Z'
+          withdrawn_at: 
         security_vulnerability:
           package:
             ecosystem: pip
@@ -76131,19 +76173,6 @@ components:
             feature when using those modules. An attacker can take advantage of this
             information to steal those credentials. The highest threat from this vulnerability
             is to data confidentiality.
-          severity: medium
-          identifiers:
-          - type: GHSA
-            value: GHSA-8f4m-hccc-8qph
-          - type: CVE
-            value: CVE-2021-20191
-          references:
-          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
-          - url: https://access.redhat.com/security/cve/cve-2021-20191
-          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
-          published_at: '2021-06-01T17:38:00Z'
-          updated_at: '2021-08-12T23:06:00Z'
-          withdrawn_at: 
           vulnerabilities:
           - package:
               ecosystem: pip
@@ -76166,12 +76195,25 @@ components:
             vulnerable_version_range: ">= 2.10.0, < 2.10.7"
             first_patched_version:
               identifier: 2.10.7
+          severity: medium
           cvss:
             vector_string: CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
             score: 5.5
           cwes:
           - cwe_id: CWE-532
             name: Insertion of Sensitive Information into Log File
+          identifiers:
+          - type: GHSA
+            value: GHSA-8f4m-hccc-8qph
+          - type: CVE
+            value: CVE-2021-20191
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
+          - url: https://access.redhat.com/security/cve/cve-2021-20191
+          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
+          published_at: '2021-06-01T17:38:00Z'
+          updated_at: '2021-08-12T23:06:00Z'
+          withdrawn_at: 
         security_vulnerability:
           package:
             ecosystem: pip
@@ -76208,19 +76250,6 @@ components:
             feature when using those modules. An attacker can take advantage of this
             information to steal those credentials. The highest threat from this vulnerability
             is to data confidentiality.
-          severity: medium
-          identifiers:
-          - type: GHSA
-            value: GHSA-8f4m-hccc-8qph
-          - type: CVE
-            value: CVE-2021-20191
-          references:
-          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
-          - url: https://access.redhat.com/security/cve/cve-2021-20191
-          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
-          published_at: '2021-06-01T17:38:00Z'
-          updated_at: '2021-08-12T23:06:00Z'
-          withdrawn_at: 
           vulnerabilities:
           - package:
               ecosystem: pip
@@ -76243,12 +76272,25 @@ components:
             vulnerable_version_range: ">= 2.10.0, < 2.10.7"
             first_patched_version:
               identifier: 2.10.7
+          severity: medium
           cvss:
             vector_string: CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
             score: 5.5
           cwes:
           - cwe_id: CWE-532
             name: Insertion of Sensitive Information into Log File
+          identifiers:
+          - type: GHSA
+            value: GHSA-8f4m-hccc-8qph
+          - type: CVE
+            value: CVE-2021-20191
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2021-20191
+          - url: https://access.redhat.com/security/cve/cve-2021-20191
+          - url: https://bugzilla.redhat.com/show_bug.cgi?id=1916813
+          published_at: '2021-06-01T17:38:00Z'
+          updated_at: '2021-08-12T23:06:00Z'
+          withdrawn_at: 
         security_vulnerability:
           package:
             ecosystem: pip
@@ -76287,21 +76329,6 @@ components:
             potentially sensitive information by leveraging data exposure from the
             confirm_login_allowed() method, as demonstrated by discovering whether
             a user account is inactive.
-          severity: high
-          identifiers:
-          - type: GHSA
-            value: GHSA-rf4j-j272-fj86
-          - type: CVE
-            value: CVE-2018-6188
-          references:
-          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
-          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
-          - url: https://usn.ubuntu.com/3559-1/
-          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
-          - url: http://www.securitytracker.com/id/1040422
-          published_at: '2018-10-03T21:13:54Z'
-          updated_at: '2022-04-26T18:35:37Z'
-          withdrawn_at: 
           vulnerabilities:
           - package:
               ecosystem: pip
@@ -76317,12 +76344,27 @@ components:
             vulnerable_version_range: ">= 1.11.8, < 1.11.10"
             first_patched_version:
               identifier: 1.11.10
+          severity: high
           cvss:
             vector_string: CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N
             score: 7.5
           cwes:
           - cwe_id: CWE-200
             name: Exposure of Sensitive Information to an Unauthorized Actor
+          identifiers:
+          - type: GHSA
+            value: GHSA-rf4j-j272-fj86
+          - type: CVE
+            value: CVE-2018-6188
+          references:
+          - url: https://nvd.nist.gov/vuln/detail/CVE-2018-6188
+          - url: https://github.com/advisories/GHSA-rf4j-j272-fj86
+          - url: https://usn.ubuntu.com/3559-1/
+          - url: https://www.djangoproject.com/weblog/2018/feb/01/security-releases/
+          - url: http://www.securitytracker.com/id/1040422
+          published_at: '2018-10-03T21:13:54Z'
+          updated_at: '2022-04-26T18:35:37Z'
+          withdrawn_at: 
         security_vulnerability:
           package:
             ecosystem: pip
@@ -85539,61 +85581,64 @@ components:
       schema:
         type: string
       x-multi-segment: true
-    dependabot-alert-state:
+    dependabot-alert-comma-separated-states:
       name: state
+      in: query
       description: |-
         A comma-separated list of states. If specified, only alerts with these states will be returned.
 
         Can be: `dismissed`, `fixed`, `open`
-      in: query
       schema:
         type: string
-    dependabot-alert-severity:
+    dependabot-alert-comma-separated-severities:
       name: severity
+      in: query
       description: |-
         A comma-separated list of severities. If specified, only alerts with these severities will be returned.
 
         Can be: `low`, `medium`, `high`, `critical`
-      in: query
       schema:
         type: string
-    dependabot-alert-ecosystem:
+    dependabot-alert-comma-separated-ecosystems:
       name: ecosystem
+      in: query
       description: |-
         A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.
 
         Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `rubygems`, `rust`
-      in: query
       schema:
         type: string
-    dependabot-alert-package:
+    dependabot-alert-comma-separated-packages:
       name: package
+      in: query
       description: A comma-separated list of package names. If specified, only alerts
         for these packages will be returned.
-      in: query
       schema:
         type: string
-    dependabot-alert-manifest:
+    dependabot-alert-comma-separated-manifests:
       name: manifest
+      in: query
       description: A comma-separated list of full manifest paths. If specified, only
         alerts for these manifests will be returned.
-      in: query
       schema:
         type: string
     dependabot-alert-scope:
       name: scope
-      description: Scope of the dependency on a Dependabot alert.
       in: query
+      description: The scope of the vulnerable dependency. If specified, only alerts
+        with this scope will be returned.
       schema:
-        "$ref": "#/components/schemas/dependabot-alert-scope"
+        type: string
+        enum:
+        - development
+        - runtime
     dependabot-alert-sort:
       name: sort
+      in: query
       description: |-
         The property by which to sort the results.
         `created` means when the alert was created.
         `updated` means when the alert's state last changed.
-      in: query
-      required: false
       schema:
         type: string
         enum:
@@ -85603,10 +85648,11 @@ components:
     dependabot-alert-number:
       name: alert_number
       in: path
-      description: The number that identifies a Dependabot alert in its repository.
+      description: |-
+        The number that identifies a Dependabot alert in its repository.
         You can find this at the end of the URL for a Dependabot alert within GitHub,
-        or in `number` fields in the response from the `GET /repos/{owner}/{repo}/dependabot/alerts`
-        operation.
+        or in `number` fields in the response from the
+        `GET /repos/{owner}/{repo}/dependabot/alerts` operation.
       required: true
       schema:
         "$ref": "#/components/schemas/alert-number"
