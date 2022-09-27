@@ -7670,6 +7670,70 @@ paths:
         enabledForGitHubApps: false
         category: codespaces
         subcategory: organizations
+  "/orgs/{org}/codespaces/billing":
+    put:
+      summary: Set the visibility of organization codespaces
+      description: |-
+        Sets which users can access codespaces in an organization. This is synonymous with granting or revoking codespaces billing permissions for users according to the visibility.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/set-codespaces-billing
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest//rest/reference/codespaces#set-codespaces-billing
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visibility:
+                  type: string
+                  description: Which users can access codespaces in the organization.
+                    `disabled` means that no users can access codespaces in the organization.
+                  enum:
+                  - disabled
+                  - selected_members
+                  - all_members
+                  - all_members_and_outside_collaborators
+                selected_usernames:
+                  type: array
+                  description: The usernames of the organization members who should
+                    be granted access to codespaces in the organization. Required
+                    when `visibility` is `selected_members`.
+                  items:
+                    type: string
+              required:
+              - visibility
+            examples:
+              default:
+                value:
+                  visibility: selected_members
+                  selected_usernames:
+                  - johnDoe
+                  - atomIO
+      responses:
+        '204':
+          description: Response when successfully modifying permissions.
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '400':
+          description: Users are neither members nor collaborators of this organization.
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organizations
   "/orgs/{org}/credential-authorizations":
     get:
       summary: List SAML SSO authorizations for an organization
