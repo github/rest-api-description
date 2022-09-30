@@ -4547,465 +4547,6 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: custom_roles
-  "/organizations/{org}/codespaces/secrets":
-    get:
-      summary: List organization secrets
-      description: |-
-        Lists all Codespaces secrets available at the organization-level without revealing their encrypted values.
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/list-org-secrets
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#list-organization-secrets
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                - total_count
-                - secrets
-                properties:
-                  total_count:
-                    type: integer
-                  secrets:
-                    type: array
-                    items:
-                      "$ref": "#/components/schemas/codespaces-org-secret"
-              examples:
-                default:
-                  "$ref": "#/components/examples/repo-codespaces-secret-paginated"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-  "/organizations/{org}/codespaces/secrets/public-key":
-    get:
-      summary: Get an organization public key
-      description: Gets a public key for an organization, which is required in order
-        to encrypt secrets. You need to encrypt the value of a secret before you can
-        create or update secrets. You must authenticate using an access token with
-        the `admin:org` scope to use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/get-org-public-key
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#get-an-organization-public-key
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/codespaces-public-key"
-              examples:
-                default:
-                  "$ref": "#/components/examples/codespaces-public-key"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-  "/organizations/{org}/codespaces/secrets/{secret_name}":
-    get:
-      summary: Get an organization secret
-      description: |-
-        Gets an organization secret without revealing its encrypted value.
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/get-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#get-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/codespaces-org-secret"
-              examples:
-                default:
-                  "$ref": "#/components/examples/repo-codespaces-secret"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-    put:
-      summary: Create or update an organization secret
-      description: |-
-        Creates or updates an organization secret with an encrypted value. Encrypt your secret using
-        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
-        token with the `admin:org` scope to use this endpoint.
-
-        #### Example encrypting a secret using Node.js
-
-        Encrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.
-
-        ```
-        // Written with ❤️ by PSJ and free to use under The Unlicense.
-        const sodium=require('libsodium-wrappers')
-        const secret = 'plain-text-secret' // replace with secret before running the script.
-        const key = 'base64-encoded-public-key' // replace with the Base64 encoded public key.
-
-        //Check if libsodium is ready and then proceed.
-
-        sodium.ready.then( ()=>{
-
-        // Convert Secret & Base64 key to Uint8Array.
-        let binkey= sodium.from_base64(key, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(key, 'base64')
-        let binsec= sodium.from_string(secret) // Equivalent of Buffer.from(secret)
-
-        //Encrypt the secret using LibSodium
-        let encBytes= sodium.crypto_box_seal(binsec,binkey) // Similar to tweetsodium.seal(binsec,binkey)
-
-        // Convert encrypted Uint8Array to Base64
-        let output=sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(encBytes).toString('base64')
-
-        console.log(output)
-        });
-        ```
-
-        #### Example encrypting a secret using Python
-
-        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
-
-        ```
-        from base64 import b64encode
-        from nacl import encoding, public
-
-        def encrypt(public_key: str, secret_value: str) -> str:
-          """Encrypt a Unicode string using the public key."""
-          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
-          sealed_box = public.SealedBox(public_key)
-          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
-          return b64encode(encrypted).decode("utf-8")
-        ```
-
-        #### Example encrypting a secret using C#
-
-        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
-
-        ```
-        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
-        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
-
-        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
-
-        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
-        ```
-
-        #### Example encrypting a secret using Ruby
-
-        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
-
-        ```ruby
-        require "rbnacl"
-        require "base64"
-
-        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
-        public_key = RbNaCl::PublicKey.new(key)
-
-        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
-        encrypted_secret = box.encrypt("my_secret")
-
-        # Print the base64 encoded secret
-        puts Base64.strict_encode64(encrypted_secret)
-        ```
-      tags:
-      - codespaces
-      operationId: codespaces/create-or-update-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                encrypted_value:
-                  type: string
-                  description: The value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
-                    using the public key retrieved from the [Get an organization public
-                    key](https://docs.github.com/rest/reference/codespaces#get-an-organization-public-key)
-                    endpoint.
-                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
-                key_id:
-                  type: string
-                  description: The ID of the key you used to encrypt the secret.
-                visibility:
-                  type: string
-                  description: Which type of organization repositories have access
-                    to the organization secret. `selected` means only the repositories
-                    specified by `selected_repository_ids` can access the secret.
-                  enum:
-                  - all
-                  - private
-                  - selected
-                selected_repository_ids:
-                  type: array
-                  description: An array of repository IDs that can access the organization
-                    secret. You can only provide a list of repository IDs when the
-                    `visibility` is set to `selected`. You can manage the list of
-                    selected repositories using the [List selected repositories for
-                    an organization secret](https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-an-organization-secret),
-                    [Set selected repositories for an organization secret](https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret),
-                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
-                    endpoints.
-                  items:
-                    type: integer
-              required:
-              - visibility
-            examples:
-              default:
-                value:
-                  encrypted_value: c2VjcmV0
-                  key_id: '012345678912345678'
-                  visibility: selected
-                  selected_repository_ids:
-                  - 1296269
-                  - 1296280
-      responses:
-        '201':
-          description: Response when creating a secret
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/empty-object"
-              examples:
-                default:
-                  value: 
-        '204':
-          description: Response when updating a secret
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-    delete:
-      summary: Delete an organization secret
-      description: Deletes an organization secret using the secret name. You must
-        authenticate using an access token with the `admin:org` scope to use this
-        endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/delete-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#delete-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      responses:
-        '204':
-          description: Response
-        '404':
-          "$ref": "#/components/responses/not_found"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-  "/organizations/{org}/codespaces/secrets/{secret_name}/repositories":
-    get:
-      summary: List selected repositories for an organization secret
-      description: Lists all repositories that have been selected when the `visibility`
-        for repository access to a secret is set to `selected`. You must authenticate
-        using an access token with the `admin:org` scope to use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/list-selected-repos-for-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      - "$ref": "#/components/parameters/page"
-      - "$ref": "#/components/parameters/per-page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                - total_count
-                - repositories
-                properties:
-                  total_count:
-                    type: integer
-                  repositories:
-                    type: array
-                    items:
-                      "$ref": "#/components/schemas/minimal-repository"
-              examples:
-                default:
-                  "$ref": "#/components/examples/public-repository-paginated"
-        '404':
-          "$ref": "#/components/responses/not_found"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-    put:
-      summary: Set selected repositories for an organization secret
-      description: Replaces all repositories for an organization secret when the `visibility`
-        for repository access is set to `selected`. The visibility is set when you
-        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
-        You must authenticate using an access token with the `admin:org` scope to
-        use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/set-selected-repos-for-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                selected_repository_ids:
-                  type: array
-                  description: An array of repository ids that can access the organization
-                    secret. You can only provide a list of repository ids when the
-                    `visibility` is set to `selected`. You can add and remove individual
-                    repositories using the [Set selected repositories for an organization
-                    secret](https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret)
-                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
-                    endpoints.
-                  items:
-                    type: integer
-              required:
-              - selected_repository_ids
-            examples:
-              default:
-                value:
-                  selected_repository_ids:
-                  - 64780797
-      responses:
-        '204':
-          description: Response
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '409':
-          description: Conflict when visibility type not set to selected
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-  "/organizations/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}":
-    put:
-      summary: Add selected repository to an organization secret
-      description: Adds a repository to an organization secret when the `visibility`
-        for repository access is set to `selected`. The visibility is set when you
-        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
-        You must authenticate using an access token with the `admin:org` scope to
-        use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/add-selected-repo-to-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#add-selected-repository-to-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      - name: repository_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '204':
-          description: No Content when repository was added to the selected list
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '409':
-          description: Conflict when visibility type is not set to selected
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
-    delete:
-      summary: Remove selected repository from an organization secret
-      description: Removes a repository from an organization secret when the `visibility`
-        for repository access is set to `selected`. The visibility is set when you
-        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
-        You must authenticate using an access token with the `admin:org` scope to
-        use this endpoint.
-      tags:
-      - codespaces
-      operationId: codespaces/remove-selected-repo-from-org-secret
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret
-      parameters:
-      - "$ref": "#/components/parameters/org"
-      - "$ref": "#/components/parameters/secret-name"
-      - name: repository_id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '204':
-          description: Response when repository was removed from the selected list
-        '404':
-          "$ref": "#/components/responses/not_found"
-        '409':
-          description: Conflict when visibility type not set to selected
-        '422':
-          "$ref": "#/components/responses/validation_failed"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: codespaces
-        subcategory: organization-secrets
   "/orgs/{org}":
     get:
       summary: Get an organization
@@ -6959,8 +6500,8 @@ paths:
                   description: An array of repository ids that can access the organization
                     secret. You can only provide a list of repository ids when the
                     `visibility` is set to `selected`. You can add and remove individual
-                    repositories using the [Set selected repositories for an organization
-                    secret](https://docs.github.com/rest/reference/actions#set-selected-repositories-for-an-organization-secret)
+                    repositories using the [Add selected repository to an organization
+                    secret](https://docs.github.com/rest/actions/secrets#add-selected-repository-to-an-organization-secret)
                     and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/actions#remove-selected-repository-from-an-organization-secret)
                     endpoints.
                   items:
@@ -7266,7 +6807,7 @@ paths:
         subcategory: organizations
   "/orgs/{org}/codespaces/billing":
     put:
-      summary: Set the visibility of organization codespaces
+      summary: Manage access control for organization codespaces
       description: |-
         Sets which users can access codespaces in an organization. This is synonymous with granting or revoking codespaces billing permissions for users according to the visibility.
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -7328,6 +6869,465 @@ paths:
         enabledForGitHubApps: false
         category: codespaces
         subcategory: organizations
+  "/orgs/{org}/codespaces/secrets":
+    get:
+      summary: List organization secrets
+      description: |-
+        Lists all Codespaces secrets available at the organization-level without revealing their encrypted values.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-org-secrets
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-organization-secrets
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - secrets
+                properties:
+                  total_count:
+                    type: integer
+                  secrets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/codespaces-org-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret-paginated"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/orgs/{org}/codespaces/secrets/public-key":
+    get:
+      summary: Get an organization public key
+      description: Gets a public key for an organization, which is required in order
+        to encrypt secrets. You need to encrypt the value of a secret before you can
+        create or update secrets. You must authenticate using an access token with
+        the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-org-public-key
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-an-organization-public-key
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespaces-public-key"
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-public-key"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/orgs/{org}/codespaces/secrets/{secret_name}":
+    get:
+      summary: Get an organization secret
+      description: |-
+        Gets an organization secret without revealing its encrypted value.
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/codespaces-org-secret"
+              examples:
+                default:
+                  "$ref": "#/components/examples/repo-codespaces-secret"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    put:
+      summary: Create or update an organization secret
+      description: |-
+        Creates or updates an organization secret with an encrypted value. Encrypt your secret using
+        [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access
+        token with the `admin:org` scope to use this endpoint.
+
+        #### Example encrypting a secret using Node.js
+
+        Encrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.
+
+        ```
+        // Written with ❤️ by PSJ and free to use under The Unlicense.
+        const sodium=require('libsodium-wrappers')
+        const secret = 'plain-text-secret' // replace with secret before running the script.
+        const key = 'base64-encoded-public-key' // replace with the Base64 encoded public key.
+
+        //Check if libsodium is ready and then proceed.
+
+        sodium.ready.then( ()=>{
+
+        // Convert Secret & Base64 key to Uint8Array.
+        let binkey= sodium.from_base64(key, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(key, 'base64')
+        let binsec= sodium.from_string(secret) // Equivalent of Buffer.from(secret)
+
+        //Encrypt the secret using LibSodium
+        let encBytes= sodium.crypto_box_seal(binsec,binkey) // Similar to tweetsodium.seal(binsec,binkey)
+
+        // Convert encrypted Uint8Array to Base64
+        let output=sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL) //Equivalent of Buffer.from(encBytes).toString('base64')
+
+        console.log(output)
+        });
+        ```
+
+        #### Example encrypting a secret using Python
+
+        Encrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.
+
+        ```
+        from base64 import b64encode
+        from nacl import encoding, public
+
+        def encrypt(public_key: str, secret_value: str) -> str:
+          """Encrypt a Unicode string using the public key."""
+          public_key = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+          sealed_box = public.SealedBox(public_key)
+          encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+          return b64encode(encrypted).decode("utf-8")
+        ```
+
+        #### Example encrypting a secret using C#
+
+        Encrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.
+
+        ```
+        var secretValue = System.Text.Encoding.UTF8.GetBytes("mySecret");
+        var publicKey = Convert.FromBase64String("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=");
+
+        var sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);
+
+        Console.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));
+        ```
+
+        #### Example encrypting a secret using Ruby
+
+        Encrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.
+
+        ```ruby
+        require "rbnacl"
+        require "base64"
+
+        key = Base64.decode64("+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=")
+        public_key = RbNaCl::PublicKey.new(key)
+
+        box = RbNaCl::Boxes::Sealed.from_public_key(public_key)
+        encrypted_secret = box.encrypt("my_secret")
+
+        # Print the base64 encoded secret
+        puts Base64.strict_encode64(encrypted_secret)
+        ```
+      tags:
+      - codespaces
+      operationId: codespaces/create-or-update-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encrypted_value:
+                  type: string
+                  description: The value for your secret, encrypted with [LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages)
+                    using the public key retrieved from the [Get an organization public
+                    key](https://docs.github.com/rest/reference/codespaces#get-an-organization-public-key)
+                    endpoint.
+                  pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$"
+                key_id:
+                  type: string
+                  description: The ID of the key you used to encrypt the secret.
+                visibility:
+                  type: string
+                  description: Which type of organization repositories have access
+                    to the organization secret. `selected` means only the repositories
+                    specified by `selected_repository_ids` can access the secret.
+                  enum:
+                  - all
+                  - private
+                  - selected
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository IDs that can access the organization
+                    secret. You can only provide a list of repository IDs when the
+                    `visibility` is set to `selected`. You can manage the list of
+                    selected repositories using the [List selected repositories for
+                    an organization secret](https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-an-organization-secret),
+                    [Set selected repositories for an organization secret](https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret),
+                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: integer
+              required:
+              - visibility
+            examples:
+              default:
+                value:
+                  encrypted_value: c2VjcmV0
+                  key_id: '012345678912345678'
+                  visibility: selected
+                  selected_repository_ids:
+                  - 1296269
+                  - 1296280
+      responses:
+        '201':
+          description: Response when creating a secret
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/empty-object"
+              examples:
+                default:
+                  value: 
+        '204':
+          description: Response when updating a secret
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    delete:
+      summary: Delete an organization secret
+      description: Deletes an organization secret using the secret name. You must
+        authenticate using an access token with the `admin:org` scope to use this
+        endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/delete-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#delete-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/orgs/{org}/codespaces/secrets/{secret_name}/repositories":
+    get:
+      summary: List selected repositories for an organization secret
+      description: Lists all repositories that have been selected when the `visibility`
+        for repository access to a secret is set to `selected`. You must authenticate
+        using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/list-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#list-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/per-page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - repositories
+                properties:
+                  total_count:
+                    type: integer
+                  repositories:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/minimal-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/public-repository-paginated"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    put:
+      summary: Set selected repositories for an organization secret
+      description: Replaces all repositories for an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/set-selected-repos-for-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selected_repository_ids:
+                  type: array
+                  description: An array of repository ids that can access the organization
+                    secret. You can only provide a list of repository ids when the
+                    `visibility` is set to `selected`. You can add and remove individual
+                    repositories using the [Set selected repositories for an organization
+                    secret](https://docs.github.com/rest/reference/codespaces#set-selected-repositories-for-an-organization-secret)
+                    and [Remove selected repository from an organization secret](https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret)
+                    endpoints.
+                  items:
+                    type: integer
+              required:
+              - selected_repository_ids
+            examples:
+              default:
+                value:
+                  selected_repository_ids:
+                  - 64780797
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type not set to selected
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+  "/orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}":
+    put:
+      summary: Add selected repository to an organization secret
+      description: Adds a repository to an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/add-selected-repo-to-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#add-selected-repository-to-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: No Content when repository was added to the selected list
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type is not set to selected
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
+    delete:
+      summary: Remove selected repository from an organization secret
+      description: Removes a repository from an organization secret when the `visibility`
+        for repository access is set to `selected`. The visibility is set when you
+        [Create or update an organization secret](https://docs.github.com/rest/reference/codespaces#create-or-update-an-organization-secret).
+        You must authenticate using an access token with the `admin:org` scope to
+        use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/remove-selected-repo-from-org-secret
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#remove-selected-repository-from-an-organization-secret
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/secret-name"
+      - name: repository_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: Response when repository was removed from the selected list
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '409':
+          description: Conflict when visibility type not set to selected
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organization-secrets
   "/orgs/{org}/custom_roles":
     post:
       summary: Create a custom role
@@ -9133,6 +9133,59 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: members
+  "/orgs/{org}/members/{username}/codespaces":
+    get:
+      summary: List codespaces for a user in organization
+      description: |-
+        Lists the codespaces that a member of an organization has for repositories in that organization.
+
+        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+      tags:
+      - codespaces
+      operationId: codespaces/get-codespaces-for-user-in-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/reference/codespaces#get-codespaces-for-user-in-org
+      parameters:
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/username"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - codespaces
+                properties:
+                  total_count:
+                    type: integer
+                  codespaces:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/codespace"
+              examples:
+                default:
+                  "$ref": "#/components/examples/codespaces-list"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: codespaces
+        subcategory: organizations
   "/orgs/{org}/members/{username}/codespaces/{codespace_name}":
     delete:
       summary: Delete a codespace from the organization
@@ -45686,741 +45739,6 @@ components:
           - 192.168.7.16/32
       required:
       - verifiable_password_authentication
-    nullable-repository:
-      title: Repository
-      description: A git repository
-      type: object
-      properties:
-        id:
-          description: Unique identifier of the repository
-          example: 42
-          type: integer
-        node_id:
-          type: string
-          example: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-        name:
-          description: The name of the repository.
-          type: string
-          example: Team Environment
-        full_name:
-          type: string
-          example: octocat/Hello-World
-        license:
-          "$ref": "#/components/schemas/nullable-license-simple"
-        organization:
-          "$ref": "#/components/schemas/nullable-simple-user"
-        forks:
-          type: integer
-        permissions:
-          type: object
-          properties:
-            admin:
-              type: boolean
-            pull:
-              type: boolean
-            triage:
-              type: boolean
-            push:
-              type: boolean
-            maintain:
-              type: boolean
-          required:
-          - admin
-          - pull
-          - push
-        owner:
-          "$ref": "#/components/schemas/simple-user"
-        private:
-          description: Whether the repository is private or public.
-          default: false
-          type: boolean
-        html_url:
-          type: string
-          format: uri
-          example: https://github.com/octocat/Hello-World
-        description:
-          type: string
-          example: This your first repo!
-          nullable: true
-        fork:
-          type: boolean
-        url:
-          type: string
-          format: uri
-          example: https://api.github.com/repos/octocat/Hello-World
-        archive_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-        assignees_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/assignees{/user}
-        blobs_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-        branches_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/branches{/branch}
-        collaborators_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-        comments_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/comments{/number}
-        commits_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/commits{/sha}
-        compare_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-        contents_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/contents/{+path}
-        contributors_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/contributors
-        deployments_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/deployments
-        downloads_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/downloads
-        events_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/events
-        forks_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/forks
-        git_commits_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-        git_refs_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-        git_tags_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-        git_url:
-          type: string
-          example: git:github.com/octocat/Hello-World.git
-        issue_comment_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-        issue_events_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-        issues_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/issues{/number}
-        keys_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-        labels_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/labels{/name}
-        languages_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/languages
-        merges_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/merges
-        milestones_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/milestones{/number}
-        notifications_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-        pulls_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/pulls{/number}
-        releases_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/releases{/id}
-        ssh_url:
-          type: string
-          example: git@github.com:octocat/Hello-World.git
-        stargazers_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/stargazers
-        statuses_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-        subscribers_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/subscribers
-        subscription_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/subscription
-        tags_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/tags
-        teams_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/teams
-        trees_url:
-          type: string
-          example: http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-        clone_url:
-          type: string
-          example: https://github.com/octocat/Hello-World.git
-        mirror_url:
-          type: string
-          format: uri
-          example: git:git.example.com/octocat/Hello-World
-          nullable: true
-        hooks_url:
-          type: string
-          format: uri
-          example: http://api.github.com/repos/octocat/Hello-World/hooks
-        svn_url:
-          type: string
-          format: uri
-          example: https://svn.github.com/octocat/Hello-World
-        homepage:
-          type: string
-          format: uri
-          example: https://github.com
-          nullable: true
-        language:
-          type: string
-          nullable: true
-        forks_count:
-          type: integer
-          example: 9
-        stargazers_count:
-          type: integer
-          example: 80
-        watchers_count:
-          type: integer
-          example: 80
-        size:
-          description: The size of the repository. Size is calculated hourly. When
-            a repository is initially created, the size is 0.
-          type: integer
-          example: 108
-        default_branch:
-          description: The default branch of the repository.
-          type: string
-          example: master
-        open_issues_count:
-          type: integer
-          example: 0
-        is_template:
-          description: Whether this repository acts as a template that can be used
-            to generate new repositories.
-          default: false
-          type: boolean
-          example: true
-        topics:
-          type: array
-          items:
-            type: string
-        has_issues:
-          description: Whether issues are enabled.
-          default: true
-          type: boolean
-          example: true
-        has_projects:
-          description: Whether projects are enabled.
-          default: true
-          type: boolean
-          example: true
-        has_wiki:
-          description: Whether the wiki is enabled.
-          default: true
-          type: boolean
-          example: true
-        has_pages:
-          type: boolean
-        has_downloads:
-          description: Whether downloads are enabled.
-          default: true
-          type: boolean
-          example: true
-        archived:
-          description: Whether the repository is archived.
-          default: false
-          type: boolean
-        disabled:
-          type: boolean
-          description: Returns whether or not this repository disabled.
-        visibility:
-          description: 'The repository visibility: public, private, or internal.'
-          default: public
-          type: string
-        pushed_at:
-          type: string
-          format: date-time
-          example: '2011-01-26T19:06:43Z'
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-          example: '2011-01-26T19:01:12Z'
-          nullable: true
-        updated_at:
-          type: string
-          format: date-time
-          example: '2011-01-26T19:14:43Z'
-          nullable: true
-        allow_rebase_merge:
-          description: Whether to allow rebase merges for pull requests.
-          default: true
-          type: boolean
-          example: true
-        template_repository:
-          nullable: true
-          type: object
-          properties:
-            id:
-              type: integer
-            node_id:
-              type: string
-            name:
-              type: string
-            full_name:
-              type: string
-            owner:
-              type: object
-              properties:
-                login:
-                  type: string
-                id:
-                  type: integer
-                node_id:
-                  type: string
-                avatar_url:
-                  type: string
-                gravatar_id:
-                  type: string
-                url:
-                  type: string
-                html_url:
-                  type: string
-                followers_url:
-                  type: string
-                following_url:
-                  type: string
-                gists_url:
-                  type: string
-                starred_url:
-                  type: string
-                subscriptions_url:
-                  type: string
-                organizations_url:
-                  type: string
-                repos_url:
-                  type: string
-                events_url:
-                  type: string
-                received_events_url:
-                  type: string
-                type:
-                  type: string
-                site_admin:
-                  type: boolean
-            private:
-              type: boolean
-            html_url:
-              type: string
-            description:
-              type: string
-            fork:
-              type: boolean
-            url:
-              type: string
-            archive_url:
-              type: string
-            assignees_url:
-              type: string
-            blobs_url:
-              type: string
-            branches_url:
-              type: string
-            collaborators_url:
-              type: string
-            comments_url:
-              type: string
-            commits_url:
-              type: string
-            compare_url:
-              type: string
-            contents_url:
-              type: string
-            contributors_url:
-              type: string
-            deployments_url:
-              type: string
-            downloads_url:
-              type: string
-            events_url:
-              type: string
-            forks_url:
-              type: string
-            git_commits_url:
-              type: string
-            git_refs_url:
-              type: string
-            git_tags_url:
-              type: string
-            git_url:
-              type: string
-            issue_comment_url:
-              type: string
-            issue_events_url:
-              type: string
-            issues_url:
-              type: string
-            keys_url:
-              type: string
-            labels_url:
-              type: string
-            languages_url:
-              type: string
-            merges_url:
-              type: string
-            milestones_url:
-              type: string
-            notifications_url:
-              type: string
-            pulls_url:
-              type: string
-            releases_url:
-              type: string
-            ssh_url:
-              type: string
-            stargazers_url:
-              type: string
-            statuses_url:
-              type: string
-            subscribers_url:
-              type: string
-            subscription_url:
-              type: string
-            tags_url:
-              type: string
-            teams_url:
-              type: string
-            trees_url:
-              type: string
-            clone_url:
-              type: string
-            mirror_url:
-              type: string
-            hooks_url:
-              type: string
-            svn_url:
-              type: string
-            homepage:
-              type: string
-            language:
-              type: string
-            forks_count:
-              type: integer
-            stargazers_count:
-              type: integer
-            watchers_count:
-              type: integer
-            size:
-              type: integer
-            default_branch:
-              type: string
-            open_issues_count:
-              type: integer
-            is_template:
-              type: boolean
-            topics:
-              type: array
-              items:
-                type: string
-            has_issues:
-              type: boolean
-            has_projects:
-              type: boolean
-            has_wiki:
-              type: boolean
-            has_pages:
-              type: boolean
-            has_downloads:
-              type: boolean
-            archived:
-              type: boolean
-            disabled:
-              type: boolean
-            visibility:
-              type: string
-            pushed_at:
-              type: string
-            created_at:
-              type: string
-            updated_at:
-              type: string
-            permissions:
-              type: object
-              properties:
-                admin:
-                  type: boolean
-                maintain:
-                  type: boolean
-                push:
-                  type: boolean
-                triage:
-                  type: boolean
-                pull:
-                  type: boolean
-            allow_rebase_merge:
-              type: boolean
-            temp_clone_token:
-              type: string
-            allow_squash_merge:
-              type: boolean
-            allow_auto_merge:
-              type: boolean
-            delete_branch_on_merge:
-              type: boolean
-            allow_update_branch:
-              type: boolean
-            use_squash_pr_title_as_default:
-              type: boolean
-            squash_merge_commit_title:
-              type: string
-              enum:
-              - PR_TITLE
-              - COMMIT_OR_PR_TITLE
-              description: |-
-                The default value for a squash merge commit title:
-
-                - `PR_TITLE` - default to the pull request's title.
-                - `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).
-            squash_merge_commit_message:
-              type: string
-              enum:
-              - PR_BODY
-              - COMMIT_MESSAGES
-              - BLANK
-              description: |-
-                The default value for a squash merge commit message:
-
-                - `PR_BODY` - default to the pull request's body.
-                - `COMMIT_MESSAGES` - default to the branch's commit messages.
-                - `BLANK` - default to a blank commit message.
-            merge_commit_title:
-              type: string
-              enum:
-              - PR_TITLE
-              - MERGE_MESSAGE
-              description: |-
-                The default value for a merge commit title.
-
-                - `PR_TITLE` - default to the pull request's title.
-                - `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).
-            merge_commit_message:
-              type: string
-              enum:
-              - PR_BODY
-              - PR_TITLE
-              - BLANK
-              description: |-
-                The default value for a merge commit message.
-
-                - `PR_TITLE` - default to the pull request's title.
-                - `PR_BODY` - default to the pull request's body.
-                - `BLANK` - default to a blank commit message.
-            allow_merge_commit:
-              type: boolean
-            subscribers_count:
-              type: integer
-            network_count:
-              type: integer
-        temp_clone_token:
-          type: string
-        allow_squash_merge:
-          description: Whether to allow squash merges for pull requests.
-          default: true
-          type: boolean
-          example: true
-        allow_auto_merge:
-          description: Whether to allow Auto-merge to be used on pull requests.
-          default: false
-          type: boolean
-          example: false
-        delete_branch_on_merge:
-          description: Whether to delete head branches when pull requests are merged
-          default: false
-          type: boolean
-          example: false
-        allow_update_branch:
-          description: Whether or not a pull request head branch that is behind its
-            base branch can always be updated even if it is not required to be up
-            to date before merging.
-          default: false
-          type: boolean
-          example: false
-        use_squash_pr_title_as_default:
-          type: boolean
-          description: Whether a squash merge commit can use the pull request title
-            as default. **This property has been deprecated. Please use `squash_merge_commit_title`
-            instead.
-          default: false
-          deprecated: true
-        squash_merge_commit_title:
-          type: string
-          enum:
-          - PR_TITLE
-          - COMMIT_OR_PR_TITLE
-          description: |-
-            The default value for a squash merge commit title:
-
-            - `PR_TITLE` - default to the pull request's title.
-            - `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).
-        squash_merge_commit_message:
-          type: string
-          enum:
-          - PR_BODY
-          - COMMIT_MESSAGES
-          - BLANK
-          description: |-
-            The default value for a squash merge commit message:
-
-            - `PR_BODY` - default to the pull request's body.
-            - `COMMIT_MESSAGES` - default to the branch's commit messages.
-            - `BLANK` - default to a blank commit message.
-        merge_commit_title:
-          type: string
-          enum:
-          - PR_TITLE
-          - MERGE_MESSAGE
-          description: |-
-            The default value for a merge commit title.
-
-            - `PR_TITLE` - default to the pull request's title.
-            - `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).
-        merge_commit_message:
-          type: string
-          enum:
-          - PR_BODY
-          - PR_TITLE
-          - BLANK
-          description: |-
-            The default value for a merge commit message.
-
-            - `PR_TITLE` - default to the pull request's title.
-            - `PR_BODY` - default to the pull request's body.
-            - `BLANK` - default to a blank commit message.
-        allow_merge_commit:
-          description: Whether to allow merge commits for pull requests.
-          default: true
-          type: boolean
-          example: true
-        allow_forking:
-          description: Whether to allow forking this repo
-          type: boolean
-        web_commit_signoff_required:
-          description: Whether to require contributors to sign off on web-based commits
-          default: false
-          type: boolean
-        subscribers_count:
-          type: integer
-        network_count:
-          type: integer
-        open_issues:
-          type: integer
-        watchers:
-          type: integer
-        master_branch:
-          type: string
-        starred_at:
-          type: string
-          example: '"2020-07-09T00:17:42Z"'
-        anonymous_access_enabled:
-          type: boolean
-          description: Whether anonymous git access is enabled for this repository
-      required:
-      - archive_url
-      - assignees_url
-      - blobs_url
-      - branches_url
-      - collaborators_url
-      - comments_url
-      - commits_url
-      - compare_url
-      - contents_url
-      - contributors_url
-      - deployments_url
-      - description
-      - downloads_url
-      - events_url
-      - fork
-      - forks_url
-      - full_name
-      - git_commits_url
-      - git_refs_url
-      - git_tags_url
-      - hooks_url
-      - html_url
-      - id
-      - node_id
-      - issue_comment_url
-      - issue_events_url
-      - issues_url
-      - keys_url
-      - labels_url
-      - languages_url
-      - merges_url
-      - milestones_url
-      - name
-      - notifications_url
-      - owner
-      - private
-      - pulls_url
-      - releases_url
-      - stargazers_url
-      - statuses_url
-      - subscribers_url
-      - subscription_url
-      - tags_url
-      - teams_url
-      - trees_url
-      - url
-      - clone_url
-      - default_branch
-      - forks
-      - forks_count
-      - git_url
-      - has_downloads
-      - has_issues
-      - has_projects
-      - has_wiki
-      - has_pages
-      - homepage
-      - language
-      - archived
-      - disabled
-      - mirror_url
-      - open_issues
-      - open_issues_count
-      - license
-      - pushed_at
-      - size
-      - ssh_url
-      - stargazers_count
-      - svn_url
-      - watchers
-      - watchers_count
-      - created_at
-      - updated_at
-      nullable: true
     minimal-repository:
       title: Minimal Repository
       description: Minimal Repository
@@ -46661,8 +45979,6 @@ components:
         role_name:
           type: string
           example: admin
-        template_repository:
-          "$ref": "#/components/schemas/nullable-repository"
         temp_clone_token:
           type: string
         delete_branch_on_merge:
@@ -46873,78 +46189,6 @@ components:
       required:
       - id
       - name
-    codespaces-org-secret:
-      title: Codespaces Secret
-      description: Secrets for a GitHub Codespace.
-      type: object
-      properties:
-        name:
-          description: The name of the secret
-          example: SECRET_NAME
-          type: string
-        created_at:
-          description: The date and time at which the secret was created, in ISO 8601
-            format':' YYYY-MM-DDTHH:MM:SSZ.
-          type: string
-          format: date-time
-        updated_at:
-          description: The date and time at which the secret was created, in ISO 8601
-            format':' YYYY-MM-DDTHH:MM:SSZ.
-          type: string
-          format: date-time
-        visibility:
-          description: The type of repositories in the organization that the secret
-            is visible to
-          enum:
-          - all
-          - private
-          - selected
-          type: string
-        selected_repositories_url:
-          description: The API URL at which the list of repositories this secret is
-            visible to can be retrieved
-          type: string
-          format: uri
-          example: https://api.github.com/orgs/ORGANIZATION/codespaces/secrets/SECRET_NAME/repositories
-      required:
-      - name
-      - created_at
-      - updated_at
-      - visibility
-    codespaces-public-key:
-      title: CodespacesPublicKey
-      description: The public key used for setting Codespaces secrets.
-      type: object
-      properties:
-        key_id:
-          description: The identifier for the key.
-          type: string
-          example: '1234567'
-        key:
-          description: The Base64 encoded public key.
-          type: string
-          example: hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
-        id:
-          type: integer
-          example: 2
-        url:
-          type: string
-          example: https://api.github.com/user/keys/2
-        title:
-          type: string
-          example: ssh-rsa AAAAB3NzaC1yc2EAAA
-        created_at:
-          type: string
-          example: '2011-01-26T19:01:12Z'
-      required:
-      - key_id
-      - key
-    empty-object:
-      title: Empty Object
-      description: An object without any properties.
-      type: object
-      properties: {}
-      additionalProperties: false
     organization-full:
       title: Organization Full
       description: Organization Full
@@ -47351,6 +46595,12 @@ components:
       required:
       - key_id
       - key
+    empty-object:
+      title: Empty Object
+      description: An object without any properties.
+      type: object
+      properties: {}
+      additionalProperties: false
     nullable-codespace-machine:
       type: object
       title: Codespace machine
@@ -47617,6 +46867,72 @@ components:
       - stop_url
       - pulls_url
       - recent_folders
+    codespaces-org-secret:
+      title: Codespaces Secret
+      description: Secrets for a GitHub Codespace.
+      type: object
+      properties:
+        name:
+          description: The name of the secret
+          example: SECRET_NAME
+          type: string
+        created_at:
+          description: The date and time at which the secret was created, in ISO 8601
+            format':' YYYY-MM-DDTHH:MM:SSZ.
+          type: string
+          format: date-time
+        updated_at:
+          description: The date and time at which the secret was created, in ISO 8601
+            format':' YYYY-MM-DDTHH:MM:SSZ.
+          type: string
+          format: date-time
+        visibility:
+          description: The type of repositories in the organization that the secret
+            is visible to
+          enum:
+          - all
+          - private
+          - selected
+          type: string
+        selected_repositories_url:
+          description: The API URL at which the list of repositories this secret is
+            visible to can be retrieved
+          type: string
+          format: uri
+          example: https://api.github.com/orgs/ORGANIZATION/codespaces/secrets/SECRET_NAME/repositories
+      required:
+      - name
+      - created_at
+      - updated_at
+      - visibility
+    codespaces-public-key:
+      title: CodespacesPublicKey
+      description: The public key used for setting Codespaces secrets.
+      type: object
+      properties:
+        key_id:
+          description: The identifier for the key.
+          type: string
+          example: '1234567'
+        key:
+          description: The Base64 encoded public key.
+          type: string
+          example: hBT5WZEj8ZoOv6TYJsfWq7MxTEQopZO5/IT3ZCVQPzs=
+        id:
+          type: integer
+          example: 2
+        url:
+          type: string
+          example: https://api.github.com/user/keys/2
+        title:
+          type: string
+          example: ssh-rsa AAAAB3NzaC1yc2EAAA
+        created_at:
+          type: string
+          example: '2011-01-26T19:01:12Z'
+      required:
+      - key_id
+      - key
     organization-dependabot-secret:
       title: Dependabot Secret for an Organization
       description: Secrets for GitHub Dependabot for an organization.
@@ -48326,8 +47642,6 @@ components:
         role_name:
           type: string
           example: admin
-        template_repository:
-          "$ref": "#/components/schemas/nullable-repository"
         temp_clone_token:
           type: string
         delete_branch_on_merge:
@@ -49375,6 +48689,741 @@ components:
       - created_at
       - updated_at
       - permissions
+    nullable-repository:
+      title: Repository
+      description: A git repository
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the repository
+          example: 42
+          type: integer
+        node_id:
+          type: string
+          example: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+        name:
+          description: The name of the repository.
+          type: string
+          example: Team Environment
+        full_name:
+          type: string
+          example: octocat/Hello-World
+        license:
+          "$ref": "#/components/schemas/nullable-license-simple"
+        organization:
+          "$ref": "#/components/schemas/nullable-simple-user"
+        forks:
+          type: integer
+        permissions:
+          type: object
+          properties:
+            admin:
+              type: boolean
+            pull:
+              type: boolean
+            triage:
+              type: boolean
+            push:
+              type: boolean
+            maintain:
+              type: boolean
+          required:
+          - admin
+          - pull
+          - push
+        owner:
+          "$ref": "#/components/schemas/simple-user"
+        private:
+          description: Whether the repository is private or public.
+          default: false
+          type: boolean
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/octocat/Hello-World
+        description:
+          type: string
+          example: This your first repo!
+          nullable: true
+        fork:
+          type: boolean
+        url:
+          type: string
+          format: uri
+          example: https://api.github.com/repos/octocat/Hello-World
+        archive_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+        assignees_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/assignees{/user}
+        blobs_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+        branches_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/branches{/branch}
+        collaborators_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+        comments_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/comments{/number}
+        commits_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/commits{/sha}
+        compare_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+        contents_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/contents/{+path}
+        contributors_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/contributors
+        deployments_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/deployments
+        downloads_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/downloads
+        events_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/events
+        forks_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/forks
+        git_commits_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+        git_refs_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+        git_tags_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+        git_url:
+          type: string
+          example: git:github.com/octocat/Hello-World.git
+        issue_comment_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+        issue_events_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+        issues_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/issues{/number}
+        keys_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+        labels_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/labels{/name}
+        languages_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/languages
+        merges_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/merges
+        milestones_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/milestones{/number}
+        notifications_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+        pulls_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/pulls{/number}
+        releases_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/releases{/id}
+        ssh_url:
+          type: string
+          example: git@github.com:octocat/Hello-World.git
+        stargazers_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/stargazers
+        statuses_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+        subscribers_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/subscribers
+        subscription_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/subscription
+        tags_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/tags
+        teams_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/teams
+        trees_url:
+          type: string
+          example: http://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+        clone_url:
+          type: string
+          example: https://github.com/octocat/Hello-World.git
+        mirror_url:
+          type: string
+          format: uri
+          example: git:git.example.com/octocat/Hello-World
+          nullable: true
+        hooks_url:
+          type: string
+          format: uri
+          example: http://api.github.com/repos/octocat/Hello-World/hooks
+        svn_url:
+          type: string
+          format: uri
+          example: https://svn.github.com/octocat/Hello-World
+        homepage:
+          type: string
+          format: uri
+          example: https://github.com
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        forks_count:
+          type: integer
+          example: 9
+        stargazers_count:
+          type: integer
+          example: 80
+        watchers_count:
+          type: integer
+          example: 80
+        size:
+          description: The size of the repository. Size is calculated hourly. When
+            a repository is initially created, the size is 0.
+          type: integer
+          example: 108
+        default_branch:
+          description: The default branch of the repository.
+          type: string
+          example: master
+        open_issues_count:
+          type: integer
+          example: 0
+        is_template:
+          description: Whether this repository acts as a template that can be used
+            to generate new repositories.
+          default: false
+          type: boolean
+          example: true
+        topics:
+          type: array
+          items:
+            type: string
+        has_issues:
+          description: Whether issues are enabled.
+          default: true
+          type: boolean
+          example: true
+        has_projects:
+          description: Whether projects are enabled.
+          default: true
+          type: boolean
+          example: true
+        has_wiki:
+          description: Whether the wiki is enabled.
+          default: true
+          type: boolean
+          example: true
+        has_pages:
+          type: boolean
+        has_downloads:
+          description: Whether downloads are enabled.
+          default: true
+          type: boolean
+          example: true
+        archived:
+          description: Whether the repository is archived.
+          default: false
+          type: boolean
+        disabled:
+          type: boolean
+          description: Returns whether or not this repository disabled.
+        visibility:
+          description: 'The repository visibility: public, private, or internal.'
+          default: public
+          type: string
+        pushed_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:06:43Z'
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:01:12Z'
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          example: '2011-01-26T19:14:43Z'
+          nullable: true
+        allow_rebase_merge:
+          description: Whether to allow rebase merges for pull requests.
+          default: true
+          type: boolean
+          example: true
+        template_repository:
+          nullable: true
+          type: object
+          properties:
+            id:
+              type: integer
+            node_id:
+              type: string
+            name:
+              type: string
+            full_name:
+              type: string
+            owner:
+              type: object
+              properties:
+                login:
+                  type: string
+                id:
+                  type: integer
+                node_id:
+                  type: string
+                avatar_url:
+                  type: string
+                gravatar_id:
+                  type: string
+                url:
+                  type: string
+                html_url:
+                  type: string
+                followers_url:
+                  type: string
+                following_url:
+                  type: string
+                gists_url:
+                  type: string
+                starred_url:
+                  type: string
+                subscriptions_url:
+                  type: string
+                organizations_url:
+                  type: string
+                repos_url:
+                  type: string
+                events_url:
+                  type: string
+                received_events_url:
+                  type: string
+                type:
+                  type: string
+                site_admin:
+                  type: boolean
+            private:
+              type: boolean
+            html_url:
+              type: string
+            description:
+              type: string
+            fork:
+              type: boolean
+            url:
+              type: string
+            archive_url:
+              type: string
+            assignees_url:
+              type: string
+            blobs_url:
+              type: string
+            branches_url:
+              type: string
+            collaborators_url:
+              type: string
+            comments_url:
+              type: string
+            commits_url:
+              type: string
+            compare_url:
+              type: string
+            contents_url:
+              type: string
+            contributors_url:
+              type: string
+            deployments_url:
+              type: string
+            downloads_url:
+              type: string
+            events_url:
+              type: string
+            forks_url:
+              type: string
+            git_commits_url:
+              type: string
+            git_refs_url:
+              type: string
+            git_tags_url:
+              type: string
+            git_url:
+              type: string
+            issue_comment_url:
+              type: string
+            issue_events_url:
+              type: string
+            issues_url:
+              type: string
+            keys_url:
+              type: string
+            labels_url:
+              type: string
+            languages_url:
+              type: string
+            merges_url:
+              type: string
+            milestones_url:
+              type: string
+            notifications_url:
+              type: string
+            pulls_url:
+              type: string
+            releases_url:
+              type: string
+            ssh_url:
+              type: string
+            stargazers_url:
+              type: string
+            statuses_url:
+              type: string
+            subscribers_url:
+              type: string
+            subscription_url:
+              type: string
+            tags_url:
+              type: string
+            teams_url:
+              type: string
+            trees_url:
+              type: string
+            clone_url:
+              type: string
+            mirror_url:
+              type: string
+            hooks_url:
+              type: string
+            svn_url:
+              type: string
+            homepage:
+              type: string
+            language:
+              type: string
+            forks_count:
+              type: integer
+            stargazers_count:
+              type: integer
+            watchers_count:
+              type: integer
+            size:
+              type: integer
+            default_branch:
+              type: string
+            open_issues_count:
+              type: integer
+            is_template:
+              type: boolean
+            topics:
+              type: array
+              items:
+                type: string
+            has_issues:
+              type: boolean
+            has_projects:
+              type: boolean
+            has_wiki:
+              type: boolean
+            has_pages:
+              type: boolean
+            has_downloads:
+              type: boolean
+            archived:
+              type: boolean
+            disabled:
+              type: boolean
+            visibility:
+              type: string
+            pushed_at:
+              type: string
+            created_at:
+              type: string
+            updated_at:
+              type: string
+            permissions:
+              type: object
+              properties:
+                admin:
+                  type: boolean
+                maintain:
+                  type: boolean
+                push:
+                  type: boolean
+                triage:
+                  type: boolean
+                pull:
+                  type: boolean
+            allow_rebase_merge:
+              type: boolean
+            temp_clone_token:
+              type: string
+            allow_squash_merge:
+              type: boolean
+            allow_auto_merge:
+              type: boolean
+            delete_branch_on_merge:
+              type: boolean
+            allow_update_branch:
+              type: boolean
+            use_squash_pr_title_as_default:
+              type: boolean
+            squash_merge_commit_title:
+              type: string
+              enum:
+              - PR_TITLE
+              - COMMIT_OR_PR_TITLE
+              description: |-
+                The default value for a squash merge commit title:
+
+                - `PR_TITLE` - default to the pull request's title.
+                - `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).
+            squash_merge_commit_message:
+              type: string
+              enum:
+              - PR_BODY
+              - COMMIT_MESSAGES
+              - BLANK
+              description: |-
+                The default value for a squash merge commit message:
+
+                - `PR_BODY` - default to the pull request's body.
+                - `COMMIT_MESSAGES` - default to the branch's commit messages.
+                - `BLANK` - default to a blank commit message.
+            merge_commit_title:
+              type: string
+              enum:
+              - PR_TITLE
+              - MERGE_MESSAGE
+              description: |-
+                The default value for a merge commit title.
+
+                - `PR_TITLE` - default to the pull request's title.
+                - `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).
+            merge_commit_message:
+              type: string
+              enum:
+              - PR_BODY
+              - PR_TITLE
+              - BLANK
+              description: |-
+                The default value for a merge commit message.
+
+                - `PR_TITLE` - default to the pull request's title.
+                - `PR_BODY` - default to the pull request's body.
+                - `BLANK` - default to a blank commit message.
+            allow_merge_commit:
+              type: boolean
+            subscribers_count:
+              type: integer
+            network_count:
+              type: integer
+        temp_clone_token:
+          type: string
+        allow_squash_merge:
+          description: Whether to allow squash merges for pull requests.
+          default: true
+          type: boolean
+          example: true
+        allow_auto_merge:
+          description: Whether to allow Auto-merge to be used on pull requests.
+          default: false
+          type: boolean
+          example: false
+        delete_branch_on_merge:
+          description: Whether to delete head branches when pull requests are merged
+          default: false
+          type: boolean
+          example: false
+        allow_update_branch:
+          description: Whether or not a pull request head branch that is behind its
+            base branch can always be updated even if it is not required to be up
+            to date before merging.
+          default: false
+          type: boolean
+          example: false
+        use_squash_pr_title_as_default:
+          type: boolean
+          description: Whether a squash merge commit can use the pull request title
+            as default. **This property has been deprecated. Please use `squash_merge_commit_title`
+            instead.
+          default: false
+          deprecated: true
+        squash_merge_commit_title:
+          type: string
+          enum:
+          - PR_TITLE
+          - COMMIT_OR_PR_TITLE
+          description: |-
+            The default value for a squash merge commit title:
+
+            - `PR_TITLE` - default to the pull request's title.
+            - `COMMIT_OR_PR_TITLE` - default to the commit's title (if only one commit) or the pull request's title (when more than one commit).
+        squash_merge_commit_message:
+          type: string
+          enum:
+          - PR_BODY
+          - COMMIT_MESSAGES
+          - BLANK
+          description: |-
+            The default value for a squash merge commit message:
+
+            - `PR_BODY` - default to the pull request's body.
+            - `COMMIT_MESSAGES` - default to the branch's commit messages.
+            - `BLANK` - default to a blank commit message.
+        merge_commit_title:
+          type: string
+          enum:
+          - PR_TITLE
+          - MERGE_MESSAGE
+          description: |-
+            The default value for a merge commit title.
+
+            - `PR_TITLE` - default to the pull request's title.
+            - `MERGE_MESSAGE` - default to the classic title for a merge message (e.g., Merge pull request #123 from branch-name).
+        merge_commit_message:
+          type: string
+          enum:
+          - PR_BODY
+          - PR_TITLE
+          - BLANK
+          description: |-
+            The default value for a merge commit message.
+
+            - `PR_TITLE` - default to the pull request's title.
+            - `PR_BODY` - default to the pull request's body.
+            - `BLANK` - default to a blank commit message.
+        allow_merge_commit:
+          description: Whether to allow merge commits for pull requests.
+          default: true
+          type: boolean
+          example: true
+        allow_forking:
+          description: Whether to allow forking this repo
+          type: boolean
+        web_commit_signoff_required:
+          description: Whether to require contributors to sign off on web-based commits
+          default: false
+          type: boolean
+        subscribers_count:
+          type: integer
+        network_count:
+          type: integer
+        open_issues:
+          type: integer
+        watchers:
+          type: integer
+        master_branch:
+          type: string
+        starred_at:
+          type: string
+          example: '"2020-07-09T00:17:42Z"'
+        anonymous_access_enabled:
+          type: boolean
+          description: Whether anonymous git access is enabled for this repository
+      required:
+      - archive_url
+      - assignees_url
+      - blobs_url
+      - branches_url
+      - collaborators_url
+      - comments_url
+      - commits_url
+      - compare_url
+      - contents_url
+      - contributors_url
+      - deployments_url
+      - description
+      - downloads_url
+      - events_url
+      - fork
+      - forks_url
+      - full_name
+      - git_commits_url
+      - git_refs_url
+      - git_tags_url
+      - hooks_url
+      - html_url
+      - id
+      - node_id
+      - issue_comment_url
+      - issue_events_url
+      - issues_url
+      - keys_url
+      - labels_url
+      - languages_url
+      - merges_url
+      - milestones_url
+      - name
+      - notifications_url
+      - owner
+      - private
+      - pulls_url
+      - releases_url
+      - stargazers_url
+      - statuses_url
+      - subscribers_url
+      - subscription_url
+      - tags_url
+      - teams_url
+      - trees_url
+      - url
+      - clone_url
+      - default_branch
+      - forks
+      - forks_count
+      - git_url
+      - has_downloads
+      - has_issues
+      - has_projects
+      - has_wiki
+      - has_pages
+      - homepage
+      - language
+      - archived
+      - disabled
+      - mirror_url
+      - open_issues
+      - open_issues_count
+      - license
+      - pushed_at
+      - size
+      - ssh_url
+      - stargazers_count
+      - svn_url
+      - watchers
+      - watchers_count
+      - created_at
+      - updated_at
+      nullable: true
     team-repository:
       title: Team Repository
       description: A team's access to a repository.
@@ -66622,98 +66671,6 @@ components:
             site_admin: false
           created_at: '2022-07-05T12:01:11Z'
           updated_at: '2022-07-05T12:20:11Z'
-    repo-codespaces-secret-paginated:
-      value:
-        total_count: 2
-        secrets:
-        - name: GH_TOKEN
-          created_at: '2019-08-10T14:59:22Z'
-          updated_at: '2020-01-10T14:59:22Z'
-          visibility: all
-        - name: GIST_ID
-          created_at: '2020-01-10T10:59:22Z'
-          updated_at: '2020-01-11T11:59:22Z'
-          visibility: all
-    codespaces-public-key:
-      value:
-        key_id: '012345678912345678'
-        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
-    repo-codespaces-secret:
-      value:
-        name: GH_TOKEN
-        created_at: '2019-08-10T14:59:22Z'
-        updated_at: '2020-01-10T14:59:22Z'
-        visibility: all
-    public-repository-paginated:
-      value:
-        total_count: 1
-        repositories:
-        - id: 1296269
-          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
-          name: Hello-World
-          full_name: octocat/Hello-World
-          owner:
-            login: octocat
-            id: 1
-            node_id: MDQ6VXNlcjE=
-            avatar_url: https://github.com/images/error/octocat_happy.gif
-            gravatar_id: ''
-            url: https://api.github.com/users/octocat
-            html_url: https://github.com/octocat
-            followers_url: https://api.github.com/users/octocat/followers
-            following_url: https://api.github.com/users/octocat/following{/other_user}
-            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-            subscriptions_url: https://api.github.com/users/octocat/subscriptions
-            organizations_url: https://api.github.com/users/octocat/orgs
-            repos_url: https://api.github.com/users/octocat/repos
-            events_url: https://api.github.com/users/octocat/events{/privacy}
-            received_events_url: https://api.github.com/users/octocat/received_events
-            type: User
-            site_admin: false
-          private: false
-          html_url: https://github.com/octocat/Hello-World
-          description: This your first repo!
-          fork: false
-          url: https://api.github.com/repos/octocat/Hello-World
-          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
-          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
-          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
-          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
-          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
-          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
-          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
-          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
-          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
-          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
-          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
-          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
-          events_url: https://api.github.com/repos/octocat/Hello-World/events
-          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
-          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
-          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
-          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
-          git_url: git:github.com/octocat/Hello-World.git
-          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
-          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
-          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
-          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
-          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
-          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
-          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
-          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
-          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
-          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
-          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
-          ssh_url: git@github.com:octocat/Hello-World.git
-          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
-          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
-          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
-          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
-          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
-          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
-          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
-          hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
     organization-full-default-response:
       summary: Default response
       value:
@@ -67283,6 +67240,76 @@ components:
         updated_at: '2020-01-10T14:59:22Z'
         visibility: selected
         selected_repositories_url: https://api.github.com/orgs/octo-org/actions/secrets/SUPER_SECRET/repositories
+    public-repository-paginated:
+      value:
+        total_count: 1
+        repositories:
+        - id: 1296269
+          node_id: MDEwOlJlcG9zaXRvcnkxMjk2MjY5
+          name: Hello-World
+          full_name: octocat/Hello-World
+          owner:
+            login: octocat
+            id: 1
+            node_id: MDQ6VXNlcjE=
+            avatar_url: https://github.com/images/error/octocat_happy.gif
+            gravatar_id: ''
+            url: https://api.github.com/users/octocat
+            html_url: https://github.com/octocat
+            followers_url: https://api.github.com/users/octocat/followers
+            following_url: https://api.github.com/users/octocat/following{/other_user}
+            gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+            starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+            subscriptions_url: https://api.github.com/users/octocat/subscriptions
+            organizations_url: https://api.github.com/users/octocat/orgs
+            repos_url: https://api.github.com/users/octocat/repos
+            events_url: https://api.github.com/users/octocat/events{/privacy}
+            received_events_url: https://api.github.com/users/octocat/received_events
+            type: User
+            site_admin: false
+          private: false
+          html_url: https://github.com/octocat/Hello-World
+          description: This your first repo!
+          fork: false
+          url: https://api.github.com/repos/octocat/Hello-World
+          archive_url: https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}
+          assignees_url: https://api.github.com/repos/octocat/Hello-World/assignees{/user}
+          blobs_url: https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}
+          branches_url: https://api.github.com/repos/octocat/Hello-World/branches{/branch}
+          collaborators_url: https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}
+          comments_url: https://api.github.com/repos/octocat/Hello-World/comments{/number}
+          commits_url: https://api.github.com/repos/octocat/Hello-World/commits{/sha}
+          compare_url: https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}
+          contents_url: https://api.github.com/repos/octocat/Hello-World/contents/{+path}
+          contributors_url: https://api.github.com/repos/octocat/Hello-World/contributors
+          deployments_url: https://api.github.com/repos/octocat/Hello-World/deployments
+          downloads_url: https://api.github.com/repos/octocat/Hello-World/downloads
+          events_url: https://api.github.com/repos/octocat/Hello-World/events
+          forks_url: https://api.github.com/repos/octocat/Hello-World/forks
+          git_commits_url: https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}
+          git_refs_url: https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}
+          git_tags_url: https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}
+          git_url: git:github.com/octocat/Hello-World.git
+          issue_comment_url: https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}
+          issue_events_url: https://api.github.com/repos/octocat/Hello-World/issues/events{/number}
+          issues_url: https://api.github.com/repos/octocat/Hello-World/issues{/number}
+          keys_url: https://api.github.com/repos/octocat/Hello-World/keys{/key_id}
+          labels_url: https://api.github.com/repos/octocat/Hello-World/labels{/name}
+          languages_url: https://api.github.com/repos/octocat/Hello-World/languages
+          merges_url: https://api.github.com/repos/octocat/Hello-World/merges
+          milestones_url: https://api.github.com/repos/octocat/Hello-World/milestones{/number}
+          notifications_url: https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}
+          pulls_url: https://api.github.com/repos/octocat/Hello-World/pulls{/number}
+          releases_url: https://api.github.com/repos/octocat/Hello-World/releases{/id}
+          ssh_url: git@github.com:octocat/Hello-World.git
+          stargazers_url: https://api.github.com/repos/octocat/Hello-World/stargazers
+          statuses_url: https://api.github.com/repos/octocat/Hello-World/statuses/{sha}
+          subscribers_url: https://api.github.com/repos/octocat/Hello-World/subscribers
+          subscription_url: https://api.github.com/repos/octocat/Hello-World/subscription
+          tags_url: https://api.github.com/repos/octocat/Hello-World/tags
+          teams_url: https://api.github.com/repos/octocat/Hello-World/teams
+          trees_url: https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}
+          hooks_url: http://api.github.com/repos/octocat/Hello-World/hooks
     simple-user-items:
       value:
       - login: octocat
@@ -67712,6 +67739,28 @@ components:
           start_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/start
           stop_url: https://api.github.com/user/codespaces/monalisa-octocat-hello-world-f8adfad99a/stop
           recent_folders: []
+    repo-codespaces-secret-paginated:
+      value:
+        total_count: 2
+        secrets:
+        - name: GH_TOKEN
+          created_at: '2019-08-10T14:59:22Z'
+          updated_at: '2020-01-10T14:59:22Z'
+          visibility: all
+        - name: GIST_ID
+          created_at: '2020-01-10T10:59:22Z'
+          updated_at: '2020-01-11T11:59:22Z'
+          visibility: all
+    codespaces-public-key:
+      value:
+        key_id: '012345678912345678'
+        key: 2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234
+    repo-codespaces-secret:
+      value:
+        name: GH_TOKEN
+        created_at: '2019-08-10T14:59:22Z'
+        updated_at: '2020-01-10T14:59:22Z'
+        visibility: all
     organization-dependabot-secret-paginated:
       value:
         total_count: 3
@@ -68751,7 +68800,6 @@ components:
           admin: false
           push: false
           pull: true
-        template_repository: 
     packages-for-org:
       value:
       - id: 197
@@ -84631,7 +84679,7 @@ components:
     pagination-before:
       name: before
       description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
-        If specified, the query only searches for events before this cursor.
+        If specified, the query only searches for results before this cursor.
       in: query
       required: false
       schema:
@@ -84639,7 +84687,7 @@ components:
     pagination-after:
       name: after
       description: A cursor, as given in the [Link header](https://docs.github.com/rest/overview/resources-in-the-rest-api#link-header).
-        If specified, the query only searches for events after this cursor.
+        If specified, the query only searches for results after this cursor.
       in: query
       required: false
       schema:
@@ -84807,13 +84855,6 @@ components:
       required: true
       schema:
         type: string
-    secret-name:
-      name: secret_name
-      description: The name of the secret.
-      in: path
-      required: true
-      schema:
-        type: string
     repository-id:
       name: repository_id
       description: The unique identifier of the repository.
@@ -84826,6 +84867,13 @@ components:
       description: Only return runner groups that are allowed to be used by this repository.
       in: query
       required: false
+      schema:
+        type: string
+    secret-name:
+      name: secret_name
+      description: The name of the secret.
+      in: path
+      required: true
       schema:
         type: string
     username:
