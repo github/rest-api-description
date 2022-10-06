@@ -47619,7 +47619,7 @@ paths:
         description: |-
           A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.
 
-          Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `rubygems`, `rust`
+          Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`
         schema:
           type: string
       - name: package
@@ -47656,8 +47656,45 @@ paths:
           - updated
           default: created
       - *55
-      - *32
-      - *12
+      - name: page
+        description: "**Deprecated**. Page number of the results to fetch. Use cursor-based
+          pagination with `before` or `after` instead."
+        deprecated: true
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        description: "**Deprecated**. The number of results per page (max 100). Use
+          cursor-based pagination with `first` or `last` instead."
+        deprecated: true
+        in: query
+        schema:
+          type: integer
+          default: 30
+      - *56
+      - *57
+      - name: first
+        description: |-
+          The number of results per page (max 100), starting from the first matching result.
+          This parameter must not be used in combination with `last`.
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 30
+      - name: last
+        description: |-
+          The number of results per page (max 100), starting from the last matching result.
+          This parameter must not be used in combination with `first`.
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
       responses:
         '200':
           description: Response
@@ -48133,6 +48170,7 @@ paths:
                     dismissed_comment: 
                     fixed_at: 
         '304': *27
+        '400': *9
         '403': *24
         '404': *16
         '422': *51
