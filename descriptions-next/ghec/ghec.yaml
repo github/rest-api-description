@@ -23346,8 +23346,26 @@ paths:
       - "$ref": "#/components/parameters/dependabot-alert-scope"
       - "$ref": "#/components/parameters/dependabot-alert-sort"
       - "$ref": "#/components/parameters/direction"
-      - "$ref": "#/components/parameters/page"
-      - "$ref": "#/components/parameters/per-page"
+      - name: page
+        description: "**Deprecated**. Page number of the results to fetch. Use cursor-based
+          pagination with `before` or `after` instead."
+        deprecated: true
+        in: query
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        description: "**Deprecated**. The number of results per page (max 100). Use
+          cursor-based pagination with `first` or `last` instead."
+        deprecated: true
+        in: query
+        schema:
+          type: integer
+          default: 30
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
+      - "$ref": "#/components/parameters/pagination-first"
+      - "$ref": "#/components/parameters/pagination-last"
       responses:
         '200':
           description: Response
@@ -23362,6 +23380,8 @@ paths:
                   "$ref": "#/components/examples/dependabot-alerts"
         '304':
           "$ref": "#/components/responses/not_modified"
+        '400':
+          "$ref": "#/components/responses/bad_request"
         '403':
           "$ref": "#/components/responses/forbidden"
         '404':
@@ -88230,7 +88250,7 @@ components:
       description: |-
         A comma-separated list of ecosystems. If specified, only alerts for these ecosystems will be returned.
 
-        Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `rubygems`, `rust`
+        Can be: `composer`, `go`, `maven`, `npm`, `nuget`, `pip`, `pub`, `rubygems`, `rust`
       schema:
         type: string
     dependabot-alert-comma-separated-packages:
@@ -88270,6 +88290,29 @@ components:
         - created
         - updated
         default: created
+    pagination-first:
+      name: first
+      description: |-
+        The number of results per page (max 100), starting from the first matching result.
+        This parameter must not be used in combination with `last`.
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 30
+    pagination-last:
+      name: last
+      description: |-
+        The number of results per page (max 100), starting from the last matching result.
+        This parameter must not be used in combination with `first`.
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
     dependabot-alert-number:
       name: alert_number
       in: path
