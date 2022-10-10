@@ -16076,6 +16076,8 @@ paths:
                 type: object
                 properties:
                   include_claim_keys:
+                    description: Array of unique strings. Each claim key can only
+                      contain alphanumeric characters and underscores.
                     type: array
                     items:
                       type: string
@@ -22287,6 +22289,11 @@ paths:
                   - one_month
               required:
               - limit
+            examples:
+              default:
+                value:
+                  limit: collaborators_only
+                  expiry: one_month
       responses:
         '200':
           description: Response
@@ -33965,9 +33972,9 @@ paths:
         subcategory: workflow-runs
   "/repos/{owner}/{repo}/actions/oidc/customization/sub":
     get:
-      summary: Get the opt-out flag of an OIDC subject claim customization for a repository
+      summary: Get the customization template for an OIDC subject claim for a repository
       description: |-
-        Gets the `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        Gets the customization template for an OpenID Connect (OIDC) subject claim.
         You must authenticate using an access token with the `repo` scope to use this
         endpoint. GitHub Apps must have the `organization_administration:read` permission to use this endpoint.
       tags:
@@ -33975,7 +33982,7 @@ paths:
       operationId: actions/get-custom-oidc-sub-claim-for-repo
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#get-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#get-the-customization-template-for-an-oidc-subject-claim-for-a-repository
       parameters:
       - *207
       - *208
@@ -33985,18 +33992,29 @@ paths:
           content:
             application/json:
               schema: &231
-                title: The json payload enables/disables the use of sub claim customization
-                description: OIDC Customer Subject
+                title: Actions OIDC subject customization for a repository
+                description: Actions OIDC subject customization for a repository
                 type: object
                 properties:
                   use_default:
+                    description: Whether to use the default template or not. If `true`,
+                      the `include_claim_keys` field is ignored.
                     type: boolean
+                  include_claim_keys:
+                    description: Array of unique strings. Each claim key can only
+                      contain alphanumeric characters and underscores.
+                    type: array
+                    items:
+                      type: string
                 required:
                 - use_default
               examples:
                 default: &232
                   value:
                     use_default: false
+                    include_claim_keys:
+                    - repo
+                    - context
         '400': *9
         '404': *15
       x-github:
@@ -34006,9 +34024,9 @@ paths:
         category: actions
         subcategory: oidc
     put:
-      summary: Set the opt-in flag of an OIDC subject claim customization for a repository
+      summary: Set the customization template for an OIDC subject claim for a repository
       description: |-
-        Sets the `opt-in` or `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        Sets the customization template and `opt-in` or `opt-out` flag for an OpenID Connect (OIDC) subject claim for a repository.
         You must authenticate using an access token with the `repo` scope to use this
         endpoint. GitHub Apps must have the `actions:write` permission to use this endpoint.
       tags:
@@ -34016,7 +34034,7 @@ paths:
       operationId: actions/set-custom-oidc-sub-claim-for-repo
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#set-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#set-the-customization-template-for-an-oidc-subject-claim-for-a-repository
       parameters:
       - *207
       - *208
@@ -53726,6 +53744,12 @@ paths:
                   type: boolean
                   description: When forking from an existing repository, fork with
                     only the default branch.
+            examples:
+              default:
+                value:
+                  organization: octocat
+                  name: Hello-World
+                  default_branch_only: true
       responses:
         '202':
           description: Response
@@ -66243,12 +66267,16 @@ paths:
                   description: SHA that pull request head must match to allow merge.
                 merge_method:
                   type: string
-                  description: Merge method to use. Possible values are `merge`, `squash`
-                    or `rebase`. Default is `merge`.
+                  description: The merge method to use.
                   enum:
                   - merge
                   - squash
                   - rebase
+            examples:
+              response-if-merge-was-successful:
+                value:
+                  commit_title: Expand enum
+                  commit_message: Add a new value to the merge_method enum
       responses:
         '200':
           description: if merge was successful
@@ -70918,6 +70946,11 @@ paths:
                   type: boolean
                   description: Determines if all notifications should be blocked from
                     this repository.
+            examples:
+              default:
+                value:
+                  subscribed: true
+                  ignored: false
       responses:
         '200':
           description: Response
@@ -73001,14 +73034,14 @@ paths:
             application/scim+json:
               schema: *437
         '400': &441
-          description: Bad Request
+          description: Bad request
           content:
             application/json:
               schema: *437
             application/scim+json:
               schema: *437
         '429':
-          description: Too Many Requests
+          description: Too many requests
           content:
             application/json:
               schema: *437
@@ -73021,8 +73054,11 @@ paths:
         subcategory: 
     post:
       summary: Provision and invite a SCIM user
-      description: Provision organization membership for a user, and send an activation
-        email to the email address.
+      description: Provisions organization membership for a user, and sends an activation
+        email to the email address. If the user was previously a member of the organization,
+        the invitation will reinstate any former privileges that the user had. For
+        more information about reinstating former members, see "[Reinstating a former
+        member of your organization](https://docs.github.com/enterprise-cloud@latest//organizations/managing-membership-in-your-organization/reinstating-a-former-member-of-your-organization)."
       tags:
       - scim
       operationId: scim/provision-and-invite-user
@@ -73064,7 +73100,7 @@ paths:
         '404': *439
         '403': *440
         '500':
-          description: Internal Error
+          description: Internal server error
           content:
             application/json:
               schema: *437
@@ -82437,6 +82473,14 @@ paths:
               required:
               - name
               type: object
+            examples:
+              default:
+                value:
+                  name: Hello-World
+                  description: This is your first repo!
+                  homepage: https://github.com
+                  private: false
+                  is_template: true
       responses:
         '201':
           description: Response
