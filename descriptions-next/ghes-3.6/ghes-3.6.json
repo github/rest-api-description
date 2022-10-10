@@ -32195,6 +32195,15 @@
                     "description": "Optional parameter to specify the organization name if forking into an organization."
                   }
                 }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "organization": "octocat",
+                    "name": "Hello-World",
+                    "default_branch_only": true
+                  }
+                }
               }
             }
           }
@@ -40646,12 +40655,20 @@
                   },
                   "merge_method": {
                     "type": "string",
-                    "description": "Merge method to use. Possible values are `merge`, `squash` or `rebase`. Default is `merge`.",
+                    "description": "The merge method to use.",
                     "enum": [
                       "merge",
                       "squash",
                       "rebase"
                     ]
+                  }
+                }
+              },
+              "examples": {
+                "response-if-merge-was-successful": {
+                  "value": {
+                    "commit_title": "Expand enum",
+                    "commit_message": "Add a new value to the merge_method enum"
                   }
                 }
               }
@@ -43950,6 +43967,14 @@
                     "description": "Determines if all notifications should be blocked from this repository."
                   }
                 }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "subscribed": true,
+                    "ignored": false
+                  }
+                }
               }
             }
           }
@@ -45092,7 +45117,7 @@
     "/scim/v2/enterprises/{enterprise}/Groups": {
       "get": {
         "summary": "List provisioned SCIM groups for an enterprise",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nLists provisioned SCIM groups in an enterprise.\n\nYou can improve query search time by using the `excludedAttributes` query parameter with a value of `members` to exclude members from the response.",
         "operationId": "enterprise-admin/list-provisioned-groups-enterprise",
         "tags": [
           "enterprise-admin"
@@ -45103,7 +45128,24 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/enterprise"
+            "name": "filter",
+            "description": "If specified, only results that match the specified filter will be returned. Multiple filters are not supported. Possible filters are `externalId`, `id`, and `displayName`. For example, `?filter=\"externalId eq '9138790-10932-109120392-12321'\"`.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "displayName": {
+                "value": "Engineering"
+              },
+              "externalId": {
+                "value": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159"
+              }
+            }
+          },
+          {
+            "$ref": "#/components/parameters/excluded-attributes"
           },
           {
             "$ref": "#/components/parameters/start-index"
@@ -45112,31 +45154,16 @@
             "$ref": "#/components/parameters/count"
           },
           {
-            "name": "filter",
-            "description": "filter results",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "excludedAttributes",
-            "description": "attributes to exclude",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/enterprise"
           }
         ],
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, either groups were found or not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-group-list-enterprise"
+                  "$ref": "#/components/schemas/scim-enterprise-group-list"
                 },
                 "examples": {
                   "default": {
@@ -45145,6 +45172,21 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45155,8 +45197,8 @@
         }
       },
       "post": {
-        "summary": "Provision a SCIM enterprise group and invite users",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nProvision an enterprise group, and invite users to the group. This sends invitation emails to the email address of the invited users to join the GitHub organization that the SCIM group corresponds to.",
+        "summary": "Provision a SCIM enterprise group",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nCreates a SCIM group for an enterprise.\n\nIf members are included as part of the group provisioning payload, they will be created as external group members. It is up to a provider to store a mapping between the `externalId` and `id` of each user.",
         "operationId": "enterprise-admin/provision-and-invite-enterprise-group",
         "tags": [
           "enterprise-admin"
@@ -45175,55 +45217,16 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "displayName": {
-                    "type": "string",
-                    "description": "The name of the SCIM group. This must match the GitHub organization that the group maps to."
-                  },
-                  "members": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string",
-                          "description": "The SCIM user ID for a user."
-                        }
-                      },
-                      "required": [
-                        "value"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "displayName"
-                ]
+                "$ref": "#/components/schemas/group"
               },
               "examples": {
-                "default": {
+                "group": {
                   "value": {
                     "schemas": [
                       "urn:ietf:params:scim:schemas:core:2.0:Group"
                     ],
-                    "displayName": "octo-org",
-                    "members": [
-                      {
-                        "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc"
-                      },
-                      {
-                        "value": "aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5"
-                      }
-                    ]
+                    "externalId": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159",
+                    "displayName": "Engineering"
                   }
                 }
               }
@@ -45232,19 +45235,37 @@
         },
         "responses": {
           "201": {
-            "description": "Response",
+            "description": "Group has been created",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-group"
                 },
                 "examples": {
-                  "default": {
+                  "group": {
                     "$ref": "#/components/examples/scim-enterprise-group"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45258,7 +45279,7 @@
     "/scim/v2/enterprises/{enterprise}/Groups/{scim_group_id}": {
       "get": {
         "summary": "Get SCIM provisioning information for an enterprise group",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nGets information about a SCIM group.",
         "operationId": "enterprise-admin/get-provisioning-information-for-enterprise-group",
         "tags": [
           "enterprise-admin"
@@ -45273,20 +45294,11 @@
           },
           {
             "$ref": "#/components/parameters/scim-group-id"
-          },
-          {
-            "name": "excludedAttributes",
-            "description": "Attributes to exclude.",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, a group was found",
             "content": {
               "application/json": {
                 "schema": {
@@ -45299,6 +45311,24 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45310,7 +45340,7 @@
       },
       "put": {
         "summary": "Set SCIM information for a provisioned enterprise group",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nReplaces an existing provisioned group’s information. You must provide all the information required for the group as if you were provisioning it for the first time. Any existing group information that you don't provide will be removed, including group membership. If you want to only update a specific attribute, use the [Update an attribute for a SCIM enterprise group](#update-an-attribute-for-a-scim-enterprise-group) endpoint instead.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nReplaces an existing provisioned group’s information.\n\nYou must provide all the information required for the group as if you were provisioning it for the first time. Any existing group information that you don't provide will be removed, including group membership. If you want to only update a specific attribute, use the [Update an attribute for a SCIM enterprise group](#update-an-attribute-for-a-scim-enterprise-group) endpoint instead.",
         "operationId": "enterprise-admin/set-information-for-provisioned-enterprise-group",
         "tags": [
           "enterprise-admin"
@@ -45332,53 +45362,35 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "displayName": {
-                    "type": "string",
-                    "description": "The name of the SCIM group. This must match the GitHub organization that the group maps to."
-                  },
-                  "members": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string",
-                          "description": "The SCIM user ID for a user."
-                        }
-                      },
-                      "required": [
-                        "value"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "displayName"
-                ]
+                "$ref": "#/components/schemas/group"
               },
               "examples": {
-                "default": {
+                "group": {
+                  "summary": "Group",
                   "value": {
                     "schemas": [
                       "urn:ietf:params:scim:schemas:core:2.0:Group"
                     ],
-                    "displayName": "octo-org",
+                    "externalId": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159",
+                    "displayName": "Engineering"
+                  }
+                },
+                "groupWithMembers": {
+                  "summary": "Group with member",
+                  "value": {
+                    "schemas": [
+                      "urn:ietf:params:scim:schemas:core:2.0:Group"
+                    ],
+                    "externalId": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159",
+                    "displayName": "Engineering",
                     "members": [
                       {
-                        "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc"
+                        "value": "879db59-3bdf-4490-ad68-ab880a2694745",
+                        "displayName": "User 1"
                       },
                       {
-                        "value": "aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5"
+                        "value": "0db508eb-91e2-46e4-809c-30dcbda0c685",
+                        "displayName": "User 2"
                       }
                     ]
                   }
@@ -45389,19 +45401,43 @@
         },
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Group was updated",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-group"
                 },
                 "examples": {
-                  "default": {
+                  "group": {
+                    "$ref": "#/components/examples/scim-enterprise-group"
+                  },
+                  "groupWithMembers": {
                     "$ref": "#/components/examples/scim-enterprise-group"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45413,7 +45449,7 @@
       },
       "patch": {
         "summary": "Update an attribute for a SCIM enterprise group",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nAllows you to change a provisioned group’s individual attributes. To change a group’s values, you must provide a specific Operations JSON format that contains at least one of the add, remove, or replace operations. For examples and more information on the SCIM operations format, see the [SCIM specification](https://tools.ietf.org/html/rfc7644#section-3.5.2).",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nUpdate a provisioned group’s individual attributes.\n\nTo change a group’s values, you must provide a specific Operations JSON format that contains at least one of the add, remove, or replace operations. For examples and more information on the SCIM operations format, see the [SCIM specification](https://tools.ietf.org/html/rfc7644#section-3.5.2).  Update can also be used to add group memberships.\n\nGroup memberships can be sent one at a time or in batches for faster performance. **Note**: The memberships are referenced through a local user `id`, and the user will need to be created before they are referenced here.",
         "operationId": "enterprise-admin/update-attribute-for-enterprise-group",
         "tags": [
           "enterprise-admin"
@@ -45435,64 +45471,40 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "Operations": {
-                    "type": "array",
-                    "description": "Array of [SCIM operations](https://tools.ietf.org/html/rfc7644#section-3.5.2).",
-                    "minItems": 1,
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "enum": [
-                            "add",
-                            "Add",
-                            "remove",
-                            "Remove",
-                            "replace",
-                            "Replace"
-                          ]
-                        },
-                        "path": {
-                          "type": "string"
-                        },
-                        "value": {
-                          "description": "Can be any value - string, number, array or object."
-                        }
-                      },
-                      "required": [
-                        "op"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "Operations"
-                ]
+                "$ref": "#/components/schemas/patch-schema"
               },
               "examples": {
-                "default": {
+                "updateGroup": {
+                  "summary": "Update Group",
                   "value": {
                     "schemas": [
                       "urn:ietf:params:scim:api:messages:2.0:PatchOp"
                     ],
                     "Operations": [
                       {
-                        "op": "remove",
+                        "op": "replace",
+                        "path": "displayName",
+                        "value": "Employees"
+                      }
+                    ]
+                  }
+                },
+                "addMembers": {
+                  "summary": "Add Members",
+                  "value": {
+                    "schemas": [
+                      "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+                    ],
+                    "Operations": [
+                      {
+                        "op": "add",
                         "path": "members",
                         "value": [
                           {
-                            "value": "aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5"
+                            "value": "879db59-3bdf-4490-ad68-ab880a2694745"
+                          },
+                          {
+                            "value": "0db508eb-91e2-46e4-809c-30dcbda0c685"
                           }
                         ]
                       }
@@ -45505,19 +45517,43 @@
         },
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, group was updated",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-group"
                 },
                 "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/scim-enterprise-group-2"
+                  "updateGroup": {
+                    "$ref": "#/components/examples/scim-enterprise-group"
+                  },
+                  "addMembers": {
+                    "$ref": "#/components/examples/scim-enterprise-group"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45529,7 +45565,7 @@
       },
       "delete": {
         "summary": "Delete a SCIM group from an enterprise",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\n Deletes a SCIM group from an enterprise.",
         "operationId": "enterprise-admin/delete-scim-group-from-enterprise",
         "tags": [
           "enterprise-admin"
@@ -45548,7 +45584,25 @@
         ],
         "responses": {
           "204": {
-            "description": "Response"
+            "description": "Group was deleted, no content"
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45562,7 +45616,7 @@
     "/scim/v2/enterprises/{enterprise}/Users": {
       "get": {
         "summary": "List SCIM provisioned identities for an enterprise",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nRetrieves a paginated list of all provisioned enterprise members, including pending invitations.\n\nWhen a user with a SAML-provisioned external identity leaves (or is removed from) an enterprise, the account's metadata is immediately removed. However, the returned list of user accounts might not always match the organization or enterprise member list you see on GitHub Enterprise Server. This can happen in certain cases where an external identity associated with an organization will not match an organization member:\n  - When a user with a SCIM-provisioned external identity is removed from an enterprise, the account's metadata is preserved to allow the user to re-join the organization in the future.\n  - When inviting a user to join an organization, you can expect to see their external identity in the results before they accept the invitation, or if the invitation is cancelled (or never accepted).\n  - When a user is invited over SCIM, an external identity is created that matches with the invitee's email address. However, this identity is only linked to a user account when the user accepts the invitation by going through SAML SSO.\n\nThe returned list of external identities can include an entry for a `null` user. These are unlinked SAML identities that are created when a user goes through the following Single Sign-On (SSO) process but does not sign in to their GitHub Enterprise Server account after completing SSO:\n\n1. The user is granted access by the IdP and is not a member of the GitHub Enterprise Server enterprise.\n\n1. The user attempts to access the GitHub Enterprise Server enterprise and initiates the SAML SSO process, and is not currently signed in to their GitHub Enterprise Server account.\n\n1. After successfully authenticating with the SAML SSO IdP, the `null` external identity entry is created and the user is prompted to sign in to their GitHub Enterprise Server account:\n   - If the user signs in, their GitHub Enterprise Server account is linked to this entry.\n   - If the user does not sign in (or does not create a new account when prompted), they are not added to the GitHub Enterprise Server enterprise, and the external identity `null` entry remains in place.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nLists provisioned SCIM enterprise members.\n\nWhen a user with a SCIM-provisioned external identity is removed from an enterprise through a `patch` with `active` flag set to `false`, the account's metadata is preserved to allow the user to re-join the enterprise in the future. However, the user's account will be suspended and the user will not be able to sign-in. In order to permanently suspend the users account with no ability to re-join the enterprise in the future, use the `delete` request. Users that were not permanently deleted will be visible in the returned results.\n\nYou can improve query search time by using the `excludedAttributes` query parameter with a value of `groups` to exclude groups from the response.",
         "operationId": "enterprise-admin/list-provisioned-identities-enterprise",
         "tags": [
           "enterprise-admin"
@@ -45573,7 +45627,24 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/enterprise"
+            "name": "filter",
+            "description": "If specified, only results that match the specified filter will be returned. Multiple filters are not supported. Possible filters are `userName`, `externalId`, `id`, and `displayName`. For example, `?filter=\"externalId eq '9138790-10932-109120392-12321'\"`.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "userName": {
+                "value": "userName eq 'E012345'"
+              },
+              "externalId": {
+                "value": "externalId eq 'E012345'"
+              }
+            }
+          },
+          {
+            "$ref": "#/components/parameters/excluded-attributes"
           },
           {
             "$ref": "#/components/parameters/start-index"
@@ -45582,22 +45653,16 @@
             "$ref": "#/components/parameters/count"
           },
           {
-            "name": "filter",
-            "description": "filter results",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/enterprise"
           }
         ],
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, either users were found or not found",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-user-list-enterprise"
+                  "$ref": "#/components/schemas/scim-enterprise-user-list"
                 },
                 "examples": {
                   "default": {
@@ -45606,6 +45671,21 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45616,8 +45696,8 @@
         }
       },
       "post": {
-        "summary": "Provision and invite a SCIM enterprise user",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nProvision enterprise membership for a user, and send organization invitation emails to the email address.\n\nYou can optionally include the groups a user will be invited to join. If you do not provide a list of `groups`, the user is provisioned for the enterprise, but no organization invitation emails will be sent.",
+        "summary": "Provision a SCIM enterprise user",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nCreates an external identity for a new SCIM enterprise user.\n\nSCIM does not authenticate users, it only provisions them. The authentication of users is done by SAML. However, when SCIM is enabled, all users need to be provisioned through SCIM before a user can sign in through SAML. The matching of a user to a SCIM provisioned user is done when the SAML assertion is consumed. The user will be matched on SAML response `NameID` to SCIM `userName`.\n\nWhen converting existing enterprise to use SCIM, the user handle (`userName`) from the SCIM payload will be used to match the provisioned user to an already existing user in the enterprise. Since the new identity record is created for newly provisioned users the matching for those records is done using a user's handle. Currently the matching will be performed to all of the users no matter if they were SAML JIT provisioned or created as local users.",
         "operationId": "enterprise-admin/provision-and-invite-enterprise-user",
         "tags": [
           "enterprise-admin"
@@ -45636,106 +45716,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "userName": {
-                    "type": "string",
-                    "description": "The username for the user."
-                  },
-                  "name": {
-                    "type": "object",
-                    "properties": {
-                      "givenName": {
-                        "type": "string",
-                        "description": "The first name of the user."
-                      },
-                      "familyName": {
-                        "type": "string",
-                        "description": "The last name of the user."
-                      }
-                    },
-                    "required": [
-                      "givenName",
-                      "familyName"
-                    ]
-                  },
-                  "emails": {
-                    "type": "array",
-                    "description": "List of user emails.",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string",
-                          "description": "The email address."
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "The type of email address."
-                        },
-                        "primary": {
-                          "type": "boolean",
-                          "description": "Whether this email address is the primary address."
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "type",
-                        "primary"
-                      ]
-                    }
-                  },
-                  "groups": {
-                    "type": "array",
-                    "description": "List of SCIM group IDs the user is a member of.",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "userName",
-                  "name",
-                  "emails"
-                ]
+                "$ref": "#/components/schemas/user"
               },
               "examples": {
-                "default": {
-                  "value": {
-                    "schemas": [
-                      "urn:ietf:params:scim:schemas:core:2.0:User"
-                    ],
-                    "userName": "mona.octocat@okta.example.com",
-                    "name": {
-                      "familyName": "Octocat",
-                      "givenName": "Mona"
-                    },
-                    "emails": [
-                      {
-                        "value": "mona.octocat@okta.example.com",
-                        "type": "work",
-                        "primary": true
-                      }
-                    ],
-                    "groups": [
-                      {
-                        "value": "468dd3fa-a1d6-11ea-9031-15a1f0d7811d"
-                      }
-                    ]
-                  }
+                "user": {
+                  "$ref": "#/components/examples/in-user"
+                },
+                "enterpriseOwner": {
+                  "$ref": "#/components/examples/in-user-owner"
                 }
               }
             }
@@ -45743,19 +45731,40 @@
         },
         "responses": {
           "201": {
-            "description": "Response",
+            "description": "User has been created",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-user"
                 },
                 "examples": {
-                  "default": {
+                  "user": {
+                    "$ref": "#/components/examples/scim-enterprise-user"
+                  },
+                  "enterpriseOwner": {
                     "$ref": "#/components/examples/scim-enterprise-user"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45769,7 +45778,7 @@
     "/scim/v2/enterprises/{enterprise}/Users/{scim_user_id}": {
       "get": {
         "summary": "Get SCIM provisioning information for an enterprise user",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nGets information about a SCIM user.",
         "operationId": "enterprise-admin/get-provisioning-information-for-enterprise-user",
         "tags": [
           "enterprise-admin"
@@ -45788,7 +45797,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, a user was found",
             "content": {
               "application/json": {
                 "schema": {
@@ -45801,6 +45810,24 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45812,7 +45839,7 @@
       },
       "put": {
         "summary": "Set SCIM information for a provisioned enterprise user",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nReplaces an existing provisioned user's information. You must provide all the information required for the user as if you were provisioning them for the first time. Any existing user information that you don't provide will be removed. If you want to only update a specific attribute, use the [Update an attribute for a SCIM user](#update-an-attribute-for-an-enterprise-scim-user) endpoint instead.\n\nYou must at least provide the required values for the user: `userName`, `name`, and `emails`.\n\n**Warning:** Setting `active: false` removes the user from the enterprise, deletes the external identity, and deletes the associated `{scim_user_id}`.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nReplaces an existing provisioned user's information.\n\nYou must provide all the information required for the user as if you were provisioning them for the first time. Any existing user information that you don't provide will be removed. If you want to only update a specific attribute, use the [Update an attribute for a SCIM user](#update-an-attribute-for-a-scim-enterprise-user) endpoint instead.\n\n**Warning:** Setting `active: false` will suspend a user and obfuscate the user handle and user email. Since the implementation is a generic SCIM implementation and does not differentiate yet between different IdP providers, for Okta, the user GDPR data will not be purged and the credentials will not be removed.",
         "operationId": "enterprise-admin/set-information-for-provisioned-enterprise-user",
         "tags": [
           "enterprise-admin"
@@ -45834,106 +45861,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "userName": {
-                    "type": "string",
-                    "description": "The username for the user."
-                  },
-                  "name": {
-                    "type": "object",
-                    "properties": {
-                      "givenName": {
-                        "type": "string",
-                        "description": "The first name of the user."
-                      },
-                      "familyName": {
-                        "type": "string",
-                        "description": "The last name of the user."
-                      }
-                    },
-                    "required": [
-                      "givenName",
-                      "familyName"
-                    ]
-                  },
-                  "emails": {
-                    "type": "array",
-                    "description": "List of user emails.",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string",
-                          "description": "The email address."
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "The type of email address."
-                        },
-                        "primary": {
-                          "type": "boolean",
-                          "description": "Whether this email address is the primary address."
-                        }
-                      },
-                      "required": [
-                        "value",
-                        "type",
-                        "primary"
-                      ]
-                    }
-                  },
-                  "groups": {
-                    "type": "array",
-                    "description": "List of SCIM group IDs the user is a member of.",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "value": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "userName",
-                  "name",
-                  "emails"
-                ]
+                "$ref": "#/components/schemas/user"
               },
               "examples": {
-                "default": {
-                  "value": {
-                    "schemas": [
-                      "urn:ietf:params:scim:schemas:core:2.0:User"
-                    ],
-                    "userName": "mona.octocat@okta.example.com",
-                    "name": {
-                      "familyName": "Octocat",
-                      "givenName": "Mona"
-                    },
-                    "emails": [
-                      {
-                        "value": "mona.octocat@okta.example.com",
-                        "type": "work",
-                        "primary": true
-                      }
-                    ],
-                    "groups": [
-                      {
-                        "value": "468dd3fa-a1d6-11ea-9031-15a1f0d7811d"
-                      }
-                    ]
-                  }
+                "user": {
+                  "$ref": "#/components/examples/in-user"
                 }
               }
             }
@@ -45941,19 +45873,40 @@
         },
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "User was updated",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-user"
                 },
                 "examples": {
-                  "default": {
+                  "user": {
                     "$ref": "#/components/examples/scim-enterprise-user"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -45965,7 +45918,7 @@
       },
       "patch": {
         "summary": "Update an attribute for a SCIM enterprise user",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.\n\nAllows you to change a provisioned user's individual attributes. To change a user's values, you must provide a specific `Operations` JSON format that contains at least one of the `add`, `remove`, or `replace` operations. For examples and more information on the SCIM operations format, see the [SCIM specification](https://tools.ietf.org/html/rfc7644#section-3.5.2).\n\n**Note:** Complicated SCIM `path` selectors that include filters are not supported. For example, a `path` selector defined as `\"path\": \"emails[type eq \\\"work\\\"]\"` will not work.\n\n**Warning:** If you set `active:false` using the `replace` operation (as shown in the JSON example below), it removes the user from the enterprise, deletes the external identity, and deletes the associated `:scim_user_id`.\n\n```\n{\n  \"Operations\":[{\n    \"op\":\"replace\",\n    \"value\":{\n      \"active\":false\n    }\n  }]\n}\n```",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nUpdate a provisioned user's individual attributes.\n\nTo change a user's values, you must provide a specific `Operations` JSON format that contains at least one of the `add`, `remove`, or `replace` operations. For examples and more information on the SCIM operations format, see the [SCIM specification](https://tools.ietf.org/html/rfc7644#section-3.5.2).\n\n**Note:** Complicated SCIM `path` selectors that include filters are not supported. For example, a `path` selector defined as `\"path\": \"emails[type eq \\\"work\\\"]\"` will not work.\n\n**Warning:** Setting `active: false` will suspend a user and obfuscate the user handle and user email. Since the implementation is a generic SCIM implementation and does not differentiate yet between different IdP providers, for Okta, the user GDPR data will not be purged and the credentials will not be removed.\n```\n{\n  \"Operations\":[{\n    \"op\":\"replace\",\n    \"value\":{\n      \"active\":false\n    }\n  }]\n}\n```",
         "operationId": "enterprise-admin/update-attribute-for-enterprise-user",
         "tags": [
           "enterprise-admin"
@@ -45987,49 +45940,60 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "schemas": {
-                    "type": "array",
-                    "description": "The SCIM schema URIs.",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "Operations": {
-                    "type": "array",
-                    "description": "Array of [SCIM operations](https://tools.ietf.org/html/rfc7644#section-3.5.2).",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                },
-                "required": [
-                  "schemas",
-                  "Operations"
-                ]
+                "$ref": "#/components/schemas/patch-schema"
               },
               "examples": {
-                "default": {
+                "userMultiValuedProperties": {
+                  "summary": "Multi Valued Property",
                   "value": {
                     "schemas": [
                       "urn:ietf:params:scim:api:messages:2.0:PatchOp"
                     ],
                     "Operations": [
                       {
-                        "op": "add",
-                        "path": "emails",
-                        "value": [
-                          {
-                            "value": "monalisa@octocat.github.com",
-                            "type": "home"
-                          }
-                        ]
+                        "op": "replace",
+                        "path": "emails[type eq 'work'].value",
+                        "value": "updatedEmail@microsoft.com"
                       },
                       {
                         "op": "replace",
-                        "path": "name.givenName",
-                        "value": "Monalisa"
+                        "path": "name.familyName",
+                        "value": "updatedFamilyName"
+                      }
+                    ]
+                  }
+                },
+                "userSingleValuedProperties": {
+                  "summary": "Single Valued Property",
+                  "value": {
+                    "schemas": [
+                      "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+                    ],
+                    "Operations": [
+                      {
+                        "op": "replace",
+                        "path": "userName",
+                        "value": "5b50642d-79fc-4410-9e90-4c077cdd1a59@testuser.com"
+                      },
+                      {
+                        "op": "replace",
+                        "path": "displayName",
+                        "value": "Monalisa Octocat"
+                      }
+                    ]
+                  }
+                },
+                "disableUser": {
+                  "summary": "Disable User",
+                  "value": {
+                    "schemas": [
+                      "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+                    ],
+                    "Operations": [
+                      {
+                        "op": "replace",
+                        "path": "active",
+                        "value": false
                       }
                     ]
                   }
@@ -46040,19 +46004,46 @@
         },
         "responses": {
           "200": {
-            "description": "Response",
+            "description": "Success, user was updated",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-user"
                 },
                 "examples": {
-                  "default": {
-                    "$ref": "#/components/examples/scim-enterprise-user-2"
+                  "userMultiValuedProperties": {
+                    "$ref": "#/components/examples/scim-enterprise-user"
+                  },
+                  "userSingleValuedProperties": {
+                    "$ref": "#/components/examples/scim-enterprise-user"
+                  },
+                  "disableUser": {
+                    "$ref": "#/components/examples/scim-enterprise-user"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "$ref": "#/components/responses/duplicate_record_detected"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -46064,7 +46055,7 @@
       },
       "delete": {
         "summary": "Delete a SCIM user from an enterprise",
-        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in beta and are subject to change.",
+        "description": "**Note:** The SCIM API endpoints for enterprise accounts are currently in *private* beta and are subject to change.\n\nPermanently suspends a SCIM user from an enterprise, removes all data for the user, obfuscates the login, email, and display name of the user, removes all external-identity SCIM attributes, and deletes the emails, avatar, PATs, SSH keys, OAuth authorizations credentials, GPG keys, and SAML mappings for the user. You will not be able to undo this action.",
         "operationId": "enterprise-admin/delete-user-from-enterprise",
         "tags": [
           "enterprise-admin"
@@ -46083,7 +46074,25 @@
         ],
         "responses": {
           "204": {
-            "description": "Response"
+            "description": "User was deleted, no content"
+          },
+          "400": {
+            "$ref": "#/components/responses/scim_bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/authorization_failure"
+          },
+          "403": {
+            "$ref": "#/components/responses/permission_denied"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "429": {
+            "$ref": "#/components/responses/scim_too_many_requests"
+          },
+          "500": {
+            "$ref": "#/components/responses/scim_internal_error"
           }
         },
         "x-github": {
@@ -52094,6 +52103,17 @@
                   "name"
                 ],
                 "type": "object"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Hello-World",
+                    "description": "This is your first repo!",
+                    "homepage": "https://github.com",
+                    "private": false,
+                    "is_template": true
+                  }
+                }
               }
             }
           }
@@ -79242,353 +79262,497 @@
           "names"
         ]
       },
-      "scim-group-list-enterprise": {
+      "group": {
         "type": "object",
-        "properties": {
-          "schemas": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "totalResults": {
-            "type": "number"
-          },
-          "itemsPerPage": {
-            "type": "number"
-          },
-          "startIndex": {
-            "type": "number"
-          },
-          "Resources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "schemas": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "id": {
-                  "type": "string"
-                },
-                "externalId": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "displayName": {
-                  "type": "string"
-                },
-                "members": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "type": "string"
-                      },
-                      "$ref": {
-                        "type": "string"
-                      },
-                      "display": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "meta": {
-                  "type": "object",
-                  "properties": {
-                    "resourceType": {
-                      "type": "string"
-                    },
-                    "created": {
-                      "type": "string"
-                    },
-                    "lastModified": {
-                      "type": "string"
-                    },
-                    "location": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "required": [
-                "schemas",
-                "id"
-              ]
-            }
-          }
-        },
         "required": [
           "schemas",
-          "totalResults",
-          "itemsPerPage",
-          "startIndex",
-          "Resources"
-        ]
-      },
-      "scim-enterprise-group": {
-        "type": "object",
+          "externalId",
+          "displayName",
+          "members"
+        ],
         "properties": {
           "schemas": {
             "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the SCIM schemas.",
             "items": {
-              "type": "string"
-            }
-          },
-          "id": {
-            "type": "string"
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:schemas:core:2.0:Group"
+            ]
           },
           "externalId": {
-            "type": [
-              "string",
-              "null"
+            "type": "string",
+            "description": "A unique identifier for the resource as defined by the provisioning client.",
+            "examples": [
+              "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159"
             ]
           },
           "displayName": {
-            "type": "string"
+            "type": "string",
+            "description": "A human-readable name for a security group.",
+            "examples": [
+              "Engineering"
+            ]
           },
           "members": {
             "type": "array",
+            "description": "The group members.",
             "items": {
               "type": "object",
+              "required": [
+                "value",
+                "displayName"
+              ],
               "properties": {
                 "value": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "The local unique identifier for the member",
+                  "examples": [
+                    "23a35c27-23d3-4c03-b4c5-6443c09e7173"
+                  ]
                 },
-                "$ref": {
-                  "type": "string"
-                },
-                "display": {
-                  "type": "string"
+                "displayName": {
+                  "type": "string",
+                  "description": "The display name associated with the member",
+                  "examples": [
+                    "Monalisa Octocat"
+                  ]
                 }
               }
             }
+          }
+        }
+      },
+      "meta": {
+        "type": "object",
+        "description": "The metadata associated with the creation/updates to the user.",
+        "required": [
+          "resourceType"
+        ],
+        "properties": {
+          "resourceType": {
+            "type": "string",
+            "description": "A type of a resource",
+            "enum": [
+              "User",
+              "Group"
+            ],
+            "examples": [
+              "User"
+            ]
           },
-          "meta": {
+          "created": {
+            "type": "string",
+            "description": "A date and time when the user was created.",
+            "examples": [
+              "2022-03-27T19:59:26.000Z"
+            ]
+          },
+          "lastModified": {
+            "type": "string",
+            "description": "A data and time when the user was last modified.",
+            "examples": [
+              "2022-03-27T19:59:26.000Z"
+            ]
+          },
+          "location": {
+            "type": "string",
+            "description": "A URL location of an object"
+          }
+        }
+      },
+      "scim-enterprise-group": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/group"
+          },
+          {
             "type": "object",
+            "required": [
+              "id",
+              "meta",
+              "members"
+            ],
             "properties": {
-              "resourceType": {
-                "type": "string"
+              "id": {
+                "type": "string",
+                "description": "The internally generated id for the group object.",
+                "examples": [
+                  "7fce0092-d52e-4f76-b727-3955bd72c939"
+                ]
               },
-              "created": {
-                "type": "string"
+              "members": {
+                "type": "array",
+                "description": "The security group members.",
+                "examples": [
+                  {
+                    "value": "879db59-3bdf-4490-ad68-ab880a2694745",
+                    "$+ref": "https://api.github.localhost/scim/v2/Users/879db59-3bdf-4490-ad68-ab880a2694745",
+                    "displayName": "User 1"
+                  },
+                  {
+                    "value": "0db508eb-91e2-46e4-809c-30dcbda0c685",
+                    "$+ref": "https://api.github.localhost/scim/v2/Users/0db508eb-91e2-46e4-809c-30dcbda0c685",
+                    "displayName": "User 2"
+                  }
+                ]
               },
-              "lastModified": {
-                "type": "string"
-              },
-              "location": {
-                "type": "string"
+              "meta": {
+                "$ref": "#/components/schemas/meta"
               }
             }
           }
-        },
-        "required": [
-          "schemas",
-          "id"
         ]
       },
-      "scim-user-list-enterprise": {
+      "scim-enterprise-group-list": {
         "type": "object",
-        "properties": {
-          "schemas": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "totalResults": {
-            "type": "number"
-          },
-          "itemsPerPage": {
-            "type": "number"
-          },
-          "startIndex": {
-            "type": "number"
-          },
-          "Resources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "schemas": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "id": {
-                  "type": "string"
-                },
-                "externalId": {
-                  "type": "string"
-                },
-                "userName": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "object",
-                  "properties": {
-                    "givenName": {
-                      "type": "string"
-                    },
-                    "familyName": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "emails": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "type": "string"
-                      },
-                      "primary": {
-                        "type": "boolean"
-                      },
-                      "type": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "groups": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "value": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "active": {
-                  "type": "boolean"
-                },
-                "meta": {
-                  "type": "object",
-                  "properties": {
-                    "resourceType": {
-                      "type": "string"
-                    },
-                    "created": {
-                      "type": "string"
-                    },
-                    "lastModified": {
-                      "type": "string"
-                    },
-                    "location": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "required": [
-                "schemas",
-                "id"
-              ]
-            }
-          }
-        },
         "required": [
           "schemas",
           "totalResults",
-          "itemsPerPage",
+          "Resources",
           "startIndex",
-          "Resources"
-        ]
-      },
-      "scim-enterprise-user": {
-        "type": "object",
+          "itemsPerPage"
+        ],
         "properties": {
           "schemas": {
             "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the list SCIM schemas.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+            ]
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "Number of results found",
+            "examples": [
+              1
+            ]
+          },
+          "Resources": {
+            "type": "array",
+            "description": "Information about each provisioned group.",
+            "items": {
+              "$ref": "#/components/schemas/scim-enterprise-group"
             }
           },
-          "id": {
-            "type": "string"
+          "startIndex": {
+            "type": "integer",
+            "description": "A starting index for the returned page",
+            "examples": [
+              1
+            ]
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "Number of objects per page",
+            "examples": [
+              20
+            ]
+          }
+        }
+      },
+      "patch-schema": {
+        "type": "object",
+        "required": [
+          "Operations",
+          "schemas"
+        ],
+        "properties": {
+          "Operations": {
+            "type": "array",
+            "description": "patch operations list",
+            "items": {
+              "type": "object",
+              "required": [
+                "op"
+              ],
+              "properties": {
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "add",
+                    "replace",
+                    "remove"
+                  ]
+                },
+                "path": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Corresponding 'value' of that field specified by 'path'"
+                }
+              }
+            }
+          },
+          "schemas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:api:messages:2.0:PatchOp"
+              ]
+            }
+          }
+        }
+      },
+      "user-name": {
+        "type": "object",
+        "required": [
+          "familyName",
+          "givenName"
+        ],
+        "properties": {
+          "formatted": {
+            "type": "string",
+            "description": "The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.",
+            "examples": [
+              "Ms. Mona Lisa Octocat"
+            ]
+          },
+          "familyName": {
+            "type": "string",
+            "description": "The family name of the user.",
+            "examples": [
+              "Octocat"
+            ]
+          },
+          "givenName": {
+            "type": "string",
+            "description": "The given name of the user.",
+            "examples": [
+              "Mona"
+            ]
+          },
+          "middleName": {
+            "type": "string",
+            "description": "The middle name(s) of the user.",
+            "examples": [
+              "Lisa"
+            ]
+          }
+        }
+      },
+      "user-emails": {
+        "type": "array",
+        "description": "The emails for the user.",
+        "items": {
+          "type": "object",
+          "required": [
+            "value",
+            "type",
+            "primary"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "description": "The email address.",
+              "examples": [
+                "mlisa@example.com"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "description": "The type of email address.",
+              "examples": [
+                "work"
+              ]
+            },
+            "primary": {
+              "type": "boolean",
+              "description": "Whether this email address is the primary address.",
+              "examples": [
+                true
+              ]
+            }
+          }
+        }
+      },
+      "user-role": {
+        "type": "array",
+        "description": "The roles assigned to the user.",
+        "items": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "description": "The role value representing a user role in GitHub.",
+              "enum": [
+                "User",
+                "Enterprise Owner"
+              ],
+              "examples": [
+                "User"
+              ]
+            },
+            "primary": {
+              "type": "boolean",
+              "description": "Is the role a primary role for the user.",
+              "examples": [
+                false
+              ]
+            }
+          }
+        }
+      },
+      "user": {
+        "type": "object",
+        "required": [
+          "schemas",
+          "externalId",
+          "userName",
+          "active",
+          "displayName",
+          "emails"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the SCIM schemas.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:schemas:core:2.0:User"
+            ]
           },
           "externalId": {
-            "type": "string"
-          },
-          "userName": {
-            "type": "string"
-          },
-          "name": {
-            "type": "object",
-            "properties": {
-              "givenName": {
-                "type": "string"
-              },
-              "familyName": {
-                "type": "string"
-              }
-            }
-          },
-          "emails": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string"
-                },
-                "primary": {
-                  "type": "boolean"
-                }
-              }
-            }
-          },
-          "groups": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "value": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "A unique identifier for the resource as defined by the provisioning client.",
+            "examples": [
+              "E012345"
+            ]
           },
           "active": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether the user active in the IdP.",
+            "examples": [
+              true
+            ]
           },
-          "meta": {
+          "userName": {
+            "type": "string",
+            "description": "The username for the user.",
+            "examples": [
+              "E012345"
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/user-name"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "A human-readable name for the user.",
+            "examples": [
+              "Mona Lisa"
+            ]
+          },
+          "emails": {
+            "$ref": "#/components/schemas/user-emails"
+          },
+          "roles": {
+            "$ref": "#/components/schemas/user-role"
+          }
+        }
+      },
+      "scim-enterprise-user": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/user"
+          },
+          {
             "type": "object",
+            "required": [
+              "id",
+              "meta"
+            ],
             "properties": {
-              "resourceType": {
-                "type": "string"
+              "id": {
+                "type": "string",
+                "description": "The internally generated id for the user object.",
+                "examples": [
+                  "7fce0092-d52e-4f76-b727-3955bd72c939"
+                ]
               },
-              "created": {
-                "type": "string"
+              "groups": {
+                "type": "array",
+                "description": "Provisioned SCIM groups that the user is a member of."
               },
-              "lastModified": {
-                "type": "string"
-              },
-              "location": {
-                "type": "string"
+              "meta": {
+                "$ref": "#/components/schemas/meta"
               }
             }
           }
-        },
+        ]
+      },
+      "scim-enterprise-user-list": {
+        "type": "object",
         "required": [
           "schemas",
-          "id"
-        ]
+          "totalResults",
+          "Resources",
+          "startIndex",
+          "itemsPerPage"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the list SCIM schemas.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+            ]
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "Number of results found",
+            "examples": [
+              1
+            ]
+          },
+          "Resources": {
+            "type": "array",
+            "description": "Information about each provisioned account.",
+            "items": {
+              "$ref": "#/components/schemas/scim-enterprise-user"
+            }
+          },
+          "startIndex": {
+            "type": "integer",
+            "description": "A starting index for the returned page",
+            "examples": [
+              1
+            ]
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "Number of objects per page",
+            "examples": [
+              20
+            ]
+          }
+        }
       },
       "search-result-text-matches": {
         "title": "Search Result Text Matches",
@@ -102425,58 +102589,37 @@
           "schemas": [
             "urn:ietf:params:scim:api:messages:2.0:ListResponse"
           ],
-          "totalResults": 2,
-          "itemsPerPage": 2,
-          "startIndex": 1,
+          "totalResults": 1,
           "Resources": [
             {
               "schemas": [
                 "urn:ietf:params:scim:schemas:core:2.0:Group"
               ],
-              "id": "abcd27f8-a9aa-11ea-8221-f59b2be9cccc",
-              "externalId": null,
-              "displayName": "octo-org",
+              "externalId": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159",
+              "id": "927fa2c08dcb4a7fae9e",
+              "displayName": "Engineering",
               "members": [
                 {
-                  "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-                  "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-                  "display": "octocat@github.com"
+                  "value": "879db59-3bdf-4490-ad68-ab880a2694745",
+                  "$+ref": "https://api.github.localhost/scim/v2/Users/879db59-3bdf-4490-ad68-ab880a2694745",
+                  "displayName": "User 1"
                 },
                 {
-                  "value": "aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5",
-                  "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5",
-                  "display": "hubot@example.com"
+                  "value": "0db508eb-91e2-46e4-809c-30dcbda0c685",
+                  "$+ref": "https://api.github.localhost/scim/v2/Users/0db508eb-91e2-46e4-809c-30dcbda0c685",
+                  "displayName": "User 2"
                 }
               ],
               "meta": {
                 "resourceType": "Group",
-                "created": "2020-06-09T03:10:17.000+10:00",
-                "lastModified": "2020-06-09T03:10:17.000+10:00",
-                "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc"
-              }
-            },
-            {
-              "schemas": [
-                "urn:ietf:params:scim:schemas:core:2.0:Group"
-              ],
-              "id": "5e75bbbb-aa1a-11ea-8644-75ff655cdddd",
-              "externalId": null,
-              "displayName": "octo-docs-org",
-              "members": [
-                {
-                  "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-                  "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-                  "display": "octocat@github.com"
-                }
-              ],
-              "meta": {
-                "resourceType": "Group",
-                "created": "2020-06-09T16:28:01.000+10:00",
-                "lastModified": "2020-06-09T16:28:01.000+10:00",
-                "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Groups/5e75bbbb-aa1a-11ea-8644-75ff655cdddd"
+                "created": "2012-03-27T19:59:26.000Z",
+                "lastModified": "2018-03-27T19:59:26.000Z",
+                "location": "https://api.github.localhost/scim/v2/Groups/927fa2c08dcb4a7fae9e"
               }
             }
-          ]
+          ],
+          "startIndex": 1,
+          "itemsPerPage": 20
         }
       },
       "scim-enterprise-group": {
@@ -102485,48 +102628,25 @@
             "urn:ietf:params:scim:schemas:core:2.0:Group"
           ],
           "id": "abcd27f8-a9aa-11ea-8221-f59b2be9cccc",
-          "externalId": null,
-          "displayName": "octo-org",
+          "externalId": "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159",
+          "displayName": "Engineering",
           "members": [
             {
-              "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-              "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-              "display": "octocat@github.com"
+              "value": "879db59-3bdf-4490-ad68-ab880a2694745",
+              "$+ref": "https://api.github.localhost/scim/v2/Users/879db59-3bdf-4490-ad68-ab880a2694745",
+              "displayName": "User 1"
             },
             {
-              "value": "aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5",
-              "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/aaaa8c34-a6b2-11ea-9d70-bbbbbd1c8fd5",
-              "display": "hubot@example.com"
+              "value": "0db508eb-91e2-46e4-809c-30dcbda0c685",
+              "$+ref": "https://api.github.localhost/scim/v2/Users/0db508eb-91e2-46e4-809c-30dcbda0c685",
+              "displayName": "User 2"
             }
           ],
           "meta": {
             "resourceType": "Group",
-            "created": "2020-06-09T03:10:17.000+10:0",
-            "lastModified": "2020-06-09T03:10:17.000+10:00",
-            "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc"
-          }
-        }
-      },
-      "scim-enterprise-group-2": {
-        "value": {
-          "schemas": [
-            "urn:ietf:params:scim:schemas:core:2.0:Group"
-          ],
-          "id": "abcd27f8-a9aa-11ea-8221-f59b2be9cccc",
-          "externalId": null,
-          "displayName": "octo-org",
-          "members": [
-            {
-              "value": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-              "$ref": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-              "display": "octocat@github.com"
-            }
-          ],
-          "meta": {
-            "resourceType": "Group",
-            "created": "2020-06-09T03:10:17.000+10:00",
-            "lastModified": "2020-06-09T03:10:17.000+10:00",
-            "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Groups/abcd27f8-a9aa-11ea-8221-f59b2be9cccc"
+            "created": "2012-03-27T19:59:26.000Z",
+            "lastModified": "2018-03-27T19:59:26.000Z",
+            "location": "https://api.github.localhost/scim/v2/Groups/927fa2c08dcb4a7fae9e"
           }
         }
       },
@@ -102535,69 +102655,100 @@
           "schemas": [
             "urn:ietf:params:scim:api:messages:2.0:ListResponse"
           ],
-          "totalResults": 2,
-          "itemsPerPage": 2,
-          "startIndex": 1,
+          "totalResults": 1,
           "Resources": [
             {
               "schemas": [
                 "urn:ietf:params:scim:schemas:core:2.0:User"
               ],
-              "id": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-              "externalId": "00dowz5dr9oSfDFRA0h7",
-              "userName": "octocat@github.com",
-              "name": {
-                "givenName": "Mona",
-                "familyName": "Octocat"
-              },
-              "emails": [
-                {
-                  "value": "octocat@github.com",
-                  "primary": true,
-                  "type": "work"
-                }
-              ],
-              "groups": [
-                {
-                  "value": "468dd3fa-a1d6-11ea-9031-15a1f0d7811d"
-                }
-              ],
+              "externalId": "E012345",
+              "id": "7fce0092-d52e-4f76-b727-3955bd72c939",
               "active": true,
-              "meta": {
-                "resourceType": "User",
-                "created": "2020-05-30T04:02:34.000+10:00",
-                "lastModified": "2020-05-30T04:05:04.000+10:00",
-                "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc"
-              }
-            },
-            {
-              "schemas": [
-                "urn:ietf:params:scim:schemas:core:2.0:User"
-              ],
-              "id": "e18b8c34-a6b2-11ea-9d70-54abbd1c8fd5",
-              "externalId": "sdfoiausdofiua",
-              "userName": "hubot@example.com",
+              "userName": "E012345",
               "name": {
-                "givenName": "hu",
-                "familyName": "bot"
+                "formatted": "Ms. Mona Lisa Octocat",
+                "familyName": "Octocat",
+                "givenName": "Mona",
+                "middleName": "Lisa"
               },
+              "displayName": "Mona Lisa",
               "emails": [
                 {
-                  "value": "hubot@example.com",
+                  "value": "mlisa@example.com",
                   "type": "work",
                   "primary": true
                 }
               ],
-              "groups": [
-
-              ],
-              "active": true,
-              "meta": {
-                "resourceType": "User",
-                "created": "2020-06-05T08:29:40.000+10:00",
-                "lastModified": "2020-06-05T08:30:19.000+10:00",
-                "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/e18b8c34-a6b2-11ea-9d70-54abbd1c8fd5"
-              }
+              "roles": [
+                {
+                  "value": "User",
+                  "primary": false
+                }
+              ]
+            }
+          ],
+          "startIndex": 1,
+          "itemsPerPage": 20
+        }
+      },
+      "in-user": {
+        "summary": "User",
+        "value": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "externalId": "E012345",
+          "active": true,
+          "userName": "E012345",
+          "name": {
+            "formatted": "Ms. Mona Lisa Octocat",
+            "familyName": "Octocat",
+            "givenName": "Mona",
+            "middleName": "Lisa"
+          },
+          "displayName": "Mona Lisa",
+          "emails": [
+            {
+              "value": "mlisa@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ],
+          "roles": [
+            {
+              "value": "User",
+              "primary": false
+            }
+          ]
+        }
+      },
+      "in-user-owner": {
+        "summary": "Enterprise Owner",
+        "value": {
+          "schemas": [
+            "urn:ietf:params:scim:schemas:core:2.0:User"
+          ],
+          "externalId": "E012345",
+          "active": true,
+          "userName": "E012345",
+          "name": {
+            "formatted": "Ms. Mona Lisa Octocat",
+            "familyName": "Octocat",
+            "givenName": "Mona",
+            "middleName": "Lisa"
+          },
+          "displayName": "Mona Lisa",
+          "emails": [
+            {
+              "value": "mlisa@example.com",
+              "type": "work",
+              "primary": true
+            }
+          ],
+          "roles": [
+            {
+              "value": "Enterprise Owner",
+              "primary": false
             }
           ]
         }
@@ -102607,68 +102758,35 @@
           "schemas": [
             "urn:ietf:params:scim:schemas:core:2.0:User"
           ],
-          "id": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-          "externalId": "00dowz5dr9oSfDFRA0h7",
-          "userName": "mona.octocat@okta.example.com",
+          "id": "7fce0092-d52e-4f76-b727-3955bd72c939",
+          "externalId": "E012345",
+          "active": true,
+          "userName": "E012345",
           "name": {
+            "formatted": "Ms. Mona Lisa Octocat",
+            "familyName": "Octocat",
             "givenName": "Mona",
-            "familyName": "Octocat"
+            "middleName": "Lisa"
           },
+          "displayName": "Mona Lisa",
           "emails": [
             {
-              "value": "mona.octocat@okta.example.com",
+              "value": "mlisa@example.com",
               "type": "work",
               "primary": true
             }
           ],
-          "groups": [
+          "roles": [
             {
-              "value": "468dd3fa-a1d6-11ea-9031-15a1f0d7811d"
+              "value": "User",
+              "primary": false
             }
           ],
-          "active": true,
           "meta": {
             "resourceType": "User",
-            "created": "2017-03-09T16:11:13-05:00",
-            "lastModified": "2017-03-09T16:11:13-05:00",
-            "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc"
-          }
-        }
-      },
-      "scim-enterprise-user-2": {
-        "value": {
-          "schemas": [
-            "urn:ietf:params:scim:schemas:core:2.0:User"
-          ],
-          "id": "92b58aaa-a1d6-11ea-8227-b9ce9e023ccc",
-          "externalId": "00dowz5dr9oSfDFRA0h7",
-          "userName": "mona.octocat@okta.example.com",
-          "name": {
-            "givenName": "Monalisa",
-            "familyName": "Octocat"
-          },
-          "emails": [
-            {
-              "value": "mona.octocat@okta.example.com",
-              "type": "work",
-              "primary": true
-            },
-            {
-              "value": "monalisa@octocat.github.com",
-              "type": "home"
-            }
-          ],
-          "groups": [
-            {
-              "value": "468dd3fa-a1d6-11ea-9031-15a1f0d7811d"
-            }
-          ],
-          "active": true,
-          "meta": {
-            "resourceType": "User",
-            "created": "2017-03-09T16:11:13-05:00",
-            "lastModified": "2017-03-09T16:11:13-05:00",
-            "location": "https://api.github.com/scim/v2/enterprises/octo-corp/Users/92b58aaa-a1d6-11ea-8227-b9ce9e023ccc"
+            "created": "2012-03-27T19:59:26.000Z",
+            "lastModified": "2018-03-27T19:59:26.000Z",
+            "location": "https://api.github.localhost/scim/v2/Users/7fce0092-d52e-4f76-b727-3955bd72c939"
           }
         }
       },
@@ -106382,31 +106500,56 @@
           "type": "integer"
         }
       },
-      "start-index": {
-        "name": "startIndex",
-        "description": "Used for pagination: the index of the first result to return.",
+      "excluded-attributes": {
+        "name": "excludedAttributes",
+        "description": "Excludes the specified attribute from being returned in the results. Using this parameter can speed up response time.",
         "in": "query",
         "required": false,
         "schema": {
-          "type": "integer"
+          "type": "string",
+          "examples": [
+            "members"
+          ]
+        }
+      },
+      "start-index": {
+        "name": "startIndex",
+        "description": "Used for pagination: the starting index of the first result to return when paginating through values.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "format": "int32",
+          "examples": [
+            1
+          ]
         }
       },
       "count": {
         "name": "count",
-        "description": "Used for pagination: the number of results to return.",
+        "description": "Used for pagination: the number of results to return per page.",
         "in": "query",
         "required": false,
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "default": 30,
+          "format": "int32",
+          "examples": [
+            1
+          ]
         }
       },
       "scim-group-id": {
         "name": "scim_group_id",
-        "description": "Identifier generated by the GitHub SCIM endpoint.",
+        "description": "A unique identifier of the SCIM group.",
         "in": "path",
         "required": true,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "examples": [
+            "7fce0092-d52e-4f76-b727-3955bd72c939"
+          ]
         }
       },
       "scim-user-id": {
@@ -106766,6 +106909,60 @@
       },
       "no_content": {
         "description": "A header with no content is returned."
+      },
+      "scim_bad_request": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          },
+          "application/scim+json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          }
+        }
+      },
+      "authorization_failure": {
+        "description": "Authorization failure"
+      },
+      "permission_denied": {
+        "description": "Permission denied"
+      },
+      "scim_too_many_requests": {
+        "description": "Too many requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          },
+          "application/scim+json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          }
+        }
+      },
+      "scim_internal_error": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          },
+          "application/scim+json": {
+            "schema": {
+              "$ref": "#/components/schemas/scim-error"
+            }
+          }
+        }
+      },
+      "duplicate_record_detected": {
+        "description": "Duplicate record detected"
       }
     }
   }
