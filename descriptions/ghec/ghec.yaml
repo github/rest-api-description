@@ -15079,9 +15079,9 @@ paths:
         subcategory: workflow-runs
   "/repos/{owner}/{repo}/actions/oidc/customization/sub":
     get:
-      summary: Get the opt-out flag of an OIDC subject claim customization for a repository
+      summary: Get the customization template for an OIDC subject claim for a repository
       description: |-
-        Gets the `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        Gets the customization template for an OpenID Connect (OIDC) subject claim.
         You must authenticate using an access token with the `repo` scope to use this
         endpoint. GitHub Apps must have the `organization_administration:read` permission to use this endpoint.
       tags:
@@ -15089,7 +15089,7 @@ paths:
       operationId: actions/get-custom-oidc-sub-claim-for-repo
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#get-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#get-the-customization-template-for-an-oidc-subject-claim-for-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -15099,10 +15099,10 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/opt-out-oidc-custom-sub"
+                "$ref": "#/components/schemas/oidc-custom-sub-repo"
               examples:
                 default:
-                  "$ref": "#/components/examples/opt-out-oidc-custom-sub"
+                  "$ref": "#/components/examples/oidc-custom-sub-repo"
         '400':
           "$ref": "#/components/responses/bad_request"
         '404':
@@ -15114,9 +15114,9 @@ paths:
         category: actions
         subcategory: oidc
     put:
-      summary: Set the opt-in flag of an OIDC subject claim customization for a repository
+      summary: Set the customization template for an OIDC subject claim for a repository
       description: |-
-        Sets the `opt-in` or `opt-out` flag of a GitHub Actions OpenID Connect (OIDC) subject claim customization for a repository.
+        Sets the customization template and `opt-in` or `opt-out` flag for an OpenID Connect (OIDC) subject claim for a repository.
         You must authenticate using an access token with the `repo` scope to use this
         endpoint. GitHub Apps must have the `actions:write` permission to use this endpoint.
       tags:
@@ -15124,7 +15124,7 @@ paths:
       operationId: actions/set-custom-oidc-sub-claim-for-repo
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#set-the-opt-out-flag-of-an-oidc-subject-claim-customization-for-a-repository
+        url: https://docs.github.com/enterprise-cloud@latest//rest/actions/oidc#set-the-customization-template-for-an-oidc-subject-claim-for-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -15133,10 +15133,10 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/opt-out-oidc-custom-sub"
+              "$ref": "#/components/schemas/oidc-custom-sub-repo"
             examples:
               default:
-                "$ref": "#/components/examples/opt-out-oidc-custom-sub"
+                "$ref": "#/components/examples/oidc-custom-sub-repo"
       responses:
         '201':
           description: Empty response
@@ -48261,6 +48261,8 @@ components:
       type: object
       properties:
         include_claim_keys:
+          description: Array of unique strings. Each claim key can only contain alphanumeric
+            characters and underscores.
           type: array
           items:
             type: string
@@ -52733,13 +52735,21 @@ components:
       - runner_name
       - runner_group_id
       - runner_group_name
-    opt-out-oidc-custom-sub:
-      title: The json payload enables/disables the use of sub claim customization
-      description: OIDC Customer Subject
+    oidc-custom-sub-repo:
+      title: Actions OIDC subject customization for a repository
+      description: Actions OIDC subject customization for a repository
       type: object
       properties:
         use_default:
+          description: Whether to use the default template or not. If `true`, the
+            `include_claim_keys` field is ignored.
           type: boolean
+        include_claim_keys:
+          description: Array of unique strings. Each claim key can only contain alphanumeric
+            characters and underscores.
+          type: array
+          items:
+            type: string
       required:
       - use_default
     actions-enabled:
@@ -73267,9 +73277,12 @@ components:
         runner_name: my runner
         runner_group_id: 2
         runner_group_name: my runner group
-    opt-out-oidc-custom-sub:
+    oidc-custom-sub-repo:
       value:
         use_default: false
+        include_claim_keys:
+        - repo
+        - context
     actions-repository-permissions:
       value:
         enabled: true
