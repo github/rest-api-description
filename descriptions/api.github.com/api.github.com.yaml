@@ -13936,6 +13936,12 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
+      - name: name
+        description: Filters artifacts by exact match on their name field.
+        in: query
+        required: false
+        schema:
+          type: string
       responses:
         '200':
           description: Response
@@ -41903,6 +41909,13 @@ components:
           enum:
           - read
           - write
+        repository_announcement_banners:
+          type: string
+          description: The level of permission to grant the access token to view and
+            manage announcement banners for a repository.
+          enum:
+          - read
+          - write
         repository_hooks:
           type: string
           description: The level of permission to grant the access token to manage
@@ -41984,6 +41997,13 @@ components:
           type: string
           description: The level of permission to grant the access token for custom
             roles management. This property is in beta and is subject to change.
+          enum:
+          - read
+          - write
+        organization_announcement_banners:
+          type: string
+          description: The level of permission to grant the access token to view and
+            manage announcement banners for an organization.
           enum:
           - read
           - write
@@ -62052,18 +62072,87 @@ components:
         installation:
           "$ref": "#/components/schemas/simple-installation"
         merge_group:
+          title: MergeGroup
           type: object
           properties:
-            base_ref:
+            head_sha:
+              description: The SHA of the merge group.
               type: string
             head_ref:
+              description: The full ref of the merge group.
               type: string
-            head_sha:
+            base_sha:
+              description: The SHA of the merge group's parent commit.
               type: string
+            base_ref:
+              description: The full ref of the branch the merge group will be merged
+                into.
+              type: string
+            head_commit:
+              title: SimpleCommit
+              type: object
+              properties:
+                author:
+                  title: Committer
+                  description: Metaproperties for Git author/committer information.
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                    email:
+                      type: string
+                      nullable: true
+                      format: email
+                    name:
+                      description: The git author's name.
+                      type: string
+                    username:
+                      type: string
+                  required:
+                  - email
+                  - name
+                committer:
+                  title: Committer
+                  description: Metaproperties for Git author/committer information.
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                    email:
+                      type: string
+                      nullable: true
+                      format: email
+                    name:
+                      description: The git author's name.
+                      type: string
+                    username:
+                      type: string
+                  required:
+                  - email
+                  - name
+                id:
+                  type: string
+                message:
+                  type: string
+                timestamp:
+                  type: string
+                tree_id:
+                  type: string
+              required:
+              - id
+              - tree_id
+              - message
+              - timestamp
+              - author
+              - committer
           required:
           - head_sha
           - head_ref
+          - base_sha
           - base_ref
+          - head_commit
         organization:
           "$ref": "#/components/schemas/organization-simple"
         repository:
