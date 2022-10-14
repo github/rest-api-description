@@ -67239,6 +67239,713 @@
           "key",
           "id"
         ]
+      },
+      "dependabot-alert-package": {
+        "type": "object",
+        "description": "Details for the vulnerable package.",
+        "readOnly": true,
+        "properties": {
+          "ecosystem": {
+            "type": "string",
+            "description": "The package's language or package management ecosystem.",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The unique package name within its ecosystem.",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "ecosystem",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "dependabot-alert-security-vulnerability": {
+        "type": "object",
+        "description": "Details pertaining to one vulnerable version range for the advisory.",
+        "readOnly": true,
+        "properties": {
+          "package": {
+            "$ref": "#/components/schemas/dependabot-alert-package"
+          },
+          "severity": {
+            "type": "string",
+            "description": "The severity of the vulnerability.",
+            "readOnly": true,
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "vulnerable_version_range": {
+            "type": "string",
+            "description": "Conditions that identify vulnerable versions of this vulnerability's package.",
+            "readOnly": true
+          },
+          "first_patched_version": {
+            "type": "object",
+            "description": "Details pertaining to the package version that patches this vulnerability.",
+            "readOnly": true,
+            "nullable": true,
+            "properties": {
+              "identifier": {
+                "type": "string",
+                "description": "The package version that patches this vulnerability.",
+                "readOnly": true
+              }
+            },
+            "required": [
+              "identifier"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "package",
+          "severity",
+          "vulnerable_version_range",
+          "first_patched_version"
+        ],
+        "additionalProperties": false
+      },
+      "dependabot-alert-security-advisory": {
+        "type": "object",
+        "description": "Details for the GitHub Security Advisory.",
+        "readOnly": true,
+        "properties": {
+          "ghsa_id": {
+            "type": "string",
+            "description": "The unique GitHub Security Advisory ID assigned to the advisory.",
+            "readOnly": true
+          },
+          "cve_id": {
+            "type": "string",
+            "description": "The unique CVE ID assigned to the advisory.",
+            "readOnly": true,
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "description": "A short, plain text summary of the advisory.",
+            "readOnly": true,
+            "maxLength": 1024
+          },
+          "description": {
+            "type": "string",
+            "description": "A long-form Markdown-supported description of the advisory.",
+            "readOnly": true
+          },
+          "vulnerabilities": {
+            "type": "array",
+            "description": "Vulnerable version range information for the advisory.",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/dependabot-alert-security-vulnerability"
+            }
+          },
+          "severity": {
+            "type": "string",
+            "description": "The severity of the advisory.",
+            "readOnly": true,
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "cvss": {
+            "type": "object",
+            "description": "Details for the advisory pertaining to the Common Vulnerability Scoring System.",
+            "readOnly": true,
+            "properties": {
+              "score": {
+                "type": "number",
+                "description": "The overall CVSS score of the advisory.",
+                "minimum": 0,
+                "maximum": 10,
+                "readOnly": true
+              },
+              "vector_string": {
+                "type": "string",
+                "description": "The full CVSS vector string for the advisory.",
+                "readOnly": true,
+                "nullable": true
+              }
+            },
+            "required": [
+              "score",
+              "vector_string"
+            ],
+            "additionalProperties": false
+          },
+          "cwes": {
+            "type": "array",
+            "description": "Details for the advisory pertaining to Common Weakness Enumeration.",
+            "readOnly": true,
+            "items": {
+              "type": "object",
+              "description": "A CWE weakness assigned to the advisory.",
+              "readOnly": true,
+              "properties": {
+                "cwe_id": {
+                  "type": "string",
+                  "description": "The unique CWE ID.",
+                  "readOnly": true
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The short, plain text name of the CWE.",
+                  "readOnly": true
+                }
+              },
+              "required": [
+                "cwe_id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "identifiers": {
+            "type": "array",
+            "description": "Values that identify this advisory among security information sources.",
+            "readOnly": true,
+            "items": {
+              "type": "object",
+              "description": "An advisory identifier.",
+              "readOnly": true,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "The type of advisory identifier.",
+                  "readOnly": true,
+                  "enum": [
+                    "CVE",
+                    "GHSA"
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The value of the advisory identifer.",
+                  "readOnly": true
+                }
+              },
+              "required": [
+                "value",
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "references": {
+            "type": "array",
+            "description": "Links to additional advisory information.",
+            "readOnly": true,
+            "items": {
+              "type": "object",
+              "description": "A link to additional advisory information.",
+              "readOnly": true,
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "The URL of the reference.",
+                  "format": "uri",
+                  "readOnly": true
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "published_at": {
+            "type": "string",
+            "description": "The time that the advisory was published in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The time that the advisory was last modified in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "withdrawn_at": {
+            "type": "string",
+            "description": "The time that the advisory was withdrawn in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "ghsa_id",
+          "cve_id",
+          "summary",
+          "description",
+          "vulnerabilities",
+          "severity",
+          "cvss",
+          "cwes",
+          "identifiers",
+          "references",
+          "published_at",
+          "updated_at",
+          "withdrawn_at"
+        ],
+        "additionalProperties": false
+      },
+      "alert-fixed-at": {
+        "type": "string",
+        "description": "The time that the alert was no longer detected and was considered fixed in ISO 8601 format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "format": "date-time",
+        "readOnly": true,
+        "nullable": true
+      },
+      "dependabot-alert": {
+        "type": "object",
+        "description": "A Dependabot alert.",
+        "properties": {
+          "number": {
+            "$ref": "#/components/schemas/alert-number"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state of the Dependabot alert.",
+            "readOnly": true,
+            "enum": [
+              "dismissed",
+              "fixed",
+              "open"
+            ]
+          },
+          "dependency": {
+            "type": "object",
+            "description": "Details for the vulnerable dependency.",
+            "readOnly": true,
+            "properties": {
+              "package": {
+                "$ref": "#/components/schemas/dependabot-alert-package"
+              },
+              "manifest_path": {
+                "type": "string",
+                "description": "The full path to the dependency manifest file, relative to the root of the repository.",
+                "readOnly": true
+              },
+              "scope": {
+                "type": "string",
+                "description": "The execution scope of the vulnerable dependency.",
+                "readOnly": true,
+                "nullable": true,
+                "enum": [
+                  "development",
+                  "runtime"
+                ]
+              }
+            }
+          },
+          "security_advisory": {
+            "$ref": "#/components/schemas/dependabot-alert-security-advisory"
+          },
+          "security_vulnerability": {
+            "$ref": "#/components/schemas/dependabot-alert-security-vulnerability"
+          },
+          "url": {
+            "$ref": "#/components/schemas/alert-url"
+          },
+          "html_url": {
+            "$ref": "#/components/schemas/alert-html-url"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/alert-created-at"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/alert-updated-at"
+          },
+          "dismissed_at": {
+            "$ref": "#/components/schemas/alert-dismissed-at"
+          },
+          "dismissed_by": {
+            "$ref": "#/components/schemas/nullable-simple-user"
+          },
+          "dismissed_reason": {
+            "type": "string",
+            "description": "The reason that the alert was dismissed.",
+            "nullable": true,
+            "enum": [
+              "fix_started",
+              "inaccurate",
+              "no_bandwidth",
+              "not_used",
+              "tolerable_risk"
+            ]
+          },
+          "dismissed_comment": {
+            "type": "string",
+            "description": "An optional comment associated with the alert's dismissal.",
+            "nullable": true,
+            "maxLength": 280
+          },
+          "fixed_at": {
+            "$ref": "#/components/schemas/alert-fixed-at"
+          }
+        },
+        "required": [
+          "number",
+          "state",
+          "dependency",
+          "security_advisory",
+          "security_vulnerability",
+          "url",
+          "html_url",
+          "created_at",
+          "updated_at",
+          "dismissed_at",
+          "dismissed_by",
+          "dismissed_reason",
+          "dismissed_comment",
+          "fixed_at"
+        ],
+        "additionalProperties": false
+      },
+      "simple-installation": {
+        "title": "Simple Installation",
+        "description": "Simple Installation",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The ID of the installation.",
+            "type": "integer",
+            "example": 1
+          },
+          "node_id": {
+            "description": "The global node ID of the installation.",
+            "type": "string",
+            "example": "MDQ6VXNlcjU4MzIzMQ=="
+          }
+        },
+        "required": [
+          "id",
+          "node_id"
+        ]
+      },
+      "webhook-dependabot-alert-created": {
+        "title": "Dependabot alert created event",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "created"
+            ]
+          },
+          "alert": {
+            "$ref": "#/components/schemas/dependabot-alert"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "enterprise": {
+            "$ref": "#/components/schemas/enterprise"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "alert",
+          "repository",
+          "sender"
+        ]
+      },
+      "webhook-dependabot-alert-dismissed": {
+        "title": "Dependabot alert dismissed event",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "dismissed"
+            ]
+          },
+          "alert": {
+            "$ref": "#/components/schemas/dependabot-alert"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "enterprise": {
+            "$ref": "#/components/schemas/enterprise"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "alert",
+          "repository",
+          "sender"
+        ]
+      },
+      "webhook-dependabot-alert-fixed": {
+        "title": "Dependabot alert fixed event",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "fixed"
+            ]
+          },
+          "alert": {
+            "$ref": "#/components/schemas/dependabot-alert"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "enterprise": {
+            "$ref": "#/components/schemas/enterprise"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "alert",
+          "repository",
+          "sender"
+        ]
+      },
+      "webhook-dependabot-alert-reintroduced": {
+        "title": "Dependabot alert reintroduced event",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "reintroduced"
+            ]
+          },
+          "alert": {
+            "$ref": "#/components/schemas/dependabot-alert"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "enterprise": {
+            "$ref": "#/components/schemas/enterprise"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "alert",
+          "repository",
+          "sender"
+        ]
+      },
+      "webhook-dependabot-alert-reopened": {
+        "title": "Dependabot alert reopened event",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "reopened"
+            ]
+          },
+          "alert": {
+            "$ref": "#/components/schemas/dependabot-alert"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "enterprise": {
+            "$ref": "#/components/schemas/enterprise"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "alert",
+          "repository",
+          "sender"
+        ]
+      },
+      "webhook-merge-group-checks-requested": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "installation": {
+            "$ref": "#/components/schemas/simple-installation"
+          },
+          "merge_group": {
+            "title": "MergeGroup",
+            "type": "object",
+            "properties": {
+              "head_sha": {
+                "description": "The SHA of the merge group.",
+                "type": "string"
+              },
+              "head_ref": {
+                "description": "The full ref of the merge group.",
+                "type": "string"
+              },
+              "base_sha": {
+                "description": "The SHA of the merge group's parent commit.",
+                "type": "string"
+              },
+              "base_ref": {
+                "description": "The full ref of the branch the merge group will be merged into.",
+                "type": "string"
+              },
+              "head_commit": {
+                "title": "SimpleCommit",
+                "type": "object",
+                "properties": {
+                  "author": {
+                    "title": "Committer",
+                    "description": "Metaproperties for Git author/committer information.",
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "email": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "email"
+                      },
+                      "name": {
+                        "description": "The git author's name.",
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "name"
+                    ]
+                  },
+                  "committer": {
+                    "title": "Committer",
+                    "description": "Metaproperties for Git author/committer information.",
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "email": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "email"
+                      },
+                      "name": {
+                        "description": "The git author's name.",
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "name"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string"
+                  },
+                  "tree_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "tree_id",
+                  "message",
+                  "timestamp",
+                  "author",
+                  "committer"
+                ]
+              }
+            },
+            "required": [
+              "head_sha",
+              "head_ref",
+              "base_sha",
+              "base_ref",
+              "head_commit"
+            ]
+          },
+          "organization": {
+            "$ref": "#/components/schemas/organization-simple"
+          },
+          "repository": {
+            "$ref": "#/components/schemas/repository"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/simple-user"
+          }
+        },
+        "required": [
+          "action",
+          "merge_group"
+        ]
       }
     },
     "examples": {
