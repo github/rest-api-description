@@ -36443,6 +36443,23 @@ paths:
                           required:
                           - url
                           - enabled
+                        lock_branch:
+                          type: object
+                          description: Whether to set the branch as read-only. If
+                            this is true, users will not be able to push to the branch.
+                          properties:
+                            enabled:
+                              default: false
+                              type: boolean
+                        allow_fork_syncing:
+                          type: object
+                          description: Whether users can pull changes from upstream
+                            when the branch is locked. Set to `true` to allow fork
+                            syncing. Set to `false` to prevent fork syncing.
+                          properties:
+                            enabled:
+                              default: false
+                              type: boolean
                     protection_url:
                       type: string
                       format: uri
@@ -37027,6 +37044,10 @@ paths:
                       enabled: true
                     required_conversation_resolution:
                       enabled: true
+                    lock_branch:
+                      enabled: true
+                    allow_fork_syncing:
+                      enabled: true
         '404': *16
       x-github:
         githubCloudOnly: false
@@ -37236,6 +37257,17 @@ paths:
                   description: 'Requires all conversations on code to be resolved
                     before a pull request can be merged into a branch that matches
                     this rule. Set to `false` to disable. Default: `false`.'
+                lock_branch:
+                  type: boolean
+                  description: 'Whether to set the branch as read-only. If this is
+                    true, users will not be able to push to the branch. Default: `false`.'
+                  default: false
+                allow_fork_syncing:
+                  type: boolean
+                  description: 'Whether users can pull changes from upstream when
+                    the branch is locked. Set to `true` to allow fork syncing. Set
+                    to `false` to prevent fork syncing. Default: `false`.'
+                  default: false
               required:
               - required_status_checks
               - enforce_admins
@@ -37275,6 +37307,8 @@ paths:
                   allow_deletions: true
                   block_creations: true
                   required_conversation_resolution: true
+                  lock_branch: true
+                  allow_fork_syncing: true
       responses:
         '200':
           description: Response
@@ -37450,6 +37484,25 @@ paths:
                     additionalProperties: false
                     required:
                     - enabled
+                  lock_branch:
+                    type: object
+                    description: Whether to set the branch as read-only. If this is
+                      true, users will not be able to push to the branch.
+                    properties:
+                      enabled:
+                        default: false
+                        type: boolean
+                    additionalProperties: false
+                  allow_fork_syncing:
+                    type: object
+                    description: Whether users can pull changes from upstream when
+                      the branch is locked. Set to `true` to allow fork syncing. Set
+                      to `false` to prevent fork syncing.
+                    properties:
+                      enabled:
+                        default: false
+                        type: boolean
+                    additionalProperties: false
                 required:
                 - url
               examples:
@@ -37500,6 +37553,10 @@ paths:
                     block_creations:
                       enabled: true
                     required_conversation_resolution:
+                      enabled: true
+                    lock_branch:
+                      enabled: true
+                    allow_fork_syncing:
                       enabled: true
         '403': *24
         '422': *51
@@ -39433,7 +39490,8 @@ paths:
                               to. For example, `assets/css/main.css`.
                           start_line:
                             type: integer
-                            description: The start line of the annotation.
+                            description: The start line of the annotation. Line numbers
+                              start at 1.
                           end_line:
                             type: integer
                             description: The end line of the annotation.
@@ -39442,7 +39500,7 @@ paths:
                             description: The start column of the annotation. Annotations
                               only support `start_column` and `end_column` on the
                               same line. Omit this parameter if `start_line` and `end_line`
-                              have different values.
+                              have different values. Column numbers start at 1.
                           end_column:
                             type: integer
                             description: The end column of the annotation. Annotations
@@ -40198,7 +40256,8 @@ paths:
                               to. For example, `assets/css/main.css`.
                           start_line:
                             type: integer
-                            description: The start line of the annotation.
+                            description: The start line of the annotation. Line numbers
+                              start at 1.
                           end_line:
                             type: integer
                             description: The end line of the annotation.
@@ -40207,7 +40266,7 @@ paths:
                             description: The start column of the annotation. Annotations
                               only support `start_column` and `end_column` on the
                               same line. Omit this parameter if `start_line` and `end_line`
-                              have different values.
+                              have different values. Column numbers start at 1.
                           end_column:
                             type: integer
                             description: The end column of the annotation. Annotations
