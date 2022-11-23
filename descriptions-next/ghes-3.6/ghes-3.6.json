@@ -8861,6 +8861,14 @@
                   "text"
                 ],
                 "type": "object"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Rendering markdown",
+                  "value": {
+                    "text": "Hello **world**"
+                  }
+                }
               }
             }
           }
@@ -8886,6 +8894,12 @@
               "text/html": {
                 "schema": {
                   "type": "string"
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Example response",
+                    "value": "<p>Hello <strong>world</strong></p>"
+                  }
                 }
               }
             }
@@ -8923,11 +8937,26 @@
             "text/plain": {
               "schema": {
                 "type": "string"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "text": "Hello **world**"
+                  }
+                }
               }
             },
             "text/x-markdown": {
               "schema": {
                 "type": "string"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Rendering markdown",
+                  "value": {
+                    "text": "Hello **world**"
+                  }
+                }
               }
             }
           }
@@ -8944,6 +8973,12 @@
               "text/html": {
                 "schema": {
                   "type": "string"
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Example response",
+                    "value": "<p>Hello <strong>world</strong></p>"
+                  }
                 }
               }
             }
@@ -45261,7 +45296,7 @@
           "200": {
             "description": "Success, either groups were found or not found",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-group-list"
                 },
@@ -45332,9 +45367,9 @@
           "201": {
             "description": "Group has been created",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-group"
+                  "$ref": "#/components/schemas/scim-enterprise-group-response"
                 },
                 "examples": {
                   "group": {
@@ -45386,15 +45421,18 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/scim-group-id"
+          },
+          {
+            "$ref": "#/components/parameters/excluded-attributes"
           }
         ],
         "responses": {
           "200": {
             "description": "Success, a group was found",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-group"
+                  "$ref": "#/components/schemas/scim-enterprise-group-response"
                 },
                 "examples": {
                   "default": {
@@ -45492,9 +45530,9 @@
           "200": {
             "description": "Group was updated",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-group"
+                  "$ref": "#/components/schemas/scim-enterprise-group-response"
                 },
                 "examples": {
                   "group": {
@@ -45602,12 +45640,15 @@
           }
         },
         "responses": {
+          "204": {
+            "description": "Response"
+          },
           "200": {
             "description": "Success, group was updated",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-group"
+                  "$ref": "#/components/schemas/scim-enterprise-group-response"
                 },
                 "examples": {
                   "updateGroup": {
@@ -45740,7 +45781,7 @@
           "200": {
             "description": "Success, either users were found or not found",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
                   "$ref": "#/components/schemas/scim-enterprise-user-list"
                 },
@@ -45808,9 +45849,9 @@
           "201": {
             "description": "User has been created",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-user"
+                  "$ref": "#/components/schemas/scim-enterprise-user-response"
                 },
                 "examples": {
                   "user": {
@@ -45871,9 +45912,9 @@
           "200": {
             "description": "Success, a user was found",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-user"
+                  "$ref": "#/components/schemas/scim-enterprise-user-response"
                 },
                 "examples": {
                   "default": {
@@ -45944,9 +45985,9 @@
           "200": {
             "description": "User was updated",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-user"
+                  "$ref": "#/components/schemas/scim-enterprise-user-response"
                 },
                 "examples": {
                   "user": {
@@ -46072,9 +46113,9 @@
           "200": {
             "description": "Success, user was updated",
             "content": {
-              "application/json": {
+              "application/scim+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/scim-enterprise-user"
+                  "$ref": "#/components/schemas/scim-enterprise-user-response"
                 },
                 "examples": {
                   "userMultiValuedProperties": {
@@ -78442,8 +78483,11 @@
             "format": "date-time"
           },
           "commit_id": {
-            "description": "A commit SHA for the review.",
-            "type": "string",
+            "description": "A commit SHA for the review. If the commit object was garbage collected or forcibly deleted, then it no longer exists in Git and this value will be `null`.",
+            "type": [
+              "string",
+              "null"
+            ],
             "examples": [
               "54bb654c9e6025347f57900a4a5c2313a96b8035"
             ]
@@ -79434,13 +79478,10 @@
           "names"
         ]
       },
-      "group": {
+      "group-response": {
         "type": "object",
         "required": [
-          "schemas",
-          "externalId",
-          "displayName",
-          "members"
+          "schemas"
         ],
         "properties": {
           "schemas": {
@@ -79449,7 +79490,8 @@
             "items": {
               "type": "string",
               "enum": [
-                "urn:ietf:params:scim:schemas:core:2.0:Group"
+                "urn:ietf:params:scim:schemas:core:2.0:Group",
+                "urn:ietf:params:scim:api:messages:2.0:ListResponse"
               ]
             },
             "examples": [
@@ -79457,14 +79499,20 @@
             ]
           },
           "externalId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "A unique identifier for the resource as defined by the provisioning client.",
             "examples": [
               "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159"
             ]
           },
           "displayName": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "A human-readable name for a security group.",
             "examples": [
               "Engineering"
@@ -79477,7 +79525,7 @@
               "type": "object",
               "required": [
                 "value",
-                "displayName"
+                "$ref"
               ],
               "properties": {
                 "value": {
@@ -79487,7 +79535,10 @@
                     "23a35c27-23d3-4c03-b4c5-6443c09e7173"
                   ]
                 },
-                "displayName": {
+                "$ref": {
+                  "type": "string"
+                },
+                "display": {
                   "type": "string",
                   "description": "The display name associated with the member",
                   "examples": [
@@ -79537,18 +79588,13 @@
           }
         }
       },
-      "scim-enterprise-group": {
+      "scim-enterprise-group-response": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/group"
+            "$ref": "#/components/schemas/group-response"
           },
           {
             "type": "object",
-            "required": [
-              "id",
-              "meta",
-              "members"
-            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -79614,7 +79660,7 @@
             "type": "array",
             "description": "Information about each provisioned group.",
             "items": {
-              "$ref": "#/components/schemas/scim-enterprise-group"
+              "$ref": "#/components/schemas/scim-enterprise-group-response"
             }
           },
           "startIndex": {
@@ -79630,6 +79676,71 @@
             "examples": [
               20
             ]
+          }
+        }
+      },
+      "group": {
+        "type": "object",
+        "required": [
+          "schemas",
+          "externalId",
+          "displayName",
+          "members"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the SCIM schemas.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:schemas:core:2.0:Group"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:schemas:core:2.0:Group"
+            ]
+          },
+          "externalId": {
+            "type": "string",
+            "description": "A unique identifier for the resource as defined by the provisioning client.",
+            "examples": [
+              "8aa1a0c0-c4c3-4bc0-b4a5-2ef676900159"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "description": "A human-readable name for a security group.",
+            "examples": [
+              "Engineering"
+            ]
+          },
+          "members": {
+            "type": "array",
+            "description": "The group members.",
+            "items": {
+              "type": "object",
+              "required": [
+                "value",
+                "displayName"
+              ],
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "description": "The local unique identifier for the member",
+                  "examples": [
+                    "23a35c27-23d3-4c03-b4c5-6443c09e7173"
+                  ]
+                },
+                "displayName": {
+                  "type": "string",
+                  "description": "The display name associated with the member",
+                  "examples": [
+                    "Monalisa Octocat"
+                  ]
+                }
+              }
+            }
           }
         }
       },
@@ -79675,6 +79786,269 @@
                 "urn:ietf:params:scim:api:messages:2.0:PatchOp"
               ]
             }
+          }
+        }
+      },
+      "user-name-response": {
+        "type": "object",
+        "properties": {
+          "formatted": {
+            "type": "string",
+            "description": "The full name, including all middle names, titles, and suffixes as appropriate, formatted for display.",
+            "examples": [
+              "Ms. Mona Lisa Octocat"
+            ]
+          },
+          "familyName": {
+            "type": "string",
+            "description": "The family name of the user.",
+            "examples": [
+              "Octocat"
+            ]
+          },
+          "givenName": {
+            "type": "string",
+            "description": "The given name of the user.",
+            "examples": [
+              "Mona"
+            ]
+          },
+          "middleName": {
+            "type": "string",
+            "description": "The middle name(s) of the user.",
+            "examples": [
+              "Lisa"
+            ]
+          }
+        }
+      },
+      "user-emails-response": {
+        "type": "array",
+        "description": "The emails for the user.",
+        "items": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "description": "The email address.",
+              "examples": [
+                "mlisa@example.com"
+              ]
+            },
+            "type": {
+              "type": "string",
+              "description": "The type of email address.",
+              "examples": [
+                "work"
+              ]
+            },
+            "primary": {
+              "type": "boolean",
+              "description": "Whether this email address is the primary address.",
+              "examples": [
+                true
+              ]
+            }
+          }
+        }
+      },
+      "user-role": {
+        "type": "array",
+        "description": "The roles assigned to the user.",
+        "items": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "display": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "value": {
+              "type": "string",
+              "description": "The role value representing a user role in GitHub.",
+              "enum": [
+                "User",
+                "user",
+                "27d9891d-2c17-4f45-a262-781a0e55c80a",
+                "Restricted User",
+                "restricted_user",
+                "1ebc4a02-e56c-43a6-92a5-02ee09b90824",
+                "Enterprise Owner",
+                "enterprise_owner",
+                "981df190-8801-4618-a08a-d91f6206c954",
+                "ba4987ab-a1c3-412a-b58c-360fc407cb10",
+                "Billing Manager",
+                "billing_manager",
+                "0e338b8c-cc7f-498a-928d-ea3470d7e7e3",
+                "e6be2762-e4ad-4108-b72d-1bbe884a0f91"
+              ],
+              "examples": [
+                "user"
+              ]
+            },
+            "primary": {
+              "type": "boolean",
+              "description": "Is the role a primary role for the user.",
+              "examples": [
+                false
+              ]
+            }
+          }
+        }
+      },
+      "user-response": {
+        "type": "object",
+        "required": [
+          "schemas",
+          "active",
+          "emails"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the SCIM schemas.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:schemas:core:2.0:User"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:schemas:core:2.0:User"
+            ]
+          },
+          "externalId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A unique identifier for the resource as defined by the provisioning client.",
+            "examples": [
+              "E012345"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Whether the user active in the IdP.",
+            "examples": [
+              true
+            ]
+          },
+          "userName": {
+            "type": "string",
+            "description": "The username for the user.",
+            "examples": [
+              "E012345"
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/user-name-response"
+          },
+          "displayName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A human-readable name for the user.",
+            "examples": [
+              "Mona Lisa"
+            ]
+          },
+          "emails": {
+            "$ref": "#/components/schemas/user-emails-response"
+          },
+          "roles": {
+            "$ref": "#/components/schemas/user-role"
+          }
+        }
+      },
+      "scim-enterprise-user-response": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/user-response"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "meta"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The internally generated id for the user object.",
+                "examples": [
+                  "7fce0092-d52e-4f76-b727-3955bd72c939"
+                ]
+              },
+              "groups": {
+                "type": "array",
+                "description": "Provisioned SCIM groups that the user is a member of."
+              },
+              "meta": {
+                "$ref": "#/components/schemas/meta"
+              }
+            }
+          }
+        ]
+      },
+      "scim-enterprise-user-list": {
+        "type": "object",
+        "required": [
+          "schemas",
+          "totalResults",
+          "Resources",
+          "startIndex",
+          "itemsPerPage"
+        ],
+        "properties": {
+          "schemas": {
+            "type": "array",
+            "description": "The URIs that are used to indicate the namespaces of the list SCIM schemas.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+              ]
+            },
+            "examples": [
+              "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+            ]
+          },
+          "totalResults": {
+            "type": "integer",
+            "description": "Number of results found",
+            "examples": [
+              1
+            ]
+          },
+          "Resources": {
+            "type": "array",
+            "description": "Information about each provisioned account.",
+            "items": {
+              "$ref": "#/components/schemas/scim-enterprise-user-response"
+            }
+          },
+          "startIndex": {
+            "type": "integer",
+            "description": "A starting index for the returned page",
+            "examples": [
+              1
+            ]
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "description": "Number of objects per page",
+            "examples": [
+              20
+            ]
           }
         }
       },
@@ -79750,36 +80124,6 @@
           }
         }
       },
-      "user-role": {
-        "type": "array",
-        "description": "The roles assigned to the user.",
-        "items": {
-          "type": "object",
-          "required": [
-            "value"
-          ],
-          "properties": {
-            "value": {
-              "type": "string",
-              "description": "The role value representing a user role in GitHub.",
-              "enum": [
-                "User",
-                "Enterprise Owner"
-              ],
-              "examples": [
-                "User"
-              ]
-            },
-            "primary": {
-              "type": "boolean",
-              "description": "Is the role a primary role for the user.",
-              "examples": [
-                false
-              ]
-            }
-          }
-        }
-      },
       "user": {
         "type": "object",
         "required": [
@@ -79840,89 +80184,6 @@
           },
           "roles": {
             "$ref": "#/components/schemas/user-role"
-          }
-        }
-      },
-      "scim-enterprise-user": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/user"
-          },
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "meta"
-            ],
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "The internally generated id for the user object.",
-                "examples": [
-                  "7fce0092-d52e-4f76-b727-3955bd72c939"
-                ]
-              },
-              "groups": {
-                "type": "array",
-                "description": "Provisioned SCIM groups that the user is a member of."
-              },
-              "meta": {
-                "$ref": "#/components/schemas/meta"
-              }
-            }
-          }
-        ]
-      },
-      "scim-enterprise-user-list": {
-        "type": "object",
-        "required": [
-          "schemas",
-          "totalResults",
-          "Resources",
-          "startIndex",
-          "itemsPerPage"
-        ],
-        "properties": {
-          "schemas": {
-            "type": "array",
-            "description": "The URIs that are used to indicate the namespaces of the list SCIM schemas.",
-            "items": {
-              "type": "string",
-              "enum": [
-                "urn:ietf:params:scim:api:messages:2.0:ListResponse"
-              ]
-            },
-            "examples": [
-              "urn:ietf:params:scim:api:messages:2.0:ListResponse"
-            ]
-          },
-          "totalResults": {
-            "type": "integer",
-            "description": "Number of results found",
-            "examples": [
-              1
-            ]
-          },
-          "Resources": {
-            "type": "array",
-            "description": "Information about each provisioned account.",
-            "items": {
-              "$ref": "#/components/schemas/scim-enterprise-user"
-            }
-          },
-          "startIndex": {
-            "type": "integer",
-            "description": "A starting index for the returned page",
-            "examples": [
-              1
-            ]
-          },
-          "itemsPerPage": {
-            "type": "integer",
-            "description": "Number of objects per page",
-            "examples": [
-              20
-            ]
           }
         }
       },
@@ -106515,7 +106776,7 @@
       },
       "branch": {
         "name": "branch",
-        "description": "The name of the branch.",
+        "description": "The name of the branch. Cannot contain wildcard characters. To use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.6/graphql).",
         "in": "path",
         "required": true,
         "schema": {
