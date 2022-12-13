@@ -41,7 +41,7 @@ If you've identified a mismatch between GitHub API's behavior and these descript
 
 ## License
 
-github/rest-api-description is licensed under the [MIT license](LICENSE.md)
+github/rest-api-description is licensed under the [MIT license.](LICENSE.md)
 
 
 ## Contact
