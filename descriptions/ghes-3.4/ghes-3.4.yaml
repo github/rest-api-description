@@ -19806,7 +19806,7 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - name: sha
         description: 'SHA or branch to start listing commits from. Default: the repository’s
-          default branch (usually `master`).'
+          default branch (usually `main`).'
         in: query
         required: false
         schema:
@@ -20350,21 +20350,26 @@ paths:
     get:
       summary: Compare two commits
       description: |-
-        The `basehead` param is comprised of two parts separated by triple dots: `{base}...{head}`. Both must be branch names in `repo`. To compare branches across other repositories in the same network as `repo`, use the format `<USERNAME>:branch`.
+        Compares two commits against one another. You can compare branches in the same repository, or you can compare branches that exist in different repositories within the same repository network, including fork branches. For more information about how to view a repository's network, see "[Understanding connections between repositories](https://docs.github.com/enterprise-server@3.4/repositories/viewing-activity-and-data-for-your-repository/understanding-connections-between-repositories)."
 
-        The response from the API is equivalent to running the `git log base..head` command; however, commits are returned in chronological order. Pass the appropriate [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
+        This endpoint is equivalent to running the `git log BASE...HEAD` command, but it returns commits in a different order. The `git log BASE...HEAD` command returns commits in reverse chronological order, whereas the API returns commits in chronological order. You can pass the appropriate [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
 
-        The response also includes details on the files that were changed between the two commits. This includes the status of the change (for example, if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+        The API response includes details about the files that were changed between the two commits. This includes the status of the change (if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+
+        When calling this endpoint without any paging parameter (`per_page` or `page`), the returned list is limited to 250 commits, and the last commit in the list is the most recent of the entire comparison.
 
         **Working with large comparisons**
 
-        To process a response with a large number of commits, you can use (`per_page` or `page`) to paginate the results. When using paging, the list of changed files is only returned with page 1, but includes all changed files for the entire comparison. For more information on working with pagination, see "[Traversing with pagination](/rest/guides/traversing-with-pagination)."
+        To process a response with a large number of commits, use a query parameter (`per_page` or `page`) to paginate the results. When using pagination:
 
-        When calling this API without any paging parameters (`per_page` or `page`), the returned list is limited to 250 commits and the last commit in the list is the most recent of the entire comparison. When a paging parameter is specified, the first commit in the returned list of each page is the earliest.
+        - The list of changed files is only shown on the first page of results, but it includes all changed files for the entire comparison.
+        - The results are returned in chronological order, but the last commit in the returned list may not be the most recent one in the entire set if there are more pages of results.
+
+        For more information on working with pagination, see "[Using pagination in the REST API](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api)."
 
         **Signature verification object**
 
-        The response will include a `verification` object that describes the result of verifying the commit's signature. The following fields are included in the `verification` object:
+        The response will include a `verification` object that describes the result of verifying the commit's signature. The `verification` object includes the following fields:
 
         | Name | Type | Description |
         | ---- | ---- | ----------- |
@@ -20403,7 +20408,9 @@ paths:
       - "$ref": "#/components/parameters/per-page"
       - name: basehead
         description: The base branch and head branch to compare. This parameter expects
-          the format `{base}...{head}`.
+          the format `BASE...HEAD`. Both must be branch names in `repo`. To compare
+          with a branch that exists in a different repository in the same network
+          as `repo`, the `basehead` parameter expects the format `USERNAME:BASE...USERNAME:HEAD`.
         in: path
         required: true
         x-multi-segment: true
@@ -30216,7 +30223,7 @@ paths:
       summary: Download a repository archive (tar)
       description: |-
         Gets a redirect URL to download a tar archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
         **Note**: For private repositories, these links are temporary and expire after five minutes.
       tags:
@@ -30433,7 +30440,7 @@ paths:
       summary: Download a repository archive (zip)
       description: |-
         Gets a redirect URL to download a zip archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
 
         **Note**: For private repositories, these links are temporary and expire after five minutes. If the repository is empty, you will receive a 404 when you follow the redirect.
@@ -30975,7 +30982,7 @@ paths:
     get:
       summary: Search commits
       description: |-
-        Find commits via various criteria on the default branch (usually `master`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#pagination).
+        Find commits via various criteria on the default branch (usually `main`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#pagination).
 
         When searching for commits, you can get text match metadata for the **message** field when you provide the `text-match` media type. For more details about how to receive highlighted search results, see [Text match
         metadata](https://docs.github.com/enterprise-server@3.4/rest/reference/search#text-match-metadata).
