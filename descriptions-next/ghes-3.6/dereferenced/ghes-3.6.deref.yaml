@@ -43742,7 +43742,7 @@ paths:
       - *201
       - name: sha
         description: 'SHA or branch to start listing commits from. Default: the repository’s
-          default branch (usually `master`).'
+          default branch (usually `main`).'
         in: query
         required: false
         schema:
@@ -45632,21 +45632,26 @@ paths:
     get:
       summary: Compare two commits
       description: |-
-        The `basehead` param is comprised of two parts separated by triple dots: `{base}...{head}`. Both must be branch names in `repo`. To compare branches across other repositories in the same network as `repo`, use the format `<USERNAME>:branch`.
+        Compares two commits against one another. You can compare branches in the same repository, or you can compare branches that exist in different repositories within the same repository network, including fork branches. For more information about how to view a repository's network, see "[Understanding connections between repositories](https://docs.github.com/enterprise-server@3.6/repositories/viewing-activity-and-data-for-your-repository/understanding-connections-between-repositories)."
 
-        The response from the API is equivalent to running the `git log base..head` command; however, commits are returned in chronological order. Pass the appropriate [media type](https://docs.github.com/enterprise-server@3.6/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
+        This endpoint is equivalent to running the `git log BASE...HEAD` command, but it returns commits in a different order. The `git log BASE...HEAD` command returns commits in reverse chronological order, whereas the API returns commits in chronological order. You can pass the appropriate [media type](https://docs.github.com/enterprise-server@3.6/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
 
-        The response also includes details on the files that were changed between the two commits. This includes the status of the change (for example, if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+        The API response includes details about the files that were changed between the two commits. This includes the status of the change (if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+
+        When calling this endpoint without any paging parameter (`per_page` or `page`), the returned list is limited to 250 commits, and the last commit in the list is the most recent of the entire comparison.
 
         **Working with large comparisons**
 
-        To process a response with a large number of commits, you can use (`per_page` or `page`) to paginate the results. When using paging, the list of changed files is only returned with page 1, but includes all changed files for the entire comparison. For more information on working with pagination, see "[Traversing with pagination](/rest/guides/traversing-with-pagination)."
+        To process a response with a large number of commits, use a query parameter (`per_page` or `page`) to paginate the results. When using pagination:
 
-        When calling this API without any paging parameters (`per_page` or `page`), the returned list is limited to 250 commits and the last commit in the list is the most recent of the entire comparison. When a paging parameter is specified, the first commit in the returned list of each page is the earliest.
+        - The list of changed files is only shown on the first page of results, but it includes all changed files for the entire comparison.
+        - The results are returned in chronological order, but the last commit in the returned list may not be the most recent one in the entire set if there are more pages of results.
+
+        For more information on working with pagination, see "[Using pagination in the REST API](https://docs.github.com/enterprise-server@3.6/rest/guides/using-pagination-in-the-rest-api)."
 
         **Signature verification object**
 
-        The response will include a `verification` object that describes the result of verifying the commit's signature. The following fields are included in the `verification` object:
+        The response will include a `verification` object that describes the result of verifying the commit's signature. The `verification` object includes the following fields:
 
         | Name | Type | Description |
         | ---- | ---- | ----------- |
@@ -45685,7 +45690,9 @@ paths:
       - *4
       - name: basehead
         description: The base branch and head branch to compare. This parameter expects
-          the format `{base}...{head}`.
+          the format `BASE...HEAD`. Both must be branch names in `repo`. To compare
+          with a branch that exists in a different repository in the same network
+          as `repo`, the `basehead` parameter expects the format `USERNAME:BASE...USERNAME:HEAD`.
         in: path
         required: true
         x-multi-segment: true
@@ -47645,7 +47652,7 @@ paths:
       operationId: repos/list-deployments
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#list-deployments
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/deployments#list-deployments
       parameters:
       - *200
       - *201
@@ -47697,8 +47704,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
     post:
       summary: Create a deployment
       description: |-
@@ -47752,7 +47758,7 @@ paths:
       operationId: repos/create-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#create-a-deployment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/deployments#create-a-deployment
       parameters:
       - *200
       - *201
@@ -47897,8 +47903,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
   "/repos/{owner}/{repo}/deployments/{deployment_id}":
     get:
       summary: Get a deployment
@@ -47908,7 +47913,7 @@ paths:
       operationId: repos/get-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#get-a-deployment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/deployments#get-a-deployment
       parameters:
       - *200
       - *201
@@ -47967,8 +47972,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
     delete:
       summary: Delete a deployment
       description: |-
@@ -47979,13 +47983,13 @@ paths:
         *   Create a new deployment that is active so that the system has a record of the current state, then delete the previously active deployment.
         *   Mark the active deployment as inactive by adding any non-successful deployment status.
 
-        For more information, see "[Create a deployment](https://docs.github.com/enterprise-server@3.6/rest/reference/repos/#create-a-deployment)" and "[Create a deployment status](https://docs.github.com/enterprise-server@3.6/rest/reference/repos#create-a-deployment-status)."
+        For more information, see "[Create a deployment](https://docs.github.com/enterprise-server@3.6/rest/deployments/deployments/#create-a-deployment)" and "[Create a deployment status](https://docs.github.com/enterprise-server@3.6/rest/deployments/deployment-statuses#create-a-deployment-status)."
       tags:
       - repos
       operationId: repos/delete-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#delete-a-deployment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/deployments#delete-a-deployment
       parameters:
       - *200
       - *201
@@ -47998,8 +48002,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
   "/repos/{owner}/{repo}/deployments/{deployment_id}/statuses":
     get:
       summary: List deployment statuses
@@ -48009,7 +48012,7 @@ paths:
       operationId: repos/list-deployment-statuses
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#list-deployment-statuses
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/statuses#list-deployment-statuses
       parameters:
       - *200
       - *201
@@ -48170,8 +48173,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
     post:
       summary: Create a deployment status
       description: |-
@@ -48183,7 +48186,7 @@ paths:
       operationId: repos/create-deployment-status
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#create-a-deployment-status
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/statuses#create-a-deployment-status
       parameters:
       - *200
       - *201
@@ -48309,8 +48312,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
   "/repos/{owner}/{repo}/deployments/{deployment_id}/statuses/{status_id}":
     get:
       summary: Get a deployment status
@@ -48320,7 +48323,7 @@ paths:
       operationId: repos/get-deployment-status
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#get-a-deployment-status
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/statuses#get-a-deployment-status
       parameters:
       - *200
       - *201
@@ -48342,8 +48345,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
   "/repos/{owner}/{repo}/dispatches":
     post:
       summary: Create a repository dispatch event
@@ -48672,7 +48675,7 @@ paths:
       operationId: repos/get-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#get-an-environment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/environments#get-an-environment
       parameters:
       - *200
       - *201
@@ -48751,7 +48754,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
     put:
       summary: Create or update an environment
@@ -48768,7 +48771,7 @@ paths:
       operationId: repos/create-or-update-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#create-or-update-an-environment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/environments#create-or-update-an-environment
       parameters:
       - *200
       - *201
@@ -48834,7 +48837,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
     delete:
       summary: Delete an environment
@@ -48845,7 +48848,7 @@ paths:
       operationId: repos/delete-an-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#delete-an-environment
+        url: https://docs.github.com/enterprise-server@3.6/rest/deployments/environments#delete-an-environment
       parameters:
       - *200
       - *201
@@ -48856,7 +48859,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
   "/repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies":
     get:
@@ -55816,7 +55819,7 @@ paths:
       operationId: repos/list-deploy-keys
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#list-deploy-keys
+        url: https://docs.github.com/enterprise-server@3.6/rest/deploy-keys#list-deploy-keys
       parameters:
       - *200
       - *201
@@ -55864,8 +55867,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
     post:
       summary: Create a deploy key
       description: You can create a read-only deploy key.
@@ -55874,7 +55876,7 @@ paths:
       operationId: repos/create-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#create-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.6/rest/deploy-keys#create-a-deploy-key
       parameters:
       - *200
       - *201
@@ -55933,8 +55935,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
   "/repos/{owner}/{repo}/keys/{key_id}":
     get:
       summary: Get a deploy key
@@ -55944,7 +55945,7 @@ paths:
       operationId: repos/get-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#get-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.6/rest/deploy-keys#get-a-deploy-key
       parameters:
       - *200
       - *201
@@ -55967,8 +55968,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
     delete:
       summary: Delete a deploy key
       description: Deploy keys are immutable. If you need to update a key, remove
@@ -55978,7 +55978,7 @@ paths:
       operationId: repos/delete-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.6/rest/reference/repos#delete-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.6/rest/deploy-keys#delete-a-deploy-key
       parameters:
       - *200
       - *201
@@ -55989,8 +55989,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
   "/repos/{owner}/{repo}/labels":
     get:
       summary: List labels for a repository
@@ -65792,7 +65791,7 @@ paths:
       summary: Download a repository archive (tar)
       description: |-
         Gets a redirect URL to download a tar archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
         **Note**: For private repositories, these links are temporary and expire after five minutes.
       tags:
@@ -66230,7 +66229,7 @@ paths:
       summary: Download a repository archive (zip)
       description: |-
         Gets a redirect URL to download a zip archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
 
         **Note**: For private repositories, these links are temporary and expire after five minutes. If the repository is empty, you will receive a 404 when you follow the redirect.
@@ -68370,7 +68369,7 @@ paths:
     get:
       summary: Search commits
       description: |-
-        Find commits via various criteria on the default branch (usually `master`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.6/rest/overview/resources-in-the-rest-api#pagination).
+        Find commits via various criteria on the default branch (usually `main`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.6/rest/overview/resources-in-the-rest-api#pagination).
 
         When searching for commits, you can get text match metadata for the **message** field when you provide the `text-match` media type. For more details about how to receive highlighted search results, see [Text match
         metadata](https://docs.github.com/enterprise-server@3.6/rest/reference/search#text-match-metadata).
