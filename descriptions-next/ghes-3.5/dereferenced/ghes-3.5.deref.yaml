@@ -82,6 +82,10 @@ tags:
   description: Interact with GitHub Teams.
 - name: users
   description: Interact with and view information about users and also current user.
+- name: enterprise-admin
+  description: Enterprise Administration
+- name: server-statistics
+  description: Server statistics
 servers:
 - url: "{protocol}://{hostname}/api/v3"
   variables:
@@ -18169,6 +18173,7 @@ paths:
       summary: List self-hosted runner groups for an organization
       description: |-
         Lists all self-hosted runner groups configured in an organization and inherited from an enterprise.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/list-self-hosted-runner-groups-for-org
       tags:
@@ -18296,8 +18301,6 @@ paths:
     post:
       summary: Create a self-hosted runner group for an organization
       description: |-
-        The self-hosted runner groups REST API is available with GitHub Enterprise Cloud and GitHub Enterprise Server. For more information, see "[GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products)."
-
         Creates a new self-hosted runner group for an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -18444,6 +18447,7 @@ paths:
       summary: Update a self-hosted runner group for an organization
       description: |-
         Updates the `name` and `visibility` of a self-hosted runner group in an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/update-self-hosted-runner-group-for-org
       tags:
@@ -18538,8 +18542,6 @@ paths:
     get:
       summary: List repository access to a self-hosted runner group in an organization
       description: |-
-        The self-hosted runner groups REST API is available with GitHub Enterprise Cloud and GitHub Enterprise Server. For more information, see "[GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products)."
-
         Lists the repositories with access to a self-hosted runner group configured in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -18814,6 +18816,7 @@ paths:
       summary: Set repository access for a self-hosted runner group in an organization
       description: |-
         Replaces the list of repositories that have access to a self-hosted runner group configured in an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/set-repo-access-to-self-hosted-runner-group-in-org
       tags:
@@ -18858,7 +18861,9 @@ paths:
       summary: Add repository access to a self-hosted runner group in an organization
       description: |-
         Adds a repository to the list of selected repositories that can access a self-hosted runner group. The runner group must have `visibility` set to `selected`. For more information, see "[Create a self-hosted runner group for an organization](#create-a-self-hosted-runner-group-for-an-organization)."
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        You must authenticate using an access token with the `admin:org`
+        scope to use this endpoint.
       operationId: actions/add-repo-access-to-self-hosted-runner-group-in-org
       tags:
       - actions
@@ -18881,6 +18886,7 @@ paths:
       summary: Remove repository access to a self-hosted runner group in an organization
       description: |-
         Removes a repository from the list of selected repositories that can access a self-hosted runner group. The runner group must have `visibility` set to `selected`. For more information, see "[Create a self-hosted runner group for an organization](#create-a-self-hosted-runner-group-for-an-organization)."
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/remove-repo-access-to-self-hosted-runner-group-in-org
       tags:
@@ -18905,6 +18911,7 @@ paths:
       summary: List self-hosted runners in a group for an organization
       description: |-
         Lists self-hosted runners that are in a specific organization group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/list-self-hosted-runners-in-group-for-org
       tags:
@@ -18946,6 +18953,7 @@ paths:
       summary: Set self-hosted runners in a group for an organization
       description: |-
         Replaces the list of self-hosted runners that are part of an organization runner group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/set-self-hosted-runners-in-group-for-org
       tags:
@@ -18990,7 +18998,9 @@ paths:
       summary: Add a self-hosted runner to a group for an organization
       description: |-
         Adds a self-hosted runner to a runner group configured in an organization.
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        You must authenticate using an access token with the `admin:org`
+        scope to use this endpoint.
       operationId: actions/add-self-hosted-runner-to-group-for-org
       tags:
       - actions
@@ -19013,6 +19023,7 @@ paths:
       summary: Remove a self-hosted runner from a group for an organization
       description: |-
         Removes a self-hosted runner from a group configured in an organization. The runner is then returned to the default group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/remove-self-hosted-runner-from-group-for-org
       tags:
@@ -23050,6 +23061,9 @@ paths:
         they'll only have access to the repositories that their current team membership
         allows. The user will no longer be a member of the organization. For more
         information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/enterprise-server@3.5/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        Converting an organization member to an outside collaborator may be restricted
+        by enterprise administrators. For more information, see "[Enforcing repository
+        management policies in your enterprise](https://docs.github.com/enterprise-server@3.5/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
       tags:
       - orgs
       operationId: orgs/convert-member-to-outside-collaborator
@@ -23094,8 +23108,10 @@ paths:
         '204':
           description: User was converted
         '403':
-          description: Forbidden if user is the last owner of the organization or
-            not a member of the organization.
+          description: Forbidden if user is the last owner of the organization, not
+            a member of the organization, or if the enterprise enforces a policy for
+            inviting outside collaborators. For more information, see "[Enforcing
+            repository management policies in your enterprise](https://docs.github.com/enterprise-server@3.5/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
         '404': *33
       x-github:
         githubCloudOnly: false
@@ -23679,11 +23695,9 @@ paths:
       parameters:
       - *104
       - name: type
-        description: Specifies the types of repositories you want returned. If your
-          organization is associated with an enterprise account using GitHub Enterprise
-          Cloud or GitHub Enterprise Server 2.20+, `type` can also be `internal`.
-          However, the `internal` value is not yet supported when a GitHub App calls
-          this API with an installation access token.
+        description: Specifies the types of repositories you want returned. `internal`
+          is not yet supported when a GitHub App calls this endpoint with an installation
+          access token.
         in: query
         required: false
         schema:
@@ -23878,14 +23892,13 @@ paths:
                   default: false
                 visibility:
                   type: string
-                  description: 'Can be `public` or `private`. If your organization
-                    is associated with an enterprise account using GitHub Enterprise
-                    Cloud or GitHub Enterprise Server 2.20+, `visibility` can also
-                    be `internal`. Note: For GitHub Enterprise Server and GitHub AE,
-                    this endpoint will only list repositories available to all users
-                    on the enterprise. For more information, see "[Creating an internal
-                    repository](https://docs.github.com/enterprise-server@3.5/github/creating-cloning-and-archiving-repositories/about-repository-visibility#about-internal-repositories)"
-                    in the GitHub Help documentation.'
+                  description: "The visibility of the repository. **Note**: For GitHub
+                    Enterprise Server, this endpoint will only list repositories available
+                    to all users on the enterprise. For more information, see \"[Creating
+                    an internal repository](https://docs.github.com/enterprise-server@3.5/github/creating-cloning-and-archiving-repositories/about-repository-visibility#about-internal-repositories)\"
+                    in the GitHub Help documentation.  \nThe `visibility` parameter
+                    overrides the `private` parameter when you use both parameters
+                    with the `nebula-preview` preview header."
                   enum:
                   - public
                   - private
@@ -26436,9 +26449,9 @@ paths:
     put:
       summary: Add or update team membership for a user
       description: |-
-        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
-
         Adds an organization member to a team. An authenticated organization owner or team maintainer can add organization members to a team.
+
+        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         **Note:** When you have team synchronization set up for a team with your organization's identity provider (IdP), you will see an error if you attempt to use the API for making changes to the team's membership. If you have access to manage group membership in your IdP, you can manage GitHub Enterprise Server team membership through your identity provider, which automatically adds and removes team members in an organization. For more information, see "[Synchronizing teams between your identity provider and GitHub Enterprise Server](https://docs.github.com/enterprise-server@3.5/articles/synchronizing-teams-between-your-identity-provider-and-github/)."
 
@@ -26502,9 +26515,9 @@ paths:
     delete:
       summary: Remove team membership for a user
       description: |-
-        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
-
         To remove a membership between a user and a team, the authenticated user must have 'admin' permissions to the team or be an owner of the organization that the team is associated with. Removing team membership does not delete the user, it just removes their membership from the team.
+
+        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.5/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         **Note:** When you have team synchronization set up for a team with your organization's identity provider (IdP), you will see an error if you attempt to use the API for making changes to the team's membership. If you have access to manage group membership in your IdP, you can manage GitHub Enterprise Server team membership through your identity provider, which automatically adds and removes team members in an organization. For more information, see "[Synchronizing teams between your identity provider and GitHub Enterprise Server](https://docs.github.com/enterprise-server@3.5/articles/synchronizing-teams-between-your-identity-provider-and-github/)."
 
@@ -30198,55 +30211,11 @@ paths:
                   default: false
                 visibility:
                   type: string
-                  description: Can be `public` or `private`. If your organization
-                    is associated with an enterprise account using GitHub Enterprise
-                    Cloud or GitHub Enterprise Server 2.20+, `visibility` can also
-                    be `internal`."
+                  description: The visibility of the repository.
                   enum:
                   - public
                   - private
                   - internal
-                security_and_analysis:
-                  type:
-                  - object
-                  - 'null'
-                  description: |-
-                    Specify which security and analysis features to enable or disable for the repository.
-
-                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.5/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
-
-                    For example, to enable GitHub Advanced Security, use this data in the body of the `PATCH` request:
-                    `{ "security_and_analysis": {"advanced_security": { "status": "enabled" } } }`.
-
-                    You can check which security and analysis features are currently enabled by using a `GET /repos/{owner}/{repo}` request.
-                  properties:
-                    advanced_security:
-                      type: object
-                      description: Use the `status` property to enable or disable
-                        GitHub Advanced Security for this repository. For more information,
-                        see "[About GitHub Advanced Security](/github/getting-started-with-github/learning-about-github/about-github-advanced-security)."
-                      properties:
-                        status:
-                          type: string
-                          description: Can be `enabled` or `disabled`.
-                    secret_scanning:
-                      type: object
-                      description: Use the `status` property to enable or disable
-                        secret scanning for this repository. For more information,
-                        see "[About secret scanning](/code-security/secret-security/about-secret-scanning)."
-                      properties:
-                        status:
-                          type: string
-                          description: Can be `enabled` or `disabled`.
-                    secret_scanning_push_protection:
-                      type: object
-                      description: Use the `status` property to enable or disable
-                        secret scanning push protection for this repository. For more
-                        information, see "[Protecting pushes with secret scanning](/code-security/secret-scanning/protecting-pushes-with-secret-scanning)."
-                      properties:
-                        status:
-                          type: string
-                          description: Can be `enabled` or `disabled`.
                 has_issues:
                   type: boolean
                   description: Either `true` to enable issues for this repository
@@ -30289,11 +30258,6 @@ paths:
                   description: Either `true` to allow rebase-merging pull requests,
                     or `false` to prevent rebase-merging.
                   default: true
-                allow_auto_merge:
-                  type: boolean
-                  description: Either `true` to allow auto-merge on pull requests,
-                    or `false` to disallow auto-merge.
-                  default: false
                 delete_branch_on_merge:
                   type: boolean
                   description: Either `true` to allow automatically deleting head
@@ -30884,7 +30848,22 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: repos
-        subcategory: 
+        previews:
+        - name: nebula
+          note: |-
+            You can set the visibility of a repository using the new `visibility` parameter in the [Repositories API](https://docs.github.com/enterprise-server@3.5/rest/reference/repos/), and get a repository's visibility with a new response key. For more information, see the [blog post](https://developer.github.com/changes/2019-12-03-internal-visibility-changes/).
+
+            To access repository visibility during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.5/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.nebula-preview+json
+            ```
+        - name: baptiste
+          note: |-
+            The `is_template` and `template_repository` keys are currently available for developer to preview. See [Create a repository using a template](https://docs.github.com/enterprise-server@3.5/rest/reference/repos#create-a-repository-using-a-template) to learn how to create template repositories. To access these new response keys during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.5/rest/overview/media-types) in the `Accept` header:
+
+            ```shell
+            application/vnd.github.baptiste-preview+json
+            ```
     delete:
       summary: Delete a repository
       description: |-
