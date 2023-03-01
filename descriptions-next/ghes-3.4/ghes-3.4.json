@@ -2638,6 +2638,60 @@
         }
       }
     },
+    "/app/installation-requests": {
+      "get": {
+        "summary": "List installation requests for the authenticated app",
+        "description": "Lists all the pending installation requests for the authenticated GitHub App.",
+        "tags": [
+          "apps"
+        ],
+        "operationId": "apps/list-installation-requests-for-authenticated-app",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-server@3.4/rest/reference/apps#list-installation-requests-for-the-authenticated-app"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of integration installation requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/integration-installation-request"
+                  }
+                },
+                "examples": {
+                  "exampleKey1": {
+                    "$ref": "#/components/examples/integration-installation-request-paginated"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/not_modified"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "apps",
+          "subcategory": null
+        }
+      }
+    },
     "/app/installations": {
       "get": {
         "summary": "List installations for the authenticated app",
@@ -3116,7 +3170,7 @@
     "/applications/{client_id}/grant": {
       "delete": {
         "summary": "Delete an app authorization",
-        "description": "OAuth application owners can revoke a grant for their OAuth application and a specific user. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid OAuth `access_token` as an input parameter and the grant for the token's owner will be deleted.\nDeleting an OAuth application's grant will also delete all OAuth tokens associated with the application for the user. Once deleted, the application will have no access to the user's account and will no longer be listed on [the application authorizations settings screen within GitHub](https://github.com/settings/applications#authorized).",
+        "description": "OAuth and GitHub application owners can revoke a grant for their application and a specific user. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid OAuth `access_token` as an input parameter and the grant for the token's owner will be deleted.\nDeleting an application's grant will also delete all OAuth tokens associated with the application for the user. Once deleted, the application will have no access to the user's account and will no longer be listed on [the application authorizations settings screen within GitHub](https://github.com/settings/applications#authorized).",
         "operationId": "apps/delete-authorization",
         "tags": [
           "apps"
@@ -3175,7 +3229,7 @@
     "/applications/{client_id}/token": {
       "post": {
         "summary": "Check a token",
-        "description": "OAuth applications can use a special API method for checking OAuth token validity without exceeding the normal rate limits for failed login attempts. Authentication works differently with this particular endpoint. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) to use this endpoint, where the username is the OAuth application `client_id` and the password is its `client_secret`. Invalid tokens will return `404 NOT FOUND`.",
+        "description": "OAuth applications and GitHub applications with OAuth authorizations can use this API method for checking OAuth token validity without exceeding the normal rate limits for failed login attempts. Authentication works differently with this particular endpoint. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) to use this endpoint, where the username is the application `client_id` and the password is its `client_secret`. Invalid tokens will return `404 NOT FOUND`.",
         "tags": [
           "apps"
         ],
@@ -3196,7 +3250,7 @@
               "schema": {
                 "properties": {
                   "access_token": {
-                    "description": "The access_token of the OAuth application.",
+                    "description": "The access_token of the OAuth or GitHub application.",
                     "type": "string"
                   }
                 },
@@ -3247,7 +3301,7 @@
       },
       "patch": {
         "summary": "Reset a token",
-        "description": "OAuth applications can use this API method to reset a valid OAuth token without end-user involvement. Applications must save the \"token\" property in the response because changes take effect immediately. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. Invalid tokens will return `404 NOT FOUND`.",
+        "description": "OAuth applications and GitHub applications with OAuth authorizations can use this API method to reset a valid OAuth token without end-user involvement. Applications must save the \"token\" property in the response because changes take effect immediately. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the application's `client_id` and `client_secret` as the username and password. Invalid tokens will return `404 NOT FOUND`.",
         "tags": [
           "apps"
         ],
@@ -3268,7 +3322,7 @@
               "schema": {
                 "properties": {
                   "access_token": {
-                    "description": "The access_token of the OAuth application.",
+                    "description": "The access_token of the OAuth or GitHub application.",
                     "type": "string"
                   }
                 },
@@ -3316,7 +3370,7 @@
       },
       "delete": {
         "summary": "Delete an app token",
-        "description": "OAuth application owners can revoke a single token for an OAuth application. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password.",
+        "description": "OAuth  or GitHub application owners can revoke a single token for an OAuth application or a GitHub application with an OAuth authorization. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the application's `client_id` and `client_secret` as the username and password.",
         "tags": [
           "apps"
         ],
@@ -49630,10 +49684,10 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/since"
+            "$ref": "#/components/parameters/since-repo-date"
           },
           {
-            "$ref": "#/components/parameters/before"
+            "$ref": "#/components/parameters/before-repo-date"
           }
         ],
         "responses": {
@@ -54107,6 +54161,52 @@
           "created_at",
           "updated_at",
           "avatar_url"
+        ]
+      },
+      "integration-installation-request": {
+        "title": "Integration Installation Request",
+        "description": "Request to install an integration on a target",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the request installation.",
+            "type": "integer",
+            "examples": [
+              42
+            ]
+          },
+          "node_id": {
+            "type": "string",
+            "examples": [
+              "MDExOkludGVncmF0aW9uMQ=="
+            ]
+          },
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/simple-user"
+              },
+              {
+                "$ref": "#/components/schemas/enterprise"
+              }
+            ]
+          },
+          "requester": {
+            "$ref": "#/components/schemas/simple-user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "examples": [
+              "2022-07-08T16:18:44-04:00"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "account",
+          "requester",
+          "created_at"
         ]
       },
       "installation": {
@@ -69497,6 +69597,7 @@
           },
           "protection_rules": {
             "type": "array",
+            "description": "Built-in deployment protection rules for the environment.",
             "items": {
               "anyOf": [
                 {
@@ -79273,6 +79374,54 @@
             "payload": "ok"
           }
         }
+      },
+      "integration-installation-request-paginated": {
+        "value": [
+          {
+            "id": 25381,
+            "node_id": "MDEyOkludGVncmF0aW9uMTIzNDU2Nzg5MA==",
+            "account": {
+              "login": "octo-org",
+              "id": 6811672,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjY4MTE2NzI=",
+              "avatar_url": "https://avatars3.githubusercontent.com/u/6811672?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/octo-org",
+              "html_url": "https://github.com/octo-org",
+              "followers_url": "https://api.github.com/users/octo-org/followers",
+              "following_url": "https://api.github.com/users/octo-org/following{/other_user}",
+              "gists_url": "https://api.github.com/users/octo-org/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/octo-org/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/octo-org/subscriptions",
+              "organizations_url": "https://api.github.com/users/octo-org/orgs",
+              "repos_url": "https://api.github.com/users/octo-org/repos",
+              "events_url": "https://api.github.com/users/octo-org/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/octo-org/received_events",
+              "type": "Organization",
+              "site_admin": false
+            },
+            "requester": {
+              "id": 1,
+              "node_id": "MDQ6VXNlcjE=",
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/octocat",
+              "html_url": "https://github.com/octocat",
+              "followers_url": "https://api.github.com/users/octocat/followers",
+              "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+              "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+              "organizations_url": "https://api.github.com/users/octocat/orgs",
+              "repos_url": "https://api.github.com/users/octocat/repos",
+              "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/octocat/received_events",
+              "type": "User",
+              "site_admin": false
+            },
+            "created_at": "2022-07-08T16:18:44-04:00"
+          }
+        ]
       },
       "base-installation-items": {
         "value": [
@@ -102020,6 +102169,26 @@
           "type": "integer"
         }
       },
+      "since-repo-date": {
+        "name": "since",
+        "description": "Only show repositories updated after the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "before-repo-date": {
+        "name": "before",
+        "description": "Only show repositories updated before the given time. This is a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
       "since-user": {
         "name": "since",
         "description": "A user ID. Only return users with an ID greater than this ID.",
@@ -102136,15 +102305,8 @@
           }
         }
       },
-      "forbidden": {
-        "description": "Forbidden",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/basic-error"
-            }
-          }
-        }
+      "not_modified": {
+        "description": "Not modified"
       },
       "requires_authentication": {
         "description": "Requires authentication",
@@ -102156,8 +102318,15 @@
           }
         }
       },
-      "not_modified": {
-        "description": "Not modified"
+      "forbidden": {
+        "description": "Forbidden",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/basic-error"
+            }
+          }
+        }
       },
       "gone": {
         "description": "Gone",
