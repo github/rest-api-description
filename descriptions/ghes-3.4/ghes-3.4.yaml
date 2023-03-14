@@ -35828,6 +35828,11 @@ paths:
         the authenticated user belongs. This method requires `user`, `repo`, or `read:org`
         [scope](https://docs.github.com/enterprise-server@3.4/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/)
         when authenticating via [OAuth](https://docs.github.com/enterprise-server@3.4/apps/building-oauth-apps/).
+        When using a fine-grained personal access token, the resource owner of the
+        token [must be a single organization](https://docs.github.com/enterprise-server@3.4/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens),
+        and have at least read-only member organization permissions. The response
+        payload only contains the teams from a single organization when using a fine-grained
+        personal access token.
       tags:
       - teams
       operationId: teams/list-for-authenticated-user
@@ -42592,8 +42597,14 @@ components:
           type: string
           format: uri
         exclude:
+          description: 'Exclude related items from being returned in the response
+            in order to improve performance of the request. The array can include
+            any of: `"repositories"`.'
           type: array
-          items: {}
+          items:
+            description: 'Allowed values that can be passed to the exclude parameter.
+              The array can include any of: `"repositories"`.'
+            type: string
       required:
       - id
       - node_id
