@@ -6667,7 +6667,7 @@ paths:
       description: |-
         Lists all organizations, in the order that they were created on GitHub Enterprise Server.
 
-        **Note:** Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of organizations.
+        **Note:** Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of organizations.
       tags:
       - orgs
       operationId: orgs/list
@@ -31638,7 +31638,7 @@ paths:
 
         Note:
         - For GitHub Enterprise Server, this endpoint will only list repositories available to all users on the enterprise.
-        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of repositories.
+        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of repositories.
       tags:
       - repos
       operationId: repos/list-public
@@ -36533,7 +36533,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/enterprise-server@3.5/rest/reference/activity#list-repositories-starred-by-the-authenticated-user
       parameters:
-      - "$ref": "#/components/parameters/sort"
+      - "$ref": "#/components/parameters/sort-starred"
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
@@ -36753,7 +36753,7 @@ paths:
       description: |-
         Lists all users, in the order that they signed up on GitHub Enterprise Server. This list includes personal user accounts and organization accounts.
 
-        Note: Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of users.
+        Note: Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of users.
       tags:
       - users
       operationId: users/list
@@ -37485,7 +37485,7 @@ paths:
         url: https://docs.github.com/enterprise-server@3.5/rest/reference/activity#list-repositories-starred-by-a-user
       parameters:
       - "$ref": "#/components/parameters/username"
-      - "$ref": "#/components/parameters/sort"
+      - "$ref": "#/components/parameters/sort-starred"
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
@@ -77210,7 +77210,7 @@ components:
         - all
     audit-log-after:
       name: after
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for events after this cursor.
       in: query
       required: false
@@ -77218,7 +77218,7 @@ components:
         type: string
     audit-log-before:
       name: before
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for events before this cursor.
       in: query
       required: false
@@ -77269,7 +77269,7 @@ components:
         type: string
     pagination-before:
       name: before
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for results before this cursor.
       in: query
       required: false
@@ -77277,7 +77277,7 @@ components:
         type: string
     pagination-after:
       name: after
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.5/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for results after this cursor.
       in: query
       required: false
@@ -77681,8 +77681,7 @@ components:
         type: integer
     sort:
       name: sort
-      description: The property to sort the results by. `created` means when the repository
-        was starred. `updated` means when the repository was last pushed to.
+      description: The property to sort the results by.
       in: query
       required: false
       schema:
@@ -77794,6 +77793,18 @@ components:
       schema:
         type: string
         format: date-time
+    sort-starred:
+      name: sort
+      description: The property to sort the results by. `created` means when the repository
+        was starred. `updated` means when the repository was last pushed to.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - created
+        - updated
+        default: created
     since-user:
       name: since
       description: A user ID. Only return users with an ID greater than this ID.
