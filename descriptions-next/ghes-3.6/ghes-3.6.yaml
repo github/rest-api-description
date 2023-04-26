@@ -11195,7 +11195,10 @@ paths:
   "/orgs/{org}/repos":
     get:
       summary: List organization repositories
-      description: Lists repositories for the specified organization.
+      description: |-
+        Lists repositories for the specified organization.
+
+        **Note:** In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.6/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
       tags:
       - repos
       operationId: repos/list-for-org
@@ -14350,6 +14353,47 @@ paths:
                   - public
                   - private
                   - internal
+                security_and_analysis:
+                  type:
+                  - object
+                  - 'null'
+                  description: |-
+                    Specify which security and analysis features to enable or disable for the repository.
+
+                    To use this parameter, you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.6/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
+
+                    For example, to enable GitHub Advanced Security, use this data in the body of the `PATCH` request:
+                    `{ "security_and_analysis": {"advanced_security": { "status": "enabled" } } }`.
+
+                    You can check which security and analysis features are currently enabled by using a `GET /repos/{owner}/{repo}` request.
+                  properties:
+                    advanced_security:
+                      type: object
+                      description: Use the `status` property to enable or disable
+                        GitHub Advanced Security for this repository. For more information,
+                        see "[About GitHub Advanced Security](/github/getting-started-with-github/learning-about-github/about-github-advanced-security)."
+                      properties:
+                        status:
+                          type: string
+                          description: Can be `enabled` or `disabled`.
+                    secret_scanning:
+                      type: object
+                      description: Use the `status` property to enable or disable
+                        secret scanning for this repository. For more information,
+                        see "[About secret scanning](/code-security/secret-security/about-secret-scanning)."
+                      properties:
+                        status:
+                          type: string
+                          description: Can be `enabled` or `disabled`.
+                    secret_scanning_push_protection:
+                      type: object
+                      description: Use the `status` property to enable or disable
+                        secret scanning push protection for this repository. For more
+                        information, see "[Protecting pushes with secret scanning](/code-security/secret-scanning/protecting-pushes-with-secret-scanning)."
+                      properties:
+                        status:
+                          type: string
+                          description: Can be `enabled` or `disabled`.
                 has_issues:
                   type: boolean
                   description: Either `true` to enable issues for this repository
@@ -23971,10 +24015,6 @@ paths:
                 sha:
                   type: string
                   description: The SHA1 value for this reference.
-                key:
-                  type: string
-                  examples:
-                  - '"refs/heads/newbranch"'
               required:
               - ref
               - sha
@@ -31376,6 +31416,8 @@ paths:
         Returns the total commit counts for the `owner` and total commit counts in `all`. `all` is everyone combined, including the `owner` in the last 52 weeks. If you'd like to get the commit counts for non-owners, you can subtract `owner` from `all`.
 
         The array order is oldest week (index 0) to most recent week.
+
+        The most recent week is seven days ago at UTC midnight to today at UTC midnight.
       tags:
       - repos
       operationId: repos/get-participation-stats
@@ -44277,6 +44319,35 @@ components:
           - 3.6.0
       required:
       - verifiable_password_authentication
+    security-and-analysis:
+      type:
+      - object
+      - 'null'
+      properties:
+        advanced_security:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
+        secret_scanning:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
+        secret_scanning_push_protection:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
     minimal-repository:
       title: Minimal Repository
       description: Minimal Repository
@@ -44614,6 +44685,8 @@ components:
           type: boolean
           examples:
           - false
+        security_and_analysis:
+          "$ref": "#/components/schemas/security-and-analysis"
       required:
       - archive_url
       - assignees_url
@@ -47515,35 +47588,6 @@ components:
       - key
       - name
       - html_url
-    security-and-analysis:
-      type:
-      - object
-      - 'null'
-      properties:
-        advanced_security:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
-        secret_scanning:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
-        secret_scanning_push_protection:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
     full-repository:
       title: Full Repository
       description: Full Repository
