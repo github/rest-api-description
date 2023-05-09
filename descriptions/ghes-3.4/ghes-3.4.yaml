@@ -32,8 +32,6 @@ tags:
   description: Endpoints to manage Codespaces using the REST API.
 - name: emojis
   description: List emojis available to use on GitHub.
-- name: enterprise-admin
-  description: Administer a GitHub enterprise.
 - name: dependabot
   description: Endpoints to manage Dependabot.
 - name: dependency-graph
@@ -58,6 +56,8 @@ tags:
   description: Endpoints that give information about the API.
 - name: migrations
   description: Move projects to or from GitHub.
+- name: oidc
+  description: Endpoints to manage GitHub OIDC configuration using the REST API.
 - name: orgs
   description: Interact with GitHub Orgs.
 - name: packages
@@ -76,12 +76,14 @@ tags:
   description: Look for stuff on GitHub.
 - name: secret-scanning
   description: Retrieve secret scanning alerts from a repository.
-- name: server-statistics
-  description: GHES statistics
+- name: security-advisories
+  description: Manage security advisories.
 - name: teams
   description: Interact with GitHub Teams.
 - name: users
   description: Interact with and view information about users and also current user.
+- name: enterprise-admin
+  description: Enterprise Administration
 servers:
 - url: "{protocol}://{hostname}/api/v3"
   variables:
@@ -289,6 +291,7 @@ paths:
                 default:
                   "$ref": "#/components/examples/global-hook-2"
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -877,6 +880,7 @@ paths:
                       code: custom
                       message: Cannot modify or delete the default environment
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -888,6 +892,11 @@ paths:
                 image_url:
                   type: string
                   description: URL from which to download a tarball of this environment.
+            examples:
+              default:
+                value:
+                  name: DevTools Hook Env
+                  image_url: https://my_file_server/path/to/devtools_env.tar.gz
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -1201,6 +1210,7 @@ paths:
                 default:
                   "$ref": "#/components/examples/pre-receive-hook-2"
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -1485,6 +1495,13 @@ paths:
                   description: A list of [scopes](https://docs.github.com/enterprise-server@3.4/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/).
                   items:
                     type: string
+              required:
+              - scopes
+            examples:
+              default:
+                value:
+                  scopes:
+                  - public_repo
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -1774,6 +1791,41 @@ paths:
         enabledForGitHubApps: false
         category: apps
         subcategory: webhooks
+  "/app/installation-requests":
+    get:
+      summary: List installation requests for the authenticated app
+      description: Lists all the pending installation requests for the authenticated
+        GitHub App.
+      tags:
+      - apps
+      operationId: apps/list-installation-requests-for-authenticated-app
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/apps#list-installation-requests-for-the-authenticated-app
+      parameters:
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: List of integration installation requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/integration-installation-request"
+              examples:
+                exampleKey1:
+                  "$ref": "#/components/examples/integration-installation-request-paginated"
+        '304':
+          "$ref": "#/components/responses/not_modified"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: apps
+        subcategory: 
   "/app/installations":
     get:
       summary: List installations for the authenticated app
@@ -2121,8 +2173,8 @@ paths:
     delete:
       summary: Delete an app authorization
       description: |-
-        OAuth application owners can revoke a grant for their OAuth application and a specific user. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid OAuth `access_token` as an input parameter and the grant for the token's owner will be deleted.
-        Deleting an OAuth application's grant will also delete all OAuth tokens associated with the application for the user. Once deleted, the application will have no access to the user's account and will no longer be listed on [the application authorizations settings screen within GitHub](https://github.com/settings/applications#authorized).
+        OAuth and GitHub application owners can revoke a grant for their application and a specific user. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication) when accessing this endpoint, using the OAuth application's `client_id` and `client_secret` as the username and password. You must also provide a valid OAuth `access_token` as an input parameter and the grant for the token's owner will be deleted.
+        Deleting an application's grant will also delete all OAuth tokens associated with the application for the user. Once deleted, the application will have no access to the user's account and will no longer be listed on [the application authorizations settings screen within GitHub](https://github.com/settings/applications#authorized).
       operationId: apps/delete-authorization
       tags:
       - apps
@@ -2161,13 +2213,12 @@ paths:
   "/applications/{client_id}/token":
     post:
       summary: Check a token
-      description: OAuth applications can use a special API method for checking OAuth
-        token validity without exceeding the normal rate limits for failed login attempts.
-        Authentication works differently with this particular endpoint. You must use
-        [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
-        to use this endpoint, where the username is the OAuth application `client_id`
-        and the password is its `client_secret`. Invalid tokens will return `404 NOT
-        FOUND`.
+      description: OAuth applications and GitHub applications with OAuth authorizations
+        can use this API method for checking OAuth token validity without exceeding
+        the normal rate limits for failed login attempts. Authentication works differently
+        with this particular endpoint. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
+        to use this endpoint, where the username is the application `client_id` and
+        the password is its `client_secret`. Invalid tokens will return `404 NOT FOUND`.
       tags:
       - apps
       operationId: apps/check-token
@@ -2183,7 +2234,7 @@ paths:
             schema:
               properties:
                 access_token:
-                  description: The access_token of the OAuth application.
+                  description: The access_token of the OAuth or GitHub application.
                   type: string
               required:
               - access_token
@@ -2213,13 +2264,12 @@ paths:
         subcategory: oauth-applications
     patch:
       summary: Reset a token
-      description: OAuth applications can use this API method to reset a valid OAuth
-        token without end-user involvement. Applications must save the "token" property
-        in the response because changes take effect immediately. You must use [Basic
-        Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
-        when accessing this endpoint, using the OAuth application's `client_id` and
-        `client_secret` as the username and password. Invalid tokens will return `404
-        NOT FOUND`.
+      description: OAuth applications and GitHub applications with OAuth authorizations
+        can use this API method to reset a valid OAuth token without end-user involvement.
+        Applications must save the "token" property in the response because changes
+        take effect immediately. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
+        when accessing this endpoint, using the application's `client_id` and `client_secret`
+        as the username and password. Invalid tokens will return `404 NOT FOUND`.
       tags:
       - apps
       operationId: apps/reset-token
@@ -2235,7 +2285,7 @@ paths:
             schema:
               properties:
                 access_token:
-                  description: The access_token of the OAuth application.
+                  description: The access_token of the OAuth or GitHub application.
                   type: string
               required:
               - access_token
@@ -2263,10 +2313,11 @@ paths:
         subcategory: oauth-applications
     delete:
       summary: Delete an app token
-      description: OAuth application owners can revoke a single token for an OAuth
-        application. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
-        when accessing this endpoint, using the OAuth application's `client_id` and
-        `client_secret` as the username and password.
+      description: OAuth  or GitHub application owners can revoke a single token for
+        an OAuth application or a GitHub application with an OAuth authorization.
+        You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
+        when accessing this endpoint, using the application's `client_id` and `client_secret`
+        as the username and password.
       tags:
       - apps
       operationId: apps/delete-token
@@ -2305,19 +2356,19 @@ paths:
   "/applications/{client_id}/token/scoped":
     post:
       summary: Create a scoped access token
-      description: Use a non-scoped user-to-server OAuth access token to create a
-        repository scoped and/or permission scoped user-to-server OAuth access token.
-        You can specify which repositories the token can access and which permissions
-        are granted to the token. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
-        when accessing this endpoint, using the OAuth application's `client_id` and
-        `client_secret` as the username and password. Invalid tokens will return `404
+      description: Use a non-scoped user-to-server access token to create a repository
+        scoped and/or permission scoped user-to-server access token. You can specify
+        which repositories the token can access and which permissions are granted
+        to the token. You must use [Basic Authentication](https://docs.github.com/enterprise-server@3.4/rest/overview/other-authentication-methods#basic-authentication)
+        when accessing this endpoint, using the `client_id` and `client_secret` of
+        the GitHub App as the username and password. Invalid tokens will return `404
         NOT FOUND`.
       tags:
       - apps
       operationId: apps/scope-token
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/apps#create-a-scoped-access-token
+        url: https://docs.github.com/enterprise-server@3.4/rest/apps/apps#create-a-scoped-access-token
       parameters:
       - "$ref": "#/components/parameters/client-id"
       requestBody:
@@ -2329,8 +2380,8 @@ paths:
               properties:
                 access_token:
                   type: string
-                  description: The OAuth access token used to authenticate to the
-                    GitHub API.
+                  description: The access token used to authenticate to the GitHub
+                    API.
                   example: e72e16c7e42f292c6912e7710c838347ae178b4a
                 target:
                   description: The name of the user or organization to scope the user-to-server
@@ -2394,7 +2445,7 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: false
         category: apps
-        subcategory: oauth-applications
+        subcategory: apps
   "/apps/{app_slug}":
     get:
       summary: Get an app
@@ -3098,6 +3149,11 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/announcement"
+            examples:
+              default:
+                value:
+                  announcement: Very **important** announcement about _something_.
+                  expires_at: '2021-01-01T00:00:00.000+00:00'
       responses:
         '200':
           description: Response
@@ -3197,6 +3253,13 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-comment-overview"
+              examples:
+                example:
+                  value:
+                    total_commit_comments: 5000
+                    total_gist_comments: 400
+                    total_issue_comments: 10900
+                    total_pull_request_comments: 9900
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3219,6 +3282,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-gist-overview"
+              examples:
+                example:
+                  value:
+                    total_gists: 500
+                    private_gists: 30
+                    public_gists: 470
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3240,6 +3309,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-hook-overview"
+              examples:
+                example:
+                  value:
+                    total_hooks: 50
+                    active_hooks: 47
+                    inactive_hooks: 3
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3262,6 +3337,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-issue-overview"
+              examples:
+                example:
+                  value:
+                    total_issues: 5000
+                    open_issues: 300
+                    closed_issues: 4700
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3284,6 +3365,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-milestone-overview"
+              examples:
+                example:
+                  value:
+                    total_milestones: 90
+                    open_milestones: 10
+                    closed_milestones: 80
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3306,6 +3393,13 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-organization-overview"
+              examples:
+                example:
+                  value:
+                    total_orgs: 50
+                    disabled_orgs: 1
+                    total_teams: 70
+                    total_team_members: 700
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3328,6 +3422,10 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-page-overview"
+              examples:
+                example:
+                  value:
+                    total_pages: 20
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3350,6 +3448,13 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-pull-request-overview"
+              examples:
+                example:
+                  value:
+                    total_pulls: 1200
+                    merged_pulls: 1100
+                    mergeable_pulls: 90
+                    unmergeable_pulls: 10
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3371,6 +3476,15 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-repository-overview"
+              examples:
+                example:
+                  value:
+                    total_repos: 200
+                    root_repos: 1
+                    fork_repos: 10
+                    org_repos: 150
+                    total_pushes: 39000
+                    total_wikis: 5
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3393,6 +3507,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/enterprise-user-overview"
+              examples:
+                example:
+                  value:
+                    total_users: 100
+                    admin_users: 3
+                    suspended_users: 1
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -3425,7 +3545,7 @@ paths:
                   "$ref": "#/components/examples/actions-enterprise-permissions"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
     put:
@@ -3465,7 +3585,7 @@ paths:
                   allowed_actions: selected
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
   "/enterprises/{enterprise}/actions/permissions/organizations":
@@ -3507,7 +3627,7 @@ paths:
                   "$ref": "#/components/examples/organization-targets"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
     put:
@@ -3550,7 +3670,7 @@ paths:
                   - 91
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
   "/enterprises/{enterprise}/actions/permissions/organizations/{org_id}":
@@ -3574,7 +3694,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
     delete:
@@ -3597,7 +3717,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
   "/enterprises/{enterprise}/actions/permissions/selected-actions":
@@ -3627,7 +3747,7 @@ paths:
                   "$ref": "#/components/examples/selected-actions"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
     put:
@@ -3658,7 +3778,7 @@ paths:
                 "$ref": "#/components/examples/selected-actions"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: permissions
   "/enterprises/{enterprise}/actions/runner-groups":
@@ -3700,7 +3820,7 @@ paths:
                   "$ref": "#/components/examples/runner-groups-enterprise"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     post:
@@ -3776,7 +3896,7 @@ paths:
                   "$ref": "#/components/examples/runner-group-enterprise"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}":
@@ -3807,7 +3927,7 @@ paths:
                   "$ref": "#/components/examples/runner-group-enterprise"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     patch:
@@ -3864,7 +3984,7 @@ paths:
                   "$ref": "#/components/examples/runner-group-update-enterprise"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     delete:
@@ -3887,7 +4007,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}/organizations":
@@ -3930,7 +4050,7 @@ paths:
                   "$ref": "#/components/examples/organization-targets"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     put:
@@ -3975,7 +4095,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}/organizations/{org_id}":
@@ -4000,7 +4120,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     delete:
@@ -4024,7 +4144,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}/runners":
@@ -4070,7 +4190,7 @@ paths:
               "$ref": "#/components/headers/link"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     put:
@@ -4114,7 +4234,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runner-groups/{runner_group_id}/runners/{runner_id}":
@@ -4140,7 +4260,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     delete:
@@ -4164,7 +4284,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/enterprises/{enterprise}/actions/runners":
@@ -4206,7 +4326,7 @@ paths:
               "$ref": "#/components/headers/link"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/downloads":
@@ -4238,7 +4358,7 @@ paths:
                   "$ref": "#/components/examples/runner-application-items-airgap"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/registration-token":
@@ -4276,7 +4396,7 @@ paths:
                   "$ref": "#/components/examples/authentication-token"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/remove-token":
@@ -4315,7 +4435,7 @@ paths:
                   "$ref": "#/components/examples/authentication-token-2"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/{runner_id}":
@@ -4346,7 +4466,7 @@ paths:
                   "$ref": "#/components/examples/runner"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
     delete:
@@ -4369,7 +4489,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/{runner_id}/labels":
@@ -4395,7 +4515,7 @@ paths:
           "$ref": "#/components/responses/not_found"
       x-github:
         enabledForGitHubApps: false
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
     post:
@@ -4443,7 +4563,7 @@ paths:
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: false
         category: actions
         subcategory: self-hosted-runners
@@ -4494,7 +4614,7 @@ paths:
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: false
         category: actions
         subcategory: self-hosted-runners
@@ -4522,7 +4642,7 @@ paths:
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: false
         category: actions
         subcategory: self-hosted-runners
@@ -4555,7 +4675,7 @@ paths:
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: false
         category: actions
         subcategory: self-hosted-runners
@@ -4573,7 +4693,7 @@ paths:
         url: https://docs.github.com/enterprise-server@3.4/rest/reference/enterprise-admin#get-the-audit-log-for-an-enterprise
       parameters:
       - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/audit-log-phrase"
+      - "$ref": "#/components/parameters/audit-log-enterprise-phrase"
       - "$ref": "#/components/parameters/audit-log-include"
       - "$ref": "#/components/parameters/audit-log-after"
       - "$ref": "#/components/parameters/audit-log-before"
@@ -4673,7 +4793,7 @@ paths:
         '403':
           "$ref": "#/components/responses/code_scanning_forbidden_read"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: false
         category: enterprise-admin
         subcategory: billing
@@ -6422,7 +6542,7 @@ paths:
       description: |-
         Lists all organizations, in the order that they were created on GitHub Enterprise Server.
 
-        **Note:** Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of organizations.
+        **Note:** Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of organizations.
       tags:
       - orgs
       operationId: orgs/list
@@ -6463,7 +6583,7 @@ paths:
         List the custom repository roles available in this organization. In order to see custom
         repository roles in an organization, the authenticated user must be an organization owner.
 
-        To use this endpoint the authenticated user must be an administrator for the organization or of an repository of the organizaiton and must use an access token with `admin:org repo` scope.
+        To use this endpoint the authenticated user must be an administrator for the organization or of an repository of the organization and must use an access token with `admin:org repo` scope.
         GitHub Apps must have the `organization_custom_roles:read` organization permission to use this endpoint.
 
         For more information on custom repository roles, see "[About custom repository roles](https://docs.github.com/enterprise-server@3.4/organizations/managing-peoples-access-to-your-organization-with-roles/about-custom-repository-roles)."
@@ -6472,7 +6592,7 @@ paths:
       operationId: orgs/list-custom-roles
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/orgs#list-custom-repository-roles-in-an-organization
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/orgs#deprecated-list-custom-repository-roles-in-an-organization
       parameters:
       - name: organization_id
         description: The unique identifier of the organization.
@@ -6498,12 +6618,15 @@ paths:
                       "$ref": "#/components/schemas/organization-custom-repository-role"
               examples:
                 default:
-                  "$ref": "#/components/examples/organization-custom-repository-role-example"
+                  "$ref": "#/components/examples/organization-custom-repository-role-example-old"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: true
+        removalDate: '2025-02-15'
+        deprecationDate: '2023-02-15'
         category: orgs
-        subcategory: custom_roles
+        subcategory: custom-roles
+      deprecated: true
   "/orgs/{org}":
     get:
       summary: Get an organization
@@ -6528,7 +6651,7 @@ paths:
                 "$ref": "#/components/schemas/organization-full"
               examples:
                 default-response:
-                  "$ref": "#/components/examples/organization-full-default-response"
+                  "$ref": "#/components/examples/organization-full"
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -6961,6 +7084,7 @@ paths:
       summary: List self-hosted runner groups for an organization
       description: |-
         Lists all self-hosted runner groups configured in an organization and inherited from an enterprise.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/list-self-hosted-runner-groups-for-org
       tags:
@@ -6994,14 +7118,12 @@ paths:
                   "$ref": "#/components/examples/runner-groups-org"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     post:
       summary: Create a self-hosted runner group for an organization
       description: |-
-        The self-hosted runner groups REST API is available with GitHub Enterprise Cloud and GitHub Enterprise Server. For more information, see "[GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products)."
-
         Creates a new self-hosted runner group for an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -7073,7 +7195,7 @@ paths:
                   "$ref": "#/components/examples/runner-group"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}":
@@ -7081,6 +7203,7 @@ paths:
       summary: Get a self-hosted runner group for an organization
       description: |-
         Gets a specific self-hosted runner group for an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/get-self-hosted-runner-group-for-org
       tags:
@@ -7103,13 +7226,14 @@ paths:
                   "$ref": "#/components/examples/runner-group-item"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     patch:
       summary: Update a self-hosted runner group for an organization
       description: |-
         Updates the `name` and `visibility` of a self-hosted runner group in an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/update-self-hosted-runner-group-for-org
       tags:
@@ -7161,13 +7285,14 @@ paths:
                   "$ref": "#/components/examples/runner-group"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     delete:
       summary: Delete a self-hosted runner group from an organization
       description: |-
         Deletes a self-hosted runner group for an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/delete-self-hosted-runner-group-from-org
       tags:
@@ -7183,15 +7308,13 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}/repositories":
     get:
       summary: List repository access to a self-hosted runner group in an organization
       description: |-
-        The self-hosted runner groups REST API is available with GitHub Enterprise Cloud and GitHub Enterprise Server. For more information, see "[GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products)."
-
         Lists the repositories with access to a self-hosted runner group configured in an organization.
 
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
@@ -7228,13 +7351,14 @@ paths:
                   "$ref": "#/components/examples/minimal-repository-paginated"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     put:
       summary: Set repository access for a self-hosted runner group in an organization
       description: |-
         Replaces the list of repositories that have access to a self-hosted runner group configured in an organization.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/set-repo-access-to-self-hosted-runner-group-in-org
       tags:
@@ -7271,7 +7395,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}/repositories/{repository_id}":
@@ -7279,7 +7403,9 @@ paths:
       summary: Add repository access to a self-hosted runner group in an organization
       description: |-
         Adds a repository to the list of selected repositories that can access a self-hosted runner group. The runner group must have `visibility` set to `selected`. For more information, see "[Create a self-hosted runner group for an organization](#create-a-self-hosted-runner-group-for-an-organization)."
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        You must authenticate using an access token with the `admin:org`
+        scope to use this endpoint.
       operationId: actions/add-repo-access-to-self-hosted-runner-group-in-org
       tags:
       - actions
@@ -7302,6 +7428,7 @@ paths:
       summary: Remove repository access to a self-hosted runner group in an organization
       description: |-
         Removes a repository from the list of selected repositories that can access a self-hosted runner group. The runner group must have `visibility` set to `selected`. For more information, see "[Create a self-hosted runner group for an organization](#create-a-self-hosted-runner-group-for-an-organization)."
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/remove-repo-access-to-self-hosted-runner-group-in-org
       tags:
@@ -7318,7 +7445,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}/runners":
@@ -7326,6 +7453,7 @@ paths:
       summary: List self-hosted runners in a group for an organization
       description: |-
         Lists self-hosted runners that are in a specific organization group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/list-self-hosted-runners-in-group-for-org
       tags:
@@ -7363,13 +7491,14 @@ paths:
               "$ref": "#/components/headers/link"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     put:
       summary: Set self-hosted runners in a group for an organization
       description: |-
         Replaces the list of self-hosted runners that are part of an organization runner group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/set-self-hosted-runners-in-group-for-org
       tags:
@@ -7406,7 +7535,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runner-groups/{runner_group_id}/runners/{runner_id}":
@@ -7414,7 +7543,9 @@ paths:
       summary: Add a self-hosted runner to a group for an organization
       description: |-
         Adds a self-hosted runner to a runner group configured in an organization.
-        You must authenticate using an access token with the `admin:org` scope to use this endpoint.
+
+        You must authenticate using an access token with the `admin:org`
+        scope to use this endpoint.
       operationId: actions/add-self-hosted-runner-to-group-for-org
       tags:
       - actions
@@ -7430,13 +7561,14 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
     delete:
       summary: Remove a self-hosted runner from a group for an organization
       description: |-
         Removes a self-hosted runner from a group configured in an organization. The runner is then returned to the default group.
+
         You must authenticate using an access token with the `admin:org` scope to use this endpoint.
       operationId: actions/remove-self-hosted-runner-from-group-for-org
       tags:
@@ -7453,7 +7585,7 @@ paths:
           description: Response
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runner-groups
   "/orgs/{org}/actions/runners":
@@ -9623,8 +9755,8 @@ paths:
                 role:
                   type: string
                   description: "The role to give the user in the organization. Can
-                    be one of:  \n\\* `admin` - The user will become an owner of the
-                    organization.  \n\\* `member` - The user will become a non-owner
+                    be one of:  \n * `admin` - The user will become an owner of the
+                    organization.  \n * `member` - The user will become a non-owner
                     member of the organization."
                   enum:
                   - admin
@@ -9684,13 +9816,16 @@ paths:
   "/orgs/{org}/migrations":
     get:
       summary: List organization migrations
-      description: Lists the most recent migrations.
+      description: |-
+        Lists the most recent migrations, including both exports (which can be started through the REST API) and imports (which cannot be started using the REST API).
+
+        A list of `repositories` is only returned for export migrations.
       tags:
       - migrations
       operationId: migrations/list-for-org
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#list-organization-migrations
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#list-organization-migrations
       parameters:
       - "$ref": "#/components/parameters/org"
       - "$ref": "#/components/parameters/per-page"
@@ -9734,7 +9869,7 @@ paths:
       operationId: migrations/start-for-org
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#start-an-organization-migration
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#start-an-organization-migration
       parameters:
       - "$ref": "#/components/parameters/org"
       requestBody:
@@ -9844,7 +9979,7 @@ paths:
       operationId: migrations/get-status-for-org
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#get-an-organization-migration-status
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#get-an-organization-migration-status
       parameters:
       - "$ref": "#/components/parameters/org"
       - "$ref": "#/components/parameters/migration-id"
@@ -9873,6 +10008,115 @@ paths:
               examples:
                 default:
                   "$ref": "#/components/examples/migration-with-short-org"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+  "/orgs/{org}/migrations/{migration_id}/archive":
+    get:
+      summary: Download an organization migration archive
+      description: Fetches the URL to a migration archive.
+      tags:
+      - migrations
+      operationId: migrations/download-archive-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#download-an-organization-migration-archive
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/migration-id"
+      responses:
+        '302':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+    delete:
+      summary: Delete an organization migration archive
+      description: Deletes a previous migration archive. Migration archives are automatically
+        deleted after seven days.
+      tags:
+      - migrations
+      operationId: migrations/delete-archive-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#delete-an-organization-migration-archive
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/migration-id"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+  "/orgs/{org}/migrations/{migration_id}/repos/{repo_name}/lock":
+    delete:
+      summary: Unlock an organization repository
+      description: Unlocks a repository that was locked for migration. You should
+        unlock each migrated repository and [delete them](https://docs.github.com/enterprise-server@3.4/rest/repos/repos#delete-a-repository)
+        when the migration is complete and you no longer need the source data.
+      tags:
+      - migrations
+      operationId: migrations/unlock-repo-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#unlock-an-organization-repository
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/migration-id"
+      - "$ref": "#/components/parameters/repo-name"
+      responses:
+        '204':
+          description: Response
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: migrations
+        subcategory: orgs
+  "/orgs/{org}/migrations/{migration_id}/repositories":
+    get:
+      summary: List repositories in an organization migration
+      description: List all the repositories for this organization migration.
+      tags:
+      - migrations
+      operationId: migrations/list-repos-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/orgs#list-repositories-in-an-organization-migration
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - "$ref": "#/components/parameters/migration-id"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/minimal-repository"
+              examples:
+                default:
+                  "$ref": "#/components/examples/minimal-repository-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -9933,6 +10177,9 @@ paths:
         they'll only have access to the repositories that their current team membership
         allows. The user will no longer be a member of the organization. For more
         information, see "[Converting an organization member to an outside collaborator](https://docs.github.com/enterprise-server@3.4/articles/converting-an-organization-member-to-an-outside-collaborator/)".
+        Converting an organization member to an outside collaborator may be restricted
+        by enterprise administrators. For more information, see "[Enforcing repository
+        management policies in your enterprise](https://docs.github.com/enterprise-server@3.4/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
       tags:
       - orgs
       operationId: orgs/convert-member-to-outside-collaborator
@@ -9977,8 +10224,10 @@ paths:
         '204':
           description: User was converted
         '403':
-          description: Forbidden if user is the last owner of the organization or
-            not a member of the organization.
+          description: Forbidden if user is the last owner of the organization, not
+            a member of the organization, or if the enterprise enforces a policy for
+            inviting outside collaborators. For more information, see "[Enforcing
+            repository management policies in your enterprise](https://docs.github.com/enterprise-server@3.4/admin/policies/enforcing-policies-for-your-enterprise/enforcing-repository-management-policies-in-your-enterprise#enforcing-a-policy-for-inviting-outside-collaborators-to-repositories)."
         '404':
           "$ref": "#/components/responses/not_found"
       x-github:
@@ -10122,6 +10371,7 @@ paths:
                 default:
                   "$ref": "#/components/examples/org-pre-receive-hook-2"
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -10385,7 +10635,10 @@ paths:
   "/orgs/{org}/repos":
     get:
       summary: List organization repositories
-      description: Lists repositories for the specified organization.
+      description: |-
+        Lists repositories for the specified organization.
+
+        **Note:** In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.4/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
       tags:
       - repos
       operationId: repos/list-for-org
@@ -10395,11 +10648,9 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/org"
       - name: type
-        description: Specifies the types of repositories you want returned. If your
-          organization is associated with an enterprise account using GitHub Enterprise
-          Cloud or GitHub Enterprise Server 2.20+, `type` can also be `internal`.
-          However, the `internal` value is not yet supported when a GitHub App calls
-          this API with an installation access token.
+        description: Specifies the types of repositories you want returned. `internal`
+          is not yet supported when a GitHub App calls this endpoint with an installation
+          access token.
         in: query
         required: false
         schema:
@@ -10497,14 +10748,13 @@ paths:
                   default: false
                 visibility:
                   type: string
-                  description: 'Can be `public` or `private`. If your organization
-                    is associated with an enterprise account using GitHub Enterprise
-                    Cloud or GitHub Enterprise Server 2.20+, `visibility` can also
-                    be `internal`. Note: For GitHub Enterprise Server and GitHub AE,
-                    this endpoint will only list repositories available to all users
-                    on the enterprise. For more information, see "[Creating an internal
-                    repository](https://docs.github.com/enterprise-server@3.4/github/creating-cloning-and-archiving-repositories/about-repository-visibility#about-internal-repositories)"
-                    in the GitHub Help documentation.'
+                  description: "The visibility of the repository. **Note**: For GitHub
+                    Enterprise Server, this endpoint will only list repositories available
+                    to all users on the enterprise. For more information, see \"[Creating
+                    an internal repository](https://docs.github.com/enterprise-server@3.4/github/creating-cloning-and-archiving-repositories/about-repository-visibility#about-internal-repositories)\"
+                    in the GitHub Help documentation.  \nThe `visibility` parameter
+                    overrides the `private` parameter when you use both parameters
+                    with the `nebula-preview` preview header."
                   enum:
                   - public
                   - private
@@ -10582,7 +10832,8 @@ paths:
                   type: boolean
                   description: Either `true` to allow automatically deleting head
                     branches when pull requests are merged, or `false` to prevent
-                    automatic deletion.
+                    automatic deletion. **The authenticated user must be an organization
+                    owner to set this property to `true`.**
                   default: false
                 use_squash_pr_title_as_default:
                   type: boolean
@@ -10750,7 +11001,7 @@ paths:
         '403':
           "$ref": "#/components/responses/code_scanning_forbidden_read"
       x-github:
-        githubCloudOnly: false
+        githubCloudOnly: true
         enabledForGitHubApps: true
         category: billing
         subcategory: 
@@ -10833,12 +11084,11 @@ paths:
                 privacy:
                   type: string
                   description: "The level of privacy this team should have. The options
-                    are:  \n**For a non-nested team:**  \n\\* `secret` - only visible
-                    to organization owners and members of this team.  \n\\* `closed`
+                    are:  \n**For a non-nested team:**  \n * `secret` - only visible
+                    to organization owners and members of this team.  \n * `closed`
                     - visible to all members of this organization.  \nDefault: `secret`
-                    \ \n**For a parent or child team:**  \n\\* `closed` - visible
-                    to all members of this organization.  \nDefault for child team:
-                    `closed`"
+                    \ \n**For a parent or child team:**  \n * `closed` - visible to
+                    all members of this organization.  \nDefault for child team: `closed`"
                   enum:
                   - secret
                   - closed
@@ -10893,7 +11143,7 @@ paths:
     get:
       summary: Get a team by name
       description: |-
-        Gets a team using the team's `slug`. GitHub Enterprise Server generates the `slug` from the team `name`.
+        Gets a team using the team's `slug`. To create the `slug`, GitHub Enterprise Server replaces special characters in the `name` string, changes all words to lowercase, and replaces spaces with a `-` separator. For example, `"My TEam Näme"` would become `my-team-name`.
 
         **Note:** You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}`.
       tags:
@@ -10955,11 +11205,11 @@ paths:
                   description: "The level of privacy this team should have. Editing
                     teams without specifying this parameter leaves `privacy` intact.
                     When a team is nested, the `privacy` for parent teams cannot be
-                    `secret`. The options are:  \n**For a non-nested team:**  \n\\*
+                    `secret`. The options are:  \n**For a non-nested team:**  \n *
                     `secret` - only visible to organization owners and members of
-                    this team.  \n\\* `closed` - visible to all members of this organization.
-                    \ \n**For a parent or child team:**  \n\\* `closed` - visible
-                    to all members of this organization."
+                    this team.  \n * `closed` - visible to all members of this organization.
+                    \ \n**For a parent or child team:**  \n * `closed` - visible to
+                    all members of this organization."
                   enum:
                   - secret
                   - closed
@@ -11834,9 +12084,9 @@ paths:
     put:
       summary: Add or update team membership for a user
       description: |-
-        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
-
         Adds an organization member to a team. An authenticated organization owner or team maintainer can add organization members to a team.
+
+        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         **Note:** When you have team synchronization set up for a team with your organization's identity provider (IdP), you will see an error if you attempt to use the API for making changes to the team's membership. If you have access to manage group membership in your IdP, you can manage GitHub Enterprise Server team membership through your identity provider, which automatically adds and removes team members in an organization. For more information, see "[Synchronizing teams between your identity provider and GitHub Enterprise Server](https://docs.github.com/enterprise-server@3.4/articles/synchronizing-teams-between-your-identity-provider-and-github/)."
 
@@ -11897,9 +12147,9 @@ paths:
     delete:
       summary: Remove team membership for a user
       description: |-
-        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
-
         To remove a membership between a user and a team, the authenticated user must have 'admin' permissions to the team or be an owner of the organization that the team is associated with. Removing team membership does not delete the user, it just removes their membership from the team.
+
+        Team synchronization is available for organizations using GitHub Enterprise Cloud. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         **Note:** When you have team synchronization set up for a team with your organization's identity provider (IdP), you will see an error if you attempt to use the API for making changes to the team's membership. If you have access to manage group membership in your IdP, you can manage GitHub Enterprise Server team membership through your identity provider, which automatically adds and removes team members in an organization. For more information, see "[Synchronizing teams between your identity provider and GitHub Enterprise Server](https://docs.github.com/enterprise-server@3.4/articles/synchronizing-teams-between-your-identity-provider-and-github/)."
 
@@ -12194,10 +12444,13 @@ paths:
               properties:
                 permission:
                   type: string
-                  description: The permission to grant the team on this repository.
-                    If no permission is specified, the team's `permission` attribute
+                  description: 'The permission to grant the team on this repository.
+                    We accept the following permissions to be set: `pull`, `triage`,
+                    `push`, `maintain`, `admin` and you can also specify a custom
+                    repository role name, if the owning organization has defined any.
+                    If no permission is specified, the team''s `permission` attribute
                     will be used to determine what permission to grant the team on
-                    this repository.
+                    this repository.'
                   default: push
             examples:
               default:
@@ -13369,9 +13622,10 @@ paths:
   "/repos/{owner}/{repo}":
     get:
       summary: Get a repository
-      description: The `parent` and `source` objects are present when the repository
-        is a fork. `parent` is the repository this repository was forked from, `source`
-        is the ultimate source for the network.
+      description: |-
+        The `parent` and `source` objects are present when the repository is a fork. `parent` is the repository this repository was forked from, `source` is the ultimate source for the network.
+
+        **Note:** In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.4/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
       tags:
       - repos
       operationId: repos/get
@@ -13443,10 +13697,7 @@ paths:
                   default: false
                 visibility:
                   type: string
-                  description: Can be `public` or `private`. If your organization
-                    is associated with an enterprise account using GitHub Enterprise
-                    Cloud or GitHub Enterprise Server 2.20+, `visibility` can also
-                    be `internal`."
+                  description: The visibility of the repository.
                   enum:
                   - public
                   - private
@@ -13533,11 +13784,6 @@ paths:
                   description: Either `true` to allow rebase-merging pull requests,
                     or `false` to prevent rebase-merging.
                   default: true
-                allow_auto_merge:
-                  type: boolean
-                  description: Either `true` to allow auto-merge on pull requests,
-                    or `false` to disallow auto-merge.
-                  default: false
                 delete_branch_on_merge:
                   type: boolean
                   description: Either `true` to allow automatically deleting head
@@ -13603,8 +13849,8 @@ paths:
                     - `BLANK` - default to a blank commit message.
                 archived:
                   type: boolean
-                  description: "`true` to archive this repository. **Note**: You cannot
-                    unarchive repositories through the API."
+                  description: 'Whether to archive this repository. **Note**: You
+                    cannot unarchive repositories through the API.'
                   default: false
                 allow_forking:
                   type: boolean
@@ -13643,7 +13889,24 @@ paths:
         githubCloudOnly: false
         enabledForGitHubApps: true
         category: repos
-        subcategory: 
+        previews:
+        - required: false
+          name: nebula
+          note: |-
+            You can set the visibility of a repository using the new `visibility` parameter in the [Repositories API](https://docs.github.com/enterprise-server@3.4/rest/reference/repos/), and get a repository's visibility with a new response key. For more information, see the [blog post](https://developer.github.com/changes/2019-12-03-internal-visibility-changes/).
+
+            To access repository visibility during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types) in the `Accept` header:
+            ```shell
+            application/vnd.github.nebula-preview+json
+            ```
+        - required: false
+          name: baptiste
+          note: |-
+            The `is_template` and `template_repository` keys are currently available for developer to preview. See [Create a repository using a template](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-repository-using-a-template) to learn how to create template repositories. To access these new response keys during the preview period, you must provide a custom [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types) in the `Accept` header:
+
+            ```shell
+            application/vnd.github.baptiste-preview+json
+            ```
     delete:
       summary: Delete a repository
       description: |-
@@ -13708,12 +13971,6 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
-      - name: name
-        description: Filters artifacts by exact match on their name field.
-        in: query
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           description: Response
@@ -15324,8 +15581,7 @@ paths:
                     The maximum number of properties is 10. Any default properties
                     configured in the workflow file will be used when `inputs` are
                     omitted.
-                  additionalProperties:
-                    type: string
+                  additionalProperties: true
                   maxProperties: 10
               required:
               - ref
@@ -15507,7 +15763,7 @@ paths:
       operationId: repos/list-autolinks
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/v3/repos#list-autolinks
+        url: https://docs.github.com/enterprise-server@3.4/rest/repos/autolinks#list-all-autolinks-of-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -15537,7 +15793,7 @@ paths:
       operationId: repos/create-autolink
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/v3/repos#create-an-autolink
+        url: https://docs.github.com/enterprise-server@3.4/rest/repos/autolinks#create-an-autolink-reference-for-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -15557,7 +15813,7 @@ paths:
                   description: The URL must contain `<num>` for the reference number.
                 is_alphanumeric:
                   type: boolean
-                  default: 'true'
+                  default: true
                   description: Whether this autolink reference matches alphanumeric
                     characters. If true, the `<num>` parameter of the `url_template`
                     matches alphanumeric characters `A-Z` (case insensitive), `0-9`,
@@ -15606,7 +15862,7 @@ paths:
       operationId: repos/get-autolink
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/v3/repos#get-autolink
+        url: https://docs.github.com/enterprise-server@3.4/rest/repos/autolinks#get-an-autolink-reference-of-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -15639,7 +15895,7 @@ paths:
       operationId: repos/delete-autolink
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/v3/repos#delete-autolink
+        url: https://docs.github.com/enterprise-server@3.4/rest/repos/autolinks#delete-an-autolink-reference-from-a-repository
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -16638,13 +16894,16 @@ paths:
                 description: The name of the status checks
                 items:
                   type: string
+              type: array
+              description: The name of the status checks
+              items:
+                type: string
             examples:
               default:
                 summary: Example adding status checks to a branch protection rule
                 value:
-                  contexts:
-                  - continuous-integration/travis-ci
-                  - continuous-integration/jenkins
+                - continuous-integration/travis-ci
+                - continuous-integration/jenkins
       responses:
         '200':
           description: Response
@@ -16710,12 +16969,15 @@ paths:
                 description: The name of the status checks
                 items:
                   type: string
+              type: array
+              description: The name of the status checks
+              items:
+                type: string
             examples:
               default:
                 summary: Example updating status checks for a branch protection rule
                 value:
-                  contexts:
-                  - continuous-integration/travis-ci
+                - continuous-integration/travis-ci
       responses:
         '200':
           description: Response
@@ -16777,12 +17039,15 @@ paths:
                 description: The name of the status checks
                 items:
                   type: string
+              type: array
+              description: The name of the status checks
+              items:
+                type: string
             examples:
               default:
                 summary: Example removing status checks from a branch protection rule
                 value:
-                  contexts:
-                  - continuous-integration/travis-ci
+                - continuous-integration/jenkins
       responses:
         '200':
           description: Response
@@ -17135,10 +17400,6 @@ paths:
         Protected branches are available in public repositories with GitHub Free and GitHub Free for organizations, and in public and private repositories with GitHub Pro, GitHub Team, GitHub Enterprise Cloud, and GitHub Enterprise Server. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         Grants the specified teams push access for this branch. You can also give push access to child teams.
-
-        | Type    | Description                                                                                                                                |
-        | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-        | `array` | The teams that can have push access. Use the team's `slug`. **Note**: The list of users, apps, and teams in total is limited to 100 items. |
       tags:
       - repos
       operationId: repos/add-team-access-restrictions
@@ -17171,12 +17432,15 @@ paths:
                 description: The slug values for teams
                 items:
                   type: string
+              type: array
+              description: The slug values for teams
+              items:
+                type: string
             examples:
               default:
                 summary: Example adding a team in a branch protection rule
                 value:
-                  teams:
-                  - justice-league
+                - justice-league
       responses:
         '200':
           description: Response
@@ -17203,10 +17467,6 @@ paths:
         Protected branches are available in public repositories with GitHub Free and GitHub Free for organizations, and in public and private repositories with GitHub Pro, GitHub Team, GitHub Enterprise Cloud, and GitHub Enterprise Server. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         Replaces the list of teams that have push access to this branch. This removes all teams that previously had push access and grants push access to the new list of teams. Team restrictions include child teams.
-
-        | Type    | Description                                                                                                                                |
-        | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-        | `array` | The teams that can have push access. Use the team's `slug`. **Note**: The list of users, apps, and teams in total is limited to 100 items. |
       tags:
       - repos
       operationId: repos/set-team-access-restrictions
@@ -17239,12 +17499,15 @@ paths:
                 description: The slug values for teams
                 items:
                   type: string
+              type: array
+              description: The slug values for teams
+              items:
+                type: string
             examples:
               default:
                 summary: Example replacing a team in a branch protection rule
                 value:
-                  teams:
-                  - justice-league
+                - justice-league
       responses:
         '200':
           description: Response
@@ -17271,10 +17534,6 @@ paths:
         Protected branches are available in public repositories with GitHub Free and GitHub Free for organizations, and in public and private repositories with GitHub Pro, GitHub Team, GitHub Enterprise Cloud, and GitHub Enterprise Server. For more information, see [GitHub's products](https://docs.github.com/enterprise-server@3.4/github/getting-started-with-github/githubs-products) in the GitHub Help documentation.
 
         Removes the ability of a team to push to this branch. You can also remove push access for child teams.
-
-        | Type    | Description                                                                                                                                         |
-        | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-        | `array` | Teams that should no longer have push access. Use the team's `slug`. **Note**: The list of users, apps, and teams in total is limited to 100 items. |
       tags:
       - repos
       operationId: repos/remove-team-access-restrictions
@@ -17306,12 +17565,16 @@ paths:
                 description: The slug values for teams
                 items:
                   type: string
+              type: array
+              description: The slug values for teams
+              items:
+                type: string
             examples:
               default:
                 summary: Example removing a team in a branch protection rule
                 value:
-                  teams:
-                  - justice-league
+                - octocats
+        required: false
       responses:
         '200':
           description: Response
@@ -17737,8 +18000,10 @@ paths:
                         to make multiple requests to the [Update a check run](https://docs.github.com/enterprise-server@3.4/rest/reference/checks#update-a-check-run)
                         endpoint. Each time you update the check run, annotations
                         are appended to the list of annotations that already exist
-                        for the check run. For details about how you can view annotations
-                        on GitHub, see "[About status checks](https://docs.github.com/enterprise-server@3.4/articles/about-status-checks#checks)".
+                        for the check run. GitHub Actions are limited to 10 warning
+                        annotations and 10 error annotations per step. For details
+                        about how you can view annotations on GitHub, see "[About
+                        status checks](https://docs.github.com/enterprise-server@3.4/articles/about-status-checks#checks)".
                       maxItems: 50
                       items:
                         type: object
@@ -18059,8 +18324,9 @@ paths:
                         have to make multiple requests to the [Update a check run](https://docs.github.com/enterprise-server@3.4/rest/reference/checks#update-a-check-run)
                         endpoint. Each time you update the check run, annotations
                         are appended to the list of annotations that already exist
-                        for the check run. For details about annotations in the UI,
-                        see "[About status checks](https://docs.github.com/enterprise-server@3.4/articles/about-status-checks#checks)".
+                        for the check run. GitHub Actions are limited to 10 warning
+                        annotations and 10 error annotations per step. For details
+                        about annotations in the UI, see "[About status checks](https://docs.github.com/enterprise-server@3.4/articles/about-status-checks#checks)".
                       maxItems: 50
                       items:
                         type: object
@@ -19048,9 +19314,9 @@ paths:
         there are additional values over which the entries will be ignored while keeping
         the most important entries whenever applicable.\nTo get the most out of your
         analysis when it includes data above the supported limits, try to optimize
-        the analysis configuration (For example, for the CodeQL tool, identify and
-        remove the most noisy queries).\n\n\n| **SARIF data**                   |
-        **Maximum values** | **Additional limits**                                                            |\n|----------------------------------|:------------------:|----------------------------------------------------------------------------------|\n|
+        the analysis configuration. For example, for the CodeQL tool, identify and
+        remove the most noisy queries.\n\n\n| **SARIF data**                   | **Maximum
+        values** | **Additional limits**                                                            |\n|----------------------------------|:------------------:|----------------------------------------------------------------------------------|\n|
         Runs per file                    |         15         |                                                                                  |\n|
         Results per run                  |       25,000       | Only the top 5,000
         results will be included, prioritized by severity.            |\n| Rules per
@@ -19058,7 +19324,7 @@ paths:
         Thread Flow Locations per result |       10,000       | Only the top 1,000
         Thread Flow Locations will be included, using prioritization. |\n| Location
         per result\t             |       1,000        | Only 100 locations will be
-        included.                                             |\n\n\nThe `202 Accepted`
+        included.                                             |\n\nThe `202 Accepted`
         response includes an `id` value.\nYou can use this ID to check the status
         of the upload by using it in the `/sarifs/{sarif_id}` endpoint.\nFor more
         information, see \"[Get information about a SARIF upload](/rest/reference/code-scanning#get-information-about-a-sarif-upload).\""
@@ -19067,7 +19333,7 @@ paths:
       - code-scanning
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/code-scanning#upload-a-sarif-file
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/code-scanning#upload-an-analysis-as-sarif-data
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -19154,7 +19420,7 @@ paths:
       - code-scanning
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/code-scanning#list-recent-code-scanning-analyses-for-a-repository
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/code-scanning#get-information-about-a-sarif-upload
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -19709,7 +19975,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -19726,7 +19992,7 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - name: sha
         description: 'SHA or branch to start listing commits from. Default: the repository’s
-          default branch (usually `master`).'
+          default branch (usually `main`).'
         in: query
         required: false
         schema:
@@ -19738,7 +20004,13 @@ paths:
         schema:
           type: string
       - name: author
-        description: GitHub login or email address by which to filter by commit author.
+        description: GitHub username or email address to use to filter by commit author.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: committer
+        description: GitHub username or email address to use to filter by commit committer.
         in: query
         required: false
         schema:
@@ -19994,7 +20266,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -20270,21 +20542,26 @@ paths:
     get:
       summary: Compare two commits
       description: |-
-        The `basehead` param is comprised of two parts separated by triple dots: `{base}...{head}`. Both must be branch names in `repo`. To compare branches across other repositories in the same network as `repo`, use the format `<USERNAME>:branch`.
+        Compares two commits against one another. You can compare branches in the same repository, or you can compare branches that exist in different repositories within the same repository network, including fork branches. For more information about how to view a repository's network, see "[Understanding connections between repositories](https://docs.github.com/enterprise-server@3.4/repositories/viewing-activity-and-data-for-your-repository/understanding-connections-between-repositories)."
 
-        The response from the API is equivalent to running the `git log base..head` command; however, commits are returned in chronological order. Pass the appropriate [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
+        This endpoint is equivalent to running the `git log BASE..HEAD` command, but it returns commits in a different order. The `git log BASE..HEAD` command returns commits in reverse chronological order, whereas the API returns commits in chronological order. You can pass the appropriate [media type](https://docs.github.com/enterprise-server@3.4/rest/overview/media-types/#commits-commit-comparison-and-pull-requests) to fetch diff and patch formats.
 
-        The response also includes details on the files that were changed between the two commits. This includes the status of the change (for example, if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+        The API response includes details about the files that were changed between the two commits. This includes the status of the change (if a file was added, removed, modified, or renamed), and details of the change itself. For example, files with a `renamed` status have a `previous_filename` field showing the previous filename of the file, and files with a `modified` status have a `patch` field showing the changes made to the file.
+
+        When calling this endpoint without any paging parameter (`per_page` or `page`), the returned list is limited to 250 commits, and the last commit in the list is the most recent of the entire comparison.
 
         **Working with large comparisons**
 
-        To process a response with a large number of commits, you can use (`per_page` or `page`) to paginate the results. When using paging, the list of changed files is only returned with page 1, but includes all changed files for the entire comparison. For more information on working with pagination, see "[Traversing with pagination](/rest/guides/traversing-with-pagination)."
+        To process a response with a large number of commits, use a query parameter (`per_page` or `page`) to paginate the results. When using pagination:
 
-        When calling this API without any paging parameters (`per_page` or `page`), the returned list is limited to 250 commits and the last commit in the list is the most recent of the entire comparison. When a paging parameter is specified, the first commit in the returned list of each page is the earliest.
+        - The list of changed files is only shown on the first page of results, but it includes all changed files for the entire comparison.
+        - The results are returned in chronological order, but the last commit in the returned list may not be the most recent one in the entire set if there are more pages of results.
+
+        For more information on working with pagination, see "[Using pagination in the REST API](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api)."
 
         **Signature verification object**
 
-        The response will include a `verification` object that describes the result of verifying the commit's signature. The following fields are included in the `verification` object:
+        The response will include a `verification` object that describes the result of verifying the commit's signature. The `verification` object includes the following fields:
 
         | Name | Type | Description |
         | ---- | ---- | ----------- |
@@ -20304,7 +20581,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -20323,7 +20600,9 @@ paths:
       - "$ref": "#/components/parameters/per-page"
       - name: basehead
         description: The base branch and head branch to compare. This parameter expects
-          the format `{base}...{head}`.
+          the format `BASE...HEAD`. Both must be branch names in `repo`. To compare
+          with a branch that exists in a different repository in the same network
+          as `repo`, the `basehead` parameter expects the format `USERNAME:BASE...USERNAME:HEAD`.
         in: path
         required: true
         x-multi-segment: true
@@ -20402,7 +20681,7 @@ paths:
         x-multi-segment: true
       - name: ref
         description: 'The name of the commit/branch/tag. Default: the repository’s
-          default branch (usually `master`)'
+          default branch.'
         in: query
         required: false
         schema:
@@ -20488,7 +20767,7 @@ paths:
                 branch:
                   type: string
                   description: 'The branch name. Default: the repository’s default
-                    branch (usually `master`)'
+                    branch.'
                 committer:
                   type: object
                   description: 'The person that committed the file. Default: the authenticated
@@ -20622,7 +20901,7 @@ paths:
                 branch:
                   type: string
                   description: 'The branch name. Default: the repository’s default
-                    branch (usually `master`)'
+                    branch'
                 committer:
                   type: object
                   description: object containing information about the committer.
@@ -20998,7 +21277,7 @@ paths:
       operationId: repos/list-deployments
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#list-deployments
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/deployments#list-deployments
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21052,8 +21331,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
     post:
       summary: Create a deployment
       description: |-
@@ -21107,7 +21385,7 @@ paths:
       operationId: repos/create-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-deployment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/deployments#create-a-deployment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21217,8 +21495,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
   "/repos/{owner}/{repo}/deployments/{deployment_id}":
     get:
       summary: Get a deployment
@@ -21228,7 +21505,7 @@ paths:
       operationId: repos/get-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#get-a-deployment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/deployments#get-a-deployment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21248,8 +21525,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
     delete:
       summary: Delete a deployment
       description: |-
@@ -21260,13 +21536,13 @@ paths:
         *   Create a new deployment that is active so that the system has a record of the current state, then delete the previously active deployment.
         *   Mark the active deployment as inactive by adding any non-successful deployment status.
 
-        For more information, see "[Create a deployment](https://docs.github.com/enterprise-server@3.4/rest/reference/repos/#create-a-deployment)" and "[Create a deployment status](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-deployment-status)."
+        For more information, see "[Create a deployment](https://docs.github.com/enterprise-server@3.4/rest/deployments/deployments/#create-a-deployment)" and "[Create a deployment status](https://docs.github.com/enterprise-server@3.4/rest/deployments/deployment-statuses#create-a-deployment-status)."
       tags:
       - repos
       operationId: repos/delete-deployment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#delete-a-deployment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/deployments#delete-a-deployment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21281,8 +21557,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
   "/repos/{owner}/{repo}/deployments/{deployment_id}/statuses":
     get:
       summary: List deployment statuses
@@ -21292,7 +21567,7 @@ paths:
       operationId: repos/list-deployment-statuses
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#list-deployment-statuses
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/statuses#list-deployment-statuses
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21319,8 +21594,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
     post:
       summary: Create a deployment status
       description: |-
@@ -21332,7 +21607,7 @@ paths:
       operationId: repos/create-deployment-status
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-deployment-status
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/statuses#create-a-deployment-status
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21428,8 +21703,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
   "/repos/{owner}/{repo}/deployments/{deployment_id}/statuses/{status_id}":
     get:
       summary: Get a deployment status
@@ -21439,7 +21714,7 @@ paths:
       operationId: repos/get-deployment-status
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#get-a-deployment-status
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/statuses#get-a-deployment-status
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21464,8 +21739,8 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: deployments
+        category: deployments
+        subcategory: statuses
   "/repos/{owner}/{repo}/dispatches":
     post:
       summary: Create a repository dispatch event
@@ -21584,7 +21859,7 @@ paths:
       operationId: repos/get-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#get-an-environment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/environments#get-an-environment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21602,7 +21877,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
     put:
       summary: Create or update an environment
@@ -21619,7 +21894,7 @@ paths:
       operationId: repos/create-or-update-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-or-update-an-environment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/environments#create-or-update-an-environment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21688,7 +21963,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
     delete:
       summary: Delete an environment
@@ -21699,7 +21974,7 @@ paths:
       operationId: repos/delete-an-environment
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#delete-an-environment
+        url: https://docs.github.com/enterprise-server@3.4/rest/deployments/environments#delete-an-environment
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -21710,7 +21985,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
+        category: deployments
         subcategory: environments
   "/repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies":
     get:
@@ -21915,7 +22190,8 @@ paths:
   "/repos/{owner}/{repo}/events":
     get:
       summary: List repository events
-      description: ''
+      description: "**Note**: This API is not built to serve real-time use cases.
+        Depending on the time of day, event latency can be anywhere from 30s to 6h.\n"
       tags:
       - activity
       operationId: activity/list-repo-events
@@ -21999,6 +22275,8 @@ paths:
         Create a fork for the authenticated user.
 
         **Note**: Forking a Repository happens asynchronously. You may have to wait a short period of time before you can access the git objects. If this takes longer than 5 minutes, be sure to contact [GitHub Enterprise Server Support](https://support.github.com/contact?tags=dotcom-rest-api).
+
+        **Note**: Although this endpoint works with GitHub Apps, the GitHub App must be installed on the destination account with access to all repositories and on the source account with access to the source repository.
       tags:
       - repos
       operationId: repos/create-fork
@@ -22182,7 +22460,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -22351,7 +22629,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -22501,9 +22779,6 @@ paths:
                 sha:
                   type: string
                   description: The SHA1 value for this reference.
-                key:
-                  type: string
-                  example: '"refs/heads/newbranch"'
               required:
               - ref
               - sha
@@ -22654,7 +22929,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -22778,7 +23053,7 @@ paths:
         | `unsigned` | The object does not include a signature. |
         | `unknown_signature_type` | A non-PGP signature was found in the commit. |
         | `no_user` | No user was associated with the `committer` email address in the commit. |
-        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on her/his account. |
+        | `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |
         | `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |
         | `unknown_key` | The key that made the signature has not been registered with any user's account. |
         | `malformed_signature` | There was an error parsing the signature. |
@@ -23869,7 +24144,10 @@ paths:
   "/repos/{owner}/{repo}/issues/comments":
     get:
       summary: List issue comments for a repository
-      description: By default, Issue Comments are ordered by ascending ID.
+      description: |-
+        You can use the REST API to list comments on issues and pull requests for a repository. Every pull request is an issue, but not every issue is a pull request.
+
+        By default, issue comments are ordered by ascending ID.
       tags:
       - issues
       operationId: issues/list-comments-for-repo
@@ -23919,7 +24197,8 @@ paths:
   "/repos/{owner}/{repo}/issues/comments/{comment_id}":
     get:
       summary: Get an issue comment
-      description: ''
+      description: You can use the REST API to get comments on issues and pull requests.
+        Every pull request is an issue, but not every issue is a pull request.
       tags:
       - issues
       operationId: issues/get-comment
@@ -23949,7 +24228,8 @@ paths:
         subcategory: comments
     patch:
       summary: Update an issue comment
-      description: ''
+      description: You can use the REST API to update comments on issues and pull
+        requests. Every pull request is an issue, but not every issue is a pull request.
       tags:
       - issues
       operationId: issues/update-comment
@@ -23995,7 +24275,8 @@ paths:
         subcategory: comments
     delete:
       summary: Delete an issue comment
-      description: ''
+      description: You can use the REST API to delete comments on issues and pull
+        requests. Every pull request is an issue, but not every issue is a pull request.
       tags:
       - issues
       operationId: issues/delete-comment
@@ -24318,11 +24599,10 @@ paths:
                 assignee:
                   type: string
                   nullable: true
-                  description: Login for the user that this issue should be assigned
-                    to. **This field is deprecated.**
+                  description: Username to assign to this issue. **This field is deprecated.**
                 state:
                   type: string
-                  description: State of the issue. Either `open` or `closed`.
+                  description: The open or closed state of the issue.
                   enum:
                   - open
                   - closed
@@ -24333,24 +24613,25 @@ paths:
                   - not_planned
                   - reopened
                   nullable: true
-                  description: The reason for the current state
+                  description: The reason for the state change. Ignored unless `state`
+                    is changed.
                   example: not_planned
                 milestone:
                   oneOf:
                   - type: string
                   - type: integer
-                    description: 'The `number` of the milestone to associate this
-                      issue with or `null` to remove current. _NOTE: Only users with
-                      push access can set the milestone for issues. The milestone
-                      is silently dropped otherwise._'
+                    description: The `number` of the milestone to associate this issue
+                      with or use `null` to remove the current milestone. Only users
+                      with push access can set the milestone for issues. Without push
+                      access to the repository, milestone changes are silently dropped.
                   nullable: true
                 labels:
                   type: array
-                  description: 'Labels to associate with this issue. Pass one or more
-                    Labels to _replace_ the set of Labels on this Issue. Send an empty
-                    array (`[]`) to clear all Labels from the Issue. _NOTE: Only users
-                    with push access can set labels for issues. Labels are silently
-                    dropped otherwise._'
+                  description: Labels to associate with this issue. Pass one or more
+                    labels to _replace_ the set of labels on this issue. Send an empty
+                    array (`[]`) to clear all labels from the issue. Only users with
+                    push access can set labels for issues. Without push access to
+                    the repository, label changes are silently dropped.
                   items:
                     oneOf:
                     - type: string
@@ -24368,11 +24649,11 @@ paths:
                           nullable: true
                 assignees:
                   type: array
-                  description: 'Logins for Users to assign to this issue. Pass one
-                    or more user logins to _replace_ the set of assignees on this
-                    Issue. Send an empty array (`[]`) to clear all assignees from
-                    the Issue. _NOTE: Only users with push access can set assignees
-                    for new issues. Assignees are silently dropped otherwise._'
+                  description: Usernames to assign to this issue. Pass one or more
+                    user logins to _replace_ the set of assignees on this issue. Send
+                    an empty array (`[]`) to clear all assignees from the issue. Only
+                    users with push access can set assignees for new issues. Without
+                    push access to the repository, assignee changes are silently dropped.
                   items:
                     type: string
             examples:
@@ -24510,10 +24791,51 @@ paths:
         enabledForGitHubApps: true
         category: issues
         subcategory: assignees
+  "/repos/{owner}/{repo}/issues/{issue_number}/assignees/{assignee}":
+    get:
+      summary: Check if a user can be assigned to a issue
+      description: |-
+        Checks if a user has permission to be assigned to a specific issue.
+
+        If the `assignee` can be assigned to this issue, a `204` status code with no content is returned.
+
+        Otherwise a `404` status code is returned.
+      tags:
+      - issues
+      operationId: issues/check-user-can-be-assigned-to-issue
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-server@3.4/rest/reference/issues#check-if-a-user-can-be-assigned-to-a-issue
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - "$ref": "#/components/parameters/issue-number"
+      - name: assignee
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Response if `assignee` can be assigned to `issue_number`
+        '404':
+          description: Response if `assignee` can not be assigned to `issue_number`
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/basic-error"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: issues
+        subcategory: assignees
   "/repos/{owner}/{repo}/issues/{issue_number}/comments":
     get:
       summary: List issue comments
-      description: Issue Comments are ordered by ascending ID.
+      description: |-
+        You can use the REST API to list comments on issues and pull requests. Every pull request is an issue, but not every issue is a pull request.
+
+        Issue comments are ordered by ascending ID.
       tags:
       - issues
       operationId: issues/list-comments
@@ -24553,9 +24875,13 @@ paths:
         subcategory: comments
     post:
       summary: Create an issue comment
-      description: This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications).
-        Creating content too quickly using this endpoint may result in secondary rate
-        limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)"
+      description: |2-
+
+        You can use the REST API to create comments on issues and pull requests. Every pull request is an issue, but not every issue is a pull request.
+
+        This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications).
+        Creating content too quickly using this endpoint may result in secondary rate limiting.
+        See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)"
         and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)"
         for details.
       tags:
@@ -24971,8 +25297,8 @@ paths:
                 lock_reason:
                   type: string
                   description: "The reason for locking the issue or pull request conversation.
-                    Lock will fail if you don't use one of these reasons:  \n\\* `off-topic`
-                    \ \n\\* `too heated`  \n\\* `resolved`  \n\\* `spam`"
+                    Lock will fail if you don't use one of these reasons:  \n * `off-topic`
+                    \ \n * `too heated`  \n * `resolved`  \n * `spam`"
                   enum:
                   - off-topic
                   - too heated
@@ -25222,7 +25548,7 @@ paths:
       operationId: repos/list-deploy-keys
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#list-deploy-keys
+        url: https://docs.github.com/enterprise-server@3.4/rest/deploy-keys#list-deploy-keys
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -25246,8 +25572,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
     post:
       summary: Create a deploy key
       description: You can create a read-only deploy key.
@@ -25256,7 +25581,7 @@ paths:
       operationId: repos/create-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.4/rest/deploy-keys#create-a-deploy-key
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -25310,8 +25635,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
   "/repos/{owner}/{repo}/keys/{key_id}":
     get:
       summary: Get a deploy key
@@ -25321,7 +25645,7 @@ paths:
       operationId: repos/get-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#get-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.4/rest/deploy-keys#get-a-deploy-key
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -25341,8 +25665,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
     delete:
       summary: Delete a deploy key
       description: Deploy keys are immutable. If you need to update a key, remove
@@ -25352,7 +25675,7 @@ paths:
       operationId: repos/delete-deploy-key
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#delete-a-deploy-key
+        url: https://docs.github.com/enterprise-server@3.4/rest/deploy-keys#delete-a-deploy-key
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -25363,8 +25686,7 @@ paths:
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
-        category: repos
-        subcategory: keys
+        category: deploy-keys
   "/repos/{owner}/{repo}/labels":
     get:
       summary: List labels for a repository
@@ -26203,7 +26525,10 @@ paths:
   "/repos/{owner}/{repo}/pages":
     get:
       summary: Get a GitHub Enterprise Server Pages site
-      description: ''
+      description: |-
+        Gets information about a GitHub Enterprise Server Pages site.
+
+        A token with the `repo` scope is required. GitHub Apps must have the `pages:read` permission.
       tags:
       - repos
       operationId: repos/get-pages
@@ -26231,9 +26556,10 @@ paths:
         category: pages
     post:
       summary: Create a GitHub Enterprise Server Pages site
-      description: Configures a GitHub Enterprise Server Pages site. For more information,
-        see "[About GitHub Pages](/github/working-with-github-pages/about-github-pages)."
-        You must be an admin of the repository in order to use this operation.
+      description: |-
+        Configures a GitHub Enterprise Server Pages site. For more information, see "[About GitHub Pages](/github/working-with-github-pages/about-github-pages)."
+
+        To use this endpoint, you must be a repository administrator, maintainer, or have the 'manage GitHub Pages settings' permission. A token with the `repo` scope or Pages write permission is required. GitHub Apps must have the `administration:write` and `pages:write` permissions.
       tags:
       - repos
       operationId: repos/create-pages-site
@@ -26307,11 +26633,14 @@ paths:
           "$ref": "#/components/responses/conflict"
       x-github:
         githubCloudOnly: false
+        enabledForGitHubApps: true
         category: pages
     put:
       summary: Update information about a GitHub Enterprise Server Pages site
-      description: Updates information for a GitHub Enterprise Server Pages site.
-        For more information, see "[About GitHub Pages](/github/working-with-github-pages/about-github-pages).
+      description: |-
+        Updates information for a GitHub Enterprise Server Pages site. For more information, see "[About GitHub Pages](/github/working-with-github-pages/about-github-pages).
+
+        To use this endpoint, you must be a repository administrator, maintainer, or have the 'manage GitHub Pages settings' permission. A token with the `repo` scope or Pages write permission is required. GitHub Apps must have the `administration:write` and `pages:write` permissions.
       tags:
       - repos
       operationId: repos/update-information-about-pages-site
@@ -26337,16 +26666,6 @@ paths:
                 https_enforced:
                   type: boolean
                   description: Specify whether HTTPS should be enforced for the repository.
-                public:
-                  type: boolean
-                  description: Configures access controls for the GitHub Pages site.
-                    If public is set to `true`, the site is accessible to anyone on
-                    the internet. If set to `false`, the site will only be accessible
-                    to users who have at least `read` access to the repository that
-                    published the site. This includes anyone in your Enterprise if
-                    the repository is set to `internal` visibility. This feature is
-                    only available to repositories in an organization on an Enterprise
-                    plan.
                 build_type:
                   type: string
                   description: The process by which the GitHub Pages site will be
@@ -26418,8 +26737,10 @@ paths:
         category: pages
     delete:
       summary: Delete a GitHub Enterprise Server Pages site
-      description: Deletes a GitHub Pages site. You must be an admin of the repository
-        in order to use this operation.
+      description: |-
+        Deletes a GitHub Enterprise Server Pages site. For more information, see "[About GitHub Pages](/github/working-with-github-pages/about-github-pages).
+
+        To use this endpoint, you must be a repository administrator, maintainer, or have the 'manage GitHub Pages settings' permission. A token with the `repo` scope or Pages write permission is required. GitHub Apps must have the `administration:write` and `pages:write` permissions.
       tags:
       - repos
       operationId: repos/delete-pages-site
@@ -26440,11 +26761,15 @@ paths:
           "$ref": "#/components/responses/conflict"
       x-github:
         githubCloudOnly: false
+        enabledForGitHubApps: true
         category: pages
   "/repos/{owner}/{repo}/pages/builds":
     get:
       summary: List GitHub Enterprise Server Pages builds
-      description: ''
+      description: |-
+        Lists builts of a GitHub Enterprise Server Pages site.
+
+        A token with the `repo` scope is required. GitHub Apps must have the `pages:read` permission.
       tags:
       - repos
       operationId: repos/list-pages-builds
@@ -26507,7 +26832,10 @@ paths:
   "/repos/{owner}/{repo}/pages/builds/latest":
     get:
       summary: Get latest Pages build
-      description: ''
+      description: |-
+        Gets information about the single most recent build of a GitHub Enterprise Server Pages site.
+
+        A token with the `repo` scope is required. GitHub Apps must have the `pages:read` permission.
       tags:
       - repos
       operationId: repos/get-latest-pages-build
@@ -26534,7 +26862,10 @@ paths:
   "/repos/{owner}/{repo}/pages/builds/{build_id}":
     get:
       summary: Get GitHub Enterprise Server Pages build
-      description: ''
+      description: |-
+        Gets information about a GitHub Enterprise Server Pages build.
+
+        A token with the `repo` scope is required. GitHub Apps must have the `pages:read` permission.
       tags:
       - repos
       operationId: repos/get-pages-build
@@ -26663,6 +26994,7 @@ paths:
                 default:
                   "$ref": "#/components/examples/repository-pre-receive-hook-2"
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -26981,6 +27313,7 @@ paths:
                     in the GitHub Help documentation to learn more.
                 issue:
                   type: integer
+                  format: int64
                   example: 1
                   description: An issue in the repository to convert to a pull request.
                     The issue title, body, and comments will become the title, body,
@@ -27556,9 +27889,10 @@ paths:
                   - RIGHT
                 line:
                   type: integer
-                  description: The line of the blob in the pull request diff that
-                    the comment applies to. For a multi-line comment, the last line
-                    of the range that your comment applies to.
+                  description: "**Required unless using `subject_type:file`**. The
+                    line of the blob in the pull request diff that the comment applies
+                    to. For a multi-line comment, the last line of the range that
+                    your comment applies to."
                 start_line:
                   type: integer
                   description: '**Required when using multi-line comments unless using
@@ -27590,7 +27924,6 @@ paths:
               - body
               - commit_id
               - path
-              - line
             examples:
               example-for-a-multi-line-comment:
                 summary: Example for a multi-line comment
@@ -27769,7 +28102,9 @@ paths:
   "/repos/{owner}/{repo}/pulls/{pull_number}/merge":
     get:
       summary: Check if a pull request has been merged
-      description: ''
+      description: Checks if a pull request has been merged into the base branch.
+        The HTTP status of the response indicates whether or not the pull request
+        has been merged; the response body is empty.
       tags:
       - pulls
       operationId: pulls/check-if-merged
@@ -27792,11 +28127,9 @@ paths:
         subcategory: 
     put:
       summary: Merge a pull request
-      description: This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications).
-        Creating content too quickly using this endpoint may result in secondary rate
-        limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)"
-        and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)"
-        for details.
+      description: |-
+        Merges a pull request into the base branch.
+        This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
       tags:
       - pulls
       operationId: pulls/merge
@@ -27927,11 +28260,9 @@ paths:
         subcategory: review-requests
     post:
       summary: Request reviewers for a pull request
-      description: This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications).
-        Creating content too quickly using this endpoint may result in secondary rate
-        limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)"
-        and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)"
-        for details.
+      description: |-
+        Requests reviews for a pull request from a given set of users and/or teams.
+        This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.4/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. See "[Secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#secondary-rate-limits)" and "[Dealing with secondary rate limits](https://docs.github.com/enterprise-server@3.4/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits)" for details.
       tags:
       - pulls
       operationId: pulls/request-reviewers
@@ -27995,7 +28326,8 @@ paths:
         subcategory: review-requests
     delete:
       summary: Remove requested reviewers from a pull request
-      description: ''
+      description: Removes review requests from a pull request for a given set of
+        users and/or teams.
       tags:
       - pulls
       operationId: pulls/remove-requested-reviewers
@@ -28205,7 +28537,7 @@ paths:
   "/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}":
     get:
       summary: Get a review for a pull request
-      description: ''
+      description: Retrieves a pull request review by its ID.
       tags:
       - pulls
       operationId: pulls/get-review
@@ -28284,7 +28616,8 @@ paths:
         subcategory: reviews
     delete:
       summary: Delete a pending review for a pull request
-      description: ''
+      description: Deletes a pull request review that has not been submitted. Submitted
+        reviews cannot be deleted.
       tags:
       - pulls
       operationId: pulls/delete-pending-review
@@ -28559,7 +28892,7 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - name: ref
         description: 'The name of the commit/branch/tag. Default: the repository’s
-          default branch (usually `master`)'
+          default branch.'
         in: query
         required: false
         schema:
@@ -28608,7 +28941,7 @@ paths:
         x-multi-segment: true
       - name: ref
         description: 'The name of the commit/branch/tag. Default: the repository’s
-          default branch (usually `master`)'
+          default branch.'
         in: query
         required: false
         schema:
@@ -28683,7 +29016,7 @@ paths:
       operationId: repos/create-release
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-release
+        url: https://docs.github.com/enterprise-server@3.4/rest/releases/releases#create-a-release
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -28702,7 +29035,7 @@ paths:
                   description: 'Specifies the commitish value that determines where
                     the Git tag is created from. Can be any branch or commit SHA.
                     Unused if the Git tag already exists. Default: the repository''s
-                    default branch (usually `master`).'
+                    default branch.'
                 name:
                   type: string
                   description: The name of the release.
@@ -29070,7 +29403,7 @@ paths:
                   description: 'Specifies the commitish value that determines where
                     the Git tag is created from. Can be any branch or commit SHA.
                     Unused if the Git tag already exists. Default: the repository''s
-                    default branch (usually `master`).'
+                    default branch.'
                 name:
                   type: string
                   description: The name of the release.
@@ -29171,7 +29504,7 @@ paths:
       description: "This endpoint makes use of [a Hypermedia relation](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#hypermedia)
         to determine which URL to access. The endpoint you call to upload release
         assets is specific to your release. Use the `upload_url` returned in\nthe
-        response of the [Create a release endpoint](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#create-a-release)
+        response of the [Create a release endpoint](https://docs.github.com/enterprise-server@3.4/rest/releases/releases#create-a-release)
         to upload a release asset.\n\nYou need to use an HTTP client which supports
         [SNI](http://en.wikipedia.org/wiki/Server_Name_Indication) to make calls to
         this endpoint.\n\nMost libraries will set the required `Content-Length` header
@@ -29189,7 +29522,9 @@ paths:
         assets for a release](https://docs.github.com/enterprise-server@3.4/rest/reference/repos#list-assets-for-a-release)\"\nendpoint
         lists the renamed filenames. For more information and help, contact [GitHub
         Enterprise Server Support](https://support.github.com/contact?tags=dotcom-rest-api).\n*
-        \  If you upload an asset with the same filename as another uploaded asset,
+        \  To find the `release_id` query the [`GET /repos/{owner}/{repo}/releases/latest`
+        endpoint](https://docs.github.com/enterprise-server@3.4/rest/releases/releases#get-the-latest-release).
+        \n*   If you upload an asset with the same filename as another uploaded asset,
         you'll receive an error and must delete the old file before you can re-upload
         the new asset."
       tags:
@@ -29218,10 +29553,14 @@ paths:
       requestBody:
         required: false
         content:
-          "*/*":
+          application/octet-stream:
             schema:
               type: string
+              format: binary
               description: The raw file data
+            examples:
+              default:
+                value: "@example.zip"
       responses:
         '201':
           description: Response for successful upload
@@ -29805,6 +30144,8 @@ paths:
         Returns the total commit counts for the `owner` and total commit counts in `all`. `all` is everyone combined, including the `owner` in the last 52 weeks. If you'd like to get the commit counts for non-owners, you can subtract `owner` from `all`.
 
         The array order is oldest week (index 0) to most recent week.
+
+        The most recent week is seven days ago at UTC midnight to today at UTC midnight.
       tags:
       - repos
       operationId: repos/get-participation-stats
@@ -29847,7 +30188,7 @@ paths:
       operationId: repos/get-punch-card-stats
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/statistics/repos#get-the-hourly-commit-count-for-each-day
+        url: https://docs.github.com/enterprise-server@3.4/rest/metrics/statistics#get-the-hourly-commit-count-for-each-day
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
@@ -30136,7 +30477,7 @@ paths:
       summary: Download a repository archive (tar)
       description: |-
         Gets a redirect URL to download a tar archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
         **Note**: For private repositories, these links are temporary and expire after five minutes.
       tags:
@@ -30353,7 +30694,7 @@ paths:
       summary: Download a repository archive (zip)
       description: |-
         Gets a redirect URL to download a zip archive for a repository. If you omit `:ref`, the repository’s default branch (usually
-        `master`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
+        `main`) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use
         the `Location` header to make a second `GET` request.
 
         **Note**: For private repositories, these links are temporary and expire after five minutes. If the repository is empty, you will receive a 404 when you follow the redirect.
@@ -30489,7 +30830,7 @@ paths:
 
         Note:
         - For GitHub Enterprise Server, this endpoint will only list repositories available to all users on the enterprise.
-        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of repositories.
+        - Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of repositories.
       tags:
       - repos
       operationId: repos/list-public
@@ -30852,7 +31193,18 @@ paths:
           type: string
           enum:
           - indexed
-      - "$ref": "#/components/parameters/order"
+      - name: order
+        description: Determines whether the first search result returned is the highest
+          number of matches (`desc`) or lowest number of matches (`asc`). This parameter
+          is ignored unless you provide `sort`.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - desc
+          - asc
+          default: desc
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
       responses:
@@ -30895,7 +31247,7 @@ paths:
     get:
       summary: Search commits
       description: |-
-        Find commits via various criteria on the default branch (usually `master`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#pagination).
+        Find commits via various criteria on the default branch (usually `main`). This method returns up to 100 results [per page](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#pagination).
 
         When searching for commits, you can get text match metadata for the **message** field when you provide the `text-match` media type. For more details about how to receive highlighted search results, see [Text match
         metadata](https://docs.github.com/enterprise-server@3.4/rest/reference/search#text-match-metadata).
@@ -31778,7 +32130,7 @@ paths:
         1.  If you're working directly with the API before accessing the web interface, you must pass in the password parameter to set your password.
         2.  If you set up your instance via the web interface before accessing the API, your calls to this endpoint do not need the password parameter.
 
-        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        **Note:** The request body for this operation must be submitted as `multipart/form-data` data. You can can reference the license file by prefixing the filename with the `@` symbol using `curl`. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#-F).
       operationId: enterprise-admin/create-enterprise-server-license
       tags:
       - enterprise-admin
@@ -31800,7 +32152,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
               type: object
               properties:
@@ -31819,6 +32171,11 @@ paths:
                     endpoint](https://docs.github.com/enterprise-server@3.4/rest/reference/enterprise-admin#get-settings).
               required:
               - license
+            examples:
+              default:
+                value:
+                  license: "@enterprise.ghl"
+                  password: secret
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -31830,7 +32187,7 @@ paths:
       description: |-
         This API upgrades your license and also triggers the configuration process.
 
-        **Note:** The request body for this operation must be submitted as `application/x-www-form-urlencoded` data. You can submit a parameter value as a string, or you can use a tool such as `curl` to submit a parameter value as the contents of a text file. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#--data-urlencode).
+        **Note:** The request body for this operation must be submitted as `multipart/form-data` data. You can can reference the license file by prefixing the filename with the `@` symbol using `curl`. For more information, see the [`curl` documentation](https://curl.se/docs/manpage.html#-F).
       operationId: enterprise-admin/upgrade-license
       tags:
       - enterprise-admin
@@ -31850,14 +32207,19 @@ paths:
         '202':
           description: Response
       requestBody:
+        required: false
         content:
-          application/x-www-form-urlencoded:
+          multipart/form-data:
             schema:
               type: object
               properties:
                 license:
                   type: string
                   description: The content of your new _.ghl_ license file.
+            examples:
+              default:
+                value:
+                  license: "@enterprise.ghl"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -31931,11 +32293,11 @@ paths:
                   type: string
                   description: "The level of privacy this team should have. Editing
                     teams without specifying this parameter leaves `privacy` intact.
-                    The options are:  \n**For a non-nested team:**  \n\\* `secret`
+                    The options are:  \n**For a non-nested team:**  \n * `secret`
                     - only visible to organization owners and members of this team.
-                    \ \n\\* `closed` - visible to all members of this organization.
-                    \ \n**For a parent or child team:**  \n\\* `closed` - visible
-                    to all members of this organization."
+                    \ \n * `closed` - visible to all members of this organization.
+                    \ \n**For a parent or child team:**  \n * `closed` - visible to
+                    all members of this organization."
                   enum:
                   - secret
                   - closed
@@ -33373,7 +33735,7 @@ paths:
     get:
       summary: Get the authenticated user
       description: |-
-        If the authenticated user is authenticated through basic authentication or OAuth with the `user` scope, then the response lists public and private profile information.
+        If the authenticated user is authenticated with an OAuth token with the `user` scope, then the response lists public and private profile information.
 
         If the authenticated user is authenticated through OAuth without the `user` scope, then the response lists only public profile information.
       tags:
@@ -34579,7 +34941,7 @@ paths:
       operationId: migrations/list-for-authenticated-user
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#list-user-migrations
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/users#list-user-migrations
       parameters:
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
@@ -34617,7 +34979,7 @@ paths:
       operationId: migrations/start-for-authenticated-user
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#start-a-user-migration
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/users#start-a-user-migration
       parameters: []
       requestBody:
         required: true
@@ -34748,7 +35110,7 @@ paths:
       operationId: migrations/get-archive-for-authenticated-user
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#download-a-user-migration-archive
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/users#download-a-user-migration-archive
       parameters:
       - "$ref": "#/components/parameters/migration-id"
       responses:
@@ -34774,7 +35136,7 @@ paths:
       operationId: migrations/list-repos-for-authenticated-user
       externalDocs:
         description: API method documentation
-        url: https://docs.github.com/enterprise-server@3.4/rest/reference/migrations#list-repositories-for-a-user-migration
+        url: https://docs.github.com/enterprise-server@3.4/rest/migrations/users#list-repositories-for-a-user-migration
       parameters:
       - "$ref": "#/components/parameters/migration-id"
       - "$ref": "#/components/parameters/per-page"
@@ -34976,9 +35338,9 @@ paths:
           - private
           default: all
       - name: affiliation
-        description: "Comma-separated list of values. Can include:  \n\\* `owner`:
-          Repositories that are owned by the authenticated user.  \n\\* `collaborator`:
-          Repositories that the user has been added to as a collaborator.  \n\\* `organization_member`:
+        description: "Comma-separated list of values. Can include:  \n * `owner`:
+          Repositories that are owned by the authenticated user.  \n * `collaborator`:
+          Repositories that the user has been added to as a collaborator.  \n * `organization_member`:
           Repositories that the user has access to through being a member of an organization.
           This includes every repository on every team that the user is on."
         in: query
@@ -35024,8 +35386,8 @@ paths:
           - desc
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
-      - "$ref": "#/components/parameters/since"
-      - "$ref": "#/components/parameters/before"
+      - "$ref": "#/components/parameters/since-repo-date"
+      - "$ref": "#/components/parameters/before-repo-date"
       responses:
         '200':
           description: Response
@@ -35363,7 +35725,7 @@ paths:
         description: API method documentation
         url: https://docs.github.com/enterprise-server@3.4/rest/reference/activity#list-repositories-starred-by-the-authenticated-user
       parameters:
-      - "$ref": "#/components/parameters/sort"
+      - "$ref": "#/components/parameters/sort-starred"
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
@@ -35537,6 +35899,11 @@ paths:
         the authenticated user belongs. This method requires `user`, `repo`, or `read:org`
         [scope](https://docs.github.com/enterprise-server@3.4/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/)
         when authenticating via [OAuth](https://docs.github.com/enterprise-server@3.4/apps/building-oauth-apps/).
+        When using a fine-grained personal access token, the resource owner of the
+        token [must be a single organization](https://docs.github.com/enterprise-server@3.4/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#fine-grained-personal-access-tokens),
+        and have at least read-only member organization permissions. The response
+        payload only contains the teams from a single organization when using a fine-grained
+        personal access token.
       tags:
       - teams
       operationId: teams/list-for-authenticated-user
@@ -35578,7 +35945,7 @@ paths:
       description: |-
         Lists all users, in the order that they signed up on GitHub Enterprise Server. This list includes personal user accounts and organization accounts.
 
-        Note: Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header) to get the URL for the next page of users.
+        Note: Pagination is powered exclusively by the `since` parameter. Use the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers) to get the URL for the next page of users.
       tags:
       - users
       operationId: users/list
@@ -36310,7 +36677,7 @@ paths:
         url: https://docs.github.com/enterprise-server@3.4/rest/reference/activity#list-repositories-starred-by-a-user
       parameters:
       - "$ref": "#/components/parameters/username"
-      - "$ref": "#/components/parameters/sort"
+      - "$ref": "#/components/parameters/sort-starred"
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
@@ -36393,6 +36760,7 @@ paths:
         '204':
           description: Response
       requestBody:
+        required: false
         content:
           application/json:
             schema:
@@ -36406,6 +36774,10 @@ paths:
                     If you don't provide a `reason`, it will default to "Suspended
                     via API by _SITE\_ADMINISTRATOR_", where _SITE\_ADMINISTRATOR_
                     is the person who performed the action.
+            examples:
+              reason:
+                value:
+                  reason: Suspended during leave of absence.
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -36442,6 +36814,10 @@ paths:
                     If you don't provide a `reason`, it will default to "Unsuspended
                     via API by _SITE\_ADMINISTRATOR_", where _SITE\_ADMINISTRATOR_
                     is the person who performed the action.
+            examples:
+              reason:
+                value:
+                  reason: Unsuspended after leave of absence.
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -37360,6 +37736,21 @@ components:
           enum:
           - read
           - write
+        organization_personal_access_tokens:
+          type: string
+          description: The level of permission to grant the access token for viewing
+            and managing fine-grained personal access token requests to an organization.
+          enum:
+          - read
+          - write
+        organization_personal_access_token_requests:
+          type: string
+          description: The level of permission to grant the access token for viewing
+            and managing fine-grained personal access tokens that have been approved
+            by an organization.
+          enum:
+          - read
+          - write
         organization_plan:
           type: string
           description: The level of permission to grant the access token for viewing
@@ -38084,6 +38475,33 @@ components:
       - created_at
       - updated_at
       - avatar_url
+    integration-installation-request:
+      title: Integration Installation Request
+      description: Request to install an integration on a target
+      type: object
+      properties:
+        id:
+          description: Unique identifier of the request installation.
+          type: integer
+          example: 42
+        node_id:
+          type: string
+          example: MDExOkludGVncmF0aW9uMQ==
+        account:
+          anyOf:
+          - "$ref": "#/components/schemas/simple-user"
+          - "$ref": "#/components/schemas/enterprise"
+        requester:
+          "$ref": "#/components/schemas/simple-user"
+        created_at:
+          type: string
+          format: date-time
+          example: '2022-07-08T16:18:44-04:00'
+      required:
+      - id
+      - account
+      - requester
+      - created_at
     installation:
       title: Installation
       description: Installation
@@ -39014,7 +39432,7 @@ components:
       type: string
       description: The announcement text in GitHub Flavored Markdown. For more information
         about GitHub Flavored Markdown, see "[Basic writing and formatting syntax](https://docs.github.com/enterprise-server@3.4/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)."
-      example: Very **important** announcement about _nothing_.
+      example: Very **important** announcement about _something_.
       nullable: true
     announcement-expiration:
       type: string
@@ -39277,7 +39695,7 @@ components:
           type: array
           description: Specifies a list of string-matching patterns to allow specific
             action(s). Wildcards, tags, and SHAs are allowed. For example, `monalisa/octocat@*`,
-            `monalisa/octocat@v2`, `monalisa/*`."
+            `monalisa/octocat@v2`, `monalisa/*`.
           items:
             type: string
       required:
@@ -39336,6 +39754,10 @@ components:
           description: The id of the runner.
           type: integer
           example: 5
+        runner_group_id:
+          description: The id of the runner group.
+          type: integer
+          example: 1
         name:
           description: The name of the runner.
           type: string
@@ -39579,7 +40001,6 @@ components:
         the alert."
       nullable: true
       enum:
-      - 
       - false_positive
       - wont_fix
       - revoked
@@ -40208,6 +40629,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
         node_id:
           type: string
         url:
@@ -40395,6 +40817,7 @@ components:
           description: Unique identifier of the issue comment
           example: 42
           type: integer
+          format: int64
         node_id:
           type: string
         url:
@@ -41295,21 +41718,46 @@ components:
           items:
             type: string
           example:
-          - 13.65.0.0/16
-          - 157.55.204.33/32
-          - 2a01:111:f403:f90c::/62
+          - 192.0.2.1
         dependabot:
           type: array
           items:
             type: string
           example:
-          - 192.168.7.15/32
-          - 192.168.7.16/32
+          - 192.0.2.1
         installed_version:
           type: string
           example: 3.4.0
       required:
       - verifiable_password_authentication
+    security-and-analysis:
+      nullable: true
+      type: object
+      properties:
+        advanced_security:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
+        secret_scanning:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
+        secret_scanning_push_protection:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - enabled
+              - disabled
     minimal-repository:
       title: Minimal Repository
       description: Minimal Repository
@@ -41582,6 +42030,8 @@ components:
           example: 0
         allow_forking:
           type: boolean
+        security_and_analysis:
+          "$ref": "#/components/schemas/security-and-analysis"
       required:
       - archive_url
       - assignees_url
@@ -42244,6 +42694,8 @@ components:
           type: boolean
         repositories:
           type: array
+          description: The repositories included in the migration. Only returned for
+            export migrations.
           items:
             "$ref": "#/components/schemas/repository"
         url:
@@ -42264,8 +42716,14 @@ components:
           type: string
           format: uri
         exclude:
+          description: 'Exclude related items from being returned in the response
+            in order to improve performance of the request. The array can include
+            any of: `"repositories"`.'
           type: array
-          items: {}
+          items:
+            description: 'Allowed values that can be passed to the exclude parameter.
+              The array can include any of: `"repositories"`.'
+            type: string
       required:
       - id
       - node_id
@@ -44312,34 +44770,6 @@ components:
       - key
       - name
       - html_url
-    security-and-analysis:
-      nullable: true
-      type: object
-      properties:
-        advanced_security:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
-        secret_scanning:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
-        secret_scanning_push_protection:
-          type: object
-          properties:
-            status:
-              type: string
-              enum:
-              - enabled
-              - disabled
     full-repository:
       title: Full Repository
       description: Full Repository
@@ -44967,6 +45397,8 @@ components:
       - run_id
       - run_url
       - head_sha
+      - workflow_name
+      - head_branch
       - name
       - url
       - html_url
@@ -45065,31 +45497,50 @@ components:
       properties:
         id:
           type: string
+          description: SHA for the commit
+          example: 7638417db6d59f3c431d3e1f261cc637155684cd
         tree_id:
           type: string
+          description: SHA for the commit's tree
         message:
+          description: Message describing the purpose of the commit
+          example: 'Fix #42'
           type: string
         timestamp:
-          type: string
+          description: Timestamp of the commit
+          example: '2014-08-09T08:02:04+12:00'
           format: date-time
+          type: string
         author:
           type: object
+          description: Information about the Git author
           properties:
             name:
+              description: Name of the commit's author
+              example: Monalisa Octocat
               type: string
             email:
+              description: Git email address of the commit's author
+              example: monalisa.octocat@example.com
               type: string
+              format: email
           required:
           - name
           - email
           nullable: true
         committer:
           type: object
+          description: Information about the Git committer
           properties:
             name:
+              description: Name of the commit's committer
+              example: Monalisa Octocat
               type: string
             email:
+              description: Git email address of the commit's committer
+              example: monalisa.octocat@example.com
               type: string
+              format: email
           required:
           - name
           - email
@@ -45279,9 +45730,11 @@ components:
                 type: string
         state:
           description: Whether deployment to the environment(s) was approved or rejected
+            or pending (with comments)
           enum:
           - approved
           - rejected
+          - pending
           example: approved
           type: string
         user:
@@ -46624,31 +47077,50 @@ components:
       properties:
         id:
           type: string
+          description: SHA for the commit
+          example: 7638417db6d59f3c431d3e1f261cc637155684cd
         tree_id:
           type: string
+          description: SHA for the commit's tree
         message:
+          description: Message describing the purpose of the commit
+          example: 'Fix #42'
           type: string
         timestamp:
-          type: string
+          description: Timestamp of the commit
+          example: '2014-08-09T08:02:04+12:00'
           format: date-time
+          type: string
         author:
           type: object
+          description: Information about the Git author
           properties:
             name:
+              description: Name of the commit's author
+              example: Monalisa Octocat
               type: string
             email:
+              description: Git email address of the commit's author
+              example: monalisa.octocat@example.com
               type: string
+              format: email
           required:
           - name
           - email
           nullable: true
         committer:
           type: object
+          description: Information about the Git committer
           properties:
             name:
+              description: Name of the commit's committer
+              example: Monalisa Octocat
               type: string
             email:
+              description: Git email address of the commit's committer
+              example: monalisa.octocat@example.com
               type: string
+              format: email
           required:
           - name
           - email
@@ -48781,6 +49253,7 @@ components:
           type: string
         protection_rules:
           type: array
+          description: Built-in deployment protection rules for the environment.
           items:
             anyOf:
             - type: object
@@ -49336,6 +49809,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
         node_id:
           type: string
         url:
@@ -49600,6 +50074,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
           example: 1
         node_id:
           type: string
@@ -50879,6 +51354,13 @@ components:
           - RIGHT
           default: RIGHT
           type: string
+        subject_type:
+          description: The level at which the comment is targeted, can be a diff line
+            or a file.
+          type: string
+          enum:
+          - line
+          - file
         reactions:
           "$ref": "#/components/schemas/reaction-rollup"
         body_html:
@@ -50894,8 +51376,6 @@ components:
       - pull_request_review_id
       - diff_hunk
       - path
-      - position
-      - original_position
       - commit_id
       - original_commit_id
       - user
@@ -51604,7 +52084,7 @@ components:
           example: Amazing new feature
           type: string
         user:
-          "$ref": "#/components/schemas/nullable-simple-user"
+          "$ref": "#/components/schemas/simple-user"
         body:
           type: string
           example: Please pull these awesome changes
@@ -53569,6 +54049,7 @@ components:
           format: uri
         id:
           type: integer
+          format: int64
         node_id:
           type: string
         number:
@@ -54851,7 +55332,13 @@ components:
                 type: string
               emails:
                 type: array
-                items: {}
+                items:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    verified:
+                      type: boolean
               subkeys:
                 type: array
                 items: {}
@@ -55099,6 +55586,7 @@ components:
         slug: justice-league
         description: A great team.
         privacy: closed
+        notification_setting: notifications_enabled
         permission: admin
         members_url: https://api.github.com/teams/1/members{/member}
         repositories_url: https://api.github.com/teams/1/repos
@@ -55553,6 +56041,48 @@ components:
           headers:
             Content-Type: text/html;charset=utf-8
           payload: ok
+    integration-installation-request-paginated:
+      value:
+      - id: 25381
+        node_id: MDEyOkludGVncmF0aW9uMTIzNDU2Nzg5MA==
+        account:
+          login: octo-org
+          id: 6811672
+          node_id: MDEyOk9yZ2FuaXphdGlvbjY4MTE2NzI=
+          avatar_url: https://avatars3.githubusercontent.com/u/6811672?v=4
+          gravatar_id: ''
+          url: https://api.github.com/users/octo-org
+          html_url: https://github.com/octo-org
+          followers_url: https://api.github.com/users/octo-org/followers
+          following_url: https://api.github.com/users/octo-org/following{/other_user}
+          gists_url: https://api.github.com/users/octo-org/gists{/gist_id}
+          starred_url: https://api.github.com/users/octo-org/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octo-org/subscriptions
+          organizations_url: https://api.github.com/users/octo-org/orgs
+          repos_url: https://api.github.com/users/octo-org/repos
+          events_url: https://api.github.com/users/octo-org/events{/privacy}
+          received_events_url: https://api.github.com/users/octo-org/received_events
+          type: Organization
+          site_admin: false
+        requester:
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        created_at: '2022-07-08T16:18:44-04:00'
     base-installation-items:
       value:
       - id: 1
@@ -56057,6 +56587,7 @@ components:
         abc: https://github.githubassets.com/images/icons/emoji/unicode/1f524.png?v8
         abcd: https://github.githubassets.com/images/icons/emoji/unicode/1f521.png?v8
         accept: https://github.githubassets.com/images/icons/emoji/unicode/1f251.png?v8
+        accessibility: https://github.githubassets.com/images/icons/emoji/accessibility.png?v8
         accordion: https://github.githubassets.com/images/icons/emoji/unicode/1fa97.png?v8
         adhesive_bandage: https://github.githubassets.com/images/icons/emoji/unicode/1fa79.png?v8
         adult: https://github.githubassets.com/images/icons/emoji/unicode/1f9d1.png?v8
@@ -56500,6 +57031,7 @@ components:
         deer: https://github.githubassets.com/images/icons/emoji/unicode/1f98c.png?v8
         denmark: https://github.githubassets.com/images/icons/emoji/unicode/1f1e9-1f1f0.png?v8
         department_store: https://github.githubassets.com/images/icons/emoji/unicode/1f3ec.png?v8
+        dependabot: https://github.githubassets.com/images/icons/emoji/dependabot.png?v8
         derelict_house: https://github.githubassets.com/images/icons/emoji/unicode/1f3da.png?v8
         desert: https://github.githubassets.com/images/icons/emoji/unicode/1f3dc.png?v8
         desert_island: https://github.githubassets.com/images/icons/emoji/unicode/1f3dd.png?v8
@@ -56658,6 +57190,7 @@ components:
         first_quarter_moon_with_face: https://github.githubassets.com/images/icons/emoji/unicode/1f31b.png?v8
         fish: https://github.githubassets.com/images/icons/emoji/unicode/1f41f.png?v8
         fish_cake: https://github.githubassets.com/images/icons/emoji/unicode/1f365.png?v8
+        fishsticks: https://github.githubassets.com/images/icons/emoji/fishsticks.png?v8
         fishing_pole_and_fish: https://github.githubassets.com/images/icons/emoji/unicode/1f3a3.png?v8
         fist: https://github.githubassets.com/images/icons/emoji/unicode/270a.png?v8
         fist_left: https://github.githubassets.com/images/icons/emoji/unicode/1f91b.png?v8
@@ -57918,7 +58451,7 @@ components:
     announcement:
       summary: Announcement banner
       value:
-        announcement: Very **important** announcement about _nothing_.
+        announcement: Very **important** announcement about _something_.
         expires_at: '2021-01-01T00:00:00.000+00:00'
         user_dismissible: false
     license-info:
@@ -59488,9 +60021,9 @@ components:
       value:
         verifiable_password_authentication: true
         packages:
-        - 192.30.252.0/22
+        - 192.0.2.1
         dependabot:
-        - 54.158.161.132
+        - 192.0.2.1
         installed_version: 3.4.0
     public-repo-events-items:
       value:
@@ -59752,7 +60285,7 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
-    organization-custom-repository-role-example:
+    organization-custom-repository-role-example-old:
       value:
         total_count: 2
         custom_roles:
@@ -59760,59 +60293,6 @@ components:
           name: Developer
         - id: 8031
           name: Designer
-    organization-full-default-response:
-      summary: Default response
-      value:
-        login: github
-        id: 1
-        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
-        url: https://api.github.com/orgs/github
-        repos_url: https://api.github.com/orgs/github/repos
-        events_url: https://api.github.com/orgs/github/events
-        hooks_url: https://api.github.com/orgs/github/hooks
-        issues_url: https://api.github.com/orgs/github/issues
-        members_url: https://api.github.com/orgs/github/members{/member}
-        public_members_url: https://api.github.com/orgs/github/public_members{/member}
-        avatar_url: https://github.com/images/error/octocat_happy.gif
-        description: A great organization
-        name: github
-        company: GitHub
-        blog: https://github.com/blog
-        location: San Francisco
-        email: octocat@github.com
-        twitter_username: github
-        is_verified: true
-        has_organization_projects: true
-        has_repository_projects: true
-        public_repos: 2
-        public_gists: 1
-        followers: 20
-        following: 0
-        html_url: https://github.com/octocat
-        created_at: '2008-01-14T04:33:35Z'
-        updated_at: '2014-03-03T18:58:10Z'
-        type: Organization
-        total_private_repos: 100
-        owned_private_repos: 100
-        private_gists: 81
-        disk_usage: 10000
-        collaborators: 8
-        billing_email: mona@github.com
-        plan:
-          name: Medium
-          space: 400
-          private_repos: 20
-          filled_seats: 4
-          seats: 5
-        default_repository_permission: read
-        members_can_create_repositories: true
-        two_factor_requirement_enabled: true
-        members_allowed_repository_creation_type: all
-        members_can_create_public_repositories: false
-        members_can_create_private_repositories: false
-        members_can_create_internal_repositories: false
-        members_can_create_pages: true
-        members_can_fork_private_repositories: false
     organization-full:
       value:
         login: github
@@ -59853,6 +60333,8 @@ components:
           name: Medium
           space: 400
           private_repos: 20
+          filled_seats: 4
+          seats: 5
         default_repository_permission: read
         members_can_create_repositories: true
         two_factor_requirement_enabled: true
@@ -61100,95 +61582,6 @@ components:
         url: https://api.github.com/orgs/octo-org/migrations/79
         created_at: '2015-07-06T15:33:38-07:00'
         updated_at: '2015-07-06T15:33:38-07:00'
-    org-pre-receive-hook-items:
-      value:
-      - id: 42
-        name: Check Commits
-        enforcement: disabled
-        configuration_url: https://github.example.com/api/v3/admin/pre-receive-hooks/42
-        allow_downstream_configuration: true
-    org-pre-receive-hook:
-      value:
-        id: 42
-        name: Check Commits
-        enforcement: disabled
-        configuration_url: https://github.example.com/api/v3/admin/pre-receive-hooks/42
-        allow_downstream_configuration: true
-    org-pre-receive-hook-2:
-      value:
-        id: 42
-        name: Check Commits
-        enforcement: enabled
-        configuration_url: https://github.example.com/api/v3/orgs/octocat/pre-receive-hooks/42
-        allow_downstream_configuration: false
-    project-items:
-      value:
-      - owner_url: https://api.github.com/orgs/octocat
-        url: https://api.github.com/projects/1002605
-        html_url: https://github.com/orgs/api-playground/projects/1
-        columns_url: https://api.github.com/projects/1002605/columns
-        id: 1002605
-        node_id: MDc6UHJvamVjdDEwMDI2MDU=
-        name: Organization Roadmap
-        body: High-level roadmap for the upcoming year.
-        number: 1
-        state: open
-        creator:
-          login: octocat
-          id: 1
-          node_id: MDQ6VXNlcjE=
-          avatar_url: https://github.com/images/error/octocat_happy.gif
-          gravatar_id: ''
-          url: https://api.github.com/users/octocat
-          html_url: https://github.com/octocat
-          followers_url: https://api.github.com/users/octocat/followers
-          following_url: https://api.github.com/users/octocat/following{/other_user}
-          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-          subscriptions_url: https://api.github.com/users/octocat/subscriptions
-          organizations_url: https://api.github.com/users/octocat/orgs
-          repos_url: https://api.github.com/users/octocat/repos
-          events_url: https://api.github.com/users/octocat/events{/privacy}
-          received_events_url: https://api.github.com/users/octocat/received_events
-          type: User
-          site_admin: false
-        created_at: '2011-04-11T20:09:31Z'
-        updated_at: '2014-03-04T18:58:10Z'
-        organization_permission: write
-        private: true
-    project-2:
-      value:
-        owner_url: https://api.github.com/orgs/octocat
-        url: https://api.github.com/projects/1002605
-        html_url: https://github.com/orgs/api-playground/projects/1
-        columns_url: https://api.github.com/projects/1002605/columns
-        id: 1002605
-        node_id: MDc6UHJvamVjdDEwMDI2MDU=
-        name: Organization Roadmap
-        body: High-level roadmap for the upcoming year.
-        number: 1
-        state: open
-        creator:
-          login: octocat
-          id: 1
-          node_id: MDQ6VXNlcjE=
-          avatar_url: https://github.com/images/error/octocat_happy.gif
-          gravatar_id: ''
-          url: https://api.github.com/users/octocat
-          html_url: https://github.com/octocat
-          followers_url: https://api.github.com/users/octocat/followers
-          following_url: https://api.github.com/users/octocat/following{/other_user}
-          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-          subscriptions_url: https://api.github.com/users/octocat/subscriptions
-          organizations_url: https://api.github.com/users/octocat/orgs
-          repos_url: https://api.github.com/users/octocat/repos
-          events_url: https://api.github.com/users/octocat/events{/privacy}
-          received_events_url: https://api.github.com/users/octocat/received_events
-          type: User
-          site_admin: false
-        created_at: '2011-04-11T20:09:31Z'
-        updated_at: '2014-03-04T18:58:10Z'
     minimal-repository-items:
       value:
       - id: 1296269
@@ -61290,6 +61683,95 @@ components:
           admin: false
           push: false
           pull: true
+    org-pre-receive-hook-items:
+      value:
+      - id: 42
+        name: Check Commits
+        enforcement: disabled
+        configuration_url: https://github.example.com/api/v3/admin/pre-receive-hooks/42
+        allow_downstream_configuration: true
+    org-pre-receive-hook:
+      value:
+        id: 42
+        name: Check Commits
+        enforcement: disabled
+        configuration_url: https://github.example.com/api/v3/admin/pre-receive-hooks/42
+        allow_downstream_configuration: true
+    org-pre-receive-hook-2:
+      value:
+        id: 42
+        name: Check Commits
+        enforcement: enabled
+        configuration_url: https://github.example.com/api/v3/orgs/octocat/pre-receive-hooks/42
+        allow_downstream_configuration: false
+    project-items:
+      value:
+      - owner_url: https://api.github.com/orgs/octocat
+        url: https://api.github.com/projects/1002605
+        html_url: https://github.com/orgs/api-playground/projects/1
+        columns_url: https://api.github.com/projects/1002605/columns
+        id: 1002605
+        node_id: MDc6UHJvamVjdDEwMDI2MDU=
+        name: Organization Roadmap
+        body: High-level roadmap for the upcoming year.
+        number: 1
+        state: open
+        creator:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        created_at: '2011-04-11T20:09:31Z'
+        updated_at: '2014-03-04T18:58:10Z'
+        organization_permission: write
+        private: true
+    project-2:
+      value:
+        owner_url: https://api.github.com/orgs/octocat
+        url: https://api.github.com/projects/1002605
+        html_url: https://github.com/orgs/api-playground/projects/1
+        columns_url: https://api.github.com/projects/1002605/columns
+        id: 1002605
+        node_id: MDc6UHJvamVjdDEwMDI2MDU=
+        name: Organization Roadmap
+        body: High-level roadmap for the upcoming year.
+        number: 1
+        state: open
+        creator:
+          login: octocat
+          id: 1
+          node_id: MDQ6VXNlcjE=
+          avatar_url: https://github.com/images/error/octocat_happy.gif
+          gravatar_id: ''
+          url: https://api.github.com/users/octocat
+          html_url: https://github.com/octocat
+          followers_url: https://api.github.com/users/octocat/followers
+          following_url: https://api.github.com/users/octocat/following{/other_user}
+          gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+          starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+          subscriptions_url: https://api.github.com/users/octocat/subscriptions
+          organizations_url: https://api.github.com/users/octocat/orgs
+          repos_url: https://api.github.com/users/octocat/repos
+          events_url: https://api.github.com/users/octocat/events{/privacy}
+          received_events_url: https://api.github.com/users/octocat/received_events
+          type: User
+          site_admin: false
+        created_at: '2011-04-11T20:09:31Z'
+        updated_at: '2014-03-04T18:58:10Z'
     repository:
       value:
         id: 1296269
@@ -62805,6 +63287,13 @@ components:
           forks: 1
           open_issues: 1
           watchers: 1
+          security_and_analysis:
+            advanced_security:
+              status: enabled
+            secret_scanning:
+              status: enabled
+            secret_scanning_push_protection:
+              status: disabled
     full-repository:
       value:
         id: 1296269
@@ -65475,6 +65964,7 @@ components:
         most_recent_instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
           state: open
           commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
@@ -65531,6 +66021,7 @@ components:
         most_recent_instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
           state: open
           commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
@@ -65596,6 +66087,7 @@ components:
         most_recent_instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
           state: dismissed
           commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
@@ -65662,6 +66154,7 @@ components:
         most_recent_instance:
           ref: refs/heads/main
           analysis_key: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
+          category: ".github/workflows/codeql-analysis.yml:CodeQL-Build"
           environment: "{}"
           state: dismissed
           commit_sha: 39406e42cb832f683daa691dd652a8dc36ee8930
@@ -70029,7 +70522,6 @@ components:
           statuses:
             href: https://api.github.com/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e
         author_association: OWNER
-        auto_merge: 
         draft: false
         merged: false
         mergeable: true
@@ -70827,7 +71319,6 @@ components:
           statuses:
             href: https://api.github.com/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e
         author_association: OWNER
-        auto_merge: 
         draft: false
     pull-request-simple:
       value:
@@ -71098,7 +71589,6 @@ components:
             hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
             svn_url: https://svn.github.com/octocat/Hello-World
             homepage: https://github.com
-            language: 
             forks_count: 9
             stargazers_count: 80
             watchers_count: 80
@@ -71127,7 +71617,6 @@ components:
               push: false
               pull: true
             allow_rebase_merge: true
-            template_repository: 
             temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
             allow_squash_merge: true
             allow_auto_merge: false
@@ -71239,7 +71728,6 @@ components:
             hooks_url: https://api.github.com/repos/octocat/Hello-World/hooks
             svn_url: https://svn.github.com/octocat/Hello-World
             homepage: https://github.com
-            language: 
             forks_count: 9
             stargazers_count: 80
             watchers_count: 80
@@ -71268,7 +71756,6 @@ components:
               push: false
               pull: true
             allow_rebase_merge: true
-            template_repository: 
             temp_clone_token: ABTLWHOULUVAXGTRYU7OC2876QJ2O
             allow_squash_merge: true
             allow_auto_merge: false
@@ -71304,7 +71791,6 @@ components:
           statuses:
             href: https://api.github.com/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e
         author_association: OWNER
-        auto_merge: 
         draft: false
     pull-request-review-items:
       value:
@@ -74603,6 +75089,7 @@ components:
           blog: https://github.com/blog
           location: San Francisco
           email: octocat@github.com
+          is_verified: true
           has_organization_projects: true
           has_repository_projects: true
           public_repos: 2
@@ -74611,8 +75098,8 @@ components:
           following: 0
           html_url: https://github.com/octocat
           created_at: '2008-01-14T04:33:35Z'
+          updated_at: '2017-08-17T12:37:15Z'
           type: Organization
-        ldap_dn: uid=asdf,ou=users,dc=github,dc=com
     public-user-default-response:
       summary: Default response
       value:
@@ -75198,10 +75685,10 @@ components:
       required: true
       schema:
         type: string
-    audit-log-phrase:
+    audit-log-enterprise-phrase:
       name: phrase
       description: A search phrase. For more information, see [Searching the audit
-        log](https://docs.github.com/enterprise-server@3.4/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
+        log](https://docs.github.com/enterprise-server@3.4/admin/monitoring-activity-in-your-enterprise/reviewing-audit-logs-for-your-enterprise/searching-the-audit-log-for-your-enterprise#searching-the-audit-log).
       in: query
       required: false
       schema:
@@ -75226,7 +75713,7 @@ components:
         - all
     audit-log-after:
       name: after
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for events after this cursor.
       in: query
       required: false
@@ -75234,7 +75721,7 @@ components:
         type: string
     audit-log-before:
       name: before
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for events before this cursor.
       in: query
       required: false
@@ -75285,7 +75772,7 @@ components:
         type: string
     pagination-before:
       name: before
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for results before this cursor.
       in: query
       required: false
@@ -75293,7 +75780,7 @@ components:
         type: string
     pagination-after:
       name: after
-      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/overview/resources-in-the-rest-api#link-header).
+      description: A cursor, as given in the [Link header](https://docs.github.com/enterprise-server@3.4/rest/guides/using-pagination-in-the-rest-api#using-link-headers).
         If specified, the query only searches for results after this cursor.
       in: query
       required: false
@@ -75392,6 +75879,14 @@ components:
       required: true
       schema:
         type: string
+    audit-log-phrase:
+      name: phrase
+      description: A search phrase. For more information, see [Searching the audit
+        log](https://docs.github.com/enterprise-server@3.4/github/setting-up-and-managing-organizations-and-teams/reviewing-the-audit-log-for-your-organization#searching-the-audit-log).
+      in: query
+      required: false
+      schema:
+        type: string
     migration-id:
       name: migration_id
       description: The unique identifier of the migration.
@@ -75399,6 +75894,13 @@ components:
       required: true
       schema:
         type: integer
+    repo-name:
+      name: repo_name
+      description: repo_name parameter
+      in: path
+      required: true
+      schema:
+        type: string
     team-slug:
       name: team_slug
       description: The slug of the team name.
@@ -75510,6 +76012,7 @@ components:
         - queued
         - requested
         - waiting
+        - pending
     created:
       name: created
       description: Returns workflow runs created within the given date-time range.
@@ -75553,7 +76056,8 @@ components:
         type: integer
     branch:
       name: branch
-      description: The name of the branch.
+      description: The name of the branch. Cannot contain wildcard characters. To
+        use wildcard characters in branch names, use [the GraphQL API](https://docs.github.com/enterprise-server@3.4/graphql).
       in: path
       required: true
       schema:
@@ -75667,8 +76171,7 @@ components:
         type: integer
     sort:
       name: sort
-      description: The property to sort the results by. `created` means when the repository
-        was starred. `updated` means when the repository was last pushed to.
+      description: The property to sort the results by.
       in: query
       required: false
       schema:
@@ -75754,6 +76257,37 @@ components:
       required: true
       schema:
         type: integer
+    since-repo-date:
+      name: since
+      description: 'Only show repositories updated after the given time. This is a
+        timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: `YYYY-MM-DDTHH:MM:SSZ`.'
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    before-repo-date:
+      name: before
+      description: 'Only show repositories updated before the given time. This is
+        a timestamp in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format:
+        `YYYY-MM-DDTHH:MM:SSZ`.'
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    sort-starred:
+      name: sort
+      description: The property to sort the results by. `created` means when the repository
+        was starred. `updated` means when the repository was last pushed to.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - created
+        - updated
+        default: created
     since-user:
       name: since
       description: A user ID. Only return users with an ID greater than this ID.
@@ -75829,20 +76363,20 @@ components:
           examples:
             default:
               value: 
-    forbidden:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/basic-error"
+    not_modified:
+      description: Not modified
     requires_authentication:
       description: Requires authentication
       content:
         application/json:
           schema:
             "$ref": "#/components/schemas/basic-error"
-    not_modified:
-      description: Not modified
+    forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/basic-error"
     gone:
       description: Gone
       content:
