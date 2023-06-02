@@ -11562,7 +11562,7 @@
       },
       "put": {
         "summary": "Create or update an organization secret",
-        "description": "Creates or updates an organization secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `admin:org` scope to use this endpoint. GitHub Apps must have the `secrets` organization permission to\nuse this endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "description": "Creates or updates an organization secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `admin:org` scope to use this endpoint. GitHub Apps must have the `secrets` organization permission to\nuse this endpoint.\n\n**Example encrypting a secret using Node.js*\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n**Example encrypting a secret using Python**\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n**Example encrypting a secret using C#**\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n**Example encrypting a secret using Ruby**\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
         "tags": [
           "actions"
         ],
@@ -12127,7 +12127,7 @@
       },
       "put": {
         "summary": "Create or update an organization secret",
-        "description": "Creates or updates an organization secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `admin:org` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` organization\npermission to use this endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "description": "Creates or updates an organization secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `admin:org` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` organization\npermission to use this endpoint.\n\n**Example encrypting a secret using Node.js**\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n**Example encrypting a secret using Python**\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n**Example encrypting a secret using C#**\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n**Example encrypting a secret using Ruby**\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
         "tags": [
           "dependabot"
         ],
@@ -14886,7 +14886,7 @@
     "/orgs/{org}/public_members/{username}": {
       "get": {
         "summary": "Check public organization membership for a user",
-        "description": "",
+        "description": "Check if the provided user is a public member of the organization.",
         "tags": [
           "orgs"
         ],
@@ -14954,7 +14954,7 @@
       },
       "delete": {
         "summary": "Remove public organization membership for the authenticated user",
-        "description": "",
+        "description": "Removes the public membership for the authenticated user from the specified organization, unless public visibility is enforced by default.",
         "tags": [
           "orgs"
         ],
@@ -17605,7 +17605,7 @@
     "/projects/columns/cards/{card_id}": {
       "get": {
         "summary": "Get a project card",
-        "description": "",
+        "description": "Gets information about a project card.",
         "tags": [
           "projects"
         ],
@@ -17743,7 +17743,7 @@
       },
       "delete": {
         "summary": "Delete a project card",
-        "description": "",
+        "description": "Deletes a project card",
         "tags": [
           "projects"
         ],
@@ -17968,7 +17968,7 @@
     "/projects/columns/{column_id}": {
       "get": {
         "summary": "Get a project column",
-        "description": "",
+        "description": "Gets information about a project column.",
         "tags": [
           "projects"
         ],
@@ -18097,7 +18097,7 @@
       },
       "delete": {
         "summary": "Delete a project column",
-        "description": "",
+        "description": "Deletes a project column.",
         "tags": [
           "projects"
         ],
@@ -18136,7 +18136,7 @@
     "/projects/columns/{column_id}/cards": {
       "get": {
         "summary": "List project cards",
-        "description": "",
+        "description": "Lists the project cards in a project.",
         "tags": [
           "projects"
         ],
@@ -18973,7 +18973,7 @@
     "/projects/{project_id}/columns": {
       "get": {
         "summary": "List project columns",
-        "description": "",
+        "description": "Lists the project columns in a project.",
         "tags": [
           "projects"
         ],
@@ -19036,7 +19036,7 @@
       },
       "post": {
         "summary": "Create a project column",
-        "description": "",
+        "description": "Creates a new project column.",
         "tags": [
           "projects"
         ],
@@ -21553,7 +21553,7 @@
       },
       "put": {
         "summary": "Create or update a repository secret",
-        "description": "Creates or updates a repository secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `secrets` repository permission to use\nthis endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "description": "Creates or updates a repository secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `secrets` repository permission to use\nthis endpoint.\n\n**Example encrypting a secret using Node.js**\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n**Example encrypting a secret using Python**\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n**Example encrypting a secret using C#**\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n**Example encrypting a secret using Ruby**\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
         "tags": [
           "actions"
         ],
@@ -29372,7 +29372,7 @@
       },
       "put": {
         "summary": "Create or update a repository secret",
-        "description": "Creates or updates a repository secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` repository\npermission to use this endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "description": "Creates or updates a repository secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `dependabot_secrets` repository\npermission to use this endpoint.\n\n**Example encrypting a secret using Node.js**\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n**Example encrypting a secret using Python**\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n**Example encrypting a secret using C#**\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n**Example encrypting a secret using Ruby**\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
         "tags": [
           "dependabot"
         ],
@@ -33347,6 +33347,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
           "403": {
             "$ref": "#/components/responses/forbidden"
           },
@@ -33842,7 +33845,7 @@
     "/repos/{owner}/{repo}/issues/events": {
       "get": {
         "summary": "List issue events for a repository",
-        "description": "",
+        "description": "Lists events for a repository.",
         "tags": [
           "issues"
         ],
@@ -33904,7 +33907,7 @@
     "/repos/{owner}/{repo}/issues/events/{event_id}": {
       "get": {
         "summary": "Get an issue event",
-        "description": "",
+        "description": "Gets a single event by the event id.",
         "tags": [
           "issues"
         ],
@@ -34577,7 +34580,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/events": {
       "get": {
         "summary": "List issue events",
-        "description": "",
+        "description": "Lists all events for an issue.",
         "tags": [
           "issues"
         ],
@@ -34642,7 +34645,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/labels": {
       "get": {
         "summary": "List labels for an issue",
-        "description": "",
+        "description": "Lists all labels for an issue.",
         "tags": [
           "issues"
         ],
@@ -34711,7 +34714,7 @@
       },
       "post": {
         "summary": "Add labels to an issue",
-        "description": "",
+        "description": "Adds labels to an issue. If you provide an empty array of labels, all labels are removed from the issue. ",
         "tags": [
           "issues"
         ],
@@ -34991,7 +34994,7 @@
       },
       "delete": {
         "summary": "Remove all labels from an issue",
-        "description": "",
+        "description": "Removes all labels from an issue.",
         "tags": [
           "issues"
         ],
@@ -35449,7 +35452,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/timeline": {
       "get": {
         "summary": "List timeline events for an issue",
-        "description": "",
+        "description": "List all timeline events for an issue.",
         "tags": [
           "issues"
         ],
@@ -35747,7 +35750,7 @@
     "/repos/{owner}/{repo}/labels": {
       "get": {
         "summary": "List labels for a repository",
-        "description": "",
+        "description": "Lists all labels for a repository.",
         "tags": [
           "issues"
         ],
@@ -35807,7 +35810,7 @@
       },
       "post": {
         "summary": "Create a label",
-        "description": "",
+        "description": "Creates a label for the specified repository with the given name and color. The name and color parameters are required. The color must be a valid [hexadecimal color code](http://www.color-hex.com/).",
         "tags": [
           "issues"
         ],
@@ -35902,7 +35905,7 @@
     "/repos/{owner}/{repo}/labels/{name}": {
       "get": {
         "summary": "Get a label",
-        "description": "",
+        "description": "Gets a label using the given name.",
         "tags": [
           "issues"
         ],
@@ -35956,7 +35959,7 @@
       },
       "patch": {
         "summary": "Update a label",
-        "description": "",
+        "description": "Updates a label using the given label name.",
         "tags": [
           "issues"
         ],
@@ -36040,7 +36043,7 @@
       },
       "delete": {
         "summary": "Delete a label",
-        "description": "",
+        "description": "Deletes a label using the given label name.",
         "tags": [
           "issues"
         ],
@@ -36410,7 +36413,7 @@
     "/repos/{owner}/{repo}/milestones": {
       "get": {
         "summary": "List milestones",
-        "description": "",
+        "description": "Lists milestones for a repository.",
         "tags": [
           "issues"
         ],
@@ -36513,7 +36516,7 @@
       },
       "post": {
         "summary": "Create a milestone",
-        "description": "",
+        "description": "Creates a milestone.",
         "tags": [
           "issues"
         ],
@@ -36619,7 +36622,7 @@
     "/repos/{owner}/{repo}/milestones/{milestone_number}": {
       "get": {
         "summary": "Get a milestone",
-        "description": "",
+        "description": "Gets a milestone using the given milestone number.",
         "tags": [
           "issues"
         ],
@@ -36758,7 +36761,7 @@
       },
       "delete": {
         "summary": "Delete a milestone",
-        "description": "",
+        "description": "Deletes a milestone using the given milestone number.",
         "tags": [
           "issues"
         ],
@@ -36797,7 +36800,7 @@
     "/repos/{owner}/{repo}/milestones/{milestone_number}/labels": {
       "get": {
         "summary": "List labels for issues in a milestone",
-        "description": "",
+        "description": "Lists labels for issues in a milestone.",
         "tags": [
           "issues"
         ],
@@ -42832,7 +42835,7 @@
     "/repos/{owner}/{repo}/teams": {
       "get": {
         "summary": "List repository teams",
-        "description": "",
+        "description": "Lists the teams that have access to the specified repository and that are also visible to the authenticated user.\n\nFor a public repository, a team is listed only if that team added the public repository explicitly.\n\nPersonal access tokens require the following scopes:\n* `public_repo` to call this endpoint on a public repository\n* `repo` to call this endpoint on a private repository (this scope also includes public repositories)\n\nThis endpoint is not compatible with fine-grained personal access tokens.",
         "tags": [
           "repos"
         ],
@@ -42878,6 +42881,9 @@
                 "$ref": "#/components/headers/link"
               }
             }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
           }
         },
         "x-github": {
@@ -43513,7 +43519,7 @@
       },
       "put": {
         "summary": "Create or update an environment secret",
-        "description": "Creates or updates an environment secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `secrets` repository permission to use\nthis endpoint.\n\n#### Example encrypting a secret using Node.js\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n#### Example encrypting a secret using Python\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n#### Example encrypting a secret using C#\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n#### Example encrypting a secret using Ruby\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
+        "description": "Creates or updates an environment secret with an encrypted value. Encrypt your secret using\n[LibSodium](https://libsodium.gitbook.io/doc/bindings_for_other_languages). You must authenticate using an access\ntoken with the `repo` scope to use this endpoint. GitHub Apps must have the `secrets` repository permission to use\nthis endpoint.\n\n**Example encrypting a secret using Node.js**\n\nEncrypt your secret using the [libsodium-wrappers](https://www.npmjs.com/package/libsodium-wrappers) library.\n\n```\nconst sodium = require('libsodium-wrappers')\nconst secret = 'plain-text-secret' // replace with the secret you want to encrypt\nconst key = 'base64-encoded-public-key' // replace with the Base64 encoded public key\n\n//Check if libsodium is ready and then proceed.\nsodium.ready.then(() => {\n  // Convert Secret & Base64 key to Uint8Array.\n  let binkey = sodium.from_base64(key, sodium.base64_variants.ORIGINAL)\n  let binsec = sodium.from_string(secret)\n\n  //Encrypt the secret using LibSodium\n  let encBytes = sodium.crypto_box_seal(binsec, binkey)\n\n  // Convert encrypted Uint8Array to Base64\n  let output = sodium.to_base64(encBytes, sodium.base64_variants.ORIGINAL)\n\n  console.log(output)\n});\n```\n\n**Example encrypting a secret using Python**\n\nEncrypt your secret using [pynacl](https://pynacl.readthedocs.io/en/latest/public/#nacl-public-sealedbox) with Python 3.\n\n```\nfrom base64 import b64encode\nfrom nacl import encoding, public\n\ndef encrypt(public_key: str, secret_value: str) -> str:\n  \"\"\"Encrypt a Unicode string using the public key.\"\"\"\n  public_key = public.PublicKey(public_key.encode(\"utf-8\"), encoding.Base64Encoder())\n  sealed_box = public.SealedBox(public_key)\n  encrypted = sealed_box.encrypt(secret_value.encode(\"utf-8\"))\n  return b64encode(encrypted).decode(\"utf-8\")\n```\n\n**Example encrypting a secret using C#**\n\nEncrypt your secret using the [Sodium.Core](https://www.nuget.org/packages/Sodium.Core/) package.\n\n```\nvar secretValue = System.Text.Encoding.UTF8.GetBytes(\"mySecret\");\nvar publicKey = Convert.FromBase64String(\"2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvvcCU=\");\n\nvar sealedPublicKeyBox = Sodium.SealedPublicKeyBox.Create(secretValue, publicKey);\n\nConsole.WriteLine(Convert.ToBase64String(sealedPublicKeyBox));\n```\n\n**Example encrypting a secret using Ruby**\n\nEncrypt your secret using the [rbnacl](https://github.com/RubyCrypto/rbnacl) gem.\n\n```ruby\nrequire \"rbnacl\"\nrequire \"base64\"\n\nkey = Base64.decode64(\"+ZYvJDZMHUfBkJdyq5Zm9SKqeuBQ4sj+6sfjlH4CgG0=\")\npublic_key = RbNaCl::PublicKey.new(key)\n\nbox = RbNaCl::Boxes::Sealed.from_public_key(public_key)\nencrypted_secret = box.encrypt(\"my_secret\")\n\n# Print the base64 encoded secret\nputs Base64.strict_encode64(encrypted_secret)\n```",
         "tags": [
           "actions"
         ],
@@ -48608,7 +48614,7 @@
     "/user/memberships/orgs": {
       "get": {
         "summary": "List organization memberships for the authenticated user",
-        "description": "",
+        "description": "Lists all of the authenticated user's organization memberships.",
         "tags": [
           "orgs"
         ],
@@ -48677,7 +48683,7 @@
         },
         "x-github": {
           "githubCloudOnly": false,
-          "enabledForGitHubApps": false,
+          "enabledForGitHubApps": true,
           "category": "orgs",
           "subcategory": "members"
         }
@@ -48686,7 +48692,7 @@
     "/user/memberships/orgs/{org}": {
       "get": {
         "summary": "Get an organization membership for the authenticated user",
-        "description": "",
+        "description": "If the authenticated user is an active or pending member of the organization, this endpoint will return the user's membership. If the authenticated user is not affiliated with the organization, a `404` is returned. This endpoint will return a `403` if the request is made by a GitHub App that is blocked by the organization.",
         "tags": [
           "orgs"
         ],
@@ -48725,14 +48731,14 @@
         },
         "x-github": {
           "githubCloudOnly": false,
-          "enabledForGitHubApps": false,
+          "enabledForGitHubApps": true,
           "category": "orgs",
           "subcategory": "members"
         }
       },
       "patch": {
         "summary": "Update an organization membership for the authenticated user",
-        "description": "",
+        "description": "Converts the authenticated user to an active member of the organization, if that user has a pending invitation from the organization.",
         "tags": [
           "orgs"
         ],
@@ -48803,7 +48809,7 @@
         },
         "x-github": {
           "githubCloudOnly": false,
-          "enabledForGitHubApps": false,
+          "enabledForGitHubApps": true,
           "category": "orgs",
           "subcategory": "members"
         }
@@ -50948,7 +50954,7 @@
     "/users/{username}/projects": {
       "get": {
         "summary": "List user projects",
-        "description": "",
+        "description": "Lists projects for a user.",
         "tags": [
           "projects"
         ],
@@ -57796,6 +57802,47 @@
             "example": [
               "192.0.2.1"
             ]
+          },
+          "domains": {
+            "type": "object",
+            "properties": {
+              "website": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": [
+                    "example.com"
+                  ]
+                }
+              },
+              "codespaces": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": [
+                    "example.com"
+                  ]
+                }
+              },
+              "copilot": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": [
+                    "example.com"
+                  ]
+                }
+              },
+              "packages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "example": [
+                    "example.com"
+                  ]
+                }
+              }
+            }
           },
           "installed_version": {
             "type": "string",
