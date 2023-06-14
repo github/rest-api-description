@@ -28590,7 +28590,7 @@
     "/repos/{owner}/{repo}/collaborators/{username}/permission": {
       "get": {
         "summary": "Get repository permissions for a user",
-        "description": "Checks the repository permission of a collaborator. The possible repository permissions are `admin`, `write`, `read`, and `none`.",
+        "description": "Checks the repository permission of a collaborator. The possible repository\npermissions are `admin`, `write`, `read`, and `none`.\n\n*Note*: The `permission` attribute provides the legacy base roles of `admin`, `write`, `read`, and `none`, where the\n`maintain` role is mapped to `write` and the `triage` role is mapped to `read`. To determine the role assigned to the\ncollaborator, see the `role_name` attribute, which will provide the full role name, including custom roles. The\n`permissions` hash can also be used to determine which base level of access the collaborator has to the repository.",
         "tags": [
           "repos"
         ],
@@ -29505,14 +29505,7 @@
             "$ref": "#/components/parameters/per-page"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           }
         ],
         "responses": {
@@ -29571,14 +29564,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           },
           {
             "$ref": "#/components/parameters/check-name"
@@ -29680,14 +29666,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           },
           {
             "name": "app_id",
@@ -29774,14 +29753,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           },
           {
             "$ref": "#/components/parameters/per-page"
@@ -29838,14 +29810,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           },
           {
             "$ref": "#/components/parameters/per-page"
@@ -32519,8 +32484,8 @@
     },
     "/repos/{owner}/{repo}/git/commits/{commit_sha}": {
       "get": {
-        "summary": "Get a commit",
-        "description": "Gets a Git [commit object](https://git-scm.com/book/en/v1/Git-Internals-Git-Objects#Commit-Objects).\n\n**Signature verification object**\n\nThe response will include a `verification` object that describes the result of verifying the commit's signature. The following fields are included in the `verification` object:\n\n| Name | Type | Description |\n| ---- | ---- | ----------- |\n| `verified` | `boolean` | Indicates whether GitHub considers the signature in this commit to be verified. |\n| `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in the table below. |\n| `signature` | `string` | The signature that was extracted from the commit. |\n| `payload` | `string` | The value that was signed. |\n\nThese are the possible values for `reason` in the `verification` object:\n\n| Value | Description |\n| ----- | ----------- |\n| `expired_key` | The key that made the signature is expired. |\n| `not_signing_key` | The \"signing\" flag is not among the usage flags in the GPG key that made the signature. |\n| `gpgverify_error` | There was an error communicating with the signature verification service. |\n| `gpgverify_unavailable` | The signature verification service is currently unavailable. |\n| `unsigned` | The object does not include a signature. |\n| `unknown_signature_type` | A non-PGP signature was found in the commit. |\n| `no_user` | No user was associated with the `committer` email address in the commit. |\n| `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |\n| `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |\n| `unknown_key` | The key that made the signature has not been registered with any user's account. |\n| `malformed_signature` | There was an error parsing the signature. |\n| `invalid` | The signature could not be cryptographically verified using the key whose key-id was found in the signature. |\n| `valid` | None of the above errors applied, so the signature is considered to be verified. |",
+        "summary": "Get a commit object",
+        "description": "Gets a Git [commit object](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects).\nTo get the contents of a commit, see \"[Get a commit](/rest/commits/commits#get-a-commit).\"\n\n**Signature verification object**\n\nThe response will include a `verification` object that describes the result of verifying the commit's signature. The following fields are included in the `verification` object:\n\n| Name | Type | Description |\n| ---- | ---- | ----------- |\n| `verified` | `boolean` | Indicates whether GitHub considers the signature in this commit to be verified. |\n| `reason` | `string` | The reason for verified value. Possible values and their meanings are enumerated in the table below. |\n| `signature` | `string` | The signature that was extracted from the commit. |\n| `payload` | `string` | The value that was signed. |\n\nThese are the possible values for `reason` in the `verification` object:\n\n| Value | Description |\n| ----- | ----------- |\n| `expired_key` | The key that made the signature is expired. |\n| `not_signing_key` | The \"signing\" flag is not among the usage flags in the GPG key that made the signature. |\n| `gpgverify_error` | There was an error communicating with the signature verification service. |\n| `gpgverify_unavailable` | The signature verification service is currently unavailable. |\n| `unsigned` | The object does not include a signature. |\n| `unknown_signature_type` | A non-PGP signature was found in the commit. |\n| `no_user` | No user was associated with the `committer` email address in the commit. |\n| `unverified_email` | The `committer` email address in the commit was associated with a user, but the email address is not verified on their account. |\n| `bad_email` | The `committer` email address in the commit is not included in the identities of the PGP key that made the signature. |\n| `unknown_key` | The key that made the signature has not been registered with any user's account. |\n| `malformed_signature` | There was an error parsing the signature. |\n| `invalid` | The signature could not be cryptographically verified using the key whose key-id was found in the signature. |\n| `valid` | None of the above errors applied, so the signature is considered to be verified. |",
         "tags": [
           "git"
         ],
@@ -32588,14 +32553,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           }
         ],
         "responses": {
@@ -32651,14 +32609,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           }
         ],
         "responses": {
@@ -32886,14 +32837,7 @@
             "$ref": "#/components/parameters/repo"
           },
           {
-            "name": "ref",
-            "description": "ref parameter",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-multi-segment": true
+            "$ref": "#/components/parameters/commit-ref"
           }
         ],
         "responses": {
@@ -43914,7 +43858,7 @@
     "/repos/{owner}/{repo}/subscription": {
       "get": {
         "summary": "Get a repository subscription",
-        "description": "",
+        "description": "Gets information about whether the authenticated user is subscribed to the repository.",
         "tags": [
           "activity"
         ],
@@ -51550,7 +51494,7 @@
     "/user/starred/{owner}/{repo}": {
       "get": {
         "summary": "Check if a repository is starred by the authenticated user",
-        "description": "",
+        "description": "Whether the authenticated user has starred the repository.",
         "tags": [
           "activity"
         ],
@@ -51643,7 +51587,7 @@
       },
       "delete": {
         "summary": "Unstar a repository for the authenticated user",
-        "description": "",
+        "description": "Unstar a repository that the authenticated user has previously starred.",
         "tags": [
           "activity"
         ],
@@ -104350,6 +104294,16 @@
       "commit-sha": {
         "name": "commit_sha",
         "description": "The SHA of the commit.",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "x-multi-segment": true
+      },
+      "commit-ref": {
+        "name": "ref",
+        "description": "The commit reference. Can be a commit SHA, branch name (`heads/BRANCH_NAME`), or tag name (`tags/TAG_NAME`). For more information, see \"[Git References](https://git-scm.com/book/en/v2/Git-Internals-Git-References)\" in the Git documentation.",
         "in": "path",
         "required": true,
         "schema": {
