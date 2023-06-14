@@ -20487,8 +20487,14 @@ paths:
   "/repos/{owner}/{repo}/collaborators/{username}/permission":
     get:
       summary: Get repository permissions for a user
-      description: Checks the repository permission of a collaborator. The possible
-        repository permissions are `admin`, `write`, `read`, and `none`.
+      description: |-
+        Checks the repository permission of a collaborator. The possible repository
+        permissions are `admin`, `write`, `read`, and `none`.
+
+        *Note*: The `permission` attribute provides the legacy base roles of `admin`, `write`, `read`, and `none`, where the
+        `maintain` role is mapped to `write` and the `triage` role is mapped to `read`. To determine the role assigned to the
+        collaborator, see the `role_name` attribute, which will provide the full role name, including custom roles. The
+        `permissions` hash can also be used to determine which base level of access the collaborator has to the repository.
       tags:
       - repos
       operationId: repos/get-collaborator-permission-level
@@ -21134,13 +21140,7 @@ paths:
       - "$ref": "#/components/parameters/repo"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       responses:
         '200':
           description: Response
@@ -21179,13 +21179,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       - "$ref": "#/components/parameters/check-name"
       - "$ref": "#/components/parameters/status"
       - name: filter
@@ -21250,13 +21244,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       - name: app_id
         description: Filters check suites by GitHub App `id`.
         in: query
@@ -21316,13 +21304,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
       responses:
@@ -21358,13 +21340,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
       responses:
@@ -23464,9 +23440,10 @@ paths:
         subcategory: commits
   "/repos/{owner}/{repo}/git/commits/{commit_sha}":
     get:
-      summary: Get a commit
+      summary: Get a commit object
       description: |-
-        Gets a Git [commit object](https://git-scm.com/book/en/v1/Git-Internals-Git-Objects#Commit-Objects).
+        Gets a Git [commit object](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects).
+        To get the contents of a commit, see "[Get a commit](/rest/commits/commits#get-a-commit)."
 
         **Signature verification object**
 
@@ -23543,13 +23520,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       responses:
         '200':
           description: Response
@@ -23586,13 +23557,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       responses:
         '200':
           description: Response
@@ -23745,13 +23710,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
-      - name: ref
-        description: ref parameter
-        in: path
-        required: true
-        schema:
-          type: string
-        x-multi-segment: true
+      - "$ref": "#/components/parameters/commit-ref"
       responses:
         '204':
           description: Response
@@ -31249,7 +31208,8 @@ paths:
   "/repos/{owner}/{repo}/subscription":
     get:
       summary: Get a repository subscription
-      description: ''
+      description: Gets information about whether the authenticated user is subscribed
+        to the repository.
       tags:
       - activity
       operationId: activity/get-repo-subscription
@@ -36874,7 +36834,7 @@ paths:
   "/user/starred/{owner}/{repo}":
     get:
       summary: Check if a repository is starred by the authenticated user
-      description: ''
+      description: Whether the authenticated user has starred the repository.
       tags:
       - activity
       operationId: activity/check-repo-is-starred-by-authenticated-user
@@ -36935,7 +36895,8 @@ paths:
         subcategory: starring
     delete:
       summary: Unstar a repository for the authenticated user
-      description: ''
+      description: Unstar a repository that the authenticated user has previously
+        starred.
       tags:
       - activity
       operationId: activity/unstar-repo-for-authenticated-user
@@ -78689,6 +78650,16 @@ components:
     commit-sha:
       name: commit_sha
       description: The SHA of the commit.
+      in: path
+      required: true
+      schema:
+        type: string
+      x-multi-segment: true
+    commit-ref:
+      name: ref
+      description: The commit reference. Can be a commit SHA, branch name (`heads/BRANCH_NAME`),
+        or tag name (`tags/TAG_NAME`). For more information, see "[Git References](https://git-scm.com/book/en/v2/Git-Internals-Git-References)"
+        in the Git documentation.
       in: path
       required: true
       schema:
