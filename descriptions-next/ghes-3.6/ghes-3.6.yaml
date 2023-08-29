@@ -15757,6 +15757,7 @@ paths:
       - "$ref": "#/components/parameters/run-id"
       - "$ref": "#/components/parameters/per-page"
       - "$ref": "#/components/parameters/page"
+      - "$ref": "#/components/parameters/artifact-name"
       responses:
         '200':
           description: Response
@@ -22093,7 +22094,7 @@ paths:
       - "$ref": "#/components/parameters/page"
       responses:
         '200':
-          description: if repository contains content
+          description: If repository contains content
           content:
             application/json:
               schema:
@@ -32420,7 +32421,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     post:
@@ -32474,7 +32475,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
   "/scim/v2/Groups/{scim_group_id}":
@@ -32517,7 +32518,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     put:
@@ -32590,7 +32591,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     patch:
@@ -32668,7 +32669,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     delete:
@@ -32702,7 +32703,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
   "/scim/v2/Users":
@@ -32714,8 +32715,6 @@ paths:
         Lists provisioned SCIM enterprise members.
 
         When a user with a SCIM-provisioned external identity is removed from an enterprise through a `patch` with `active` flag set to `false`, the account's metadata is preserved to allow the user to re-join the enterprise in the future. However, the user's account will be suspended and the user will not be able to sign-in. In order to permanently suspend the users account with no ability to re-join the enterprise in the future, use the `delete` request. Users that were not permanently deleted will be visible in the returned results.
-
-        You can improve query search time by using the `excludedAttributes` query parameter with a value of `groups` to exclude groups from the response.
       operationId: enterprise-admin/list-provisioned-identities-enterprise
       tags:
       - enterprise-admin
@@ -32737,7 +32736,6 @@ paths:
             value: userName eq 'E012345'
           externalId:
             value: externalId eq 'E012345'
-      - "$ref": "#/components/parameters/excluded-attributes"
       - "$ref": "#/components/parameters/start-index"
       - "$ref": "#/components/parameters/count"
       responses:
@@ -32762,7 +32760,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     post:
@@ -32818,7 +32816,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
   "/scim/v2/Users/{scim_user_id}":
@@ -32860,7 +32858,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     put:
@@ -32916,7 +32914,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     patch:
@@ -33019,7 +33017,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
     delete:
@@ -33053,7 +33051,7 @@ paths:
           "$ref": "#/components/responses/scim_internal_error"
       x-github:
         enabledForGitHubApps: true
-        githubCloudOnly: false
+        githubCloudOnly: true
         category: enterprise-admin
         subcategory: scim
   "/search/code":
@@ -57455,17 +57453,13 @@ components:
             type: string
             description: The role value representing a user role in GitHub.
             enum:
-            - User
             - user
             - 27d9891d-2c17-4f45-a262-781a0e55c80a
-            - Restricted User
             - restricted_user
             - 1ebc4a02-e56c-43a6-92a5-02ee09b90824
-            - Enterprise Owner
             - enterprise_owner
             - 981df190-8801-4618-a08a-d91f6206c954
             - ba4987ab-a1c3-412a-b58c-360fc407cb10
-            - Billing Manager
             - billing_manager
             - 0e338b8c-cc7f-498a-928d-ea3470d7e7e3
             - e6be2762-e4ad-4108-b72d-1bbe884a0f91
@@ -80796,6 +80790,14 @@ components:
       required: true
       schema:
         type: integer
+    artifact-name:
+      name: name
+      description: The name field of an artifact. When specified, only artifacts with
+        this name will be returned.
+      in: query
+      required: false
+      schema:
+        type: string
     attempt-number:
       name: attempt_number
       description: The attempt number of the workflow run.
