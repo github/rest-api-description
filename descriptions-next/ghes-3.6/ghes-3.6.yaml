@@ -5326,9 +5326,9 @@ paths:
         subcategory: gists
     patch:
       summary: Update a gist
-      description: Allows you to update a gist's description and to update, delete,
-        or rename gist files. Files from the previous version of the gist that aren't
-        explicitly changed during an edit are unchanged.
+      description: |-
+        Allows you to update a gist's description and to update, delete, or rename gist files. Files from the previous version of the gist that aren't explicitly changed during an edit are unchanged.
+        At least one of `description` or `files` is required.
       tags:
       - gists
       operationId: gists/update
@@ -5353,7 +5353,8 @@ paths:
                     The gist files to be updated, renamed, or deleted. Each `key` must match the current filename
                     (including extension) of the targeted gist file. For example: `hello.py`.
 
-                    To delete a file, set the whole file to null. For example: `hello.py : null`.
+                    To delete a file, set the whole file to null. For example: `hello.py : null`. The file will also be
+                    deleted if the specified object does not contain at least one of `content` or `filename`.
                   type: object
                   additionalProperties:
                     type:
@@ -5368,22 +5369,10 @@ paths:
                         type:
                         - string
                         - 'null'
-                    anyOf:
-                    - required:
-                      - content
-                    - required:
-                      - filename
-                    - type: object
-                      maxProperties: 0
                   examples:
                   - hello.rb:
                       content: blah
                       filename: goodbye.rb
-              anyOf:
-              - required:
-                - description
-              - required:
-                - files
               type:
               - object
               - 'null'
@@ -41058,6 +41047,7 @@ components:
           description: Whether downloads are enabled.
           default: true
           type: boolean
+          deprecated: true
           examples:
           - true
         archived:
