@@ -1,0 +1,48 @@
+name: Copy to ecosytem-api
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  copy-issue:
+    name: Copy issue
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'feature'
+    steps:
+      - name: priority
+        uses: actions/github-script@626af12fe9a53dc2972b48385e7fe7dec79145c9
+        id: priority
+        with:
+          result-encoding: string
+          script: |
+            const labels = context.payload.issue.labels;
+            let priority = "unknown"
+            for (const label of labels) {
+              if (['P1','P2','P3','P4'].includes(label.name)){
+                priority = label.name
+                break
+              }
+            }
+            return priority
+
+      - name: Create an issue in the ecosystem-api repo
+        run: |
+          new_issue_url="$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --repo github/ecosystem-api)"
+          echo 'NEW_ISSUE='$new_issue_url >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{secrets.ISSUE_TRANSFER_TOKEN}}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Comment on the new issue
+        run: |
+          gh issue comment $NEW_ISSUE --body "This issue is an internal copy of $OLD_ISSUE, which was opened in the public [rest-api-description](https://github.com/github/rest-api-description) repo with priority $PRIORITY. Please transfer it to the appropriate feature team.
+
+          :exclamation: When you close this issue, please also comment on and close the original issue."
+        env:
+          GITHUB_TOKEN: ${{secrets.ISSUE_TRANSFER_TOKEN}}
+          NEW_ISSUE: ${{ env.NEW_ISSUE }}
+          OLD_ISSUE: ${{ github.event.issue.html_url }}
+          PRIORITY: ${{ steps.priority.outputs.result }}
