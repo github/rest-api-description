@@ -20009,8 +20009,8 @@ paths:
                         ref: &281
                           type: string
                           description: |-
-                            The full Git reference, formatted as `refs/heads/<branch name>`,
-                            `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+                            The Git reference, formatted as `refs/pull/<number>/merge`, `refs/pull/<number>/head`,
+                            `refs/heads/<branch name>` or simply `<branch name>`.
                         analysis_key: &294
                           type: string
                           description: Identifies the configuration under which the
@@ -41328,7 +41328,13 @@ paths:
               type: object
               properties:
                 commit_sha: *299
-                ref: *281
+                ref:
+                  type: string
+                  description: |-
+                    The full Git reference, formatted as `refs/heads/<branch name>`,
+                    `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+                  pattern: "^refs/(heads|pull)/.*$"
+                  example: refs/heads/main
                 sarif:
                   description: A Base64 string representing the SARIF file to upload.
                     You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -41355,6 +41361,7 @@ paths:
                     be available for filtering using the `tool_guid` parameter of
                     operations such as `GET /repos/{owner}/{repo}/code-scanning/alerts`.
                   type: string
+              additionalProperties: false
               required:
               - commit_sha
               - ref
