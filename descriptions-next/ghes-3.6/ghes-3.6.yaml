@@ -20326,7 +20326,7 @@ paths:
                 commit_sha:
                   "$ref": "#/components/schemas/code-scanning-analysis-commit-sha"
                 ref:
-                  "$ref": "#/components/schemas/code-scanning-ref"
+                  "$ref": "#/components/schemas/code-scanning-ref-full"
                 sarif:
                   "$ref": "#/components/schemas/code-scanning-analysis-sarif-file"
                 checkout_uri:
@@ -20350,6 +20350,7 @@ paths:
                     be available for filtering using the `tool_guid` parameter of
                     operations such as `GET /repos/{owner}/{repo}/code-scanning/alerts`.
                   type: string
+              additionalProperties: false
               required:
               - commit_sha
               - ref
@@ -45188,8 +45189,8 @@ components:
     code-scanning-ref:
       type: string
       description: |-
-        The full Git reference, formatted as `refs/heads/<branch name>`,
-        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+        The Git reference, formatted as `refs/pull/<number>/merge`, `refs/pull/<number>/head`,
+        `refs/heads/<branch name>` or simply `<branch name>`.
     code-scanning-analysis-analysis-key:
       type: string
       description: Identifies the configuration under which the analysis was executed.
@@ -50581,6 +50582,14 @@ components:
       required:
       - next_analysis_url
       - confirm_delete_url
+    code-scanning-ref-full:
+      type: string
+      description: |-
+        The full Git reference, formatted as `refs/heads/<branch name>`,
+        `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+      pattern: "^refs/(heads|pull)/.*$"
+      examples:
+      - refs/heads/main
     code-scanning-analysis-sarif-file:
       description: A Base64 string representing the SARIF file to upload. You must
         first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
