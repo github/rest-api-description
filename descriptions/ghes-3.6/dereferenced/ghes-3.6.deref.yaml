@@ -20009,8 +20009,8 @@ paths:
                         ref: &281
                           type: string
                           description: |-
-                            The full Git reference, formatted as `refs/heads/<branch name>`,
-                            `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+                            The Git reference, formatted as `refs/pull/<number>/merge`, `refs/pull/<number>/head`,
+                            `refs/heads/<branch name>` or simply `<branch name>`.
                         analysis_key: &294
                           type: string
                           description: Identifies the configuration under which the
@@ -26853,6 +26853,8 @@ paths:
         You can also get information about the specified repository, including what permissions the team grants on it, by passing the following custom [media type](https://docs.github.com/enterprise-server@3.6/rest/overview/media-types/) via the `application/vnd.github.v3.repository+json` accept header.
 
         If a team doesn't have permission for the repository, you will receive a `404 Not Found` response status.
+
+        If the repository is private, you must have at least `read` permission for that repository and your token must have the `repo` scope. Otherwise, you will receive a `404 Not Found` response status.
 
         **Note:** You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}/repos/{owner}/{repo}`.
       tags:
@@ -41328,7 +41330,13 @@ paths:
               type: object
               properties:
                 commit_sha: *299
-                ref: *281
+                ref:
+                  type: string
+                  description: |-
+                    The full Git reference, formatted as `refs/heads/<branch name>`,
+                    `refs/pull/<number>/merge`, or `refs/pull/<number>/head`.
+                  pattern: "^refs/(heads|pull)/.*$"
+                  example: refs/heads/main
                 sarif:
                   description: A Base64 string representing the SARIF file to upload.
                     You must first compress your SARIF file using [`gzip`](http://www.gnu.org/software/gzip/manual/gzip.html)
@@ -41355,6 +41363,7 @@ paths:
                     be available for filtering using the `tool_guid` parameter of
                     operations such as `GET /repos/{owner}/{repo}/code-scanning/alerts`.
                   type: string
+              additionalProperties: false
               required:
               - commit_sha
               - ref
