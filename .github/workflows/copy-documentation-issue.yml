@@ -1,9 +1,10 @@
-# For issues that should be fixed by the docs team,
-# this workflow copies the issue to the docs-content repo
-# when the `documentation` label is added
-# (we do not transfer so that the issue does not disappear for the contributor)
+# When the `documentation` label is added for documentation issues,
+# this workflow copies the issue to the API team repo which can then 
+# be transferred to the feature team that owns the problem endpoint 
+# so they can resolve the documentation problem
+# (we do not transfer the original issue so that the issue does not disappear for the contributor)
 
-name: Copy to docs-content
+name: Copy documentation issue
 
 on:
   issues:
@@ -12,7 +13,7 @@ on:
 
 jobs:
   copy-issue:
-    name: Copy issue
+    name: Copy documentation issue
     runs-on: ubuntu-latest
     if: github.event.label.name == 'documentation'
     steps:
@@ -32,9 +33,9 @@ jobs:
             }
             return priority
 
-      - name: Create an issue in the docs-content repo
+      - name: Create an issue in the api-platform repo
         run: |
-          new_issue_url="$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --repo github/docs-content --label "REST,OpenAPI")"
+          new_issue_url="$(gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --repo github/api-platform --label "REST,OpenAPI")"
           echo 'NEW_ISSUE='$new_issue_url >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{secrets.ISSUE_TRANSFER_TOKEN}}
