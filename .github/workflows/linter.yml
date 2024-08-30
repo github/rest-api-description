@@ -6,7 +6,12 @@ on:
 
 jobs:
   build:
-    name: Lint OpenAPI Descriptions
+    strategy:
+      matrix:
+        include:
+          - version: 3.0
+            files: 'descriptions/**/*.yaml'
+    name: Lint OpenAPI Descriptions (${{matrix.version}})
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -16,7 +21,7 @@ jobs:
       - name: Yaml Lint
         uses: karancode/yamllint-github-action@v2.0.0
         with:
-          yamllint_file_or_dir: 'descriptions/**/*.yaml'
+          yamllint_file_or_dir: ${{matrix.files}}
           yamllint_strict: false
           yamllint_config_filepath: '.yamllint-config.yml'
           yamllint_comment: true
@@ -29,5 +34,5 @@ jobs:
       - name: OpenAPI Lint
         uses: mattpage/redocly-cli-lint-action@v0.0.1
         with:
-          entrypoints: 'descriptions/**/*.yaml'
+          entrypoints: ${{matrix.files}}
           config: '.redocly.yml'
