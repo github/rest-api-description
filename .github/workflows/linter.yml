@@ -5,27 +5,39 @@ on:
   - push
 
 jobs:
-  build:
-    name: Lint OpenAPI Descriptions
+  lint:
+    name: Lint OpenAPI ${{matrix.version}} releases
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - version: '3.0'
+            files: 'descriptions/**/*.yaml'
+          - version: '3.1'
+            files: 'descriptions-next/**/*.yaml'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Yaml Lint
-        uses: karancode/yamllint-github-action@v2.0.0
+      - uses: actions/setup-python@v5
+        name: Install Python
         with:
-          yamllint_file_or_dir: 'descriptions/**/*.yaml'
-          yamllint_strict: false
-          yamllint_config_filepath: '.yamllint-config.yml'
-          yamllint_comment: true
-      - uses: actions/setup-node@v3
+          python-version: '3.12'
+      - run: pip install yamllint
+        name: Install yamllint
+      - run: yamllint -f parsable -c .yamllint-config.yml ${{matrix.files}}
+        name: Run yamllint on ${{matrix.version}} descriptions
+      - name: Install NodeJS
+        uses: actions/setup-node@v4
         with:
           node-version: '16'
-      - run: npm install
+      - name: Install Node modules
+        run: npm ci
+      # TODO: update script to pass in {{files}} so that this can support 3.1
       - name: JSON Lint
         run: npm run lint
       - name: OpenAPI Lint
         uses: mattpage/redocly-cli-lint-action@v0.0.1
         with:
+          # TODO: use matrix.files variable when workflow is ready to process 3.1 files
           entrypoints: 'descriptions/**/*.yaml'
           config: '.redocly.yml'
