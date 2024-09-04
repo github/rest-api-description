@@ -6,8 +6,15 @@ on:
 
 jobs:
   lint:
-    name: Lint releases
+    name: Lint OpenAPI ${{matrix.version}} releases
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - version: '3.0'
+            files: 'descriptions/**/*.yaml'
+          - version: '3.1'
+            files: 'descriptions-next/**/*.yaml'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -17,8 +24,8 @@ jobs:
           python-version: '3.12'
       - run: pip install yamllint
         name: Install yamllint
-      - run: yamllint -f parsable -c .yamllint-config.yml descriptions/api.github.com/*.yaml
-        name: Run yamllint on project descriptions
+      - run: yamllint -f parsable -c .yamllint-config.yml ${{matrix.files}}
+        name: Run yamllint on ${{matrix.version}} descriptions
       - name: Install NodeJS
         uses: actions/setup-node@v4
         with:
@@ -30,5 +37,6 @@ jobs:
       - name: OpenAPI Lint
         uses: mattpage/redocly-cli-lint-action@v0.0.1
         with:
+          # TODO: use matrix.files variable when workflow is ready to process 3.1 files
           entrypoints: 'descriptions/**/*.yaml'
           config: '.redocly.yml'
