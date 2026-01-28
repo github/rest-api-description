@@ -2,6 +2,30 @@
 
 This document describes the [OpenAPI extensions](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#specification-extensions) used in GitHub's REST API OpenAPI descriptions.
 
+## `x-github-api-versions`
+
+### Purpose
+
+To specify the API versions supported by this OpenAPI description. GitHub's REST API uses calendar-based versioning (e.g., `2022-11-28`). Clients can use the `X-GitHub-Api-Version` header to request a specific version.
+
+### Usage
+
+This applies to the [Info Object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#infoObject).
+
+The value should be an array of strings representing supported API version dates in `YYYY-MM-DD` format, sorted in descending order (newest first).
+
+#### Example usage
+
+```yml
+info:
+  title: GitHub v3 REST API
+  version: 1.1.4
+  x-github-api-versions:
+    - "2022-11-28"
+```
+
+For more information about API versioning, see the [GitHub REST API documentation](https://docs.github.com/rest/about-the-rest-api/api-versions).
+
 ## `x-displayName`
 
 ### Purpose
