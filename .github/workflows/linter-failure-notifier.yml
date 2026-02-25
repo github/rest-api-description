@@ -1,0 +1,44 @@
+name: Notify on linter failure
+permissions:
+  contents: read
+
+on:
+  workflow_run:
+    workflows:
+      - Lint OpenAPI Descriptions
+    types:
+      - completed
+
+jobs:
+  notify:
+    name: Notify #api-platform about failed PR lint
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.repository.full_name == 'github/rest-api-description'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post failure to chatterbox
+        env:
+          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
+          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          COMMIT: ${{ github.event.workflow_run.head_sha }}
+          PR_URL: ${{ github.event.workflow_run.pull_requests[0].html_url }}
+          REPO: ${{ github.event.workflow_run.repository.full_name }}
+        run: |
+          if [ -z "$CHATTERBOX_URL" ] || [ -z "$CHATTERBOX_TOKEN" ]; then
+            echo "CHATTERBOX_URL or CHATTERBOX_TOKEN is not configured; skipping notification."
+            exit 0
+          fi
+
+          short_sha="${COMMIT:0:7}"
+          message=":warning: Linter workflow failed for a pull request in ${REPO}.\n• Workflow: ${RUN_NAME}\n• PR: ${PR_URL}\n• Branch: ${BRANCH}\n• Commit: ${short_sha}\n• Run: ${RUN_URL}"
+
+          curl --fail --silent --show-error \
+            -X POST \
+            -u "${CHATTERBOX_TOKEN}:" \
+            "${CHATTERBOX_URL%/}/topics/%23api-platform" \
+            --data "$message"
