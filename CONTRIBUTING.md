@@ -19,6 +19,17 @@ Please note that this project is released with a [Contributor Code of Conduct][c
 
 We will gladly accept pull requests for contributions to other files in this repository.
 
+## CI notifications
+
+The `Notify on linter failure` workflow posts failed pull request lint runs to `#api-platform` through chatterbox.
+
+To enable notifications, configure these repository-level Actions secrets:
+
+- `CHATTERBOX_URL`
+- `CHATTERBOX_TOKEN`
+
+This workflow is defined in `.github/workflows/linter-failure-notifier.yml`.
+
 ### Submitting a pull request
 
 0. [Fork][fork] and clone the repository
