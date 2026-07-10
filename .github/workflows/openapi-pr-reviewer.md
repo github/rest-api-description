@@ -67,6 +67,11 @@ safe-outputs:
           required: true
           type: string
       env:
+        # gh-aw does NOT auto-inject GH_AW_SAFE_OUTPUTS_STAGED into custom safe-output jobs
+        # (only into its own built-in jobs), so we set it explicitly here from the
+        # `safe-outputs.staged` value. To go live, set this to "false" (or remove it) in BOTH
+        # custom jobs AND set `safe-outputs.staged: false`, then recompile.
+        GH_AW_SAFE_OUTPUTS_STAGED: "true"
         CHATTERBOX_URL: "${{ secrets.CHATTERBOX_URL }}"
         CHATTERBOX_TOKEN: "${{ secrets.CHATTERBOX_TOKEN }}"
       steps:
@@ -136,10 +141,10 @@ safe-outputs:
           required: true
           type: string
       env:
-        # Token used to merge the PRs and close the older ones. Merging a PR is the compliant
-        # path through the "require a pull request" branch rule, so this only needs
-        # `pull-requests: write` + `contents: write` — no protected-branch push/bypass.
-        MERGE_TOKEN: "${{ secrets.OPENAPI_MERGE_TOKEN }}"
+        # See note on the post-to-chatterbox job: gh-aw doesn't inject this into custom
+        # safe-output jobs, so we set it explicitly. Flip to "false" here + in
+        # `safe-outputs.staged` to go live, then recompile.
+        GH_AW_SAFE_OUTPUTS_STAGED: "true"
         CHATTERBOX_URL: "${{ secrets.CHATTERBOX_URL }}"
         CHATTERBOX_TOKEN: "${{ secrets.CHATTERBOX_TOKEN }}"
       steps:
@@ -158,13 +163,22 @@ safe-outputs:
               core.setOutput('older_prs', item.older_prs || '');
               core.setOutput('summary', item.summary || '');
         - name: Merge the two latest PRs via the merge API
-          if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
           env:
-            GH_TOKEN: ${{ env.MERGE_TOKEN }}
+            # Use the secret directly: gh-aw injects the job `env:` at step level, and a
+            # step-level env value can't reference another same-step env var via `env.`.
+            GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
             PR_30: ${{ steps.req.outputs.pr_30 }}
             PR_31: ${{ steps.req.outputs.pr_31 }}
+            DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           run: |
             set -euo pipefail
+            # Staged/dry-run guard. We check the shell env var (injected by gh-aw) rather than a
+            # step `if:` because gh-aw sets GH_AW_SAFE_OUTPUTS_STAGED at step level, and a step's
+            # own step-level env is NOT visible to that same step's `if:` conditional.
+            if [ "${GH_AW_SAFE_OUTPUTS_STAGED:-}" = "true" ]; then
+              echo "🎭 Staged: would merge #${PR_30} + #${PR_31} into ${DEFAULT_BRANCH}."
+              exit 0
+            fi
             # Merge each PR through the GitHub merge API (a merge commit, like the old --no-ff).
             # These diffs are huge (~64 files / 250K lines), so the synchronous merge call can
             # gateway-timeout (502/504) even though the merge completes server-side. Retry, and
@@ -190,23 +204,19 @@ safe-outputs:
             # Merge 3.0 first, then 3.1 (they touch disjoint paths, so no conflicts).
             merge_pr "$PR_30" "OpenAPI 3.0"
             merge_pr "$PR_31" "OpenAPI 3.1"
-        - name: Preview merge (staged)
-          if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED == 'true' }}
-          env:
-            PR_30: ${{ steps.req.outputs.pr_30 }}
-            PR_31: ${{ steps.req.outputs.pr_31 }}
-            OLDER: ${{ steps.req.outputs.older_prs }}
-          run: |
-            echo "🎭 Staged: would merge #${PR_30} + #${PR_31} into ${GITHUB_REF_NAME}, then close: ${OLDER:-none}"
         - name: Close older superseded PRs
-          if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' && steps.req.outputs.older_prs != '' }}
+          if: ${{ success() && steps.req.outputs.older_prs != '' }}
           env:
-            GH_TOKEN: ${{ env.MERGE_TOKEN }}
+            GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
             PR_30: ${{ steps.req.outputs.pr_30 }}
             PR_31: ${{ steps.req.outputs.pr_31 }}
             OLDER: ${{ steps.req.outputs.older_prs }}
           run: |
             set -euo pipefail
+            if [ "${GH_AW_SAFE_OUTPUTS_STAGED:-}" = "true" ]; then
+              echo "🎭 Staged: would close superseded PRs: ${OLDER:-none}"
+              exit 0
+            fi
             IFS=',' read -ra NUMS <<< "$OLDER"
             for n in "${NUMS[@]}"; do
               n=$(echo "$n" | tr -d ' ')
@@ -216,7 +226,6 @@ safe-outputs:
                 echo "warning: failed to close #$n"
             done
         - name: Notify chatterbox of merge
-          if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
           uses: actions/github-script@v9
           env:
             PR_30: ${{ steps.req.outputs.pr_30 }}
@@ -224,10 +233,14 @@ safe-outputs:
             SUMMARY: ${{ steps.req.outputs.summary }}
           with:
             script: |
+              const text = `Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
+              if (process.env.GH_AW_SAFE_OUTPUTS_STAGED === 'true') {
+                await core.summary.addRaw(`## 🎭 Staged: would post to chatterbox #api-platform\n\n${text}\n`).write();
+                return;
+              }
               const url = process.env.CHATTERBOX_URL;
               const token = process.env.CHATTERBOX_TOKEN;
               if (!url || !token) { core.warning('chatterbox not configured; skipping notify'); return; }
-              const text = `Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
               const endpoint = `${url.replace(/\/$/, '')}/topics/%23api-platform`;
               const auth = Buffer.from(`${token}:`).toString('base64');
               const res = await fetch(endpoint, {

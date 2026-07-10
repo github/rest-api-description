@@ -1,4 +1,4 @@
-# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"9cc11dc458df1edec3a42d9cca931bb313fbd3f00f032a7022c2f746c1d12dbf","body_hash":"754e3baebfa788bc34791e9abcecf9ff11c1fbd66001673477acce8bb80db1a7","compiler_version":"v0.79.6","strict":true,"agent_id":"copilot","engine_versions":{"copilot":"1.0.60"}}
+# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"2c28fd87cdda514ae405a76e3d502a7af58e4d1ed3ce4df44bb0ca834e343bc5","body_hash":"754e3baebfa788bc34791e9abcecf9ff11c1fbd66001673477acce8bb80db1a7","compiler_version":"v0.79.6","strict":true,"agent_id":"copilot","engine_versions":{"copilot":"1.0.60"}}
 # gh-aw-manifest: {"version":1,"secrets":["CHATTERBOX_TOKEN","CHATTERBOX_URL","COPILOT_GITHUB_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN","OPENAPI_MERGE_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"df4cb1c069e1874edd31b4311f1884172cec0e10","version":"v6.0.3"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"5c2fe865bb4dc46e1450f6ee0d0541d759aea73a","version":"v0.79.6"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2","digest":"sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2","digest":"sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2","digest":"sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.25","digest":"sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa"},{"image":"ghcr.io/github/github-mcp-server:v1.1.2","digest":"sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c","pinned_image":"ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c"}]}
 #    ___                   _   _      
 #   / _ \                 | | (_)     
@@ -1462,7 +1462,7 @@ jobs:
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
+          GH_AW_SAFE_OUTPUTS_STAGED: "true"
         with:
           script: |
             const fs = require('fs');
@@ -1475,9 +1475,15 @@ jobs:
             core.setOutput('older_prs', item.older_prs || '');
             core.setOutput('summary', item.summary || '');
       - name: Merge the two latest PRs via the merge API
-        if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
         run: |
           set -euo pipefail
+          # Staged/dry-run guard. We check the shell env var (injected by gh-aw) rather than a
+          # step `if:` because gh-aw sets GH_AW_SAFE_OUTPUTS_STAGED at step level, and a step's
+          # own step-level env is NOT visible to that same step's `if:` conditional.
+          if [ "${GH_AW_SAFE_OUTPUTS_STAGED:-}" = "true" ]; then
+            echo "🎭 Staged: would merge #${PR_30} + #${PR_31} into ${DEFAULT_BRANCH}."
+            exit 0
+          fi
           # Merge each PR through the GitHub merge API (a merge commit, like the old --no-ff).
           # These diffs are huge (~64 files / 250K lines), so the synchronous merge call can
           # gateway-timeout (502/504) even though the merge completes server-side. Retry, and
@@ -1506,27 +1512,20 @@ jobs:
         env:
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          GH_TOKEN: ${{ env.MERGE_TOKEN }}
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
-          PR_30: ${{ steps.req.outputs.pr_30 }}
-          PR_31: ${{ steps.req.outputs.pr_31 }}
-      - name: Preview merge (staged)
-        if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED == 'true' }}
-        run: |
-          echo "🎭 Staged: would merge #${PR_30} + #${PR_31} into ${GITHUB_REF_NAME}, then close: ${OLDER:-none}"
-        env:
-          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
-          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
-          GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
-          OLDER: ${{ steps.req.outputs.older_prs }}
+          GH_AW_SAFE_OUTPUTS_STAGED: "true"
+          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
           PR_30: ${{ steps.req.outputs.pr_30 }}
           PR_31: ${{ steps.req.outputs.pr_31 }}
       - name: Close older superseded PRs
-        if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' && steps.req.outputs.older_prs != '' }}
+        if: ${{ success() && steps.req.outputs.older_prs != '' }}
         run: |
           set -euo pipefail
+          if [ "${GH_AW_SAFE_OUTPUTS_STAGED:-}" = "true" ]; then
+            echo "🎭 Staged: would close superseded PRs: ${OLDER:-none}"
+            exit 0
+          fi
           IFS=',' read -ra NUMS <<< "$OLDER"
           for n in "${NUMS[@]}"; do
             n=$(echo "$n" | tr -d ' ')
@@ -1539,28 +1538,31 @@ jobs:
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          GH_TOKEN: ${{ env.MERGE_TOKEN }}
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
+          GH_AW_SAFE_OUTPUTS_STAGED: "true"
+          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
           OLDER: ${{ steps.req.outputs.older_prs }}
           PR_30: ${{ steps.req.outputs.pr_30 }}
           PR_31: ${{ steps.req.outputs.pr_31 }}
       - name: Notify chatterbox of merge
-        if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 (source v9)
         env:
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
+          GH_AW_SAFE_OUTPUTS_STAGED: "true"
           PR_30: ${{ steps.req.outputs.pr_30 }}
           PR_31: ${{ steps.req.outputs.pr_31 }}
           SUMMARY: ${{ steps.req.outputs.summary }}
         with:
           script: |
+            const text = `Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
+            if (process.env.GH_AW_SAFE_OUTPUTS_STAGED === 'true') {
+              await core.summary.addRaw(`## 🎭 Staged: would post to chatterbox #api-platform\n\n${text}\n`).write();
+              return;
+            }
             const url = process.env.CHATTERBOX_URL;
             const token = process.env.CHATTERBOX_TOKEN;
             if (!url || !token) { core.warning('chatterbox not configured; skipping notify'); return; }
-            const text = `Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
             const endpoint = `${url.replace(/\/$/, '')}/topics/%23api-platform`;
             const auth = Buffer.from(`${token}:`).toString('base64');
             const res = await fetch(endpoint, {
@@ -1591,6 +1593,7 @@ jobs:
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
+          GH_AW_SAFE_OUTPUTS_STAGED: "true"
         with:
           script: |
             const fs = require('fs');
