@@ -3,7 +3,7 @@ name: OpenAPI PR Reviewer
 description: >
   Daily automation that reviews the latest "Update OpenAPI 3.0/3.1 Descriptions" PRs
   opened by github-openapi-bot, checks for breaking changes, and — when none are found —
-  merges the latest pair and closes the older superseded PRs. Posts a Slack notification
+  merges the latest pair and closes the older superseded PRs. Posts a chatterbox notification
   to #api-platform on merge, and alerts #api-platform when a breaking change is detected.
 
 # Runs every day at 15:00 UTC (~10:00 ET), after the bot's overnight description sync.
@@ -52,13 +52,13 @@ safe-outputs:
   jobs:
     # ---- Breaking-change alert -------------------------------------------------------
     # The agent calls this when it detects a breaking change and therefore does NOT merge.
-    post-to-slack-channel:
+    post-to-chatterbox:
       description: >
-        Post a message to the #api-platform Slack channel. Message must be 200 characters or
-        less. Supports Slack markdown (*bold*, _italic_, `code`, <url|text>). Requires the
-        SLACK_BOT_TOKEN secret and GH_AW_SLACK_CHANNEL_ID (set below) to be configured.
+        Post a message to the #api-platform Slack channel via chatterbox. Message must be 200
+        characters or less. Supports Slack markdown (*bold*, _italic_, `code`, <url|text>).
+        Requires the CHATTERBOX_URL and CHATTERBOX_TOKEN secrets to be configured.
       runs-on: ubuntu-latest
-      output: "Message posted to Slack."
+      output: "Message posted to chatterbox."
       permissions:
         contents: read
       inputs:
@@ -67,39 +67,39 @@ safe-outputs:
           required: true
           type: string
       env:
-        SLACK_BOT_TOKEN: "${{ secrets.SLACK_BOT_TOKEN }}"
-        SLACK_CHANNEL_ID: "${{ env.GH_AW_SLACK_CHANNEL_ID }}"
+        CHATTERBOX_URL: "${{ secrets.CHATTERBOX_URL }}"
+        CHATTERBOX_TOKEN: "${{ secrets.CHATTERBOX_TOKEN }}"
       steps:
-        - name: Post message to Slack
+        - name: Post message to chatterbox
           uses: actions/github-script@v9
           with:
             script: |
               const fs = require('fs');
-              const token = process.env.SLACK_BOT_TOKEN;
-              const channel = process.env.SLACK_CHANNEL_ID;
+              const url = process.env.CHATTERBOX_URL;
+              const token = process.env.CHATTERBOX_TOKEN;
               const staged = process.env.GH_AW_SAFE_OUTPUTS_STAGED === 'true';
               const outFile = process.env.GH_AW_AGENT_OUTPUT;
               if (!outFile || !fs.existsSync(outFile)) { core.info('No agent output.'); return; }
               const data = JSON.parse(fs.readFileSync(outFile, 'utf8'));
-              const items = (data.items || []).filter(i => i.type === 'post_to_slack_channel');
+              const items = (data.items || []).filter(i => i.type === 'post_to_chatterbox');
               for (const item of items) {
                 const message = item.message || '';
                 if (!message) { core.warning('Empty message, skipping'); continue; }
                 if (message.length > 200) { core.warning(`Message too long (${message.length}), skipping`); continue; }
                 if (staged) {
-                  await core.summary.addRaw(`## 🎭 Staged: would post to Slack (${channel})\n\n${message}\n`).write();
+                  await core.summary.addRaw(`## Staged: would post to chatterbox #api-platform\n\n${message}\n`).write();
                   continue;
                 }
-                if (!token) { core.setFailed('SLACK_BOT_TOKEN not configured'); return; }
-                if (!channel) { core.setFailed('GH_AW_SLACK_CHANNEL_ID not configured'); return; }
-                const res = await fetch('https://slack.com/api/chat.postMessage', {
+                if (!url || !token) { core.setFailed('CHATTERBOX_URL or CHATTERBOX_TOKEN not configured'); return; }
+                const endpoint = `${url.replace(/\/$/, '')}/topics/%23api-platform`;
+                const auth = Buffer.from(`${token}:`).toString('base64');
+                const res = await fetch(endpoint, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${token}` },
-                  body: JSON.stringify({ channel, text: message }),
+                  headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: message,
                 });
-                const body = await res.json();
-                if (!body.ok) { core.setFailed(`Slack API error: ${body.error}`); return; }
-                core.info(`✅ Posted to Slack (ts=${body.ts})`);
+                if (!res.ok) { core.setFailed(`chatterbox error: ${res.status} ${await res.text()}`); return; }
+                core.info(`Posted to chatterbox #api-platform (status ${res.status})`);
               }
 
     # ---- Merge + close + notify ------------------------------------------------------
@@ -138,8 +138,8 @@ safe-outputs:
         # Dedicated PAT (or GitHub App token) that can push to the protected default branch.
         # The default GITHUB_TOKEN cannot bypass required status checks; see PR description.
         MERGE_TOKEN: "${{ secrets.OPENAPI_MERGE_TOKEN }}"
-        SLACK_BOT_TOKEN: "${{ secrets.SLACK_BOT_TOKEN }}"
-        SLACK_CHANNEL_ID: "${{ env.GH_AW_SLACK_CHANNEL_ID }}"
+        CHATTERBOX_URL: "${{ secrets.CHATTERBOX_URL }}"
+        CHATTERBOX_TOKEN: "${{ secrets.CHATTERBOX_TOKEN }}"
       steps:
         - name: Read agent request
           id: req
@@ -203,7 +203,7 @@ safe-outputs:
                 --comment "Superseded by the newer OpenAPI description PRs #${PR_30} and #${PR_31}, which have been merged. Closing this older PR." || \
                 echo "warning: failed to close #$n"
             done
-        - name: Notify Slack of merge
+        - name: Notify chatterbox of merge
           if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
           uses: actions/github-script@v9
           env:
@@ -212,21 +212,19 @@ safe-outputs:
             SUMMARY: ${{ steps.req.outputs.summary }}
           with:
             script: |
-              const token = process.env.SLACK_BOT_TOKEN;
-              const channel = process.env.SLACK_CHANNEL_ID;
-              if (!token || !channel) { core.warning('Slack not configured; skipping notify'); return; }
-              const text = `✅ Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
-              const res = await fetch('https://slack.com/api/chat.postMessage', {
+              const url = process.env.CHATTERBOX_URL;
+              const token = process.env.CHATTERBOX_TOKEN;
+              if (!url || !token) { core.warning('chatterbox not configured; skipping notify'); return; }
+              const text = `Merged OpenAPI description PRs #${process.env.PR_30} & #${process.env.PR_31} in <https://github.com/${process.env.GITHUB_REPOSITORY}|rest-api-description>. ${process.env.SUMMARY || ''}`.slice(0, 200);
+              const endpoint = `${url.replace(/\/$/, '')}/topics/%23api-platform`;
+              const auth = Buffer.from(`${token}:`).toString('base64');
+              const res = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ channel, text }),
+                headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: text,
               });
-              const body = await res.json();
-              if (!body.ok) core.warning(`Slack notify failed: ${body.error}`);
+              if (!res.ok) core.warning(`chatterbox notify failed: ${res.status} ${await res.text()}`);
 
-# The #api-platform Slack channel ID. Update this to the real channel ID before enabling.
-env:
-  GH_AW_SLACK_CHANNEL_ID: "${{ vars.API_PLATFORM_SLACK_CHANNEL_ID }}"
 ---
 
 # OpenAPI PR Reviewer
@@ -291,7 +289,7 @@ merely moved is not a breaking change.
 
 ### If you found ANY breaking change
 
-Do **not** merge. Call `post-to-slack-channel` with a concise alert (≤200 chars), e.g.:
+Do **not** merge. Call `post-to-chatterbox` with a concise alert (≤200 chars), e.g.:
 
 > ⚠️ Breaking change in rest-api-description PR #<N>: <one-line description>. Needs human review before merge.
 
@@ -314,7 +312,7 @@ success message.
 
 1. **Only ever merge when you are confident there are no breaking changes.** When in doubt,
    treat it as breaking and alert Slack instead of merging.
-2. **Never call both** `merge-openapi-prs` and a breaking-change `post-to-slack-channel` in
+2. **Never call both** `merge-openapi-prs` and a breaking-change `post-to-chatterbox` in
    the same run — it's one or the other.
 3. **Merge the latest pair only.** Older PRs are closed as superseded, never merged (they're
    stale snapshots of the same evolving descriptions).
