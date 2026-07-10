@@ -103,17 +103,18 @@ safe-outputs:
               }
 
     # ---- Merge + close + notify ------------------------------------------------------
-    # The agent calls this ONCE when there are NO breaking changes. It performs the
-    # privileged local-git merge (the merge API times out on these diffs), closes the
-    # older superseded PRs, and posts the merged-PR list to Slack — all in one gated job
-    # so the "merged" notification only fires on real success.
+    # The agent calls this ONCE when there are NO breaking changes. It merges the two latest
+    # PRs via the GitHub merge API (merging a PR satisfies the "require a pull request" branch
+    # rule, so no protected-branch push/bypass is needed), closes the older superseded PRs,
+    # and posts the merged-PR list to chatterbox — all in one gated job so the "merged"
+    # notification only fires on real success.
     merge-openapi-prs:
       description: >
         Merge the latest OpenAPI 3.0 and 3.1 description PRs into the default branch, close
-        the older superseded PRs, and notify Slack. Call this ONLY when no breaking changes
+        the older superseded PRs, and notify chatterbox. Call this ONLY when no breaking changes
         were found. Provide the two latest PR numbers and the list of older PR numbers.
       runs-on: ubuntu-latest
-      output: "OpenAPI PRs merged, older PRs closed, Slack notified."
+      output: "OpenAPI PRs merged, older PRs closed, chatterbox notified."
       permissions:
         contents: write
         pull-requests: write
@@ -131,12 +132,13 @@ safe-outputs:
           required: false
           type: string
         summary:
-          description: "One-line summary of the merged changes for the Slack notification."
+          description: "One-line summary of the merged changes for the chatterbox notification."
           required: true
           type: string
       env:
-        # Dedicated PAT (or GitHub App token) that can push to the protected default branch.
-        # The default GITHUB_TOKEN cannot bypass required status checks; see PR description.
+        # Token used to merge the PRs and close the older ones. Merging a PR is the compliant
+        # path through the "require a pull request" branch rule, so this only needs
+        # `pull-requests: write` + `contents: write` — no protected-branch push/bypass.
         MERGE_TOKEN: "${{ secrets.OPENAPI_MERGE_TOKEN }}"
         CHATTERBOX_URL: "${{ secrets.CHATTERBOX_URL }}"
         CHATTERBOX_TOKEN: "${{ secrets.CHATTERBOX_TOKEN }}"
@@ -155,29 +157,39 @@ safe-outputs:
               core.setOutput('pr_31', String(item.pr_31));
               core.setOutput('older_prs', item.older_prs || '');
               core.setOutput('summary', item.summary || '');
-        - name: Checkout default branch
-          uses: actions/checkout@v5
-          with:
-            fetch-depth: 0
-            token: ${{ env.MERGE_TOKEN }}
-        - name: Merge PRs locally and push
+        - name: Merge the two latest PRs via the merge API
           if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED != 'true' }}
           env:
+            GH_TOKEN: ${{ env.MERGE_TOKEN }}
             PR_30: ${{ steps.req.outputs.pr_30 }}
             PR_31: ${{ steps.req.outputs.pr_31 }}
           run: |
             set -euo pipefail
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            DEFAULT_BRANCH="${GITHUB_REF_NAME}"
-            git checkout "$DEFAULT_BRANCH"
-            # Fetch the two PR heads (bot branches live in this repo, so pull/N/head works).
-            git fetch origin "pull/${PR_30}/head:pr-${PR_30}"
-            git fetch origin "pull/${PR_31}/head:pr-${PR_31}"
-            # Merge 3.0 first, then 3.1, to avoid conflicts (they touch disjoint paths).
-            git merge --no-ff "pr-${PR_30}" -m "Merge OpenAPI 3.0 descriptions (#${PR_30})"
-            git merge --no-ff "pr-${PR_31}" -m "Merge OpenAPI 3.1 descriptions (#${PR_31})"
-            git push origin "$DEFAULT_BRANCH"
+            # Merge each PR through the GitHub merge API (a merge commit, like the old --no-ff).
+            # These diffs are huge (~64 files / 250K lines), so the synchronous merge call can
+            # gateway-timeout (502/504) even though the merge completes server-side. Retry, and
+            # after each failure poll the PR's merged state before giving up.
+            merge_pr() {
+              local n="$1" label="$2"
+              echo "Merging #$n ($label)..."
+              for attempt in 1 2 3 4 5; do
+                if [ "$(gh pr view "$n" --repo "$GITHUB_REPOSITORY" --json merged -q .merged)" = "true" ]; then
+                  echo "#$n already merged."; return 0
+                fi
+                if gh pr merge "$n" --repo "$GITHUB_REPOSITORY" --merge; then
+                  echo "#$n merged."; return 0
+                fi
+                echo "Merge attempt $attempt for #$n failed (likely a gateway timeout on a large diff); waiting to see if it completed server-side..."
+                sleep 30
+                if [ "$(gh pr view "$n" --repo "$GITHUB_REPOSITORY" --json merged -q .merged)" = "true" ]; then
+                  echo "#$n merged (completed server-side after timeout)."; return 0
+                fi
+              done
+              echo "ERROR: failed to merge #$n after retries." >&2; return 1
+            }
+            # Merge 3.0 first, then 3.1 (they touch disjoint paths, so no conflicts).
+            merge_pr "$PR_30" "OpenAPI 3.0"
+            merge_pr "$PR_31" "OpenAPI 3.1"
         - name: Preview merge (staged)
           if: ${{ env.GH_AW_SAFE_OUTPUTS_STAGED == 'true' }}
           env:
