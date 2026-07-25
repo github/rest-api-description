@@ -19809,6 +19809,361 @@
         }
       }
     },
+    "/orgs/{org}/artifacts/metadata/deployment-record/cluster/{cluster}/jobs": {
+      "post": {
+        "summary": "Create a cluster deployment records job",
+        "description": "Create a background job to set deployment records for a given cluster.\nPerforms validation and permission checks synchronously, returning rejected\ndeployments immediately, then enqueues a background job for the actual\ndeployment updates. Use the companion GET endpoint to poll for job status.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/create-cluster-deployment-records-job",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/orgs/artifact-metadata#create-a-cluster-deployment-records-job"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "name": "cluster",
+            "in": "path",
+            "description": "The cluster name.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[a-zA-Z0-9._-]+$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "logical_environment": {
+                    "type": "string",
+                    "description": "The stage of the deployment.",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "physical_environment": {
+                    "type": "string",
+                    "description": "The physical region of the deployment.",
+                    "maxLength": 128
+                  },
+                  "deployments": {
+                    "type": "array",
+                    "description": "The list of deployments to record.",
+                    "maxItems": 5000,
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the artifact.",
+                          "minLength": 1,
+                          "maxLength": 256
+                        },
+                        "digest": {
+                          "type": "string",
+                          "description": "The hex encoded digest of the artifact.",
+                          "minLength": 71,
+                          "maxLength": 71,
+                          "pattern": "^sha256:[a-f0-9]{64}$"
+                        },
+                        "version": {
+                          "type": "string",
+                          "description": "The artifact version.",
+                          "maxLength": 100,
+                          "x-multi-segment": true,
+                          "example": "1.2.3"
+                        },
+                        "status": {
+                          "type": "string",
+                          "description": "The deployment status of the artifact.",
+                          "default": "deployed",
+                          "enum": [
+                            "deployed",
+                            "decommissioned"
+                          ]
+                        },
+                        "deployment_name": {
+                          "type": "string",
+                          "description": "The unique identifier for the deployment represented by the new record.\n",
+                          "minLength": 1,
+                          "maxLength": 256
+                        },
+                        "github_repository": {
+                          "type": "string",
+                          "description": "The name of the GitHub repository associated with the artifact.",
+                          "maxLength": 100,
+                          "pattern": "^[A-Za-z0-9.\\-_]+$",
+                          "example": "my-github-repo"
+                        },
+                        "tags": {
+                          "type": "object",
+                          "description": "Key-value pairs to tag the deployment record.",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "runtime_risks": {
+                          "type": "array",
+                          "description": "A list of runtime risks associated with the deployment.",
+                          "maxItems": 4,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "critical-resource",
+                              "internet-exposed",
+                              "lateral-movement",
+                              "sensitive-data"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "deployment_name",
+                        "digest"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "logical_environment",
+                  "deployments"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "logical_environment": "prod",
+                    "physical_environment": "pacific-east",
+                    "deployments": [
+                      {
+                        "name": "awesome-image",
+                        "digest": "sha256:1bb1e949e55dcefc6353e7b36c8897d2a107d8e8dca49d4e3c0ea8493fc0bc72",
+                        "version": "2.1.0",
+                        "status": "deployed",
+                        "deployment_name": "deployment-pod",
+                        "tags": {
+                          "owning-team": "platform"
+                        },
+                        "runtime_risks": [
+                          "sensitive-data"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Job created successfully. Authorized deployments will be processed in the background.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "description": "The ID of the created job.",
+                      "type": "integer"
+                    },
+                    "errors": {
+                      "description": "Deployments that were rejected during authorization.",
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "job_id"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "job_id": 123
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A job is already in progress for this cluster.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "artifact-metadata"
+        }
+      }
+    },
+    "/orgs/{org}/artifacts/metadata/deployment-record/cluster/{cluster}/jobs/{job_id}": {
+      "get": {
+        "summary": "Get cluster deployment records job status",
+        "description": "Get the status and results of a previously created cluster deployment records job.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/get-cluster-deployment-records-job",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/orgs/artifact-metadata#get-cluster-deployment-records-job-status"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "name": "cluster",
+            "in": "path",
+            "description": "The cluster name.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[a-zA-Z0-9._-]+$"
+            }
+          },
+          {
+            "name": "job_id",
+            "in": "path",
+            "description": "The ID of the job.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status retrieved successfully.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "description": "The ID of the job.",
+                      "type": "integer"
+                    },
+                    "status": {
+                      "description": "The current status of the job.",
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "started_at": {
+                      "description": "When the job started processing (only present when processing, completed, or failed).",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "total_count": {
+                      "description": "The number of records successfully mutated (only present when completed).",
+                      "type": "integer"
+                    },
+                    "errors": {
+                      "description": "Processing errors (only present when completed or failed).",
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "job_id",
+                    "status"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "job_id": 123,
+                      "status": "completed",
+                      "started_at": "2026-06-10T12:00:00Z",
+                      "total_count": 5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "artifact-metadata"
+        }
+      }
+    },
     "/orgs/{org}/artifacts/metadata/storage-record": {
       "post": {
         "summary": "Create artifact metadata storage record",
@@ -28404,7 +28759,7 @@
     "/orgs/{org}/insights/api/route-stats/{actor_type}/{actor_id}": {
       "get": {
         "summary": "Get route stats by actor",
-        "description": "Get API request count statistics for an actor broken down by route within a specified time frame.",
+        "description": "Get API request count statistics for an actor broken down by route within a specified time frame.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28472,7 +28827,7 @@
     "/orgs/{org}/insights/api/subject-stats": {
       "get": {
         "summary": "Get subject stats",
-        "description": "Get API request statistics for all subjects within an organization within a specified time frame. Subjects can be users or GitHub Apps.",
+        "description": "Get API request statistics for all subjects within an organization within a specified time frame. Subjects can be users or GitHub Apps.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28534,7 +28889,7 @@
     "/orgs/{org}/insights/api/summary-stats": {
       "get": {
         "summary": "Get summary stats",
-        "description": "Get overall statistics of API requests made within an organization by all users and apps within a specified time frame.",
+        "description": "Get overall statistics of API requests made within an organization by all users and apps within a specified time frame.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28581,7 +28936,7 @@
     "/orgs/{org}/insights/api/summary-stats/users/{user_id}": {
       "get": {
         "summary": "Get summary stats by user",
-        "description": "Get overall statistics of API requests within the organization for a user.",
+        "description": "Get overall statistics of API requests within the organization for a user.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28631,7 +28986,7 @@
     "/orgs/{org}/insights/api/summary-stats/{actor_type}/{actor_id}": {
       "get": {
         "summary": "Get summary stats by actor",
-        "description": "Get overall statistics of API requests within the organization made by a specific actor. Actors can be GitHub App installations, OAuth apps or other tokens on behalf of a user.",
+        "description": "Get overall statistics of API requests within the organization made by a specific actor. Actors can be GitHub App installations, OAuth apps or other tokens on behalf of a user.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28684,7 +29039,7 @@
     "/orgs/{org}/insights/api/time-stats": {
       "get": {
         "summary": "Get time stats",
-        "description": "Get the number of API requests and rate-limited requests made within an organization over a specified time period.",
+        "description": "Get the number of API requests and rate-limited requests made within an organization over a specified time period.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28734,7 +29089,7 @@
     "/orgs/{org}/insights/api/time-stats/users/{user_id}": {
       "get": {
         "summary": "Get time stats by user",
-        "description": "Get the number of API requests and rate-limited requests made within an organization by a specific user over a specified time period.",
+        "description": "Get the number of API requests and rate-limited requests made within an organization by a specific user over a specified time period.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28787,7 +29142,7 @@
     "/orgs/{org}/insights/api/time-stats/{actor_type}/{actor_id}": {
       "get": {
         "summary": "Get time stats by actor",
-        "description": "Get the number of API requests and rate-limited requests made within an organization by a specific actor within a specified time period.",
+        "description": "Get the number of API requests and rate-limited requests made within an organization by a specific actor within a specified time period.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -28843,7 +29198,7 @@
     "/orgs/{org}/insights/api/user-stats/{user_id}": {
       "get": {
         "summary": "Get user stats",
-        "description": "Get API usage statistics within an organization for a user broken down by the type of access.",
+        "description": "Get API usage statistics within an organization for a user broken down by the type of access.\n\nUnder normal conditions, you can expect API data to appear within 4–6 hours after making a request. During incidents or periods of unusually high volume, it may take longer to show up.",
         "tags": [
           "orgs"
         ],
@@ -66566,6 +66921,7 @@
                 "approved",
                 "dismissed",
                 "replaced",
+                "invalidated",
                 "all"
               ],
               "default": "pending"
@@ -149895,7 +150251,8 @@
               "applied",
               "approved",
               "dismissed",
-              "replaced"
+              "replaced",
+              "invalidated"
             ]
           },
           "target_id": {
