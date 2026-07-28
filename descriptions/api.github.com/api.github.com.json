@@ -75916,6 +75916,1273 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/stacks": {
+      "get": {
+        "summary": "List pull request stacks",
+        "description": "Lists pull request stacks in a repository.",
+        "tags": [
+          "pulls"
+        ],
+        "operationId": "pull-request-stacks/list",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/stacks#list-pull-request-stacks"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "pull_request",
+            "description": "Filter to the stack containing this repository pull request number.",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/pull-request-stack-minimal"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": [
+                      {
+                        "id": 9876543,
+                        "number": 42,
+                        "node_id": "S_kwDOABCDEF4AAAAA",
+                        "url": "https://api.github.com/repos/octocat/hello-world/stacks/42",
+                        "base": {
+                          "ref": "main"
+                        },
+                        "pull_requests": [
+                          {
+                            "number": 101,
+                            "state": "open",
+                            "draft": false,
+                            "merged_at": null,
+                            "head": {
+                              "ref": "user-model",
+                              "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11"
+                            }
+                          },
+                          {
+                            "number": 102,
+                            "state": "open",
+                            "draft": false,
+                            "merged_at": null,
+                            "head": {
+                              "ref": "user-api",
+                              "sha": "bbb2222bbb2222bbb2222bbb2222bbb2222bbb22"
+                            }
+                          }
+                        ],
+                        "open": true,
+                        "created_at": "2026-04-15T10:00:00Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "stacks"
+        }
+      },
+      "post": {
+        "summary": "Create a pull request stack",
+        "description": "Creates a stack from an ordered list of pull request numbers. Provide the pull\nrequest numbers from the bottom of the stack to the top. Each pull request's\nbase ref must match the previous pull request's head ref.",
+        "tags": [
+          "pulls"
+        ],
+        "operationId": "pull-request-stacks/create",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/stacks#create-a-pull-request-stack"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pull_requests"
+                ],
+                "properties": {
+                  "pull_requests": {
+                    "type": "array",
+                    "description": "An ordered list of pull request numbers forming the stack from bottom to top.",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 2,
+                    "maxItems": 100
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "pull_requests": [
+                      101,
+                      102,
+                      103
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "number",
+                    "node_id",
+                    "url",
+                    "base",
+                    "open",
+                    "created_at",
+                    "pull_requests"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "number": {
+                      "type": "integer"
+                    },
+                    "node_id": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "base": {
+                      "type": "object",
+                      "required": [
+                        "ref"
+                      ],
+                      "properties": {
+                        "ref": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "open": {
+                      "type": "boolean",
+                      "description": "Whether the stack has any open pull request. False when all pull requests are merged or closed."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "pull_requests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/pull-request-stack-pull-request"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 9876543,
+                      "number": 42,
+                      "node_id": "S_kwDOABCDEF4AAAAA",
+                      "url": "https://api.github.com/repos/octocat/hello-world/stacks/42",
+                      "base": {
+                        "ref": "main"
+                      },
+                      "open": true,
+                      "created_at": "2026-04-15T10:00:00Z",
+                      "pull_requests": [
+                        {
+                          "id": 100001,
+                          "node_id": "PR_kwDOABCDEF4AAAAA",
+                          "title": "Add user model",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": false,
+                          "html_url": "https://github.com/octocat/hello-world/pull/101",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 101,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/101",
+                          "head": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "main",
+                            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        },
+                        {
+                          "id": 100002,
+                          "node_id": "PR_kwDOABCDEF4AAAAB",
+                          "title": "Add user API",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": true,
+                          "html_url": "https://github.com/octocat/hello-world/pull/102",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 102,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/102",
+                          "head": {
+                            "ref": "user-api",
+                            "sha": "bbb2222bbb2222bbb2222bbb2222bbb2222bbb22",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation failed. Returned when the request references pull requests that\ndon't exist in the repository, or when the pull requests can't form a\nvalid stack.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              {
+                                "type": "array",
+                                "nullable": true,
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "integer"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "missing_pull_requests": {
+                    "summary": "One or more pull request numbers don't exist in the repository",
+                    "value": {
+                      "message": "Validation Failed",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#create-a-pull-request-stack",
+                      "errors": [
+                        {
+                          "resource": "Stack",
+                          "field": "pull_requests",
+                          "code": "missing",
+                          "value": [
+                            123
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "not_a_linear_stack": {
+                    "summary": "The pull requests don't form a linear stack",
+                    "value": {
+                      "message": "Pull requests must form a stack, where each PR's base ref is the previous PR's head ref",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#create-a-pull-request-stack"
+                    }
+                  },
+                  "already_stacked": {
+                    "summary": "A pull request already belongs to a stack",
+                    "value": {
+                      "message": "Pull request #123 is already part of a stack",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#create-a-pull-request-stack"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "stacks"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/stacks/{stack_number}": {
+      "get": {
+        "summary": "Get a pull request stack",
+        "description": "Gets a pull request stack by providing its stack number.",
+        "tags": [
+          "pulls"
+        ],
+        "operationId": "pull-request-stacks/get",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/stacks#get-a-pull-request-stack"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "stack_number",
+            "description": "The number that identifies the pull request stack.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "number",
+                    "node_id",
+                    "url",
+                    "base",
+                    "open",
+                    "created_at",
+                    "pull_requests"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "number": {
+                      "type": "integer"
+                    },
+                    "node_id": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "base": {
+                      "type": "object",
+                      "required": [
+                        "ref"
+                      ],
+                      "properties": {
+                        "ref": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "open": {
+                      "type": "boolean",
+                      "description": "Whether the stack has any open pull request. False when all pull requests are merged or closed."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "pull_requests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/pull-request-stack-pull-request"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 9876543,
+                      "number": 42,
+                      "node_id": "S_kwDOABCDEF4AAAAA",
+                      "url": "https://api.github.com/repos/octocat/hello-world/stacks/42",
+                      "base": {
+                        "ref": "main"
+                      },
+                      "open": true,
+                      "created_at": "2026-04-15T10:00:00Z",
+                      "pull_requests": [
+                        {
+                          "id": 100001,
+                          "node_id": "PR_kwDOABCDEF4AAAAA",
+                          "title": "Add user model",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": false,
+                          "html_url": "https://github.com/octocat/hello-world/pull/101",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 101,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/101",
+                          "head": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "main",
+                            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        },
+                        {
+                          "id": 100002,
+                          "node_id": "PR_kwDOABCDEF4AAAAB",
+                          "title": "Add user API",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": true,
+                          "html_url": "https://github.com/octocat/hello-world/pull/102",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 102,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/102",
+                          "head": {
+                            "ref": "user-api",
+                            "sha": "bbb2222bbb2222bbb2222bbb2222bbb2222bbb22",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "stacks"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/stacks/{stack_number}/add": {
+      "post": {
+        "summary": "Add pull requests to a pull request stack",
+        "description": "Appends an ordered list of pull request numbers onto the top of an existing\nstack. Provide only the pull requests you want to add, from the current top of\nthe stack upward. The first new pull request's base ref must match the current\ntop pull request's head ref.",
+        "tags": [
+          "pulls"
+        ],
+        "operationId": "pull-request-stacks/add",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/stacks#add-pull-requests-to-a-pull-request-stack"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "stack_number",
+            "description": "The number that identifies the pull request stack.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "pull_requests"
+                ],
+                "properties": {
+                  "pull_requests": {
+                    "type": "array",
+                    "description": "An ordered list of pull request numbers to append to the stack, from the current top upward.",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "pull_requests": [
+                      104,
+                      102
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "number",
+                    "node_id",
+                    "url",
+                    "base",
+                    "open",
+                    "created_at",
+                    "pull_requests"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "number": {
+                      "type": "integer"
+                    },
+                    "node_id": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "base": {
+                      "type": "object",
+                      "required": [
+                        "ref"
+                      ],
+                      "properties": {
+                        "ref": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "open": {
+                      "type": "boolean",
+                      "description": "Whether the stack has any open pull request. False when all pull requests are merged or closed."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "pull_requests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/pull-request-stack-pull-request"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 9876543,
+                      "number": 42,
+                      "node_id": "S_kwDOABCDEF4AAAAA",
+                      "url": "https://api.github.com/repos/octocat/hello-world/stacks/42",
+                      "base": {
+                        "ref": "main"
+                      },
+                      "open": true,
+                      "created_at": "2026-04-15T10:00:00Z",
+                      "pull_requests": [
+                        {
+                          "id": 100001,
+                          "node_id": "PR_kwDOABCDEF4AAAAA",
+                          "title": "Add user model",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": false,
+                          "html_url": "https://github.com/octocat/hello-world/pull/101",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 101,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/101",
+                          "head": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "main",
+                            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        },
+                        {
+                          "id": 100002,
+                          "node_id": "PR_kwDOABCDEF4AAAAB",
+                          "title": "Add user API",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": true,
+                          "html_url": "https://github.com/octocat/hello-world/pull/102",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 102,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/102",
+                          "head": {
+                            "ref": "user-api",
+                            "sha": "bbb2222bbb2222bbb2222bbb2222bbb2222bbb22",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "description": "Conflict. Returned when the stack is being modified by another request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "being_modified": {
+                    "summary": "Another request is currently modifying the stack",
+                    "value": {
+                      "message": "Stack is currently being modified",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#add-pull-requests-to-a-pull-request-stack",
+                      "status": "409"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed. Returned when the request references pull requests that\ndon't exist in the repository, or when the pull requests can't be appended\nto the stack.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              {
+                                "type": "array",
+                                "nullable": true,
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "integer"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "missing_pull_requests": {
+                    "summary": "One or more pull request numbers don't exist in the repository",
+                    "value": {
+                      "message": "Validation Failed",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#add-pull-requests-to-a-pull-request-stack",
+                      "errors": [
+                        {
+                          "resource": "Stack",
+                          "field": "pull_requests",
+                          "code": "missing",
+                          "value": [
+                            123
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "not_a_linear_stack": {
+                    "summary": "The pull requests don't continue the stack linearly",
+                    "value": {
+                      "message": "Pull requests must form a stack, where each PR's base ref is the previous PR's head ref",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#add-pull-requests-to-a-pull-request-stack"
+                    }
+                  },
+                  "already_stacked": {
+                    "summary": "A pull request already belongs to a stack",
+                    "value": {
+                      "message": "Pull request #123 is already part of a stack",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#add-pull-requests-to-a-pull-request-stack"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "stacks"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/stacks/{stack_number}/unstack": {
+      "post": {
+        "summary": "Remove pull requests from a pull request stack",
+        "description": "Removes the unmerged pull requests from a stack. Pull requests that cannot be\nunstacked (for example, those that are queued for merge) are left in place. When pull requests remain in the stack, the updated\nstack is returned with a `200`. When no pull requests remain, the stack is\ndissolved and a `204` is returned.",
+        "tags": [
+          "pulls"
+        ],
+        "operationId": "pull-request-stacks/unstack",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/stacks#remove-pull-requests-from-a-pull-request-stack"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "stack_number",
+            "description": "The number that identifies the pull request stack.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "number",
+                    "node_id",
+                    "url",
+                    "base",
+                    "open",
+                    "created_at",
+                    "pull_requests"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "number": {
+                      "type": "integer"
+                    },
+                    "node_id": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "base": {
+                      "type": "object",
+                      "required": [
+                        "ref"
+                      ],
+                      "properties": {
+                        "ref": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "open": {
+                      "type": "boolean",
+                      "description": "Whether the stack has any open pull request. False when all pull requests are merged or closed."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "pull_requests": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/pull-request-stack-pull-request"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 9876543,
+                      "number": 42,
+                      "node_id": "S_kwDOABCDEF4AAAAA",
+                      "url": "https://api.github.com/repos/octocat/hello-world/stacks/42",
+                      "base": {
+                        "ref": "main"
+                      },
+                      "open": true,
+                      "created_at": "2026-04-15T10:00:00Z",
+                      "pull_requests": [
+                        {
+                          "id": 100001,
+                          "node_id": "PR_kwDOABCDEF4AAAAA",
+                          "title": "Add user model",
+                          "state": "open",
+                          "merged_at": null,
+                          "draft": false,
+                          "html_url": "https://github.com/octocat/hello-world/pull/101",
+                          "user": {
+                            "login": "octocat",
+                            "id": 1,
+                            "node_id": "MDQ6VXNlcjE=",
+                            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                            "gravatar_id": "",
+                            "url": "https://api.github.com/users/octocat",
+                            "html_url": "https://github.com/octocat",
+                            "followers_url": "https://api.github.com/users/octocat/followers",
+                            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                            "organizations_url": "https://api.github.com/users/octocat/orgs",
+                            "repos_url": "https://api.github.com/users/octocat/repos",
+                            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                            "received_events_url": "https://api.github.com/users/octocat/received_events",
+                            "type": "User",
+                            "site_admin": false,
+                            "user_view_type": "public"
+                          },
+                          "number": 101,
+                          "url": "https://api.github.com/repos/octocat/hello-world/pulls/101",
+                          "head": {
+                            "ref": "user-model",
+                            "sha": "aaa1111aaa1111aaa1111aaa1111aaa1111aaa11",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          },
+                          "base": {
+                            "ref": "main",
+                            "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                            "repo": {
+                              "id": 1296269,
+                              "url": "https://api.github.com/repos/octocat/hello-world",
+                              "name": "hello-world"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "description": "Conflict. Returned when the stack is being modified by another request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "being_modified": {
+                    "summary": "Another request is currently modifying the stack",
+                    "value": {
+                      "message": "Stack is currently being modified",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#remove-pull-requests-from-a-pull-request-stack",
+                      "status": "409"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed. Returned when the stack can't be unstacked because every\npull request in it is locked and cannot be removed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/validation-error"
+                },
+                "examples": {
+                  "cannot_be_removed": {
+                    "summary": "Every pull request in the stack is locked and can't be removed",
+                    "value": {
+                      "message": "Pull requests in this stack cannot be removed",
+                      "documentation_url": "https://docs.github.com/rest/pulls/stacks#remove-pull-requests-from-a-pull-request-stack"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/no_content"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "stacks"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/stargazers": {
       "get": {
         "summary": "List stargazers",
@@ -143308,6 +144575,13 @@
             "items": {
               "$ref": "#/components/schemas/simple-user"
             }
+          },
+          "linked_pull_requests": {
+            "description": "Pull requests linked to this alert.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/pull-request-simple"
+            }
           }
         },
         "required": [
@@ -154030,6 +155304,153 @@
           }
         },
         "additionalProperties": false
+      },
+      "pull-request-stack-minimal": {
+        "title": "Pull Request Stack Minimal",
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "node_id",
+          "url",
+          "base",
+          "open",
+          "created_at",
+          "pull_requests"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "base": {
+            "type": "object",
+            "required": [
+              "ref"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              }
+            }
+          },
+          "open": {
+            "type": "boolean",
+            "description": "Whether the stack has any open pull request. False when all pull requests are merged or closed."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pull_requests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "number",
+                "state",
+                "draft",
+                "merged_at",
+                "head"
+              ],
+              "properties": {
+                "number": {
+                  "type": "integer"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "closed"
+                  ]
+                },
+                "draft": {
+                  "type": "boolean"
+                },
+                "merged_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "head": {
+                  "type": "object",
+                  "required": [
+                    "ref",
+                    "sha"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "string"
+                    },
+                    "sha": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "pull-request-stack-pull-request": {
+        "title": "Pull Request Stack Pull Request",
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/pull-request-minimal"
+          },
+          {
+            "type": "object",
+            "required": [
+              "node_id",
+              "title",
+              "state",
+              "merged_at",
+              "draft",
+              "html_url",
+              "user"
+            ],
+            "properties": {
+              "node_id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              },
+              "merged_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "draft": {
+                "type": "boolean"
+              },
+              "html_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "user": {
+                "$ref": "#/components/schemas/nullable-simple-user"
+              }
+            }
+          }
+        ]
       },
       "stargazer": {
         "title": "Stargazer",
