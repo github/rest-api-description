@@ -38322,7 +38322,7 @@ paths:
       description: |-
         Returns meta information about GitHub, including a list of GitHub's IP addresses. For more information, see "[About GitHub's IP addresses](https://docs.github.com/enterprise-cloud@latest/articles/about-github-s-ip-addresses/)."
 
-        The API's response also includes a list of GitHub's domain names.
+        The API's response also includes a list of GitHub's domain names, and the public keys used by GitHub to sign commits made through the web UI.
 
         The values shown in the documentation's response are example values. You must always query the API directly to get the latest values.
 
@@ -57930,6 +57930,86 @@ paths:
       responses:
         '204':
           description: Response
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: interactions
+        subcategory: orgs
+  "/orgs/{org}/interaction-limits/pulls/creation-cap":
+    patch:
+      summary: Update pull request creation cap for an org
+      description: |-
+        Updates the pull request creation cap for an organization. The cap limits the total number
+        of open pull requests a user can have across all public repositories in the organization
+        at one time.
+
+        Only users with admin access to the organization can configure the cap.
+      tags:
+      - interactions
+      operationId: interactions/update-pull-request-creation-cap-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/interactions/orgs#update-pull-request-creation-cap-for-an-org
+      parameters:
+      - *88
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                  description: Whether the pull request creation cap is enabled
+                max_open_pull_requests:
+                  type: integer
+                  description: The maximum number of open pull requests a user can
+                    have at one time
+                  minimum: 1
+                  maximum: 1000
+              required:
+              - enabled
+            examples:
+              default:
+                summary: Example request body
+                value:
+                  enabled: true
+                  max_open_pull_requests: 1
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    description: Whether the pull request creation cap is enabled
+                  max_open_pull_requests:
+                    type: integer
+                    description: The maximum number of open pull requests a user can
+                      have at one time
+                    minimum: 1
+                    maximum: 1000
+                required:
+                - enabled
+                - max_open_pull_requests
+              examples:
+                default:
+                  summary: Response
+                  value:
+                    enabled: true
+                    max_open_pull_requests: 1
+        '403': *27
+        '404': *6
+        '405':
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema: *3
+        '422': *15
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -108229,10 +108309,9 @@ paths:
                         Pending suggestions for each suggestible field (`type`,
                         `issue_field_values`, `labels`, `assignees`, `state`) the
                         request touched. Omitted for fields not in the request or
-                        with no pending suggestions. Items tagged `already_applied`
-                        are echoes of the current request's inputs whose target is
-                        already applied to the issue; they are not persisted as
-                        pending suggestions.
+                        with no pending or ignored suggestions. Items tagged
+                        `ignored` are echoes of the current request's inputs that
+                        were not persisted as pending suggestions.
                       properties:
                         type:
                           type: array
@@ -108251,8 +108330,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         issue_field_values:
                           type: array
                           items:
@@ -108277,8 +108361,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         labels:
                           type: array
                           items:
@@ -108296,8 +108385,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         assignees:
                           type: array
                           items:
@@ -108315,8 +108409,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         state:
                           type: array
                           items:
@@ -108338,8 +108437,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
               examples:
                 default: *686
         '422': *15
