@@ -32918,6 +32918,10 @@
                     "type": "integer",
                     "description": "The ID of a team to set as the parent team."
                   },
+                  "parent_team_slug": {
+                    "type": "string",
+                    "description": "The slug of a team to set as the parent team. Ignored when `parent_team_id` is also provided."
+                  },
                   "ldap_dn": {
                     "type": "string",
                     "description": "The [distinguished name](https://www.ldap.com/ldap-dns-and-rdns) (DN) of the LDAP entry to map to a team. LDAP synchronization must be enabled to map LDAP entries to a team. Use the \"[Update LDAP mapping for a team](https://docs.github.com/enterprise-server@3.21/rest/enterprise-admin/ldap#update-ldap-mapping-for-a-team)\" endpoint to change the LDAP DN. For more information, see \"[Using LDAP](https://docs.github.com/enterprise-server@3.21/admin/identity-and-access-management/authenticating-users-for-your-github-enterprise-server-instance/using-ldap#enabling-ldap-sync).\""
@@ -33082,6 +33086,11 @@
                   "parent_team_id": {
                     "type": "integer",
                     "description": "The ID of a team to set as the parent team.",
+                    "nullable": true
+                  },
+                  "parent_team_slug": {
+                    "type": "string",
+                    "description": "The slug of a team to set as the parent team. Ignored when `parent_team_id` is also provided.",
                     "nullable": true
                   }
                 }
@@ -54767,7 +54776,7 @@
                       "properties": {
                         "suggestions": {
                           "type": "object",
-                          "description": "Pending suggestions for each suggestible field (`type`,\n`issue_field_values`, `labels`, `assignees`, `state`) the\nrequest touched. Omitted for fields not in the request or\nwith no pending suggestions. Items tagged `already_applied`\nare echoes of the current request's inputs whose target is\nalready applied to the issue; they are not persisted as\npending suggestions.\n",
+                          "description": "Pending suggestions for each suggestible field (`type`,\n`issue_field_values`, `labels`, `assignees`, `state`) the\nrequest touched. Omitted for fields not in the request or\nwith no pending or ignored suggestions. Items tagged\n`ignored` are echoes of the current request's inputs that\nwere not persisted as pending suggestions.\n",
                           "properties": {
                             "type": {
                               "type": "array",
@@ -54791,8 +54800,15 @@
                                       "high"
                                     ]
                                   },
-                                  "already_applied": {
+                                  "ignored": {
                                     "type": "boolean"
+                                  },
+                                  "ignored_reason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "already_applied",
+                                      "issue_already_closed"
+                                    ]
                                   }
                                 }
                               }
@@ -54835,8 +54851,15 @@
                                       "high"
                                     ]
                                   },
-                                  "already_applied": {
+                                  "ignored": {
                                     "type": "boolean"
+                                  },
+                                  "ignored_reason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "already_applied",
+                                      "issue_already_closed"
+                                    ]
                                   }
                                 }
                               }
@@ -54863,8 +54886,15 @@
                                       "high"
                                     ]
                                   },
-                                  "already_applied": {
+                                  "ignored": {
                                     "type": "boolean"
+                                  },
+                                  "ignored_reason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "already_applied",
+                                      "issue_already_closed"
+                                    ]
                                   }
                                 }
                               }
@@ -54891,8 +54921,15 @@
                                       "high"
                                     ]
                                   },
-                                  "already_applied": {
+                                  "ignored": {
                                     "type": "boolean"
+                                  },
+                                  "ignored_reason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "already_applied",
+                                      "issue_already_closed"
+                                    ]
                                   }
                                 }
                               }
@@ -54925,8 +54962,15 @@
                                       "high"
                                     ]
                                   },
-                                  "already_applied": {
+                                  "ignored": {
                                     "type": "boolean"
+                                  },
+                                  "ignored_reason": {
+                                    "type": "string",
+                                    "enum": [
+                                      "already_applied",
+                                      "issue_already_closed"
+                                    ]
                                   }
                                 }
                               }
@@ -67713,6 +67757,11 @@
                   "parent_team_id": {
                     "type": "integer",
                     "description": "The ID of a team to set as the parent team.",
+                    "nullable": true
+                  },
+                  "parent_team_slug": {
+                    "type": "string",
+                    "description": "The slug of a team to set as the parent team. Ignored when `parent_team_id` is also provided.",
                     "nullable": true
                   }
                 },
