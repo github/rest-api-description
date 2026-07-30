@@ -23627,6 +23627,12 @@ paths:
                           type: string
                           example:
                           - example.com
+                      storage:
+                        type: array
+                        items:
+                          type: string
+                          example:
+                          - example.com
                       actions:
                         type: array
                         items:
@@ -40921,6 +40927,10 @@ paths:
                 parent_team_id:
                   type: integer
                   description: The ID of a team to set as the parent team.
+                parent_team_slug:
+                  type: string
+                  description: The slug of a team to set as the parent team. Ignored
+                    when `parent_team_id` is also provided.
                 ldap_dn:
                   type: string
                   description: The [distinguished name](https://www.ldap.com/ldap-dns-and-rdns)
@@ -41416,6 +41426,11 @@ paths:
                 parent_team_id:
                   type: integer
                   description: The ID of a team to set as the parent team.
+                  nullable: true
+                parent_team_slug:
+                  type: string
+                  description: The slug of a team to set as the parent team. Ignored
+                    when `parent_team_id` is also provided.
                   nullable: true
             examples:
               default:
@@ -41931,6 +41946,8 @@ paths:
       summary: List team repositories
       description: |-
         Lists a team's repositories visible to the authenticated user.
+
+        OAuth app tokens and personal access tokens (classic) need the `read:org` or `repo` scope to use this endpoint.
 
         > [!NOTE]
         > You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}/repos`.
@@ -69684,10 +69701,9 @@ paths:
                         Pending suggestions for each suggestible field (`type`,
                         `issue_field_values`, `labels`, `assignees`, `state`) the
                         request touched. Omitted for fields not in the request or
-                        with no pending suggestions. Items tagged `already_applied`
-                        are echoes of the current request's inputs whose target is
-                        already applied to the issue; they are not persisted as
-                        pending suggestions.
+                        with no pending or ignored suggestions. Items tagged
+                        `ignored` are echoes of the current request's inputs that
+                        were not persisted as pending suggestions.
                       properties:
                         type:
                           type: array
@@ -69706,8 +69722,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         issue_field_values:
                           type: array
                           items:
@@ -69732,8 +69753,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         labels:
                           type: array
                           items:
@@ -69751,8 +69777,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         assignees:
                           type: array
                           items:
@@ -69770,8 +69801,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
                         state:
                           type: array
                           items:
@@ -69793,8 +69829,13 @@ paths:
                                 - low
                                 - medium
                                 - high
-                              already_applied:
+                              ignored:
                                 type: boolean
+                              ignored_reason:
+                                type: string
+                                enum:
+                                - already_applied
+                                - issue_already_closed
               examples:
                 default: *504
         '422': *35
@@ -87493,6 +87534,11 @@ paths:
                 parent_team_id:
                   type: integer
                   description: The ID of a team to set as the parent team.
+                  nullable: true
+                parent_team_slug:
+                  type: string
+                  description: The slug of a team to set as the parent team. Ignored
+                    when `parent_team_id` is also provided.
                   nullable: true
               required:
               - name
