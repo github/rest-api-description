@@ -6581,6 +6581,72 @@ paths:
         githubCloudOnly: true
         category: actions
         subcategory: self-hosted-runners
+  "/enterprises/{enterprise}/actions/runners/deprecations/{version}":
+    get:
+      summary: Get runner version end-of-life schedule for an enterprise
+      description: |-
+        Gets the end-of-life schedule for a specific runner version in an enterprise. Returns the runner version
+        and the dates when registration and runtime support will end.
+
+        OAuth app tokens and personal access tokens (classic) need the `manage_runners:enterprise` scope to use this endpoint.
+      operationId: enterprise-admin/get-runner-version-deprecation-for-enterprise
+      tags:
+      - enterprise-admin
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - name: version
+        description: The runner version to look up.
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 2.300.0
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - runner_version
+                properties:
+                  runner_version:
+                    type: string
+                    description: The runner version string.
+                    examples:
+                    - 2.300.0
+                  registration_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which this runner version can no longer
+                      register. Null if no schedule is set.
+                    examples:
+                    - '2026-08-01T00:00:00Z'
+                  runtime_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which jobs will no longer be dispatched
+                      to runners on this version.
+                    examples:
+                    - '2026-09-01T00:00:00Z'
+              examples:
+                default:
+                  value:
+                    runner_version: 2.300.0
+                    runtime_deprecates_at: '2026-09-01T00:00:00Z'
+      x-github:
+        enabledForGitHubApps: false
+        githubCloudOnly: true
+        category: actions
+        subcategory: self-hosted-runners
   "/enterprises/{enterprise}/actions/runners/downloads":
     get:
       summary: List runner applications for an enterprise
@@ -20958,6 +21024,74 @@ paths:
               "$ref": "#/components/headers/link"
       x-github:
         githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/orgs/{org}/actions/runners/deprecations/{version}":
+    get:
+      summary: Get runner version end-of-life schedule for an organization
+      description: |-
+        Gets the end-of-life schedule for a specific runner version in an organization. Returns the runner version
+        and the dates when registration and runtime support will end.
+
+        Authenticated users must have admin access to the organization to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-runner-version-deprecation-for-org
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      - name: version
+        description: The runner version to look up.
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 2.300.0
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - runner_version
+                properties:
+                  runner_version:
+                    type: string
+                    description: The runner version string.
+                    examples:
+                    - 2.300.0
+                  registration_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which this runner version can no longer
+                      register. Null if no schedule is set.
+                    examples:
+                    - '2026-08-01T00:00:00Z'
+                  runtime_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which jobs will no longer be dispatched
+                      to runners on this version.
+                    examples:
+                    - '2026-09-01T00:00:00Z'
+              examples:
+                default:
+                  value:
+                    runner_version: 2.300.0
+                    runtime_deprecates_at: '2026-09-01T00:00:00Z'
+      x-github:
+        githubCloudOnly: true
         enabledForGitHubApps: true
         category: actions
         subcategory: self-hosted-runners
@@ -39328,6 +39462,8 @@ paths:
       description: |-
         Lists a team's repositories visible to the authenticated user.
 
+        OAuth app tokens and personal access tokens (classic) need the `read:org` or `repo` scope to use this endpoint.
+
         > [!NOTE]
         > You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}/repos`.
       tags:
@@ -41574,6 +41710,75 @@ paths:
               "$ref": "#/components/headers/link"
       x-github:
         githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: self-hosted-runners
+  "/repos/{owner}/{repo}/actions/runners/deprecations/{version}":
+    get:
+      summary: Get runner version end-of-life schedule for a repository
+      description: |-
+        Gets the end-of-life schedule for a specific runner version in a repository. Returns the runner version
+        and the dates when registration and runtime support will end.
+
+        Authenticated users must have admin access to the repository to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `repo` scope to use this endpoint.
+      tags:
+      - actions
+      operationId: actions/get-runner-version-deprecation-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-a-repository
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      - name: version
+        description: The runner version to look up.
+        in: path
+        required: true
+        schema:
+          type: string
+        example: 2.300.0
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - runner_version
+                properties:
+                  runner_version:
+                    type: string
+                    description: The runner version string.
+                    examples:
+                    - 2.300.0
+                  registration_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which this runner version can no longer
+                      register. Null if no schedule is set.
+                    examples:
+                    - '2026-08-01T00:00:00Z'
+                  runtime_deprecates_at:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: The date after which jobs will no longer be dispatched
+                      to runners on this version.
+                    examples:
+                    - '2026-09-01T00:00:00Z'
+              examples:
+                default:
+                  value:
+                    runner_version: 2.300.0
+                    runtime_deprecates_at: '2026-09-01T00:00:00Z'
+      x-github:
+        githubCloudOnly: true
         enabledForGitHubApps: true
         category: actions
         subcategory: self-hosted-runners
@@ -113337,6 +113542,12 @@ components:
                 examples:
                 - example.com
             packages:
+              type: array
+              items:
+                type: string
+                examples:
+                - example.com
+            storage:
               type: array
               items:
                 type: string
