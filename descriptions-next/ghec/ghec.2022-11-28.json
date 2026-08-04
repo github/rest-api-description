@@ -8851,6 +8851,95 @@
         }
       }
     },
+    "/enterprises/{enterprise}/actions/runners/deprecations/{version}": {
+      "get": {
+        "summary": "Get runner version end-of-life schedule for an enterprise",
+        "description": "Gets the end-of-life schedule for a specific runner version in an enterprise. Returns the runner version\nand the dates when registration and runtime support will end.\n\nOAuth app tokens and personal access tokens (classic) need the `manage_runners:enterprise` scope to use this endpoint.",
+        "operationId": "enterprise-admin/get-runner-version-deprecation-for-enterprise",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          },
+          {
+            "name": "version",
+            "description": "The runner version to look up.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2.300.0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "runner_version"
+                  ],
+                  "properties": {
+                    "runner_version": {
+                      "type": "string",
+                      "description": "The runner version string.",
+                      "examples": [
+                        "2.300.0"
+                      ]
+                    },
+                    "registration_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which this runner version can no longer register. Null if no schedule is set.",
+                      "examples": [
+                        "2026-08-01T00:00:00Z"
+                      ]
+                    },
+                    "runtime_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which jobs will no longer be dispatched to runners on this version.",
+                      "examples": [
+                        "2026-09-01T00:00:00Z"
+                      ]
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "runner_version": "2.300.0",
+                      "runtime_deprecates_at": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "enabledForGitHubApps": false,
+          "githubCloudOnly": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/enterprises/{enterprise}/actions/runners/downloads": {
       "get": {
         "summary": "List runner applications for an enterprise",
@@ -28650,6 +28739,95 @@
         }
       }
     },
+    "/orgs/{org}/actions/runners/deprecations/{version}": {
+      "get": {
+        "summary": "Get runner version end-of-life schedule for an organization",
+        "description": "Gets the end-of-life schedule for a specific runner version in an organization. Returns the runner version\nand the dates when registration and runtime support will end.\n\nAuthenticated users must have admin access to the organization to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-runner-version-deprecation-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "name": "version",
+            "description": "The runner version to look up.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2.300.0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "runner_version"
+                  ],
+                  "properties": {
+                    "runner_version": {
+                      "type": "string",
+                      "description": "The runner version string.",
+                      "examples": [
+                        "2.300.0"
+                      ]
+                    },
+                    "registration_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which this runner version can no longer register. Null if no schedule is set.",
+                      "examples": [
+                        "2026-08-01T00:00:00Z"
+                      ]
+                    },
+                    "runtime_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which jobs will no longer be dispatched to runners on this version.",
+                      "examples": [
+                        "2026-09-01T00:00:00Z"
+                      ]
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "runner_version": "2.300.0",
+                      "runtime_deprecates_at": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/orgs/{org}/actions/runners/downloads": {
       "get": {
         "summary": "List runner applications for an organization",
@@ -42904,6 +43082,82 @@
       }
     },
     "/orgs/{org}/interaction-limits/pulls/creation-cap": {
+      "get": {
+        "summary": "Get pull request creation cap for an org",
+        "description": "Gets the pull request creation cap configuration for an organization.\nThe cap limits the total number of open pull requests a user can have across all public\nrepositories in the organization at one time.\n\nOnly users with admin access to the organization can view the cap configuration.",
+        "tags": [
+          "interactions"
+        ],
+        "operationId": "interactions/get-pull-request-creation-cap-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/interactions/orgs#get-pull-request-creation-cap-for-an-org"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether the pull request creation cap is enabled"
+                    },
+                    "max_open_pull_requests": {
+                      "type": "integer",
+                      "description": "The maximum number of open pull requests a user can have at one time",
+                      "minimum": 1,
+                      "maximum": 1000
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "max_open_pull_requests"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Response when cap is enabled",
+                    "value": {
+                      "enabled": true,
+                      "max_open_pull_requests": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "405": {
+            "description": "Method Not Allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "interactions",
+          "subcategory": "orgs"
+        }
+      },
       "patch": {
         "summary": "Update pull request creation cap for an org",
         "description": "Updates the pull request creation cap for an organization. The cap limits the total number\nof open pull requests a user can have across all public repositories in the organization\nat one time.\n\nOnly users with admin access to the organization can configure the cap.",
@@ -53419,7 +53673,7 @@
     "/orgs/{org}/teams/{team_slug}/repos": {
       "get": {
         "summary": "List team repositories",
-        "description": "Lists a team's repositories visible to the authenticated user.\n\n> [!NOTE]\n> You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}/repos`.",
+        "description": "Lists a team's repositories visible to the authenticated user.\n\nOAuth app tokens and personal access tokens (classic) need the `read:org` or `repo` scope to use this endpoint.\n\n> [!NOTE]\n> You can also specify a team by `org_id` and `team_id` using the route `GET /organizations/{org_id}/team/{team_id}/repos`.",
         "tags": [
           "teams"
         ],
@@ -56423,6 +56677,98 @@
         },
         "x-github": {
           "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/actions/runners/deprecations/{version}": {
+      "get": {
+        "summary": "Get runner version end-of-life schedule for a repository",
+        "description": "Gets the end-of-life schedule for a specific runner version in a repository. Returns the runner version\nand the dates when registration and runtime support will end.\n\nAuthenticated users must have admin access to the repository to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-runner-version-deprecation-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "version",
+            "description": "The runner version to look up.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2.300.0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "runner_version"
+                  ],
+                  "properties": {
+                    "runner_version": {
+                      "type": "string",
+                      "description": "The runner version string.",
+                      "examples": [
+                        "2.300.0"
+                      ]
+                    },
+                    "registration_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which this runner version can no longer register. Null if no schedule is set.",
+                      "examples": [
+                        "2026-08-01T00:00:00Z"
+                      ]
+                    },
+                    "runtime_deprecates_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time",
+                      "description": "The date after which jobs will no longer be dispatched to runners on this version.",
+                      "examples": [
+                        "2026-09-01T00:00:00Z"
+                      ]
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "runner_version": "2.300.0",
+                      "runtime_deprecates_at": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
           "enabledForGitHubApps": true,
           "category": "actions",
           "subcategory": "self-hosted-runners"
@@ -155041,6 +155387,15 @@
                 }
               },
               "packages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "examples": [
+                    "example.com"
+                  ]
+                }
+              },
+              "storage": {
                 "type": "array",
                 "items": {
                   "type": "string",
