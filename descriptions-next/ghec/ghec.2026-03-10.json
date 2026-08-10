@@ -18825,7 +18825,7 @@
     "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}": {
       "get": {
         "summary": "Get a budget by ID",
-        "description": "Gets a budget by ID. The authenticated user must be an enterprise admin or billing manager.",
+        "description": "Gets a budget by ID. The authenticated actor must have permission to view enterprise billing.",
         "tags": [
           "billing"
         ],
@@ -18864,7 +18864,7 @@
         },
         "x-github": {
           "githubCloudOnly": true,
-          "enabledForGitHubApps": false,
+          "enabledForGitHubApps": true,
           "category": "billing",
           "subcategory": "budgets"
         }
@@ -19143,7 +19143,7 @@
     "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}/user-states": {
       "get": {
         "summary": "Get user states for a multi-user budget",
-        "description": "Lists per-user budget state for a multi-user customer scoped budget. The authenticated user must be an enterprise admin or billing manager.",
+        "description": "Lists per-user budget state for a multi-user customer scoped budget. The authenticated actor must have permission to view enterprise billing.",
         "tags": [
           "billing"
         ],
@@ -19231,7 +19231,7 @@
         },
         "x-github": {
           "githubCloudOnly": true,
-          "enabledForGitHubApps": false,
+          "enabledForGitHubApps": true,
           "category": "billing",
           "subcategory": "budgets"
         }
@@ -39602,6 +39602,189 @@
         }
       }
     },
+    "/orgs/{org}/credential-authorizations/revoke-all": {
+      "post": {
+        "summary": "Revoke all credential authorizations for an organization",
+        "description": "Revokes all SAML SSO credential authorizations for every member of the\norganization. This removes the sign-in authorizations for personal access\ntokens, SSH keys, OAuth app tokens, and user-to-server tokens that members\nhave authorized for the organization. Members will need to authorize their\ncredentials again to access the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint, that token's\n> authorization for the organization may also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-all-credential-authorizations",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-all-credential-authorizations-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential authorization revocation has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential authorization revocation has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/revoke-credential-type": {
+      "post": {
+        "summary": "Revoke a single credential type for an organization",
+        "description": "Revokes a single credential type (for example, classic personal access tokens)\nacross the organization. This removes the sign-in authorizations for that\ncredential type for every member of the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint and revoke classic\n> personal access tokens, that token's authorization for the organization may\n> also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-type",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credential_type"
+                ],
+                "properties": {
+                  "credential_type": {
+                    "type": "string",
+                    "description": "The type of credential to revoke across the organization.",
+                    "enum": [
+                      "classic_pat",
+                      "fine_grained_pat",
+                      "ssh_key",
+                      "oauth_app_token"
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "credential_type": "classic_pat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential type revocation has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential type revocation has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation error - The `credential_type` is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "invalid_credential_type": {
+                    "summary": "Missing or invalid `credential_type`",
+                    "value": {
+                      "message": "The `credential_type` parameter is required and must be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token",
+                      "documentation_url": "https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
     "/orgs/{org}/credential-authorizations/{credential_id}": {
       "delete": {
         "summary": "Remove a SAML SSO authorization for an organization",
@@ -39633,6 +39816,195 @@
           },
           "404": {
             "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/{username}/revoke": {
+      "post": {
+        "summary": "Revoke credential authorizations for a user in an organization",
+        "description": "Revokes all SAML SSO credential authorizations for a single user within the\norganization. This removes the sign-in authorizations for the user's personal\naccess tokens, SSH keys, OAuth app tokens, and user-to-server tokens that they\nhave authorized for the organization. The user will need to authorize their\ncredentials again to access the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint and target yourself,\n> that token's authorization for the organization may also be revoked as part of\n> this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-authorizations-for-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-credential-authorizations-for-a-user-in-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/username"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential authorization revocation for user 'octocat' has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential authorization revocation for user 'octocat' has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/{username}/revoke-credential-type": {
+      "post": {
+        "summary": "Revoke a single credential type for a user in an organization",
+        "description": "Revokes a single credential type (for example, classic personal access tokens)\nfor a single user within the organization. This removes the sign-in authorizations\nfor that credential type for the user in the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint, target yourself, and\n> revoke classic personal access tokens, that token's authorization for the\n> organization may also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-type-for-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/username"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credential_type"
+                ],
+                "properties": {
+                  "credential_type": {
+                    "type": "string",
+                    "description": "The type of credential to revoke for the user.",
+                    "enum": [
+                      "classic_pat",
+                      "fine_grained_pat",
+                      "ssh_key",
+                      "oauth_app_token"
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "credential_type": "classic_pat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential type revocation for user 'octocat' has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential type revocation for user 'octocat' has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation error - The `credential_type` is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "invalid_credential_type": {
+                    "summary": "Missing or invalid `credential_type`",
+                    "value": {
+                      "message": "The `credential_type` parameter is required and must be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token",
+                      "documentation_url": "https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -143959,6 +144331,7 @@
           "false positive",
           "won't fix",
           "used in tests",
+          "mitigated",
           null
         ]
       },
@@ -203936,6 +204309,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -204287,6 +204661,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -204661,7 +205036,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "type": [
                   "null"
                 ]
@@ -205073,6 +205448,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -205360,7 +205736,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "type": [
                   "string",
                   "null"
@@ -205668,7 +206044,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "type": [
                   "null"
                 ]
@@ -206023,6 +206399,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -216092,7 +216469,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
@@ -216164,7 +216541,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
