@@ -32280,6 +32280,7 @@ paths:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                     dismissed_comment: &454
                       type: string
                       description: The dismissal comment associated with the dismissal
@@ -60202,6 +60203,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -60216,10 +60218,12 @@ paths:
                     description: The id of the job.
                     example: 21
                     type: integer
+                    format: int64
                   run_id:
                     description: The id of the associated workflow run.
                     example: 5
                     type: integer
+                    format: int64
                   run_url:
                     type: string
                     example: https://api.github.com/repos/github/hello-world/actions/runs/5
@@ -61915,6 +61919,7 @@ paths:
         in: query
         schema:
           type: integer
+          format: int64
       - &416
         name: head_sha
         description: Only returns workflow runs that are associated with the specified
@@ -61945,6 +61950,7 @@ paths:
                       properties:
                         id:
                           type: integer
+                          format: int64
                           description: The ID of the workflow run.
                           example: 5
                         name:
@@ -61957,6 +61963,7 @@ paths:
                           example: MDEwOkNoZWNrU3VpdGU1
                         check_suite_id:
                           type: integer
+                          format: int64
                           description: The ID of the associated check suite.
                           example: 42
                         check_suite_node_id:
@@ -70252,6 +70259,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -77477,6 +77485,8 @@ paths:
       summary: Create a commit comment
       description: |-
         Create a comment for a commit using its `:commit_sha`.
+
+        Access to commit comments can be controlled by organization owners. For more information, see "[Managing commit comments for your organization](https://docs.github.com/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)".
 
         This endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see "[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)" and "[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api)."
 
@@ -109739,9 +109749,6 @@ paths:
         *   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing
         language:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.
 
-        > [!NOTE]
-        > `repository.description`, `repository.owner.type`, and `repository.owner.node_id` are closing down on this endpoint and will return `null` in a future API version. Use the [Get a repository](https://docs.github.com/rest/repos/repos#get-a-repository) endpoint (`GET /repos/{owner}/{repo}`) to retrieve full repository metadata.
-
         This endpoint requires you to authenticate and limits you to 10 requests per minute.
       tags:
       - search
@@ -129495,6 +129502,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -129818,6 +129826,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -130142,8 +130151,8 @@ x-webhooks:
                     dismissed_comment: *454
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       nullable: true
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -130490,6 +130499,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -130754,8 +130764,8 @@ x-webhooks:
                     dismissed_comment: *454
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       type: string
                       nullable: true
                     fixed_at:
@@ -131035,8 +131045,8 @@ x-webhooks:
                     dismissed_comment: *454
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       nullable: true
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -131352,6 +131362,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -141956,7 +141967,8 @@ x-webhooks:
                     - private
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
@@ -142067,7 +142079,8 @@ x-webhooks:
                 repositories_added: *826
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
