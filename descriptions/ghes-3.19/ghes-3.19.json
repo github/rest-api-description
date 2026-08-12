@@ -42378,7 +42378,7 @@
       },
       "post": {
         "summary": "Create a commit comment",
-        "description": "Create a comment for a commit using its `:commit_sha`.\n\nThis endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.19/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/enterprise-server@3.19/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\" and \"[Best practices for using the REST API](https://docs.github.com/enterprise-server@3.19/rest/guides/best-practices-for-using-the-rest-api).\"\n\nThis endpoint supports the following custom media types. For more information, see \"[Media types](https://docs.github.com/enterprise-server@3.19/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types).\"\n\n- **`application/vnd.github-commitcomment.raw+json`**: Returns the raw markdown body. Response will include `body`. This is the default if you do not pass any specific media type.\n- **`application/vnd.github-commitcomment.text+json`**: Returns a text only representation of the markdown body. Response will include `body_text`.\n- **`application/vnd.github-commitcomment.html+json`**: Returns HTML rendered from the body's markdown. Response will include `body_html`.\n- **`application/vnd.github-commitcomment.full+json`**: Returns raw, text, and HTML representations. Response will include `body`, `body_text`, and `body_html`.",
+        "description": "Create a comment for a commit using its `:commit_sha`.\n\nAccess to commit comments can be controlled by organization owners. For more information, see \"[Managing commit comments for your organization](https://docs.github.com/enterprise-server@3.19/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)\".\n\nThis endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.19/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/enterprise-server@3.19/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\" and \"[Best practices for using the REST API](https://docs.github.com/enterprise-server@3.19/rest/guides/best-practices-for-using-the-rest-api).\"\n\nThis endpoint supports the following custom media types. For more information, see \"[Media types](https://docs.github.com/enterprise-server@3.19/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types).\"\n\n- **`application/vnd.github-commitcomment.raw+json`**: Returns the raw markdown body. Response will include `body`. This is the default if you do not pass any specific media type.\n- **`application/vnd.github-commitcomment.text+json`**: Returns a text only representation of the markdown body. Response will include `body_text`.\n- **`application/vnd.github-commitcomment.html+json`**: Returns HTML rendered from the body's markdown. Response will include `body_html`.\n- **`application/vnd.github-commitcomment.full+json`**: Returns raw, text, and HTML representations. Response will include `body`, `body_text`, and `body_html`.",
         "tags": [
           "repos"
         ],
@@ -104389,7 +104389,8 @@
         "enum": [
           "false positive",
           "won't fix",
-          "used in tests"
+          "used in tests",
+          "mitigated"
         ]
       },
       "code-scanning-alert-dismissed-comment": {
@@ -119563,12 +119564,14 @@
           "id": {
             "description": "The id of the job.",
             "example": 21,
-            "type": "integer"
+            "type": "integer",
+            "format": "int64"
           },
           "run_id": {
             "description": "The id of the associated workflow run.",
             "example": 5,
-            "type": "integer"
+            "type": "integer",
+            "format": "int64"
           },
           "run_url": {
             "type": "string",
@@ -120104,6 +120107,7 @@
         "properties": {
           "id": {
             "type": "integer",
+            "format": "int64",
             "description": "The ID of the workflow run.",
             "example": 5
           },
@@ -120119,6 +120123,7 @@
           },
           "check_suite_id": {
             "type": "integer",
+            "format": "int64",
             "description": "The ID of the associated check suite.",
             "example": 42
           },
@@ -151815,6 +151820,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -152149,6 +152155,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -152497,7 +152504,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "nullable": true
               },
               "fixed_at": {
@@ -152874,6 +152881,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -153138,7 +153146,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "type": "string",
                 "nullable": true
               },
@@ -153413,7 +153421,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "nullable": true
               },
               "fixed_at": {
@@ -163217,7 +163225,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
@@ -163289,7 +163297,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
@@ -299125,7 +299133,8 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "actor": {
@@ -299205,7 +299214,8 @@
         "description": "Returns workflow runs with the `check_suite_id` that you specify.",
         "in": "query",
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "workflow-run-head-sha": {
@@ -299276,7 +299286,8 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "check-suite-id": {
