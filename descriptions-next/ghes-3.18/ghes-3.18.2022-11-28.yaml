@@ -28741,6 +28741,8 @@ paths:
       description: |-
         Create a comment for a commit using its `:commit_sha`.
 
+        Access to commit comments can be controlled by organization owners. For more information, see "[Managing commit comments for your organization](https://docs.github.com/enterprise-server@3.18/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)".
+
         This endpoint triggers [notifications](https://docs.github.com/enterprise-server@3.18/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see "[Rate limits for the API](https://docs.github.com/enterprise-server@3.18/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)" and "[Best practices for using the REST API](https://docs.github.com/enterprise-server@3.18/rest/guides/best-practices-for-using-the-rest-api)."
 
         This endpoint supports the following custom media types. For more information, see "[Media types](https://docs.github.com/enterprise-server@3.18/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types)."
@@ -72261,6 +72263,7 @@ components:
       - false positive
       - won't fix
       - used in tests
+      - mitigated
       - 
     code-scanning-alert-dismissed-comment:
       type:
@@ -83412,11 +83415,13 @@ components:
         id:
           description: The id of the job.
           type: integer
+          format: int64
           examples:
           - 21
         run_id:
           description: The id of the associated workflow run.
           type: integer
+          format: int64
           examples:
           - 5
         run_url:
@@ -83896,6 +83901,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
           description: The ID of the workflow run.
           examples:
           - 5
@@ -83912,6 +83918,7 @@ components:
           - MDEwOkNoZWNrU3VpdGU1
         check_suite_id:
           type: integer
+          format: int64
           description: The ID of the associated check suite.
           examples:
           - 42
@@ -108425,6 +108432,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - 
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -108694,6 +108702,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - 
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -108975,7 +108984,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               type:
               - 'null'
             fixed_at:
@@ -109286,6 +109295,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - 
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -109507,7 +109517,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               type:
               - string
               - 'null'
@@ -109747,7 +109757,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               type:
               - 'null'
             fixed_at:
@@ -116919,7 +116929,8 @@ components:
           "$ref": "#/components/schemas/webhooks_repositories_added"
         repositories_removed:
           description: An array of repository objects, which were removed from the
-            installation.
+            installation. When `repository_selection` changes from `all` to `selected`,
+            this array is empty.
           type: array
           items:
             type: object
@@ -116971,7 +116982,8 @@ components:
           "$ref": "#/components/schemas/webhooks_repositories_added"
         repositories_removed:
           description: An array of repository objects, which were removed from the
-            installation.
+            installation. When `repository_selection` changes from `all` to `selected`,
+            this array is empty.
           type: array
           items:
             type: object
@@ -224648,6 +224660,7 @@ components:
       required: true
       schema:
         type: integer
+        format: int64
     actor:
       name: actor
       description: Returns someone's workflow runs. Use the login for the user who
@@ -224721,6 +224734,7 @@ components:
       in: query
       schema:
         type: integer
+        format: int64
     workflow-run-head-sha:
       name: head_sha
       description: Only returns workflow runs that are associated with the specified
@@ -224776,6 +224790,7 @@ components:
       required: true
       schema:
         type: integer
+        format: int64
     check-suite-id:
       name: check_suite_id
       description: The unique identifier of the check suite.
