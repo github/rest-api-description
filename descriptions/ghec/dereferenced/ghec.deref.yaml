@@ -16313,6 +16313,7 @@ paths:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                     dismissed_comment: &590
                       type: string
                       description: The dismissal comment associated with the dismissal
@@ -28399,7 +28400,7 @@ paths:
     get:
       summary: Get all budgets
       description: |-
-        Gets all budgets for an enterprise. The authenticated actor must have permission to view enterprise billing.
+        Gets budgets for an enterprise. Enterprise owners and billing managers can view all budgets. Organization administrators can view budgets scoped to organizations and repositories they administer.
         Each page returns up to 100 budgets.
       tags:
       - billing
@@ -28651,7 +28652,7 @@ paths:
         '403': *29
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: true
+        enabledForGitHubApps: false
         category: billing
         subcategory: budgets
     post:
@@ -28891,8 +28892,9 @@ paths:
   "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}":
     get:
       summary: Get a budget by ID
-      description: Gets a budget by ID. The authenticated user must be an enterprise
-        admin or billing manager.
+      description: Gets a budget by ID. Enterprise owners and billing managers can
+        view any budget in the enterprise. Organization administrators can view budgets
+        scoped to organizations and repositories they administer.
       tags:
       - billing
       operationId: billing/get-budget
@@ -29269,8 +29271,10 @@ paths:
         subcategory: budgets
     delete:
       summary: Delete a budget
-      description: Deletes a budget by ID. The authenticated user must be an enterprise
-        admin.
+      description: Deletes a budget by ID. Enterprise owners and billing managers
+        can delete any budget in the enterprise. Organization administrators can delete
+        budgets scoped to organizations they administer, and repository administrators
+        can delete budgets scoped to repositories they administer.
       tags:
       - billing
       operationId: billing/delete-budget
@@ -29316,7 +29320,9 @@ paths:
     get:
       summary: Get user states for a multi-user budget
       description: Lists per-user budget state for a multi-user customer scoped budget.
-        The authenticated user must be an enterprise admin or billing manager.
+        Enterprise owners and billing managers can view state across the enterprise.
+        Organization administrators can view state for budgets scoped to organizations
+        they administer.
       tags:
       - billing
       operationId: billing/get-budget-user-states
@@ -29429,7 +29435,8 @@ paths:
   "/enterprises/{enterprise}/settings/billing/cost-centers":
     get:
       summary: Get all cost centers for an enterprise
-      description: Gets a list of all the cost centers for an enterprise.
+      description: Gets a list of all the cost centers for an enterprise. The authenticated
+        actor must have permission to view enterprise billing.
       tags:
       - billing
       operationId: billing/get-all-cost-centers
@@ -29558,13 +29565,13 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     post:
       summary: Create a new cost center
       description: Creates a new cost center for an enterprise. The authenticated
-        user must be an enterprise admin.
+        actor must have permission to manage enterprise billing.
       tags:
       - billing
       operationId: billing/create-cost-center
@@ -29717,14 +29724,14 @@ paths:
                     message: An internal server error occurred. Please try again later.
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}":
     get:
       summary: Get a cost center by ID
-      description: Gets a cost center by ID. The authenticated user must be an enterprise
-        admin.
+      description: Gets a cost center by ID. The authenticated actor must have permission
+        to view enterprise billing.
       tags:
       - billing
       operationId: billing/get-cost-center
@@ -29836,12 +29843,13 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     patch:
       summary: Update a cost center
-      description: Updates an existing cost center.
+      description: Updates an existing cost center. The authenticated actor must have
+        permission to manage enterprise billing.
       tags:
       - billing
       operationId: billing/update-cost-center
@@ -29976,13 +29984,13 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     delete:
       summary: Delete a cost center
-      description: Archieves a cost center by ID. The authenticated user must be an
-        enterprise admin.
+      description: Archives a cost center by ID. The authenticated actor must have
+        permission to manage enterprise billing.
       tags:
       - billing
       operationId: billing/delete-cost-center
@@ -30033,7 +30041,7 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}/resource":
@@ -30042,7 +30050,7 @@ paths:
       description: |-
         Adds resources to a cost center.
 
-        The usage for the resources will be charged to the cost center's budget. The authenticated user must be an enterprise admin in order to use this endpoint.
+        The usage for the resources will be charged to the cost center's budget. The authenticated actor must have permission to manage enterprise billing in order to use this endpoint.
       tags:
       - billing
       operationId: billing/add-resource-to-cost-center
@@ -30134,7 +30142,7 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     delete:
@@ -30142,7 +30150,7 @@ paths:
       description: |-
         Remove resources from a cost center.
 
-        The usage for the resources will no longer be charged to the cost center's budget. The authenticated user must be an enterprise admin in order to use this endpoint.
+        The usage for the resources will no longer be charged to the cost center's budget. The authenticated actor must have permission to manage enterprise billing in order to use this endpoint.
       tags:
       - billing
       operationId: billing/remove-resource-from-cost-center
@@ -30206,7 +30214,7 @@ paths:
         '503': *204
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/premium_request/usage":
@@ -53039,6 +53047,156 @@ paths:
         enabledForGitHubApps: true
         category: orgs
         subcategory: orgs
+  "/orgs/{org}/credential-authorizations/revoke-all":
+    post:
+      summary: Revoke all credential authorizations for an organization
+      description: |-
+        Revokes all SAML SSO credential authorizations for every member of the
+        organization. This removes the sign-in authorizations for personal access
+        tokens, SSH keys, OAuth app tokens, and user-to-server tokens that members
+        have authorized for the organization. Members will need to authorize their
+        credentials again to access the organization.
+
+        This operation is performed asynchronously. A background job will be queued to process
+        the revocations.
+
+        > [!WARNING]
+        > If you use a personal access token to call this endpoint, that token's
+        > authorization for the organization may also be revoked as part of this operation.
+
+        The authenticated user must be an organization owner to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/revoke-all-credential-authorizations
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-all-credential-authorizations-for-an-organization
+      parameters:
+      - *90
+      responses:
+        '202':
+          description: Accepted - The revocation request has been queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the revocation has been queued
+                  warning:
+                    type: string
+                    description: A warning message if the token used for this request
+                      may be revoked
+              examples:
+                default:
+                  value:
+                    message: Credential authorization revocation has been queued
+                with_warning:
+                  value:
+                    message: Credential authorization revocation has been queued
+                    warning: The token used for this request may also have its authorization
+                      revoked as part of this operation
+        '403': *29
+        '404': *6
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: orgs
+  "/orgs/{org}/credential-authorizations/revoke-credential-type":
+    post:
+      summary: Revoke a single credential type for an organization
+      description: |-
+        Revokes a single credential type (for example, classic personal access tokens)
+        across the organization. This removes the sign-in authorizations for that
+        credential type for every member of the organization.
+
+        This operation is performed asynchronously. A background job will be queued to process
+        the revocations.
+
+        > [!WARNING]
+        > If you use a personal access token to call this endpoint and revoke classic
+        > personal access tokens, that token's authorization for the organization may
+        > also be revoked as part of this operation.
+
+        The authenticated user must be an organization owner to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/revoke-credential-type
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization
+      parameters:
+      - *90
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - credential_type
+              properties:
+                credential_type:
+                  type: string
+                  description: The type of credential to revoke across the organization.
+                  enum:
+                  - classic_pat
+                  - fine_grained_pat
+                  - ssh_key
+                  - oauth_app_token
+            examples:
+              default:
+                value:
+                  credential_type: classic_pat
+      responses:
+        '202':
+          description: Accepted - The revocation request has been queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the revocation has been queued
+                  warning:
+                    type: string
+                    description: A warning message if the token used for this request
+                      may be revoked
+              examples:
+                default:
+                  value:
+                    message: Credential type revocation has been queued
+                with_warning:
+                  value:
+                    message: Credential type revocation has been queued
+                    warning: The token used for this request may also have its authorization
+                      revoked as part of this operation
+        '403': *29
+        '404': *6
+        '422':
+          description: Validation error - The `credential_type` is missing or invalid
+          content:
+            application/json:
+              schema: *3
+              examples:
+                invalid_credential_type:
+                  summary: Missing or invalid `credential_type`
+                  value:
+                    message: 'The `credential_type` parameter is required and must
+                      be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token'
+                    documentation_url: https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: orgs
   "/orgs/{org}/credential-authorizations/{credential_id}":
     delete:
       summary: Remove a SAML SSO authorization for an organization
@@ -53065,6 +53223,163 @@ paths:
         '204':
           description: Response
         '404': *6
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: orgs
+  "/orgs/{org}/credential-authorizations/{username}/revoke":
+    post:
+      summary: Revoke credential authorizations for a user in an organization
+      description: |-
+        Revokes all SAML SSO credential authorizations for a single user within the
+        organization. This removes the sign-in authorizations for the user's personal
+        access tokens, SSH keys, OAuth app tokens, and user-to-server tokens that they
+        have authorized for the organization. The user will need to authorize their
+        credentials again to access the organization.
+
+        This operation is performed asynchronously. A background job will be queued to process
+        the revocations.
+
+        > [!WARNING]
+        > If you use a personal access token to call this endpoint and target yourself,
+        > that token's authorization for the organization may also be revoked as part of
+        > this operation.
+
+        The authenticated user must be an organization owner to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/revoke-credential-authorizations-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-credential-authorizations-for-a-user-in-an-organization
+      parameters:
+      - *90
+      - *135
+      responses:
+        '202':
+          description: Accepted - The revocation request has been queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the revocation has been queued
+                  warning:
+                    type: string
+                    description: A warning message if the token used for this request
+                      may be revoked
+              examples:
+                default:
+                  value:
+                    message: Credential authorization revocation for user 'octocat'
+                      has been queued
+                with_warning:
+                  value:
+                    message: Credential authorization revocation for user 'octocat'
+                      has been queued
+                    warning: The token used for this request may also have its authorization
+                      revoked as part of this operation
+        '403': *29
+        '404': *6
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: orgs
+        subcategory: orgs
+  "/orgs/{org}/credential-authorizations/{username}/revoke-credential-type":
+    post:
+      summary: Revoke a single credential type for a user in an organization
+      description: |-
+        Revokes a single credential type (for example, classic personal access tokens)
+        for a single user within the organization. This removes the sign-in authorizations
+        for that credential type for the user in the organization.
+
+        This operation is performed asynchronously. A background job will be queued to process
+        the revocations.
+
+        > [!WARNING]
+        > If you use a personal access token to call this endpoint, target yourself, and
+        > revoke classic personal access tokens, that token's authorization for the
+        > organization may also be revoked as part of this operation.
+
+        The authenticated user must be an organization owner to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.
+      tags:
+      - orgs
+      operationId: orgs/revoke-credential-type-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization
+      parameters:
+      - *90
+      - *135
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - credential_type
+              properties:
+                credential_type:
+                  type: string
+                  description: The type of credential to revoke for the user.
+                  enum:
+                  - classic_pat
+                  - fine_grained_pat
+                  - ssh_key
+                  - oauth_app_token
+            examples:
+              default:
+                value:
+                  credential_type: classic_pat
+      responses:
+        '202':
+          description: Accepted - The revocation request has been queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: A message indicating the revocation has been queued
+                  warning:
+                    type: string
+                    description: A warning message if the token used for this request
+                      may be revoked
+              examples:
+                default:
+                  value:
+                    message: Credential type revocation for user 'octocat' has been
+                      queued
+                with_warning:
+                  value:
+                    message: Credential type revocation for user 'octocat' has been
+                      queued
+                    warning: The token used for this request may also have its authorization
+                      revoked as part of this operation
+        '403': *29
+        '404': *6
+        '422':
+          description: Validation error - The `credential_type` is missing or invalid
+          content:
+            application/json:
+              schema: *3
+              examples:
+                invalid_credential_type:
+                  summary: Missing or invalid `credential_type`
+                  value:
+                    message: 'The `credential_type` parameter is required and must
+                      be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token'
+                    documentation_url: https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -64178,6 +64493,9 @@ paths:
                   iteration_configuration: &925
                     type: object
                     description: The configuration for iteration fields.
+                    required:
+                    - start_date
+                    - duration
                     properties:
                       start_date:
                         type: string
@@ -64193,6 +64511,10 @@ paths:
                         items:
                           type: object
                           additionalProperties: false
+                          required:
+                          - title
+                          - start_date
+                          - duration
                           properties:
                             title:
                               type: string
@@ -64258,17 +64580,13 @@ paths:
                   name: Sprint
                   data_type: iteration
                   iteration_configuration:
-                    start_day: 1
+                    start_date: '2022-07-01'
                     duration: 14
                     iterations:
-                    - title:
-                        raw: Sprint 1
-                        html: Sprint 1
+                    - title: Sprint 1
                       start_date: '2022-07-01'
                       duration: 14
-                    - title:
-                        raw: Sprint 2
-                        html: Sprint 2
+                    - title: Sprint 2
                       start_date: '2022-07-15'
                       duration: 14
       responses:
@@ -74595,6 +74913,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -74609,10 +74928,12 @@ paths:
                     description: The id of the job.
                     example: 21
                     type: integer
+                    format: int64
                   run_id:
                     description: The id of the associated workflow run.
                     example: 5
                     type: integer
+                    format: int64
                   run_url:
                     type: string
                     example: https://api.github.com/repos/github/hello-world/actions/runs/5
@@ -76381,6 +76702,7 @@ paths:
         in: query
         schema:
           type: integer
+          format: int64
       - &555
         name: head_sha
         description: Only returns workflow runs that are associated with the specified
@@ -76411,6 +76733,7 @@ paths:
                       properties:
                         id:
                           type: integer
+                          format: int64
                           description: The ID of the workflow run.
                           example: 5
                         name:
@@ -76423,6 +76746,7 @@ paths:
                           example: MDEwOkNoZWNrU3VpdGU1
                         check_suite_id:
                           type: integer
+                          format: int64
                           description: The ID of the associated check suite.
                           example: 42
                         check_suite_node_id:
@@ -85047,6 +85371,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -92272,6 +92597,8 @@ paths:
       summary: Create a commit comment
       description: |-
         Create a comment for a commit using its `:commit_sha`.
+
+        Access to commit comments can be controlled by organization owners. For more information, see "[Managing commit comments for your organization](https://docs.github.com/enterprise-cloud@latest/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)".
 
         This endpoint triggers [notifications](https://docs.github.com/enterprise-cloud@latest/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see "[Rate limits for the API](https://docs.github.com/enterprise-cloud@latest/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)" and "[Best practices for using the REST API](https://docs.github.com/enterprise-cloud@latest/rest/guides/best-practices-for-using-the-rest-api)."
 
@@ -127261,9 +127588,6 @@ paths:
         *   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing
         language:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.
 
-        > [!NOTE]
-        > `repository.description`, `repository.owner.type`, and `repository.owner.node_id` are closing down on this endpoint and will return `null` in a future API version. Use the [Get a repository](https://docs.github.com/enterprise-cloud@latest/rest/repos/repos#get-a-repository) endpoint (`GET /repos/{owner}/{repo}`) to retrieve full repository metadata.
-
         This endpoint requires you to authenticate and limits you to 10 requests per minute.
       tags:
       - search
@@ -147423,6 +147747,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -147746,6 +148071,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -148070,8 +148396,8 @@ x-webhooks:
                     dismissed_comment: *590
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       nullable: true
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -148418,6 +148744,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -148682,8 +149009,8 @@ x-webhooks:
                     dismissed_comment: *590
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       type: string
                       nullable: true
                     fixed_at:
@@ -148963,8 +149290,8 @@ x-webhooks:
                     dismissed_comment: *590
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       nullable: true
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -149280,6 +149607,7 @@ x-webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - null
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -160855,7 +161183,8 @@ x-webhooks:
                     - private
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
@@ -160966,7 +161295,8 @@ x-webhooks:
                 repositories_added: *970
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
