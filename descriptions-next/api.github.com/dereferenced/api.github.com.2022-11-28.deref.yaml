@@ -22296,7 +22296,9 @@ paths:
                           properties:
                             will_alert:
                               type: boolean
-                              description: Whether alerts are enabled for this budget
+                              description: Whether alerts are enabled for this budget.
+                                Ignored for user-scope as alerting is disabled for
+                                them.
                               examples:
                               - true
                             alert_recipients:
@@ -22304,7 +22306,8 @@ paths:
                               items:
                                 type: string
                               description: Array of user login names who will receive
-                                alerts
+                                alerts. Ignored for user-scope as alerting is disabled
+                                for them.
                               examples:
                               - mona
                               - lisa
@@ -22466,12 +22469,15 @@ paths:
                   properties:
                     will_alert:
                       type: boolean
-                      description: Whether alerts are enabled for this budget
+                      description: Whether alerts are enabled for this budget. Rejected
+                        for user-scope as alerting is always disabled for them.
                     alert_recipients:
                       type: array
                       items:
                         type: string
-                      description: Array of user login names who will receive alerts
+                      description: Array of user login names who will receive alerts.
+                        Rejected for user-scope as alerting is always disabled for
+                        them.
                 budget_scope:
                   type: string
                   description: |-
@@ -22600,7 +22606,9 @@ paths:
                         properties:
                           will_alert:
                             type: boolean
-                            description: Whether alerts are enabled for this budget
+                            description: Whether alerts are enabled for this budget.
+                              Rejected for user-scope as alerting is always disabled
+                              for them.
                             examples:
                             - true
                           alert_recipients:
@@ -22608,7 +22616,8 @@ paths:
                             items:
                               type: string
                             description: Array of user login names who will receive
-                              alerts
+                              alerts. Rejected for user-scope as alerting is always
+                              disabled for them.
                             examples:
                             - mona
                             - lisa
@@ -22754,14 +22763,18 @@ paths:
                     properties:
                       will_alert:
                         type: boolean
-                        description: Whether alerts are enabled for this budget
+                        description: Whether alerts are enabled for this budget. Present
+                          but not applicable for user-scope as alerting is always
+                          disabled for them.
                         examples:
                         - true
                       alert_recipients:
                         type: array
                         items:
                           type: string
-                        description: Array of user login names who will receive alerts
+                        description: Array of user login names who will receive alerts.
+                          Present but not applicable for user-scope as alerting is
+                          always disabled for them.
                         examples:
                         - mona
                         - lisa
@@ -22833,12 +22846,15 @@ paths:
                   properties:
                     will_alert:
                       type: boolean
-                      description: Whether alerts are enabled for this budget
+                      description: Whether alerts are enabled for this budget. Ignored
+                        for user-scopes as alerting is always disabled for them.
                     alert_recipients:
                       type: array
                       items:
                         type: string
-                      description: Array of user login names who will receive alerts
+                      description: Array of user login names who will receive alerts.
+                        Ignored for user-scopes as alerting is always disabled for
+                        them.
                 budget_scope:
                   type: string
                   description: |-
@@ -22972,7 +22988,9 @@ paths:
                         properties:
                           will_alert:
                             type: boolean
-                            description: Whether alerts are enabled for this budget
+                            description: Whether alerts are enabled for this budget.
+                              Ignored for user-scope as alerting is always disabled
+                              for them.
                             examples:
                             - true
                           alert_recipients:
@@ -22980,7 +22998,8 @@ paths:
                             items:
                               type: string
                             description: Array of user login names who will receive
-                              alerts
+                              alerts. Ignored for user-scope as alerting is always
+                              disabled for them.
                             examples:
                             - mona
                             - lisa
@@ -32834,6 +32853,7 @@ paths:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - 
                     dismissed_comment: &434
                       type:
@@ -48190,6 +48210,9 @@ paths:
                   iteration_configuration: &752
                     type: object
                     description: The configuration for iteration fields.
+                    required:
+                    - start_date
+                    - duration
                     properties:
                       start_date:
                         type: string
@@ -48205,6 +48228,10 @@ paths:
                         items:
                           type: object
                           additionalProperties: false
+                          required:
+                          - title
+                          - start_date
+                          - duration
                           properties:
                             title:
                               type: string
@@ -48270,17 +48297,13 @@ paths:
                   name: Sprint
                   data_type: iteration
                   iteration_configuration:
-                    start_day: 1
+                    start_date: '2022-07-01'
                     duration: 14
                     iterations:
-                    - title:
-                        raw: Sprint 1
-                        html: Sprint 1
+                    - title: Sprint 1
                       start_date: '2022-07-01'
                       duration: 14
-                    - title:
-                        raw: Sprint 2
-                        html: Sprint 2
+                    - title: Sprint 2
                       start_date: '2022-07-15'
                       duration: 14
       responses:
@@ -61131,6 +61154,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -61144,11 +61168,13 @@ paths:
                   id:
                     description: The id of the job.
                     type: integer
+                    format: int64
                     examples:
                     - 21
                   run_id:
                     description: The id of the associated workflow run.
                     type: integer
+                    format: int64
                     examples:
                     - 5
                   run_url:
@@ -62890,6 +62916,7 @@ paths:
         in: query
         schema:
           type: integer
+          format: int64
       - &397
         name: head_sha
         description: Only returns workflow runs that are associated with the specified
@@ -62920,6 +62947,7 @@ paths:
                       properties:
                         id:
                           type: integer
+                          format: int64
                           description: The ID of the workflow run.
                           examples:
                           - 5
@@ -62936,6 +62964,7 @@ paths:
                           - MDEwOkNoZWNrU3VpdGU1
                         check_suite_id:
                           type: integer
+                          format: int64
                           description: The ID of the associated check suite.
                           examples:
                           - 42
@@ -71407,6 +71436,7 @@ paths:
         required: true
         schema:
           type: integer
+          format: int64
       responses:
         '200':
           description: Response
@@ -78712,6 +78742,8 @@ paths:
       summary: Create a commit comment
       description: |-
         Create a comment for a commit using its `:commit_sha`.
+
+        Access to commit comments can be controlled by organization owners. For more information, see "[Managing commit comments for your organization](https://docs.github.com/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)".
 
         This endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see "[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)" and "[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api)."
 
@@ -111022,9 +111054,6 @@ paths:
         *   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing
         language:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.
 
-        > [!NOTE]
-        > `repository.description`, `repository.owner.type`, and `repository.owner.node_id` are closing down on this endpoint and will return `null` in a future API version. Use the [Get a repository](https://docs.github.com/rest/repos/repos#get-a-repository) endpoint (`GET /repos/{owner}/{repo}`) to retrieve full repository metadata.
-
         This endpoint requires you to authenticate and limits you to 10 requests per minute.
       tags:
       - search
@@ -131031,6 +131060,7 @@ webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - 
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -131363,6 +131393,7 @@ webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - 
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -131700,8 +131731,8 @@ webhooks:
                     dismissed_comment: *434
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       type:
                       - 'null'
                     fixed_at:
@@ -132066,6 +132097,7 @@ webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - 
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -132342,8 +132374,8 @@ webhooks:
                     dismissed_comment: *434
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       type:
                       - string
                       - 'null'
@@ -132640,8 +132672,8 @@ webhooks:
                     dismissed_comment: *434
                     dismissed_reason:
                       description: 'The reason for dismissing or closing the alert.
-                        Can be one of: `false positive`, `won''t fix`, and `used in
-                        tests`.'
+                        Can be one of: `false positive`, `won''t fix`, `used in tests`,
+                        and `mitigated`.'
                       type:
                       - 'null'
                     fixed_at:
@@ -132968,6 +133000,7 @@ webhooks:
                       - false positive
                       - won't fix
                       - used in tests
+                      - mitigated
                       - 
                     fixed_at:
                       description: 'The time that the alert was fixed in ISO 8601
@@ -143718,7 +143751,8 @@ webhooks:
                     - private
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
@@ -143829,7 +143863,8 @@ webhooks:
                 repositories_added: *791
                 repositories_removed:
                   description: An array of repository objects, which were removed
-                    from the installation.
+                    from the installation. When `repository_selection` changes from
+                    `all` to `selected`, this array is empty.
                   type: array
                   items:
                     type: object
