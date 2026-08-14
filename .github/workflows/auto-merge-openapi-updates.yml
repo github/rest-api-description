@@ -14,6 +14,11 @@ name: Auto-merge OpenAPI description updates
 # the FR provides by hand are preserved: lint must be green, a semantic
 # breaking-change scan must come back clean, and a change summary is posted to
 # the PR before merge for release-note authoring.
+#
+# Merges are additionally held during a GHES release-candidate window, when
+# Docs asks the team to stop merging description PRs until the corresponding
+# RC PR lands in github/docs-internal. See the "Check for an active merge
+# freeze" step for how that is detected and how it clears.
 
 on:
   schedule:
@@ -222,8 +227,76 @@ jobs:
             echo "status=green" >>"$GITHUB_OUTPUT"
           fi
 
+      - name: Check for an active merge freeze
+        id: freeze
+        if: steps.select.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF_30: ${{ steps.select.outputs.ref_30 }}
+          REF_31: ${{ steps.select.outputs.ref_31 }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          # Around a GHES release candidate, Docs asks the team to hold off
+          # merging description PRs. The sequence is:
+          #   1. github/github sets `published: true` for the new GHES version
+          #   2. Docs asks #api-platform to hold merges
+          #   3. Docs merges the RC PR in github/docs-internal
+          #   4. Docs gives the all-clear and merges resume
+          #
+          # Step 1 is what makes the new GHES version's descriptions appear in
+          # the bot's PR here, so "this PR introduces a GHES version that does
+          # not exist on the default branch" is a reliable proxy for being
+          # inside that window. It is also self-clearing: once the version is
+          # merged the directory exists on main and later PRs stop matching.
+          #
+          # The window is genuinely short (for 3.21, descriptions landed 18
+          # minutes before the docs RC merged), so this must be checked per-run
+          # rather than assumed stale.
+
+          reason=''
+
+          # --- Signal 1: an explicit, human-controlled hold ----------------
+          # A label is the escape hatch that does not depend on inference, and
+          # lets Docs or the FR stop merges for any reason at all.
+          if gh label list --search 'merge-freeze' --json name -q '.[].name' | grep -qx 'merge-freeze'; then
+            frozen=$(gh issue list --label 'merge-freeze' --state open --json number,title \
+              -q '.[] | "#\(.number) \(.title)"' | head -5)
+            if [ -n "$frozen" ]; then
+              reason+="Open 'merge-freeze' issue(s): $(tr '\n' ';' <<<"$frozen") "
+            fi
+          fi
+
+          # --- Signal 2: a GHES version not yet on the default branch ------
+          ghes_on_main=$(gh api "repos/$GH_REPO/contents/descriptions?ref=$DEFAULT_BRANCH" \
+            -q '.[].name' | grep '^ghes-' | sort -u)
+
+          for ref in "$REF_30" "$REF_31"; do
+            [ -n "$ref" ] || continue
+            for dir in descriptions descriptions-next; do
+              on_pr=$(gh api "repos/$GH_REPO/contents/$dir?ref=$ref" \
+                -q '.[].name' 2>/dev/null | grep '^ghes-' | sort -u || true)
+              [ -n "$on_pr" ] || continue
+              new=$(comm -13 <(echo "$ghes_on_main") <(echo "$on_pr") | tr '\n' ' ')
+              if [ -n "${new// /}" ]; then
+                reason+="$ref/$dir introduces new GHES version(s): $new "
+              fi
+            done
+          done
+
+          if [ -n "$reason" ]; then
+            echo "status=frozen" >>"$GITHUB_OUTPUT"
+            echo "detail=$reason" >>"$GITHUB_OUTPUT"
+            echo "::warning::Merge freeze in effect, holding. $reason"
+          else
+            echo "status=clear" >>"$GITHUB_OUTPUT"
+            echo "No merge freeze detected."
+          fi
+
       - name: Checkout (blobless)
-        if: steps.checks.outputs.status == 'green'
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         uses: actions/checkout@v4
         with:
           # Blobless fetch keeps this off the ~4.6 GB full history while still
@@ -233,20 +306,20 @@ jobs:
           token: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
 
       - name: Set up Python
-        if: steps.checks.outputs.status == 'green'
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install PyYAML
-        if: steps.checks.outputs.status == 'green'
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         # Reuses the repo's existing pinned/hash-verified requirements, which
         # already provide pyyaml for the linter workflow.
         run: pip install --require-hashes -r requirements.txt
 
       - name: Scan for breaking changes
         id: breaking
-        if: steps.checks.outputs.status == 'green'
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         env:
           REF_30: ${{ steps.select.outputs.ref_30 }}
           REF_31: ${{ steps.select.outputs.ref_31 }}
@@ -313,7 +386,7 @@ jobs:
           fi
 
       - name: Post change summary to PRs
-        if: steps.checks.outputs.status == 'green'
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         env:
           GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
           GH_REPO: ${{ github.repository }}
@@ -345,7 +418,10 @@ jobs:
 
       - name: Merge and close superseded PRs
         id: merge
-        if: steps.checks.outputs.status == 'green' && steps.breaking.outputs.status == 'clean'
+        if: >-
+          steps.checks.outputs.status == 'green' &&
+          steps.freeze.outputs.status == 'clear' &&
+          steps.breaking.outputs.status == 'clean'
         env:
           GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
           GH_REPO: ${{ github.repository }}
@@ -397,7 +473,9 @@ jobs:
       - name: Notify #api-platform
         if: >-
           steps.preflight.outcome == 'success' &&
-          (failure() || steps.breaking.outputs.status == 'breaking')
+          (failure() ||
+           steps.breaking.outputs.status == 'breaking' ||
+           steps.freeze.outputs.status == 'frozen')
         env:
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
@@ -405,6 +483,9 @@ jobs:
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
           BREAKING: ${{ steps.breaking.outputs.detail }}
+          FREEZE: ${{ steps.freeze.outputs.detail }}
+          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -413,7 +494,41 @@ jobs:
             exit 0
           fi
 
-          if [ -n "${BREAKING:-}" ]; then
+          if [ -n "${FREEZE:-}" ]; then
+            # A freeze is an expected state, not a fault. It is re-detected
+            # every 2 hours for the whole GHES RC window, so announce it once
+            # per PR rather than pinging the channel dozens of times. The PR
+            # comment is the durable marker; a workspace file would not survive
+            # between runs.
+            already=''
+            for pr in $PR_30 $PR_31; do
+              [ -n "$pr" ] || continue
+              if gh pr view "$pr" --json comments \
+                   -q '.comments[].body' 2>/dev/null | grep -q 'AUTO-MERGE-FREEZE-NOTICE'; then
+                already='yes'
+              fi
+            done
+
+            if [ -n "$already" ]; then
+              echo "Freeze already announced for these PRs; not re-posting."
+              exit 0
+            fi
+
+            for pr in $PR_30 $PR_31; do
+              [ -n "$pr" ] || continue
+              gh pr comment "$pr" --body "$(printf '%s\n' \
+                '## :snowflake: Auto-merge is holding (merge freeze)' \
+                '' \
+                "Reason: ${FREEZE}" \
+                '' \
+                'This is expected around a GHES release candidate, while Docs merges the corresponding RC PR in `github/docs-internal`. Merges resume automatically once the new GHES version is present on the default branch and any open `merge-freeze` issue is closed. No action needed unless this persists past the all-clear.' \
+                '' \
+                '<!-- AUTO-MERGE-FREEZE-NOTICE -->')" || true
+            done
+
+            headline=":snowflake: OpenAPI auto-merge is holding: merge freeze detected."
+            body="• Reason: ${FREEZE}"$'\n'"• Merges resume automatically once the new GHES version is on the default branch and any 'merge-freeze' issue is closed."
+          elif [ -n "${BREAKING:-}" ]; then
             headline=":rotating_light: OpenAPI auto-merge skipped: potential breaking changes need a human."
             body="• Findings: ${BREAKING}"
           else
