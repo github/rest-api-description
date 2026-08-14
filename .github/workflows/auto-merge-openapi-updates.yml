@@ -8,17 +8,12 @@ name: Auto-merge OpenAPI description updates
 # `GET /pulls/{n}/files` returns 422 on them, so the merge is done with plain
 # git against a blobless clone.
 #
-# This automates step 6 of the API Platform first-responder runbook
-# (`openapi-pr-reviewer`). The runbook runs it on Tuesdays and Thursdays; this
-# runs continuously, so the PR backlog never accumulates. The safety properties
-# the FR provides by hand are preserved: lint must be green, a semantic
-# breaking-change scan must come back clean, and a change summary is posted to
-# the PR before merge for release-note authoring.
+# This runs continuously. The safety properties of the manual process are
+# preserved: lint must be green, the semantic breaking-change scan must come
+# back clean, and a change summary is posted to the PR before merge.
 #
-# Merges are additionally held during a GHES release-candidate window, when
-# Docs asks the team to stop merging description PRs until the corresponding
-# RC PR lands in github/docs-internal. See the "Check for an active merge
-# freeze" step for how that is detected and how it clears.
+# Merges are additionally held during a GHES release-candidate window. See the
+# "Check for an active merge freeze" step for how that is detected.
 
 on:
   schedule:
@@ -27,10 +22,6 @@ on:
     inputs:
       dry_run:
         description: 'Analyze and report, but do not merge or close anything'
-        type: boolean
-        default: false
-      test_notify:
-        description: 'Send a test post to #api-platform to prove the chatterbox route works'
         type: boolean
         default: false
 
@@ -57,87 +48,8 @@ jobs:
       status: ${{ steps.merge.outputs.status }}
       detail: ${{ steps.merge.outputs.detail }}
     steps:
-      - name: Preflight - verify credentials
-        id: preflight
-        env:
-          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
-          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
-          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TEST_NOTIFY: ${{ inputs.test_notify }}
-        run: |
-          set -euo pipefail
-
-          fail=''
-
-          # --- Merge token ---------------------------------------------------
-          # Falling back to github.token is fine, but a token that is *set* and
-          # broken (expired PAT, revoked, wrong scopes) must fail loudly here
-          # rather than as an opaque `git push` rejection after the merge.
-          if [ -z "${MERGE_TOKEN:-}" ]; then
-            echo "::warning::OPENAPI_MERGE_TOKEN is not set; falling back to GITHUB_TOKEN. Pushes will not trigger downstream workflows."
-          else
-            if ! login=$(GH_TOKEN="$MERGE_TOKEN" gh api user -q '.login' 2>/dev/null); then
-              # Fine-grained tokens and app installation tokens cannot call
-              # /user, so only treat this as fatal if the repo probe also fails.
-              login='(unknown; /user not available for this token type)'
-            fi
-
-            # `gh api` writes its error body to stdout, so a `|| echo ERROR`
-            # sentinel would be appended to that body rather than replacing it.
-            # Branch on the exit status instead.
-            if perms=$(GH_TOKEN="$MERGE_TOKEN" gh api "repos/$GH_REPO" \
-                 -q '"\(.permissions.push)\t\(.permissions.admin)"' 2>/dev/null); then
-              push=${perms%%$'\t'*}
-              if [ "$push" != 'true' ]; then
-                fail+="OPENAPI_MERGE_TOKEN cannot push to $GH_REPO (contents:write missing; permissions.push=$push). "
-              else
-                echo "Merge token OK. Identity: $login, push: $push"
-              fi
-            else
-              fail+="OPENAPI_MERGE_TOKEN is set but cannot read $GH_REPO (expired, revoked, or lacking repo access). "
-            fi
-          fi
-
-          # --- Chatterbox ----------------------------------------------------
-          # The notifier is the only signal that a breaking change was skipped,
-          # so a silently-dead route would make the guard useless.
-          if [ -z "${CHATTERBOX_URL:-}" ] || [ -z "${CHATTERBOX_TOKEN:-}" ]; then
-            fail+="CHATTERBOX_URL/CHATTERBOX_TOKEN are not both set; breaking-change alerts would go nowhere. "
-          else
-            # curl already writes `000` on connection failure *and* exits
-            # non-zero, so a `|| echo 000` fallback would concatenate into
-            # `000000`. Swallow the exit status with `|| true` instead.
-            code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
-              --max-time 20 \
-              -u "${CHATTERBOX_TOKEN}:" \
-              "${CHATTERBOX_URL%/}/topics/%23api-platform" \
-              --data ':white_check_mark: OpenAPI auto-merge preflight: chatterbox route is alive.' \
-              || true)
-
-            case "${code:-000}" in
-              2*) echo "Chatterbox OK (HTTP $code)." ;;
-              000|'') fail+="Chatterbox unreachable (connection failed or timed out). " ;;
-              401|403) fail+="Chatterbox rejected CHATTERBOX_TOKEN (HTTP $code). " ;;
-              *) fail+="Chatterbox returned HTTP $code. " ;;
-            esac
-          fi
-
-          if [ -n "$fail" ]; then
-            echo "::error::Preflight failed: $fail"
-            exit 1
-          fi
-
-          if [ "${TEST_NOTIFY:-false}" = 'true' ]; then
-            echo "test_notify requested; preflight post sent. Stopping before any merge."
-            echo "stop=true" >>"$GITHUB_OUTPUT"
-          fi
-
-          echo "Preflight passed."
-
       - name: Select candidate PRs
         id: select
-        if: steps.preflight.outputs.stop != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -239,22 +151,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Around a GHES release candidate, Docs asks the team to hold off
-          # merging description PRs. The sequence is:
-          #   1. github/github sets `published: true` for the new GHES version
-          #   2. Docs asks #api-platform to hold merges
-          #   3. Docs merges the RC PR in github/docs-internal
-          #   4. Docs gives the all-clear and merges resume
-          #
-          # Step 1 is what makes the new GHES version's descriptions appear in
-          # the bot's PR here, so "this PR introduces a GHES version that does
-          # not exist on the default branch" is a reliable proxy for being
-          # inside that window. It is also self-clearing: once the version is
-          # merged the directory exists on main and later PRs stop matching.
-          #
-          # The window is genuinely short (for 3.21, descriptions landed 18
-          # minutes before the docs RC merged), so this must be checked per-run
-          # rather than assumed stale.
+          # Around a GHES release candidate, hold description merges until the
+          # coordinated release content is ready. A new GHES version appearing
+          # in the candidate PR before it exists on the default branch is the
+          # public signal that this window may be active.
 
           reason=''
 
@@ -303,7 +203,7 @@ jobs:
           # allowing real merges. Blobs for the touched files are fetched lazily.
           filter: blob:none
           fetch-depth: 0
-          token: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
+          token: ${{ github.token }}
 
       - name: Set up Python
         if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
@@ -334,7 +234,7 @@ jobs:
           # breaking, while for a *response* body, REMOVING from `required` is
           # breaking. A scan of removed diff lines is structurally blind to the
           # first case. Rules mirror the breaking-change list in
-          # github/api-platform docs/creating-an-openapi-release.md.
+          # the project's documented release-compatibility rules.
           findings=''
           : >summary.md
 
@@ -388,7 +288,7 @@ jobs:
       - name: Post change summary to PRs
         if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         env:
-          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
@@ -396,10 +296,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Release notes are generated from PR descriptions, and the runbook
-          # asks for a human-written change summary before merge. Auto-merging
-          # untouched bodies would delete that input, so post the analysis the
-          # scanner already computed.
+          # Release notes are generated from PR descriptions. Auto-merging
+          # untouched bodies would remove useful context, so post the analysis
+          # the scanner already computed.
           {
             if [ "$BREAKING" = 'breaking' ]; then
               echo "## :rotating_light: Auto-merge skipped: potential breaking changes"
@@ -423,7 +322,7 @@ jobs:
           steps.freeze.outputs.status == 'clear' &&
           steps.breaking.outputs.status == 'clean'
         env:
-          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
@@ -447,7 +346,7 @@ jobs:
 
           merged=''
           # 3.0 first, then 3.1: they touch disjoint trees but this ordering
-          # matches the manual runbook and keeps history readable.
+          # keeps the generated merge history readable.
           for pair in "$PR_30:$REF_30" "$PR_31:$REF_31"; do
             pr="${pair%%:*}"; ref="${pair#*:}"
             [ -n "$pr" ] && [ -n "$ref" ] || continue
@@ -470,80 +369,20 @@ jobs:
           echo "status=merged" >>"$GITHUB_OUTPUT"
           echo "detail=Merged $merged" >>"$GITHUB_OUTPUT"
 
-      - name: Notify #api-platform
+      - name: Summarize exceptions
         if: >-
-          steps.preflight.outcome == 'success' &&
-          (failure() ||
-           steps.breaking.outputs.status == 'breaking' ||
-           steps.freeze.outputs.status == 'frozen')
-        env:
-          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
-          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          PR_30: ${{ steps.select.outputs.pr_30 }}
-          PR_31: ${{ steps.select.outputs.pr_31 }}
-          BREAKING: ${{ steps.breaking.outputs.detail }}
-          FREEZE: ${{ steps.freeze.outputs.detail }}
-          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
-          GH_REPO: ${{ github.repository }}
+          failure() ||
+          steps.breaking.outputs.status == 'breaking' ||
+          steps.freeze.outputs.status == 'frozen'
         run: |
-          set -euo pipefail
-
-          if [ -z "${CHATTERBOX_URL:-}" ] || [ -z "${CHATTERBOX_TOKEN:-}" ]; then
-            echo "Chatterbox not configured; skipping notification."
-            exit 0
-          fi
-
-          if [ -n "${FREEZE:-}" ]; then
-            # A freeze is an expected state, not a fault. It is re-detected
-            # every 2 hours for the whole GHES RC window, so announce it once
-            # per PR rather than pinging the channel dozens of times. The PR
-            # comment is the durable marker; a workspace file would not survive
-            # between runs.
-            already=''
-            for pr in $PR_30 $PR_31; do
-              [ -n "$pr" ] || continue
-              if gh pr view "$pr" --json comments \
-                   -q '.comments[].body' 2>/dev/null | grep -q 'AUTO-MERGE-FREEZE-NOTICE'; then
-                already='yes'
-              fi
-            done
-
-            if [ -n "$already" ]; then
-              echo "Freeze already announced for these PRs; not re-posting."
-              exit 0
+          {
+            echo "## Auto-merge did not proceed"
+            echo
+            if [ "${{ steps.freeze.outputs.status }}" = "frozen" ]; then
+              echo "A merge freeze was detected: ${{ steps.freeze.outputs.detail }}"
+            elif [ "${{ steps.breaking.outputs.status }}" = "breaking" ]; then
+              echo "Potential breaking changes were detected: ${{ steps.breaking.outputs.detail }}"
+            else
+              echo "The workflow failed before merging. Review the failed step above."
             fi
-
-            for pr in $PR_30 $PR_31; do
-              [ -n "$pr" ] || continue
-              gh pr comment "$pr" --body "$(printf '%s\n' \
-                '## :snowflake: Auto-merge is holding (merge freeze)' \
-                '' \
-                "Reason: ${FREEZE}" \
-                '' \
-                'This is expected around a GHES release candidate, while Docs merges the corresponding RC PR in `github/docs-internal`. Merges resume automatically once the new GHES version is present on the default branch and any open `merge-freeze` issue is closed. No action needed unless this persists past the all-clear.' \
-                '' \
-                '<!-- AUTO-MERGE-FREEZE-NOTICE -->')" || true
-            done
-
-            headline=":snowflake: OpenAPI auto-merge is holding: merge freeze detected."
-            body="• Reason: ${FREEZE}"$'\n'"• Merges resume automatically once the new GHES version is on the default branch and any 'merge-freeze' issue is closed."
-          elif [ -n "${BREAKING:-}" ]; then
-            headline=":rotating_light: OpenAPI auto-merge skipped: potential breaking changes need a human."
-            body="• Findings: ${BREAKING}"
-          else
-            headline=":warning: OpenAPI auto-merge failed in ${GITHUB_REPOSITORY}."
-            body="• Needs manual merge"
-          fi
-
-          message=$(printf '%s\n' \
-            "$headline" \
-            "• PRs: #${PR_30:-n/a} (3.0), #${PR_31:-n/a} (3.1)" \
-            "$body" \
-            "• Run: ${RUN_URL}")
-
-          curl --fail --silent --show-error \
-            -X POST \
-            -u "${CHATTERBOX_TOKEN}:" \
-            "${CHATTERBOX_URL%/}/topics/%23api-platform" \
-            --data "$message"
+          } >>"$GITHUB_STEP_SUMMARY"
