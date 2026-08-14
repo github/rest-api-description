@@ -7,6 +7,13 @@ name: Auto-merge OpenAPI description updates
 # 100K+ line diffs across 64+ files. `PUT /pulls/{n}/merge` returns 502/504 and
 # `GET /pulls/{n}/files` returns 422 on them, so the merge is done with plain
 # git against a blobless clone.
+#
+# This automates step 6 of the API Platform first-responder runbook
+# (`openapi-pr-reviewer`). The runbook runs it on Tuesdays and Thursdays; this
+# runs continuously, so the PR backlog never accumulates. The safety properties
+# the FR provides by hand are preserved: lint must be green, a semantic
+# breaking-change scan must come back clean, and a change summary is posted to
+# the PR before merge for release-note authoring.
 
 on:
   schedule:
@@ -225,45 +232,77 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
 
+      - name: Set up Python
+        if: steps.checks.outputs.status == 'green'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        if: steps.checks.outputs.status == 'green'
+        # Reuses the repo's existing pinned/hash-verified requirements, which
+        # already provide pyyaml for the linter workflow.
+        run: pip install --require-hashes -r requirements.txt
+
       - name: Scan for breaking changes
         id: breaking
         if: steps.checks.outputs.status == 'green'
         env:
           REF_30: ${{ steps.select.outputs.ref_30 }}
           REF_31: ${{ steps.select.outputs.ref_31 }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
-          base="origin/${{ github.event.repository.default_branch }}"
-
-          # api.github.com is the non-dereferenced source of truth: it is compact,
-          # uses $ref, and every other platform file derives from the same change.
+          # A semantic (parsed) comparison rather than a diff scan. The two are
+          # not equivalent: for a *request* body, ADDING to `required` is
+          # breaking, while for a *response* body, REMOVING from `required` is
+          # breaking. A scan of removed diff lines is structurally blind to the
+          # first case. Rules mirror the breaking-change list in
+          # github/api-platform docs/creating-an-openapi-release.md.
           findings=''
+          : >summary.md
+
           for pair in \
-            "$REF_30:descriptions/api.github.com/api.github.com.yaml" \
-            "$REF_31:descriptions-next/api.github.com/api.github.com.yaml"; do
-            ref="${pair%%:*}"; file="${pair#*:}"
+            "$REF_30|descriptions/api.github.com/api.github.com.yaml|3.0|$PR_30" \
+            "$REF_31|descriptions-next/api.github.com/api.github.com.yaml|3.1|$PR_31"; do
+            IFS='|' read -r ref file label pr <<<"$pair"
             [ -n "$ref" ] || continue
 
             git fetch --no-tags --filter=blob:none origin "$ref":"refs/remotes/origin/$ref"
-            diff=$(git diff "$base...origin/$ref" -- "$file" || true)
-            [ -n "$diff" ] || continue
 
-            removed=$(grep '^-' <<<"$diff" | grep -v '^---' || true)
-            [ -n "$removed" ] || continue
+            # api.github.com is the non-dereferenced source of truth: compact,
+            # $ref-based, and every platform variant derives from it.
+            git show "origin/$DEFAULT_BRANCH:$file" >base.yaml
+            git show "origin/$ref:$file" >head.yaml
 
-            count() { grep -cE "$1" <<<"$removed" || true; }
-            # Removed top-level path key, e.g. `  "/repos/{owner}/{repo}":`
-            paths=$(count '^-  "/')
-            # Removed enum member, e.g. `      - archived`
-            enums=$(count '^-[[:space:]]+- [A-Za-z0-9_.-]+$')
-            # Removed schema definition under components/schemas
-            schemas=$(count '^-    [a-z0-9][a-z0-9-]*:$')
+            python3 .github/scripts/openapi-breaking-changes.py base.yaml head.yaml >result.json
 
-            if [ "${paths:-0}" -gt 0 ]; then findings+="$ref: $paths removed path key(s). "; fi
-            if [ "${enums:-0}" -gt 0 ]; then findings+="$ref: $enums removed enum value(s). "; fi
-            if [ "${schemas:-0}" -gt 0 ]; then findings+="$ref: $schemas removed schema key(s). "; fi
+            count=$(jq '.findings | length' result.json)
+            {
+              echo "### OpenAPI $label (#$pr)"
+              echo
+              jq -r '.summary |
+                "- Operations: \(.total_operations) total, \(.added_operations | length) added",
+                "- Schemas: \(.total_schemas) total, \(.added_schemas | length) added"' result.json
+              jq -r '.summary.added_operations[]? | "  - `\(.)`"' result.json | head -40
+              echo
+            } >>summary.md
+
+            if [ "$count" -gt 0 ]; then
+              findings+="$label (#$pr): $count breaking finding(s). "
+              {
+                echo "#### :rotating_light: Breaking changes in $label"
+                echo
+                jq -r '.findings[] | "- **\(.rule)**: \(.detail)"' result.json | head -50
+                echo
+              } >>summary.md
+            fi
           done
+
+          cat summary.md
 
           if [ -n "$findings" ]; then
             echo "status=breaking" >>"$GITHUB_OUTPUT"
@@ -272,6 +311,37 @@ jobs:
           else
             echo "status=clean" >>"$GITHUB_OUTPUT"
           fi
+
+      - name: Post change summary to PRs
+        if: steps.checks.outputs.status == 'green'
+        env:
+          GH_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+          BREAKING: ${{ steps.breaking.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          # Release notes are generated from PR descriptions, and the runbook
+          # asks for a human-written change summary before merge. Auto-merging
+          # untouched bodies would delete that input, so post the analysis the
+          # scanner already computed.
+          {
+            if [ "$BREAKING" = 'breaking' ]; then
+              echo "## :rotating_light: Auto-merge skipped: potential breaking changes"
+            else
+              echo "## Automated change summary"
+            fi
+            echo
+            cat summary.md
+            echo "_Posted by the auto-merge workflow ([run](${GITHUB_SERVER_URL}/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}))._"
+          } >comment.md
+
+          for pr in $PR_30 $PR_31; do
+            [ -n "$pr" ] || continue
+            gh pr comment "$pr" --body-file comment.md || echo "::warning::Could not comment on #$pr"
+          done
 
       - name: Merge and close superseded PRs
         id: merge
