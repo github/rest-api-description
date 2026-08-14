@@ -18487,7 +18487,7 @@
     "/enterprises/{enterprise}/settings/billing/budgets": {
       "get": {
         "summary": "Get all budgets",
-        "description": "Gets all budgets for an enterprise. The authenticated actor must have permission to view enterprise billing.\nEach page returns up to 100 budgets.",
+        "description": "Gets budgets for an enterprise. Enterprise owners and billing managers can view all budgets. Organization administrators can view budgets scoped to organizations and repositories they administer.\nEach page returns up to 100 budgets.",
         "tags": [
           "billing"
         ],
@@ -18557,7 +18557,7 @@
         },
         "x-github": {
           "githubCloudOnly": true,
-          "enabledForGitHubApps": true,
+          "enabledForGitHubApps": false,
           "category": "billing",
           "subcategory": "budgets"
         }
@@ -18609,14 +18609,14 @@
                     "properties": {
                       "will_alert": {
                         "type": "boolean",
-                        "description": "Whether alerts are enabled for this budget"
+                        "description": "Whether alerts are enabled for this budget. Rejected for user-scope as alerting is always disabled for them."
                       },
                       "alert_recipients": {
                         "type": "array",
                         "items": {
                           "type": "string"
                         },
-                        "description": "Array of user login names who will receive alerts"
+                        "description": "Array of user login names who will receive alerts. Rejected for user-scope as alerting is always disabled for them."
                       }
                     }
                   },
@@ -18767,7 +18767,7 @@
     "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}": {
       "get": {
         "summary": "Get a budget by ID",
-        "description": "Gets a budget by ID. The authenticated user must be an enterprise admin or billing manager.",
+        "description": "Gets a budget by ID. Enterprise owners and billing managers can view any budget in the enterprise. Organization administrators can view budgets scoped to organizations and repositories they administer.",
         "tags": [
           "billing"
         ],
@@ -18862,14 +18862,14 @@
                     "properties": {
                       "will_alert": {
                         "type": "boolean",
-                        "description": "Whether alerts are enabled for this budget"
+                        "description": "Whether alerts are enabled for this budget. Ignored for user-scope as alerting is always disabled for them."
                       },
                       "alert_recipients": {
                         "type": "array",
                         "items": {
                           "type": "string"
                         },
-                        "description": "Array of user login names who will receive alerts"
+                        "description": "Array of user login names who will receive alerts. Ignored for user-scope as alerting is always disabled for them."
                       }
                     }
                   },
@@ -19037,7 +19037,7 @@
       },
       "delete": {
         "summary": "Delete a budget",
-        "description": "Deletes a budget by ID. The authenticated user must be an enterprise admin.",
+        "description": "Deletes a budget by ID. Enterprise owners and billing managers can delete any budget in the enterprise. Organization administrators can delete budgets scoped to organizations they administer, and repository administrators can delete budgets scoped to repositories they administer.",
         "tags": [
           "billing"
         ],
@@ -19085,7 +19085,7 @@
     "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}/user-states": {
       "get": {
         "summary": "Get user states for a multi-user budget",
-        "description": "Lists per-user budget state for a multi-user customer scoped budget. The authenticated user must be an enterprise admin or billing manager.",
+        "description": "Lists per-user budget state for a multi-user customer scoped budget. Enterprise owners and billing managers can view state across the enterprise. Organization administrators can view state for budgets scoped to organizations they administer.",
         "tags": [
           "billing"
         ],
@@ -19182,7 +19182,7 @@
     "/enterprises/{enterprise}/settings/billing/cost-centers": {
       "get": {
         "summary": "Get all cost centers for an enterprise",
-        "description": "Gets a list of all the cost centers for an enterprise.",
+        "description": "Gets a list of all the cost centers for an enterprise. Enterprise owners and billing managers can view all cost centers. Organization owners can view cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -19225,7 +19225,7 @@
       },
       "post": {
         "summary": "Create a new cost center",
-        "description": "Creates a new cost center for an enterprise. The authenticated user must be an enterprise admin.",
+        "description": "Creates a new cost center for an enterprise. The authenticated user must be an enterprise owner or billing manager.",
         "tags": [
           "billing"
         ],
@@ -19441,7 +19441,7 @@
     "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}": {
       "get": {
         "summary": "Get a cost center by ID",
-        "description": "Gets a cost center by ID. The authenticated user must be an enterprise admin.",
+        "description": "Gets a cost center by ID. Enterprise owners and billing managers can view any cost center. Organization owners can view cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -19490,7 +19490,7 @@
       },
       "patch": {
         "summary": "Update a cost center",
-        "description": "Updates an existing cost center.",
+        "description": "Updates an existing cost center. Enterprise owners and billing managers can update any cost center. Organization owners can update cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -19601,7 +19601,7 @@
       },
       "delete": {
         "summary": "Delete a cost center",
-        "description": "Archieves a cost center by ID. The authenticated user must be an enterprise admin.",
+        "description": "Archives a cost center by ID. Enterprise owners and billing managers can archive any cost center. Organization owners can archive cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -19649,7 +19649,7 @@
     "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}/resource": {
       "post": {
         "summary": "Add resources to a cost center",
-        "description": "Adds resources to a cost center.\n\nThe usage for the resources will be charged to the cost center's budget. The authenticated user must be an enterprise admin in order to use this endpoint.",
+        "description": "Adds resources to a cost center.\n\nThe usage for the resources will be charged to the cost center's budget. Enterprise owners and billing managers can add any resource. Organization owners can add non-team resources to cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -19745,7 +19745,7 @@
       },
       "delete": {
         "summary": "Remove resources from a cost center",
-        "description": "Remove resources from a cost center.\n\nThe usage for the resources will no longer be charged to the cost center's budget. The authenticated user must be an enterprise admin in order to use this endpoint.",
+        "description": "Remove resources from a cost center.\n\nThe usage for the resources will no longer be charged to the cost center's budget. Enterprise owners and billing managers can remove any resource. Organization owners can remove non-team resources from cost centers associated with resources they administer.",
         "tags": [
           "billing"
         ],
@@ -39414,6 +39414,189 @@
         }
       }
     },
+    "/orgs/{org}/credential-authorizations/revoke-all": {
+      "post": {
+        "summary": "Revoke all credential authorizations for an organization",
+        "description": "Revokes all SAML SSO credential authorizations for every member of the\norganization. This removes the sign-in authorizations for personal access\ntokens, SSH keys, OAuth app tokens, and user-to-server tokens that members\nhave authorized for the organization. Members will need to authorize their\ncredentials again to access the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint, that token's\n> authorization for the organization may also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-all-credential-authorizations",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-all-credential-authorizations-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential authorization revocation has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential authorization revocation has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/revoke-credential-type": {
+      "post": {
+        "summary": "Revoke a single credential type for an organization",
+        "description": "Revokes a single credential type (for example, classic personal access tokens)\nacross the organization. This removes the sign-in authorizations for that\ncredential type for every member of the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint and revoke classic\n> personal access tokens, that token's authorization for the organization may\n> also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-type",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credential_type"
+                ],
+                "properties": {
+                  "credential_type": {
+                    "type": "string",
+                    "description": "The type of credential to revoke across the organization.",
+                    "enum": [
+                      "classic_pat",
+                      "fine_grained_pat",
+                      "ssh_key",
+                      "oauth_app_token"
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "credential_type": "classic_pat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential type revocation has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential type revocation has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation error - The `credential_type` is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "invalid_credential_type": {
+                    "summary": "Missing or invalid `credential_type`",
+                    "value": {
+                      "message": "The `credential_type` parameter is required and must be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token",
+                      "documentation_url": "https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-an-organization"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
     "/orgs/{org}/credential-authorizations/{credential_id}": {
       "delete": {
         "summary": "Remove a SAML SSO authorization for an organization",
@@ -39445,6 +39628,195 @@
           },
           "404": {
             "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/{username}/revoke": {
+      "post": {
+        "summary": "Revoke credential authorizations for a user in an organization",
+        "description": "Revokes all SAML SSO credential authorizations for a single user within the\norganization. This removes the sign-in authorizations for the user's personal\naccess tokens, SSH keys, OAuth app tokens, and user-to-server tokens that they\nhave authorized for the organization. The user will need to authorize their\ncredentials again to access the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint and target yourself,\n> that token's authorization for the organization may also be revoked as part of\n> this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-authorizations-for-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-credential-authorizations-for-a-user-in-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/username"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential authorization revocation for user 'octocat' has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential authorization revocation for user 'octocat' has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "orgs",
+          "subcategory": "orgs"
+        }
+      }
+    },
+    "/orgs/{org}/credential-authorizations/{username}/revoke-credential-type": {
+      "post": {
+        "summary": "Revoke a single credential type for a user in an organization",
+        "description": "Revokes a single credential type (for example, classic personal access tokens)\nfor a single user within the organization. This removes the sign-in authorizations\nfor that credential type for the user in the organization.\n\nThis operation is performed asynchronously. A background job will be queued to process\nthe revocations.\n\n> [!WARNING]\n> If you use a personal access token to call this endpoint, target yourself, and\n> revoke classic personal access tokens, that token's authorization for the\n> organization may also be revoked as part of this operation.\n\nThe authenticated user must be an organization owner to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "orgs"
+        ],
+        "operationId": "orgs/revoke-credential-type-for-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "$ref": "#/components/parameters/username"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "credential_type"
+                ],
+                "properties": {
+                  "credential_type": {
+                    "type": "string",
+                    "description": "The type of credential to revoke for the user.",
+                    "enum": [
+                      "classic_pat",
+                      "fine_grained_pat",
+                      "ssh_key",
+                      "oauth_app_token"
+                    ]
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "credential_type": "classic_pat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted - The revocation request has been queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "A message indicating the revocation has been queued"
+                    },
+                    "warning": {
+                      "type": "string",
+                      "description": "A warning message if the token used for this request may be revoked"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Credential type revocation for user 'octocat' has been queued"
+                    }
+                  },
+                  "with_warning": {
+                    "value": {
+                      "message": "Credential type revocation for user 'octocat' has been queued",
+                      "warning": "The token used for this request may also have its authorization revoked as part of this operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation error - The `credential_type` is missing or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                },
+                "examples": {
+                  "invalid_credential_type": {
+                    "summary": "Missing or invalid `credential_type`",
+                    "value": {
+                      "message": "The `credential_type` parameter is required and must be one of: classic_pat, fine_grained_pat, ssh_key, oauth_app_token",
+                      "documentation_url": "https://docs.github.com/rest/orgs/orgs#revoke-a-single-credential-type-for-a-user-in-an-organization"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -69197,7 +69569,7 @@
       },
       "post": {
         "summary": "Create a commit comment",
-        "description": "Create a comment for a commit using its `:commit_sha`.\n\nThis endpoint triggers [notifications](https://docs.github.com/enterprise-cloud@latest/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/enterprise-cloud@latest/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\" and \"[Best practices for using the REST API](https://docs.github.com/enterprise-cloud@latest/rest/guides/best-practices-for-using-the-rest-api).\"\n\nThis endpoint supports the following custom media types. For more information, see \"[Media types](https://docs.github.com/enterprise-cloud@latest/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types).\"\n\n- **`application/vnd.github-commitcomment.raw+json`**: Returns the raw markdown body. Response will include `body`. This is the default if you do not pass any specific media type.\n- **`application/vnd.github-commitcomment.text+json`**: Returns a text only representation of the markdown body. Response will include `body_text`.\n- **`application/vnd.github-commitcomment.html+json`**: Returns HTML rendered from the body's markdown. Response will include `body_html`.\n- **`application/vnd.github-commitcomment.full+json`**: Returns raw, text, and HTML representations. Response will include `body`, `body_text`, and `body_html`.",
+        "description": "Create a comment for a commit using its `:commit_sha`.\n\nAccess to commit comments can be controlled by organization owners. For more information, see \"[Managing commit comments for your organization](https://docs.github.com/enterprise-cloud@latest/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)\".\n\nThis endpoint triggers [notifications](https://docs.github.com/enterprise-cloud@latest/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/enterprise-cloud@latest/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\" and \"[Best practices for using the REST API](https://docs.github.com/enterprise-cloud@latest/rest/guides/best-practices-for-using-the-rest-api).\"\n\nThis endpoint supports the following custom media types. For more information, see \"[Media types](https://docs.github.com/enterprise-cloud@latest/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types).\"\n\n- **`application/vnd.github-commitcomment.raw+json`**: Returns the raw markdown body. Response will include `body`. This is the default if you do not pass any specific media type.\n- **`application/vnd.github-commitcomment.text+json`**: Returns a text only representation of the markdown body. Response will include `body_text`.\n- **`application/vnd.github-commitcomment.html+json`**: Returns HTML rendered from the body's markdown. Response will include `body_html`.\n- **`application/vnd.github-commitcomment.full+json`**: Returns raw, text, and HTML representations. Response will include `body`, `body_text`, and `body_html`.",
         "tags": [
           "repos"
         ],
@@ -96390,7 +96762,7 @@
     "/search/code": {
       "get": {
         "summary": "Search code",
-        "description": "Searches for query terms inside of a file. This method returns up to 100 results [per page](https://docs.github.com/enterprise-cloud@latest/rest/guides/using-pagination-in-the-rest-api).\n\nWhen searching for code, you can get text match metadata for the file **content** and file **path** fields when you pass the `text-match` media type. For more details about how to receive highlighted search results, see [Text match metadata](https://docs.github.com/enterprise-cloud@latest/rest/search/search#text-match-metadata).\n\nFor example, if you want to find the definition of the `addClass` function inside [jQuery](https://github.com/jquery/jquery) repository, your query would look something like this:\n\n`q=addClass+in:file+language:js+repo:jquery/jquery`\n\nThis query searches for the keyword `addClass` within a file's contents. The query limits the search to files where the language is JavaScript in the `jquery/jquery` repository.\n\nConsiderations for code search:\n\nDue to the complexity of searching code, there are a few restrictions on how searches are performed:\n\n*   Only the _default branch_ is considered. In most cases, this will be the `master` branch.\n*   Only files smaller than 384 KB are searchable.\n*   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing\nlanguage:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.\n\n> [!NOTE]\n> `repository.description`, `repository.owner.type`, and `repository.owner.node_id` are closing down on this endpoint and will return `null` in a future API version. Use the [Get a repository](https://docs.github.com/enterprise-cloud@latest/rest/repos/repos#get-a-repository) endpoint (`GET /repos/{owner}/{repo}`) to retrieve full repository metadata.\n\nThis endpoint requires you to authenticate and limits you to 10 requests per minute.",
+        "description": "Searches for query terms inside of a file. This method returns up to 100 results [per page](https://docs.github.com/enterprise-cloud@latest/rest/guides/using-pagination-in-the-rest-api).\n\nWhen searching for code, you can get text match metadata for the file **content** and file **path** fields when you pass the `text-match` media type. For more details about how to receive highlighted search results, see [Text match metadata](https://docs.github.com/enterprise-cloud@latest/rest/search/search#text-match-metadata).\n\nFor example, if you want to find the definition of the `addClass` function inside [jQuery](https://github.com/jquery/jquery) repository, your query would look something like this:\n\n`q=addClass+in:file+language:js+repo:jquery/jquery`\n\nThis query searches for the keyword `addClass` within a file's contents. The query limits the search to files where the language is JavaScript in the `jquery/jquery` repository.\n\nConsiderations for code search:\n\nDue to the complexity of searching code, there are a few restrictions on how searches are performed:\n\n*   Only the _default branch_ is considered. In most cases, this will be the `master` branch.\n*   Only files smaller than 384 KB are searchable.\n*   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing\nlanguage:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.\n\nThis endpoint requires you to authenticate and limits you to 10 requests per minute.",
         "tags": [
           "search"
         ],
@@ -142651,7 +143023,8 @@
         "enum": [
           "false positive",
           "won't fix",
-          "used in tests"
+          "used in tests",
+          "mitigated"
         ]
       },
       "code-scanning-alert-dismissed-comment": {
@@ -149004,7 +149377,7 @@
             "properties": {
               "will_alert": {
                 "type": "boolean",
-                "description": "Whether alerts are enabled for this budget",
+                "description": "Whether alerts are enabled for this budget. Ignored for user-scope as alerting is disabled for them.",
                 "example": true
               },
               "alert_recipients": {
@@ -149012,7 +149385,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "Array of user login names who will receive alerts",
+                "description": "Array of user login names who will receive alerts. Ignored for user-scope as alerting is disabled for them.",
                 "example": [
                   "mona",
                   "lisa"
@@ -149157,7 +149530,7 @@
                 "properties": {
                   "will_alert": {
                     "type": "boolean",
-                    "description": "Whether alerts are enabled for this budget",
+                    "description": "Whether alerts are enabled for this budget. Rejected for user-scope as alerting is always disabled for them.",
                     "example": true
                   },
                   "alert_recipients": {
@@ -149165,7 +149538,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "description": "Array of user login names who will receive alerts",
+                    "description": "Array of user login names who will receive alerts. Rejected for user-scope as alerting is always disabled for them.",
                     "example": [
                       "mona",
                       "lisa"
@@ -149249,7 +149622,7 @@
             "properties": {
               "will_alert": {
                 "type": "boolean",
-                "description": "Whether alerts are enabled for this budget",
+                "description": "Whether alerts are enabled for this budget. Present but not applicable for user-scope as alerting is always disabled for them.",
                 "example": true
               },
               "alert_recipients": {
@@ -149257,7 +149630,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "Array of user login names who will receive alerts",
+                "description": "Array of user login names who will receive alerts. Present but not applicable for user-scope as alerting is always disabled for them.",
                 "example": [
                   "mona",
                   "lisa"
@@ -149359,7 +149732,7 @@
                 "properties": {
                   "will_alert": {
                     "type": "boolean",
-                    "description": "Whether alerts are enabled for this budget",
+                    "description": "Whether alerts are enabled for this budget. Ignored for user-scope as alerting is always disabled for them.",
                     "example": true
                   },
                   "alert_recipients": {
@@ -149367,7 +149740,7 @@
                     "items": {
                       "type": "string"
                     },
-                    "description": "Array of user login names who will receive alerts",
+                    "description": "Array of user login names who will receive alerts. Ignored for user-scope as alerting is always disabled for them.",
                     "example": [
                       "mona",
                       "lisa"
@@ -159898,6 +160271,10 @@
       "projects-v2-field-iteration-configuration": {
         "type": "object",
         "description": "The configuration for iteration fields.",
+        "required": [
+          "start_date",
+          "duration"
+        ],
         "properties": {
           "start_date": {
             "type": "string",
@@ -159914,6 +160291,11 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
+              "required": [
+                "title",
+                "start_date",
+                "duration"
+              ],
               "properties": {
                 "title": {
                   "type": "string",
@@ -163612,12 +163994,14 @@
           "id": {
             "description": "The id of the job.",
             "example": 21,
-            "type": "integer"
+            "type": "integer",
+            "format": "int64"
           },
           "run_id": {
             "description": "The id of the associated workflow run.",
             "example": 5,
-            "type": "integer"
+            "type": "integer",
+            "format": "int64"
           },
           "run_url": {
             "type": "string",
@@ -164066,6 +164450,7 @@
         "properties": {
           "id": {
             "type": "integer",
+            "format": "int64",
             "description": "The ID of the workflow run.",
             "example": 5
           },
@@ -164081,6 +164466,7 @@
           },
           "check_suite_id": {
             "type": "integer",
+            "format": "int64",
             "description": "The ID of the associated check suite.",
             "example": 42
           },
@@ -199057,6 +199443,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -199391,6 +199778,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -199739,7 +200127,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "nullable": true
               },
               "fixed_at": {
@@ -200116,6 +200504,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -200380,7 +200769,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "type": "string",
                 "nullable": true
               },
@@ -200655,7 +201044,7 @@
                 "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
               },
               "dismissed_reason": {
-                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, and `used in tests`.",
+                "description": "The reason for dismissing or closing the alert. Can be one of: `false positive`, `won't fix`, `used in tests`, and `mitigated`.",
                 "nullable": true
               },
               "fixed_at": {
@@ -200989,6 +201378,7 @@
                   "false positive",
                   "won't fix",
                   "used in tests",
+                  "mitigated",
                   null
                 ]
               },
@@ -210788,7 +211178,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
@@ -210860,7 +211250,7 @@
             "$ref": "#/components/schemas/webhooks_repositories_added"
           },
           "repositories_removed": {
-            "description": "An array of repository objects, which were removed from the installation.",
+            "description": "An array of repository objects, which were removed from the installation. When `repository_selection` changes from `all` to `selected`, this array is empty.",
             "type": "array",
             "items": {
               "type": "object",
@@ -342883,22 +343273,16 @@
           "name": "Sprint",
           "data_type": "iteration",
           "iteration_configuration": {
-            "start_day": 1,
+            "start_date": "2022-07-01",
             "duration": 14,
             "iterations": [
               {
-                "title": {
-                  "raw": "Sprint 1",
-                  "html": "Sprint 1"
-                },
+                "title": "Sprint 1",
                 "start_date": "2022-07-01",
                 "duration": 14
               },
               {
-                "title": {
-                  "raw": "Sprint 2",
-                  "html": "Sprint 2"
-                },
+                "title": "Sprint 2",
                 "start_date": "2022-07-15",
                 "duration": 14
               }
@@ -368161,7 +368545,8 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "actor": {
@@ -368241,7 +368626,8 @@
         "description": "Returns workflow runs with the `check_suite_id` that you specify.",
         "in": "query",
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "workflow-run-head-sha": {
@@ -368312,7 +368698,8 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "integer"
+          "type": "integer",
+          "format": "int64"
         }
       },
       "check-suite-id": {

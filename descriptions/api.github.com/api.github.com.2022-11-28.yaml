@@ -9063,12 +9063,15 @@ paths:
                   properties:
                     will_alert:
                       type: boolean
-                      description: Whether alerts are enabled for this budget
+                      description: Whether alerts are enabled for this budget. Rejected
+                        for user-scope as alerting is always disabled for them.
                     alert_recipients:
                       type: array
                       items:
                         type: string
-                      description: Array of user login names who will receive alerts
+                      description: Array of user login names who will receive alerts.
+                        Rejected for user-scope as alerting is always disabled for
+                        them.
                 budget_scope:
                   type: string
                   description: |-
@@ -9248,12 +9251,15 @@ paths:
                   properties:
                     will_alert:
                       type: boolean
-                      description: Whether alerts are enabled for this budget
+                      description: Whether alerts are enabled for this budget. Ignored
+                        for user-scopes as alerting is always disabled for them.
                     alert_recipients:
                       type: array
                       items:
                         type: string
-                      description: Array of user login names who will receive alerts
+                      description: Array of user login names who will receive alerts.
+                        Ignored for user-scopes as alerting is always disabled for
+                        them.
                 budget_scope:
                   type: string
                   description: |-
@@ -40240,6 +40246,8 @@ paths:
       description: |-
         Create a comment for a commit using its `:commit_sha`.
 
+        Access to commit comments can be controlled by organization owners. For more information, see "[Managing commit comments for your organization](https://docs.github.com/organizations/managing-organization-settings/managing-commit-comments-for-your-organization)".
+
         This endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see "[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)" and "[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api)."
 
         This endpoint supports the following custom media types. For more information, see "[Media types](https://docs.github.com/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types)."
@@ -57905,9 +57913,6 @@ paths:
         *   Only files smaller than 384 KB are searchable.
         *   You must always include at least one search term when searching source code. For example, searching for [`language:go`](https://github.com/search?utf8=%E2%9C%93&q=language%3Ago&type=Code) is not valid, while [`amazing
         language:go`](https://github.com/search?utf8=%E2%9C%93&q=amazing+language%3Ago&type=Code) is.
-
-        > [!NOTE]
-        > `repository.description`, `repository.owner.type`, and `repository.owner.node_id` are closing down on this endpoint and will return `null` in a future API version. Use the [Get a repository](https://docs.github.com/rest/repos/repos#get-a-repository) endpoint (`GET /repos/{owner}/{repo}`) to retrieve full repository metadata.
 
         This endpoint requires you to authenticate and limits you to 10 requests per minute.
       tags:
@@ -92878,13 +92883,15 @@ components:
           properties:
             will_alert:
               type: boolean
-              description: Whether alerts are enabled for this budget
+              description: Whether alerts are enabled for this budget. Ignored for
+                user-scope as alerting is disabled for them.
               example: true
             alert_recipients:
               type: array
               items:
                 type: string
-              description: Array of user login names who will receive alerts
+              description: Array of user login names who will receive alerts. Ignored
+                for user-scope as alerting is disabled for them.
               example:
               - mona
               - lisa
@@ -92997,13 +93004,15 @@ components:
               properties:
                 will_alert:
                   type: boolean
-                  description: Whether alerts are enabled for this budget
+                  description: Whether alerts are enabled for this budget. Rejected
+                    for user-scope as alerting is always disabled for them.
                   example: true
                 alert_recipients:
                   type: array
                   items:
                     type: string
-                  description: Array of user login names who will receive alerts
+                  description: Array of user login names who will receive alerts.
+                    Rejected for user-scope as alerting is always disabled for them.
                   example:
                   - mona
                   - lisa
@@ -93064,13 +93073,16 @@ components:
           properties:
             will_alert:
               type: boolean
-              description: Whether alerts are enabled for this budget
+              description: Whether alerts are enabled for this budget. Present but
+                not applicable for user-scope as alerting is always disabled for them.
               example: true
             alert_recipients:
               type: array
               items:
                 type: string
-              description: Array of user login names who will receive alerts
+              description: Array of user login names who will receive alerts. Present
+                but not applicable for user-scope as alerting is always disabled for
+                them.
               example:
               - mona
               - lisa
@@ -93151,13 +93163,15 @@ components:
               properties:
                 will_alert:
                   type: boolean
-                  description: Whether alerts are enabled for this budget
+                  description: Whether alerts are enabled for this budget. Ignored
+                    for user-scope as alerting is always disabled for them.
                   example: true
                 alert_recipients:
                   type: array
                   items:
                     type: string
-                  description: Array of user login names who will receive alerts
+                  description: Array of user login names who will receive alerts.
+                    Ignored for user-scope as alerting is always disabled for them.
                   example:
                   - mona
                   - lisa
@@ -94887,6 +94901,7 @@ components:
       - false positive
       - won't fix
       - used in tests
+      - mitigated
     code-scanning-alert-dismissed-comment:
       type: string
       description: The dismissal comment associated with the dismissal of the alert.
@@ -98636,6 +98651,9 @@ components:
     projects-v2-field-iteration-configuration:
       type: object
       description: The configuration for iteration fields.
+      required:
+      - start_date
+      - duration
       properties:
         start_date:
           type: string
@@ -98651,6 +98669,10 @@ components:
           items:
             type: object
             additionalProperties: false
+            required:
+            - title
+            - start_date
+            - duration
             properties:
               title:
                 type: string
@@ -103607,10 +103629,12 @@ components:
           description: The id of the job.
           example: 21
           type: integer
+          format: int64
         run_id:
           description: The id of the associated workflow run.
           example: 5
           type: integer
+          format: int64
         run_url:
           type: string
           example: https://api.github.com/repos/github/hello-world/actions/runs/5
@@ -103980,6 +104004,7 @@ components:
       properties:
         id:
           type: integer
+          format: int64
           description: The ID of the workflow run.
           example: 5
         name:
@@ -103992,6 +104017,7 @@ components:
           example: MDEwOkNoZWNrU3VpdGU1
         check_suite_id:
           type: integer
+          format: int64
           description: The ID of the associated check suite.
           example: 42
         check_suite_node_id:
@@ -129568,6 +129594,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - null
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -129828,6 +129855,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - null
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -130096,7 +130124,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               nullable: true
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -130389,6 +130417,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - null
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -130598,7 +130627,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               type: string
               nullable: true
             fixed_at:
@@ -130821,7 +130850,7 @@ components:
               "$ref": "#/components/schemas/code-scanning-alert-dismissed-comment"
             dismissed_reason:
               description: 'The reason for dismissing or closing the alert. Can be
-                one of: `false positive`, `won''t fix`, and `used in tests`.'
+                one of: `false positive`, `won''t fix`, `used in tests`, and `mitigated`.'
               nullable: true
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -131082,6 +131111,7 @@ components:
               - false positive
               - won't fix
               - used in tests
+              - mitigated
               - null
             fixed_at:
               description: 'The time that the alert was fixed in ISO 8601 format:
@@ -138114,7 +138144,8 @@ components:
           "$ref": "#/components/schemas/webhooks_repositories_added"
         repositories_removed:
           description: An array of repository objects, which were removed from the
-            installation.
+            installation. When `repository_selection` changes from `all` to `selected`,
+            this array is empty.
           type: array
           items:
             type: object
@@ -138166,7 +138197,8 @@ components:
           "$ref": "#/components/schemas/webhooks_repositories_added"
         repositories_removed:
           description: An array of repository objects, which were removed from the
-            installation.
+            installation. When `repository_selection` changes from `all` to `selected`,
+            this array is empty.
           type: array
           items:
             type: object
@@ -237685,17 +237717,13 @@ components:
         name: Sprint
         data_type: iteration
         iteration_configuration:
-          start_day: 1
+          start_date: '2022-07-01'
           duration: 14
           iterations:
-          - title:
-              raw: Sprint 1
-              html: Sprint 1
+          - title: Sprint 1
             start_date: '2022-07-01'
             duration: 14
-          - title:
-              raw: Sprint 2
-              html: Sprint 2
+          - title: Sprint 2
             start_date: '2022-07-15'
             duration: 14
     projects-v2-field-text:
@@ -259296,6 +259324,7 @@ components:
       required: true
       schema:
         type: integer
+        format: int64
     actor:
       name: actor
       description: Returns someone's workflow runs. Use the login for the user who
@@ -259369,6 +259398,7 @@ components:
       in: query
       schema:
         type: integer
+        format: int64
     workflow-run-head-sha:
       name: head_sha
       description: Only returns workflow runs that are associated with the specified
@@ -259424,6 +259454,7 @@ components:
       required: true
       schema:
         type: integer
+        format: int64
     check-suite-id:
       name: check_suite_id
       description: The unique identifier of the check suite.
