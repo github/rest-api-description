@@ -17,6 +17,10 @@ on:
         description: 'Analyze and report, but do not merge or close anything'
         type: boolean
         default: false
+      test_notify:
+        description: 'Send a test post to #api-platform to prove the chatterbox route works'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -41,8 +45,87 @@ jobs:
       status: ${{ steps.merge.outputs.status }}
       detail: ${{ steps.merge.outputs.detail }}
     steps:
+      - name: Preflight - verify credentials
+        id: preflight
+        env:
+          MERGE_TOKEN: ${{ secrets.OPENAPI_MERGE_TOKEN }}
+          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
+          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TEST_NOTIFY: ${{ inputs.test_notify }}
+        run: |
+          set -euo pipefail
+
+          fail=''
+
+          # --- Merge token ---------------------------------------------------
+          # Falling back to github.token is fine, but a token that is *set* and
+          # broken (expired PAT, revoked, wrong scopes) must fail loudly here
+          # rather than as an opaque `git push` rejection after the merge.
+          if [ -z "${MERGE_TOKEN:-}" ]; then
+            echo "::warning::OPENAPI_MERGE_TOKEN is not set; falling back to GITHUB_TOKEN. Pushes will not trigger downstream workflows."
+          else
+            if ! login=$(GH_TOKEN="$MERGE_TOKEN" gh api user -q '.login' 2>/dev/null); then
+              # Fine-grained tokens and app installation tokens cannot call
+              # /user, so only treat this as fatal if the repo probe also fails.
+              login='(unknown; /user not available for this token type)'
+            fi
+
+            # `gh api` writes its error body to stdout, so a `|| echo ERROR`
+            # sentinel would be appended to that body rather than replacing it.
+            # Branch on the exit status instead.
+            if perms=$(GH_TOKEN="$MERGE_TOKEN" gh api "repos/$GH_REPO" \
+                 -q '"\(.permissions.push)\t\(.permissions.admin)"' 2>/dev/null); then
+              push=${perms%%$'\t'*}
+              if [ "$push" != 'true' ]; then
+                fail+="OPENAPI_MERGE_TOKEN cannot push to $GH_REPO (contents:write missing; permissions.push=$push). "
+              else
+                echo "Merge token OK. Identity: $login, push: $push"
+              fi
+            else
+              fail+="OPENAPI_MERGE_TOKEN is set but cannot read $GH_REPO (expired, revoked, or lacking repo access). "
+            fi
+          fi
+
+          # --- Chatterbox ----------------------------------------------------
+          # The notifier is the only signal that a breaking change was skipped,
+          # so a silently-dead route would make the guard useless.
+          if [ -z "${CHATTERBOX_URL:-}" ] || [ -z "${CHATTERBOX_TOKEN:-}" ]; then
+            fail+="CHATTERBOX_URL/CHATTERBOX_TOKEN are not both set; breaking-change alerts would go nowhere. "
+          else
+            # curl already writes `000` on connection failure *and* exits
+            # non-zero, so a `|| echo 000` fallback would concatenate into
+            # `000000`. Swallow the exit status with `|| true` instead.
+            code=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              --max-time 20 \
+              -u "${CHATTERBOX_TOKEN}:" \
+              "${CHATTERBOX_URL%/}/topics/%23api-platform" \
+              --data ':white_check_mark: OpenAPI auto-merge preflight: chatterbox route is alive.' \
+              || true)
+
+            case "${code:-000}" in
+              2*) echo "Chatterbox OK (HTTP $code)." ;;
+              000|'') fail+="Chatterbox unreachable (connection failed or timed out). " ;;
+              401|403) fail+="Chatterbox rejected CHATTERBOX_TOKEN (HTTP $code). " ;;
+              *) fail+="Chatterbox returned HTTP $code. " ;;
+            esac
+          fi
+
+          if [ -n "$fail" ]; then
+            echo "::error::Preflight failed: $fail"
+            exit 1
+          fi
+
+          if [ "${TEST_NOTIFY:-false}" = 'true' ]; then
+            echo "test_notify requested; preflight post sent. Stopping before any merge."
+            echo "stop=true" >>"$GITHUB_OUTPUT"
+          fi
+
+          echo "Preflight passed."
+
       - name: Select candidate PRs
         id: select
+        if: steps.preflight.outputs.stop != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -243,8 +326,8 @@ jobs:
 
       - name: Notify #api-platform
         if: >-
-          failure() ||
-          steps.breaking.outputs.status == 'breaking'
+          steps.preflight.outcome == 'success' &&
+          (failure() || steps.breaking.outputs.status == 'breaking')
         env:
           CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
           CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
