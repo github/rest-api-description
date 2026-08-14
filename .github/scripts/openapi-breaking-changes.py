@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Detect breaking changes between two OpenAPI description files.
 
-Implements the breaking-change list from
-`github/api-platform/docs/creating-an-openapi-release.md`:
+Implements the project's documented breaking-change list:
 
   1. An operationId name has been changed.
   2. A URL parameter name has been changed.
