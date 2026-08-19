@@ -17,12 +17,19 @@ name: Auto-merge OpenAPI description updates
 #     names are never re-resolved, so a push that lands mid-run cannot slip an
 #     unvalidated commit into a merge.
 #   * Lint must be green, the compatibility scan must come back clean, and a
-#     change summary is posted to the pull request before merge.
+#     change summary is posted to the pull request before merge. The scan
+#     covers the two dotcom source descriptions only; see the FILE_30/FILE_31
+#     comment for the exact surface and what that leaves to lint.
 #   * Merges are held during a GHES release-candidate window. See the "Check
 #     for an active merge freeze" step.
 #
 # Scripts are run from a checkout of this repository's default branch, never
 # from the candidate pull request.
+#
+# Note: the merge is pushed with `GITHUB_TOKEN`, which by design does not
+# trigger `on: push` workflows, so the default branch is not re-linted by the
+# push itself. The same content was linted on the pull request head before
+# merge.
 
 on:
   schedule:
@@ -53,8 +60,15 @@ env:
   # required check on the default branch, and it routinely reports `timed_out`
   # on these pull requests.
   REQUIRED_CHECKS: 'Lint OpenAPI 3.0 releases,Lint OpenAPI 3.1 releases'
-  # The non-dereferenced source of truth: compact, `$ref`-based, and every
-  # platform variant derives from it.
+  # The two non-dereferenced dotcom descriptions: compact, `$ref`-based, and
+  # upstream of the calendar-versioned dotcom variants, which are produced by
+  # applying the changeset extensions declared in these files. These are the
+  # only files the compatibility scan reads, and it compares the described
+  # surface, not those changeset extensions. A bot pull request also updates
+  # the `ghec`, `github.ae` and `ghes-*` trees and their dereferenced forms,
+  # which are version-filtered rather than derived, so a change confined to
+  # one of those is covered by the required lint and the posted change
+  # summary, not by the scan.
   FILE_30: descriptions/api.github.com/api.github.com.yaml
   FILE_31: descriptions-next/api.github.com/api.github.com.yaml
 
@@ -69,6 +83,10 @@ jobs:
       - name: Checkout workflow scripts
         uses: actions/checkout@v4
         with:
+          # Pinned to the default branch on purpose. A `workflow_dispatch` run
+          # can be started from any ref, and without this the write-enabled job
+          # would run the selector and scanner from that ref instead.
+          ref: ${{ github.event.repository.default_branch }}
           path: tools
           fetch-depth: 1
           sparse-checkout: |
@@ -184,16 +202,40 @@ jobs:
 
           # --- Signal 2: a GHES version not yet on the default branch ------
           # Contents are read at the pinned commit, not at a branch name.
-          # `|| true` keeps "no GHES directories at all" as an empty set
-          # rather than a failed step.
-          ghes_on_default=$(gh api "repos/$GH_REPO/contents/descriptions?ref=$DEFAULT_BRANCH" \
-            -q '.[].name' | grep '^ghes-' | sort -u || true)
+          # These reads fail closed: a transient API error that looked like
+          # "no GHES directories" would silently drop the signal, so only a
+          # genuine 404 (the directory does not exist at that ref) becomes an
+          # empty listing. Anything else holds the merge.
+          errors=$(mktemp)
+
+          ghes_dirs() {
+            local ref="$1" dir="$2" listing
+            if listing=$(gh api "repos/$GH_REPO/contents/$dir?ref=$ref" -q '.[].name' 2>"$errors"); then
+              grep '^ghes-' <<<"$listing" | sort -u || true
+              return 0
+            fi
+            grep -q 'HTTP 404' "$errors" && return 0
+            cat "$errors" >&2
+            return 1
+          }
+
+          hold_unverifiable() {
+            echo "::error::Could not read $1 at $2 to check for a GHES release window; holding."
+            echo "status=frozen" >>"$GITHUB_OUTPUT"
+            echo "detail=Could not verify the GHES release state for $1 at $2" >>"$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          if ! ghes_on_default=$(ghes_dirs "$DEFAULT_BRANCH" descriptions); then
+            hold_unverifiable descriptions "$DEFAULT_BRANCH"
+          fi
 
           for sha in "$SHA_30" "$SHA_31"; do
             [ -n "$sha" ] || continue
             for dir in descriptions descriptions-next; do
-              on_pr=$(gh api "repos/$GH_REPO/contents/$dir?ref=$sha" \
-                -q '.[].name' 2>/dev/null | grep '^ghes-' | sort -u || true)
+              if ! on_pr=$(ghes_dirs "$sha" "$dir"); then
+                hold_unverifiable "$dir" "${sha:0:7}"
+              fi
               [ -n "$on_pr" ] || continue
               new=$(comm -13 <(echo "$ghes_on_default") <(echo "$on_pr") | tr '\n' ' ')
               if [ -n "${new// /}" ]; then
@@ -215,6 +257,10 @@ jobs:
         if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         uses: actions/checkout@v4
         with:
+          # Pinned like the tools checkout so the scan baseline and the merge
+          # target are provably the same branch, whatever ref a manual run
+          # was started from.
+          ref: ${{ github.event.repository.default_branch }}
           path: repo
           # Blobless fetch keeps this off the ~4.6 GB full history while still
           # allowing real merges. Blobs for the touched files are fetched lazily.
@@ -366,7 +412,10 @@ jobs:
               echo "_Posted by the auto-merge workflow ([run](${GITHUB_SERVER_URL}/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}))._"
             } >comment.md
 
-            gh pr comment "$pr" --body-file comment.md || echo "::warning::Could not comment on #$pr"
+            # No fallback: the summary is part of the merge contract, so a
+            # failure here must stop the run before the merge step. The
+            # per-commit marker makes a later retry safe.
+            gh pr comment "$pr" --body-file comment.md
           done
 
       - name: Merge and close superseded pull requests
@@ -440,16 +489,19 @@ jobs:
             fi
           done
 
-          # The compatibility scan covers the description files, so a merge is
-          # only allowed to bring in description content. A pull request that
-          # touches workflows, scripts or anything else is left for a human,
-          # even when it carries the right title and author.
+          # A merge is only allowed to bring in description content. A pull
+          # request that touches workflows, scripts or anything else is left
+          # for a human, even when it carries the right title and author.
+          # This is a wider surface than the compatibility scan reads, so the
+          # remainder rests on the required lint and the posted summary.
           for entry in $candidates; do
             rest="${entry#*:}"
             pr="${rest%%:*}"; sha="${rest#*:}"
             base_commit=$(git merge-base "origin/$DEFAULT_BRANCH" "$sha")
-            outside=$(git diff --name-only "$base_commit" "$sha" \
-              | grep -v -E '^descriptions(-next)?/' | sed -n '1,10p' || true)
+            # Captured before filtering so a failed `git diff` aborts the step
+            # instead of looking like "nothing outside the descriptions".
+            changed=$(git diff --name-only "$base_commit" "$sha")
+            outside=$(grep -v -E '^descriptions(-next)?/' <<<"$changed" | sed -n '1,10p' || true)
             if [ -n "$outside" ]; then
               echo "::notice::#$pr changes files outside the description directories; stopping."
               echo "status=out-of-scope" >>"$GITHUB_OUTPUT"
@@ -483,17 +535,28 @@ jobs:
             echo "Merged and pushed: $merged"
           fi
 
+          # Recorded immediately after the push: everything below can fail,
+          # and none of it may hide the fact that the merge already landed.
+          echo "status=merged" >>"$GITHUB_OUTPUT"
+          echo "detail=Merged $merged" >>"$GITHUB_OUTPUT"
+
           # Re-read current state immediately before closing. Selection
           # happened minutes earlier, and a pull request can be retitled,
           # retargeted, transferred or closed in between. A pull request is
           # only closed when it is still open, still authored by the
           # description bot, still targeting the default branch, and still
           # carries the exact title it was superseded under.
+          close_failed=''
           close_superseded() {
             expected="$1"; shift
             for pr in "$@"; do
-              meta=$(gh pr view "$pr" --json title,state,author,baseRefName \
-                -q '[.state, .author.login, .baseRefName, .title] | @tsv')
+              # A failed read is treated exactly like a failed close: the pull
+              # request is still open and still needs a human.
+              if ! meta=$(gh pr view "$pr" --json title,state,author,baseRefName \
+                -q '[.state, .author.login, .baseRefName, .title] | @tsv'); then
+                close_failed+="#$pr "
+                continue
+              fi
               IFS=$'\t' read -r state author base title <<<"$meta"
 
               if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
@@ -504,15 +567,20 @@ jobs:
 
               gh pr close "$pr" \
                 --comment "Superseded by the newer OpenAPI description update(s) ${merged:-just merged}. Closing automatically." \
-                || echo "::warning::Failed to close #$pr"
+                || close_failed+="#$pr "
             done
           }
 
           close_superseded "$title_30" ${SUPERSEDED_30:-}
           close_superseded "$title_31" ${SUPERSEDED_31:-}
 
-          echo "status=merged" >>"$GITHUB_OUTPUT"
-          echo "detail=Merged $merged" >>"$GITHUB_OUTPUT"
+          # A superseded pull request left open would be picked up as a
+          # candidate by the next run, so this must not pass silently.
+          if [ -n "$close_failed" ]; then
+            echo "close_failed=$close_failed" >>"$GITHUB_OUTPUT"
+            echo "::error::Failed to close superseded pull request(s): $close_failed"
+            exit 1
+          fi
 
       - name: Summarize exceptions
         if: >-
@@ -533,9 +601,14 @@ jobs:
           PIN_STATUS: ${{ steps.pin.outputs.status }}
           MERGE_STATUS: ${{ steps.merge.outputs.status }}
           MERGE_DETAIL: ${{ steps.merge.outputs.detail }}
+          MERGE_CLOSE_FAILED: ${{ steps.merge.outputs.close_failed }}
         run: |
           {
-            echo "## Auto-merge did not proceed"
+            if [ -n "$MERGE_CLOSE_FAILED" ]; then
+              echo "## Auto-merge needs follow-up"
+            else
+              echo "## Auto-merge did not proceed"
+            fi
             echo
             if [ "$CHECKS_STATUS" = 'blocked' ]; then
               echo "Required checks were not green: $CHECKS_DETAIL"
@@ -547,6 +620,8 @@ jobs:
               echo "A candidate changed files outside the description directories: $MERGE_DETAIL"
             elif [ "$PIN_STATUS" = 'stale' ] || [ "$MERGE_STATUS" = 'stale' ]; then
               echo "A candidate pull request was updated mid-run, so nothing was merged."
+            elif [ -n "$MERGE_CLOSE_FAILED" ]; then
+              echo "The merge succeeded ($MERGE_DETAIL), but superseded pull request(s) $MERGE_CLOSE_FAILED could not be closed. Close them manually, otherwise the next run treats one of them as a candidate."
             else
               echo "The workflow failed before merging. Review the failed step above."
             fi

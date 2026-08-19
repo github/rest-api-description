@@ -89,6 +89,18 @@ class OperationTest(unittest.TestCase):
         head['paths']['/thing']['get']['operationId'] = 'thing/fetch'
         self.assertEqual(rules(base, head), ['operationid-changed'])
 
+    def test_operationid_removed(self):
+        base = get_op({'type': 'object'})
+        head = copy.deepcopy(base)
+        del head['paths']['/thing']['get']['operationId']
+        self.assertEqual(rules(base, head), ['operationid-removed'])
+
+    def test_operationid_added_is_not_breaking(self):
+        head = get_op({'type': 'object'})
+        base = copy.deepcopy(head)
+        del base['paths']['/thing']['get']['operationId']
+        self.assertEqual(rules(base, head), [])
+
     def test_path_parameter_renamed_behind_a_ref(self):
         base = doc(paths={
             '/repos/{owner}': {
@@ -197,6 +209,11 @@ class OperationTest(unittest.TestCase):
 
 
 class RequestDirectionTest(unittest.TestCase):
+    def test_request_type_declaration_removed_is_not_breaking(self):
+        base = post_op({'type': 'object', 'properties': {'id': {'type': 'integer'}}})
+        head = post_op({'type': 'object', 'properties': {'id': {'description': 'id'}}})
+        self.assertEqual(rules(base, head), [])
+
     def test_request_body_became_required(self):
         base = post_op({'type': 'object'}, required=False)
         head = post_op({'type': 'object'}, required=True)
@@ -388,6 +405,16 @@ class ResponseDirectionTest(unittest.TestCase):
     def test_adding_a_response_required_field_is_not_breaking(self):
         schema = {'type': 'object', 'properties': {'id': {'type': 'integer'}}}
         self.assertEqual(rules(get_op(schema), get_op(dict(schema, required=['id']))), [])
+
+    def test_response_type_declaration_removed(self):
+        base = get_op({'type': 'object', 'properties': {'id': {'type': 'integer'}}})
+        head = get_op({'type': 'object', 'properties': {'id': {'description': 'id'}}})
+        self.assertEqual(rules(base, head), ['type-declaration-removed'])
+
+    def test_response_type_declaration_added_is_not_breaking(self):
+        head = get_op({'type': 'object', 'properties': {'id': {'type': 'integer'}}})
+        base = get_op({'type': 'object', 'properties': {'id': {'description': 'id'}}})
+        self.assertEqual(rules(base, head), [])
 
     def test_response_type_change_in_either_direction(self):
         base = get_op({'type': 'object', 'properties': {'id': {'type': 'integer'}}})

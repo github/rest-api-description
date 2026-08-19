@@ -5,7 +5,7 @@ Scope
 -----
 Implements the breaking-change list documented for these descriptions:
 
-  1. An operationId name has been changed.
+  1. An operationId name has been changed or removed.
   2. A URL parameter name has been changed.
   3. An operation has been removed from the description.
   4. A `required: true` has been added to the requestBody.
@@ -48,11 +48,12 @@ Direction matters, and line-based diffing gets it wrong. For a *request*
 body, *adding* to `required` is breaking; for a *response* body, *removing*
 from `required` is breaking. The walk therefore carries a direction and
 applies the asymmetric rules: a removed property, a removed `required` entry
-and any change to a declared `type` are breaking on a response, while a newly
-required property, a removed union member and a narrowed `type` are breaking
-on a request. Parameters are compared with the request rules, including a
-newly added required parameter; webhook payloads with the response rules,
-because consumers receive them.
+and any change to a declared `type`, including dropping the declaration
+altogether, are breaking on a response, while a newly required property, a
+removed union member and a narrowed `type` are breaking on a request.
+Parameters are compared with the request rules, including a newly added
+required parameter; webhook payloads with the response rules, because
+consumers receive them.
 
 Known limits (deliberately not claimed as covered): external/file `$ref`
 targets are compared by pointer string only; `not`, `discriminator`,
@@ -280,7 +281,17 @@ class Comparator:
 
     def _compare_types(self, base, head, where, direction):
         base_types, head_types = self.types(base), self.types(head)
-        if not base_types or not head_types:
+        if not base_types:
+            return
+        if not head_types:
+            # Dropping the declaration widens what may be sent, which a
+            # request producer survives, but it removes the guarantee a
+            # response consumer was written against.
+            if direction == 'response':
+                self.report(
+                    'type-declaration-removed',
+                    f'{where}: declared type {sorted(base_types)} was removed',
+                )
             return
         # A response consumer breaks on any type change, including a widened
         # set it was never written to handle. A request producer only breaks
@@ -444,7 +455,14 @@ class Comparator:
         head_shared=(),
     ):
         base_id, head_id = base_op.get('operationId'), head_op.get('operationId')
-        if base_id and head_id and base_id != head_id:
+        if base_id and not head_id:
+            # Generators derive client method names from `operationId`, so
+            # dropping one renames the generated method just as a change does.
+            self.report(
+                'operationid-removed',
+                f'{label}: operationId {base_id!r} was removed',
+            )
+        elif base_id and head_id and base_id != head_id:
             self.report(
                 'operationid-changed',
                 f'{label}: operationId {base_id!r} -> {head_id!r}',
