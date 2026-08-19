@@ -17,6 +17,9 @@ than an inline `jq` filter:
 * A title only contributes superseded pull requests when its own newest
   pull request was selected, so nothing is closed unless a validated
   replacement for that exact title is being merged.
+* Superseded numbers are emitted per title rather than in one list, so the
+  workflow can confirm a pull request still carries the title it was
+  selected under before closing it.
 * The head commit SHA of each selected pull request is emitted alongside its
   number, so every later step can pin to the exact commit that was inspected
   instead of resolving a branch name again.
@@ -29,6 +32,9 @@ import sys
 TITLE_30 = 'Update OpenAPI 3.0 Descriptions'
 TITLE_31 = 'Update OpenAPI 3.1 Descriptions'
 TITLES = (TITLE_30, TITLE_31)
+# Output suffix -> exact title. The workflow reads a title through `--title`
+# so the two files never drift apart.
+GROUPS = (('30', TITLE_30), ('31', TITLE_31))
 
 
 def _sort_key(pr):
@@ -42,7 +48,8 @@ def select(pull_requests):
 
     A title only contributes superseded pull requests when its own newest
     pull request was actually selected. Nothing is ever closed on the basis
-    of a replacement that was not validated.
+    of a replacement that was not validated. The superseded numbers are keyed
+    by title so the caller can re-check that association before closing.
     """
     recognised = [
         pr
@@ -51,7 +58,7 @@ def select(pull_requests):
     ]
 
     selected = {}
-    superseded = []
+    superseded = {title: [] for title in TITLES}
     for title in TITLES:
         candidates = [pr for pr in recognised if pr['title'] == title]
         if not candidates:
@@ -63,38 +70,39 @@ def select(pull_requests):
         if not newest.get('headRefOid'):
             continue
         selected[title] = newest
-        superseded.extend(
+        superseded[title] = sorted(
             pr['number'] for pr in candidates if pr['number'] != newest['number']
         )
 
-    return selected, sorted(superseded)
+    return selected, superseded
 
 
 def outputs(pull_requests):
     selected, superseded = select(pull_requests)
 
     lines = [f'found={"true" if selected else "false"}']
-    for suffix, title in (('30', TITLE_30), ('31', TITLE_31)):
+    for suffix, title in GROUPS:
         pr = selected.get(title)
         lines.append(f'pr_{suffix}={pr["number"] if pr else ""}')
         lines.append(f'sha_{suffix}={pr["headRefOid"] if pr else ""}')
+        lines.append(
+            f'superseded_{suffix}=' + ' '.join(str(n) for n in superseded[title])
+        )
 
-    lines.append('superseded=' + ' '.join(str(n) for n in superseded))
     return lines
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
-        '--titles',
-        action='store_true',
-        help='print the recognised titles, one per line, and exit',
+        '--title',
+        choices=[suffix for suffix, _ in GROUPS],
+        help='print the exact recognised title for one output group and exit',
     )
     args = parser.parse_args(argv)
 
-    if args.titles:
-        for title in TITLES:
-            print(title)
+    if args.title:
+        print(dict(GROUPS)[args.title])
         return 0
 
     payload = json.load(sys.stdin)

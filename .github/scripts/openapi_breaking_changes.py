@@ -29,7 +29,9 @@ instead walks the document:
   including refs inside `parameters`, `responses` and `requestBody`.
 * Comparison recurses through `properties`, `items` (arrays, including the
   3.1 tuple form), `additionalProperties`, `allOf`/`oneOf`/`anyOf`, and
-  operation parameter schemas.
+  operation parameter schemas. Parameters declared on the path item are
+  included, with an operation-level parameter of the same name and location
+  taking precedence, as the specification requires.
 * `allOf` members are merged into an effective schema so that inherited
   properties and `required` entries participate in the comparison.
 * Inline schemas are covered because the walk starts from every operation's
@@ -48,8 +50,9 @@ from `required` is breaking. The walk therefore carries a direction and
 applies the asymmetric rules: a removed property, a removed `required` entry
 and any change to a declared `type` are breaking on a response, while a newly
 required property, a removed union member and a narrowed `type` are breaking
-on a request. Parameters are compared with the request rules; webhook
-payloads with the response rules, because consumers receive them.
+on a request. Parameters are compared with the request rules, including a
+newly added required parameter; webhook payloads with the response rules,
+because consumers receive them.
 
 Known limits (deliberately not claimed as covered): external/file `$ref`
 targets are compared by pointer string only; `not`, `discriminator`,
@@ -402,10 +405,15 @@ class Comparator:
 
     # -- document comparison ---------------------------------------------
 
-    def parameters(self, doc, op):
-        """Resolved parameters for an operation, keyed by `(in, name)`."""
+    def parameters(self, doc, op, shared=()):
+        """Resolved parameters for an operation, keyed by `(in, name)`.
+
+        Path-item parameters apply to every operation under that path, and an
+        operation-level parameter with the same name and location overrides
+        the shared one, so the shared list is applied first.
+        """
         out = {}
-        for param in op.get('parameters') or []:
+        for param in list(shared or []) + list(op.get('parameters') or []):
             resolved, _ = self.resolve(doc, param)
             if isinstance(resolved, dict) and resolved.get('name'):
                 out[(resolved.get('in'), resolved['name'])] = resolved
@@ -426,7 +434,15 @@ class Comparator:
         }
         return resolved, schemas
 
-    def compare_operation(self, base_op, head_op, label, request_direction='request'):
+    def compare_operation(
+        self,
+        base_op,
+        head_op,
+        label,
+        request_direction='request',
+        base_shared=(),
+        head_shared=(),
+    ):
         base_id, head_id = base_op.get('operationId'), head_op.get('operationId')
         if base_id and head_id and base_id != head_id:
             self.report(
@@ -434,8 +450,8 @@ class Comparator:
                 f'{label}: operationId {base_id!r} -> {head_id!r}',
             )
 
-        base_params = self.parameters(self.base, base_op)
-        head_params = self.parameters(self.head, head_op)
+        base_params = self.parameters(self.base, base_op, base_shared)
+        head_params = self.parameters(self.head, head_op, head_shared)
         removed_path_params = sorted(
             name for (loc, name) in set(base_params) - set(head_params) if loc == 'path'
         )
@@ -443,6 +459,23 @@ class Comparator:
             self.report(
                 'url-parameter-renamed',
                 f'{label}: path parameter(s) gone: {removed_path_params}',
+            )
+
+        added_required_params = sorted(
+            (str(loc), name)
+            for (loc, name) in set(head_params) - set(base_params)
+            # Path parameters are excluded: they are required by definition,
+            # a rename is already reported as `url-parameter-renamed`, and a
+            # genuinely new one changes the path template, which surfaces as a
+            # removed operation instead.
+            if loc != 'path' and head_params[(loc, name)].get('required')
+        )
+        for location, name in added_required_params:
+            # An existing caller cannot satisfy a requirement it has never
+            # heard of, so this is as breaking as making a parameter required.
+            self.report(
+                'parameter-added-required',
+                f'{label}: new required {location} parameter {name!r}',
             )
 
         for key in sorted(
@@ -469,27 +502,36 @@ class Comparator:
 
         base_body, base_body_schemas = self.json_schemas(self.base, base_op.get('requestBody'))
         head_body, head_body_schemas = self.json_schemas(self.head, head_op.get('requestBody'))
-        if isinstance(base_body, dict) and base_body:
-            if not isinstance(head_body, dict) or not head_body:
-                # The operation no longer accepts a body at all, so callers
-                # that send one may now be rejected.
+        base_has_body = isinstance(base_body, dict) and bool(base_body)
+        head_has_body = isinstance(head_body, dict) and bool(head_body)
+        if base_has_body and not head_has_body:
+            # The operation no longer accepts a body at all, so callers that
+            # send one may now be rejected.
+            self.report(
+                'request-body-removed',
+                f'{label}: requestBody was removed',
+            )
+        elif head_has_body and head_body.get('required'):
+            if not base_has_body:
+                # Introducing a required body imposes the same new obligation
+                # on every existing caller as making an optional one required.
                 self.report(
-                    'request-body-removed',
-                    f'{label}: requestBody was removed',
+                    'requestbody-now-required',
+                    f'{label}: a required requestBody was added',
                 )
-            else:
-                if head_body.get('required') and not base_body.get('required'):
-                    self.report(
-                        'requestbody-now-required',
-                        f'{label}: requestBody became required',
-                    )
-                # Mirrors the response side: a caller that submits JSON breaks
-                # when that media type stops being accepted.
-                for media in sorted(set(base_body_schemas) - set(head_body_schemas)):
-                    self.report(
-                        'request-media-type-removed',
-                        f'{label} request body: {media} was removed',
-                    )
+            elif not base_body.get('required'):
+                self.report(
+                    'requestbody-now-required',
+                    f'{label}: requestBody became required',
+                )
+        if base_has_body and head_has_body:
+            # Mirrors the response side: a caller that submits JSON breaks
+            # when that media type stops being accepted.
+            for media in sorted(set(base_body_schemas) - set(head_body_schemas)):
+                self.report(
+                    'request-media-type-removed',
+                    f'{label} request body: {media} was removed',
+                )
         for media in sorted(set(base_body_schemas) & set(head_body_schemas)):
             self.compare_schema(
                 base_body_schemas[media],
@@ -533,13 +575,21 @@ class Comparator:
 
     def compare_paths(self):
         base_ops, head_ops = operations(self.base), operations(self.head)
+        base_shared = shared_parameters(self.base)
+        head_shared = shared_parameters(self.head)
         for key in sorted(base_ops):
             path, method = key
             label = f'{method.upper()} {path}'
             if key not in head_ops:
                 self.report('operation-removed', f'{label} was removed')
                 continue
-            self.compare_operation(base_ops[key], head_ops[key], label)
+            self.compare_operation(
+                base_ops[key],
+                head_ops[key],
+                label,
+                base_shared=base_shared.get(path, ()),
+                head_shared=head_shared.get(path, ()),
+            )
 
     def compare_webhooks(self):
         """Walk `webhooks` (3.1) and `x-webhooks` (3.0) payload schemas.
@@ -549,9 +599,13 @@ class Comparator:
         """
         for container in ('webhooks', 'x-webhooks'):
             base_hooks = self.base.get(container)
-            head_hooks = self.head.get(container)
-            if not isinstance(base_hooks, dict) or not isinstance(head_hooks, dict):
+            if not isinstance(base_hooks, dict):
                 continue
+            head_hooks = self.head.get(container)
+            if not isinstance(head_hooks, dict):
+                # Dropping the container removes every webhook in it, so it is
+                # treated as empty rather than skipped.
+                head_hooks = {}
             for name in sorted(base_hooks):
                 base_item, _ = self.resolve(self.base, base_hooks[name])
                 head_item, _ = self.resolve(self.head, head_hooks.get(name))
@@ -562,13 +616,22 @@ class Comparator:
                     continue
                 for method in METHODS:
                     base_op, head_op = base_item.get(method), head_item.get(method)
-                    if isinstance(base_op, dict) and isinstance(head_op, dict):
-                        self.compare_operation(
-                            base_op,
-                            head_op,
-                            f'webhook {name}',
-                            request_direction='response',
+                    if not isinstance(base_op, dict):
+                        continue
+                    if not isinstance(head_op, dict):
+                        self.report(
+                            'webhook-operation-removed',
+                            f'webhook {name}: {method.upper()} was removed',
                         )
+                        continue
+                    self.compare_operation(
+                        base_op,
+                        head_op,
+                        f'webhook {name}',
+                        request_direction='response',
+                        base_shared=base_item.get('parameters') or (),
+                        head_shared=head_item.get('parameters') or (),
+                    )
 
     def compare_components(self):
         """Report `components/schemas` removals (rule 9).
@@ -600,6 +663,20 @@ def operations(doc):
         for method, op in item.items():
             if method in METHODS and isinstance(op, dict):
                 out[(path, method)] = op
+    return out
+
+
+def shared_parameters(doc):
+    """Map `path` -> the path item's own `parameters` list.
+
+    These apply to every operation under the path unless the operation
+    declares a parameter with the same name and location.
+    """
+    out = {}
+    paths = doc.get('paths')
+    for path, item in (paths if isinstance(paths, dict) else {}).items():
+        if isinstance(item, dict) and isinstance(item.get('parameters'), list):
+            out[path] = item['parameters']
     return out
 
 

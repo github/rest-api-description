@@ -202,6 +202,98 @@ class RequestDirectionTest(unittest.TestCase):
         head = post_op({'type': 'object'}, required=True)
         self.assertEqual(rules(base, head), ['requestbody-now-required'])
 
+    def test_new_required_request_body_added(self):
+        head = post_op({'type': 'object'}, required=True)
+        base = copy.deepcopy(head)
+        del base['paths']['/thing']['post']['requestBody']
+        self.assertEqual(rules(base, head), ['requestbody-now-required'])
+        self.assertEqual(
+            details(base, head, 'requestbody-now-required'),
+            ['POST /thing: a required requestBody was added'],
+        )
+
+    def test_added_required_path_parameter_is_not_double_reported(self):
+        base = get_op({'type': 'object'}, path='/thing/{id}')
+        base['paths']['/thing/{id}']['get']['parameters'] = [
+            {'name': 'id', 'in': 'path', 'required': True, 'schema': {'type': 'string'}}
+        ]
+        head = copy.deepcopy(base)
+        head['paths']['/thing/{id}']['get']['parameters'] = [
+            {'name': 'thing_id', 'in': 'path', 'required': True, 'schema': {'type': 'string'}}
+        ]
+        self.assertEqual(rules(base, head), ['url-parameter-renamed'])
+
+    def test_path_item_required_parameter_added(self):
+        base = get_op({'type': 'object'})
+        head = copy.deepcopy(base)
+        head['paths']['/thing']['parameters'] = [
+            {'name': 'since', 'in': 'query', 'required': True, 'schema': {'type': 'string'}}
+        ]
+        self.assertEqual(rules(base, head), ['parameter-added-required'])
+
+    def test_path_item_parameter_became_required(self):
+        base = get_op({'type': 'object'})
+        base['paths']['/thing']['parameters'] = [
+            {'name': 'q', 'in': 'query', 'schema': {'type': 'string'}}
+        ]
+        head = copy.deepcopy(base)
+        head['paths']['/thing']['parameters'][0]['required'] = True
+        self.assertEqual(rules(base, head), ['parameter-now-required'])
+
+    def test_moving_a_parameter_to_the_operation_is_not_breaking(self):
+        param = {'name': 'q', 'in': 'query', 'schema': {'type': 'string'}}
+        base = get_op({'type': 'object'})
+        base['paths']['/thing']['parameters'] = [param]
+        head = get_op({'type': 'object'})
+        head['paths']['/thing']['get']['parameters'] = [dict(param)]
+        self.assertEqual(rules(base, head), [])
+
+    def test_operation_parameter_overrides_the_path_item_one(self):
+        base = get_op({'type': 'object'})
+        base['paths']['/thing']['parameters'] = [
+            {'name': 'q', 'in': 'query', 'required': True, 'schema': {'type': 'string'}}
+        ]
+        base['paths']['/thing']['get']['parameters'] = [
+            {'name': 'q', 'in': 'query', 'schema': {'type': 'string'}}
+        ]
+        head = copy.deepcopy(base)
+        # The operation keeps it optional, so the required path-item entry
+        # must not be what gets compared.
+        head['paths']['/thing']['get']['parameters'][0]['schema'] = {'type': 'string'}
+        self.assertEqual(rules(base, head), [])
+
+    def test_new_required_query_parameter(self):
+        base = get_op({'type': 'object'})
+        head = copy.deepcopy(base)
+        head['paths']['/thing']['get']['parameters'] = [
+            {'name': 'since', 'in': 'query', 'required': True, 'schema': {'type': 'string'}}
+        ]
+        self.assertEqual(rules(base, head), ['parameter-added-required'])
+        self.assertEqual(
+            details(base, head, 'parameter-added-required'),
+            ["GET /thing: new required query parameter 'since'"],
+        )
+
+    def test_new_optional_parameter_is_not_breaking(self):
+        base = get_op({'type': 'object'})
+        head = copy.deepcopy(base)
+        head['paths']['/thing']['get']['parameters'] = [
+            {'name': 'since', 'in': 'query', 'schema': {'type': 'string'}}
+        ]
+        self.assertEqual(rules(base, head), [])
+
+    def test_new_required_parameter_behind_a_ref(self):
+        base = get_op({'type': 'object'})
+        base['components'] = {'parameters': {
+            'since': {'name': 'since', 'in': 'header', 'required': True,
+                      'schema': {'type': 'string'}},
+        }}
+        head = copy.deepcopy(base)
+        head['paths']['/thing']['get']['parameters'] = [
+            {'$ref': '#/components/parameters/since'}
+        ]
+        self.assertEqual(rules(base, head), ['parameter-added-required'])
+
     def test_request_body_removed_entirely(self):
         base = post_op({'type': 'object'}, required=True)
         head = copy.deepcopy(base)
@@ -671,6 +763,27 @@ class WebhookTest(unittest.TestCase):
     def test_webhook_removed(self):
         base = self._hooks('webhooks', {'type': 'string'})
         self.assertEqual(rules(base, doc(webhooks={})), ['webhook-removed'])
+
+    def test_whole_webhook_container_removed(self):
+        base = self._hooks('webhooks', {'type': 'string'})
+        self.assertEqual(rules(base, doc()), ['webhook-removed'])
+
+    def test_x_webhooks_container_removed(self):
+        base = self._hooks('x-webhooks', {'type': 'string'})
+        self.assertEqual(rules(base, doc()), ['webhook-removed'])
+
+    def test_webhook_method_removed(self):
+        base = self._hooks('webhooks', {'type': 'string'})
+        head = doc(webhooks={'push': {'description': 'still documented'}})
+        self.assertEqual(rules(base, head), ['webhook-operation-removed'])
+        self.assertEqual(
+            details(base, head, 'webhook-operation-removed'),
+            ['webhook push: POST was removed'],
+        )
+
+    def test_adding_a_webhook_is_not_breaking(self):
+        head = self._hooks('webhooks', {'type': 'string'})
+        self.assertEqual(rules(doc(), head), [])
 
 
 class OutputTest(unittest.TestCase):

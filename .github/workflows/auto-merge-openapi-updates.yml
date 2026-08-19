@@ -11,7 +11,8 @@ name: Auto-merge OpenAPI description updates
 # Safety properties:
 #   * Only pull requests titled exactly "Update OpenAPI 3.0 Descriptions" or
 #     "Update OpenAPI 3.1 Descriptions" are ever merged or closed, and a
-#     superseded pull request is re-checked immediately before it is closed.
+#     superseded pull request is re-checked against the exact title it was
+#     superseded under, immediately before it is closed.
 #   * Every step pins to the head commit SHA captured during selection. Branch
 #     names are never re-resolved, so a push that lands mid-run cannot slip an
 #     unvalidated commit into a merge.
@@ -379,40 +380,86 @@ jobs:
           SHA_31: ${{ steps.select.outputs.sha_31 }}
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
-          SUPERSEDED: ${{ steps.select.outputs.superseded }}
+          SUPERSEDED_30: ${{ steps.select.outputs.superseded_30 }}
+          SUPERSEDED_31: ${{ steps.select.outputs.superseded_31 }}
           DRY_RUN: ${{ inputs.dry_run }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
-          # The recognised titles come from the selection script so there is a
-          # single source of truth for what this workflow is allowed to touch.
-          recognised_titles=$(python3 \
-            "$GITHUB_WORKSPACE/tools/.github/scripts/select_openapi_prs.py" --titles)
+          # Titles come from the selection script so there is a single source
+          # of truth for what this workflow is allowed to touch, and each
+          # group is matched against its own exact title rather than against
+          # "either of the two".
+          selector="$GITHUB_WORKSPACE/tools/.github/scripts/select_openapi_prs.py"
+          title_30=$(python3 "$selector" --title 30)
+          title_31=$(python3 "$selector" --title 31)
+
+          title_for() {
+            case "$1" in
+              30) printf '%s\n' "$title_30" ;;
+              31) printf '%s\n' "$title_31" ;;
+            esac
+          }
 
           candidates=''
-          for pair in "$PR_30:$SHA_30" "$PR_31:$SHA_31"; do
-            pr="${pair%%:*}"; sha="${pair#*:}"
+          for entry in "30:$PR_30:$SHA_30" "31:$PR_31:$SHA_31"; do
+            rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
             [ -n "$pr" ] && [ -n "$sha" ] || continue
-            candidates+="$pair "
+            candidates+="$entry "
           done
 
-          # Confirm every candidate still points at the commit that was checked
-          # and scanned, before anything is merged. A mismatch means the pull
-          # request moved mid-run, so nothing is merged or closed.
-          for pair in $candidates; do
-            pr="${pair%%:*}"; sha="${pair#*:}"
-            current=$(gh pr view "$pr" --json headRefOid -q .headRefOid)
+          # Confirm every candidate is still exactly what was validated: the
+          # same commit, still open, still authored by the description bot,
+          # still titled as a description update, and still targeting the
+          # default branch. Any mismatch means the pull request changed
+          # mid-run, so nothing is merged or closed.
+          for entry in $candidates; do
+            suffix="${entry%%:*}"; rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
+            meta=$(gh pr view "$pr" \
+              --json headRefOid,state,author,title,baseRefName \
+              -q '[.headRefOid, .state, .author.login, .baseRefName, .title] | @tsv')
+            IFS=$'\t' read -r current state author base title <<<"$meta"
+
             if [ "$current" != "$sha" ]; then
               echo "::notice::#$pr moved from $sha to $current since validation; stopping."
               echo "status=stale" >>"$GITHUB_OUTPUT"
               echo "detail=#$pr moved during the run" >>"$GITHUB_OUTPUT"
               exit 0
             fi
+
+            if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
+              || [ "$base" != "$DEFAULT_BRANCH" ] \
+              || [ "$title" != "$(title_for "$suffix")" ]; then
+              echo "::notice::#$pr is no longer an open $BOT_LOGIN description update targeting $DEFAULT_BRANCH; stopping."
+              echo "status=stale" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr changed during the run" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          # The compatibility scan covers the description files, so a merge is
+          # only allowed to bring in description content. A pull request that
+          # touches workflows, scripts or anything else is left for a human,
+          # even when it carries the right title and author.
+          for entry in $candidates; do
+            rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
+            base_commit=$(git merge-base "origin/$DEFAULT_BRANCH" "$sha")
+            outside=$(git diff --name-only "$base_commit" "$sha" \
+              | grep -v -E '^descriptions(-next)?/' | sed -n '1,10p' || true)
+            if [ -n "$outside" ]; then
+              echo "::notice::#$pr changes files outside the description directories; stopping."
+              echo "status=out-of-scope" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr changes $(tr '\n' ' ' <<<"$outside")" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
           done
 
           if [ "$DRY_RUN" = "true" ]; then
-            echo "Dry run: would merge ${candidates:-none}, close: ${SUPERSEDED:-none}"
+            echo "Dry run: would merge ${candidates:-none}, close: ${SUPERSEDED_30:-} ${SUPERSEDED_31:-}"
             echo "status=dry-run" >>"$GITHUB_OUTPUT"
             exit 0
           fi
@@ -424,8 +471,9 @@ jobs:
           merged=''
           # 3.0 first, then 3.1: they touch disjoint trees but this ordering
           # keeps the generated merge history readable.
-          for pair in $candidates; do
-            pr="${pair%%:*}"; sha="${pair#*:}"
+          for entry in $candidates; do
+            rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
             git merge --no-ff "$sha" -m "Merge pull request #$pr ($sha)"
             merged+="#$pr "
           done
@@ -435,25 +483,33 @@ jobs:
             echo "Merged and pushed: $merged"
           fi
 
-          for pr in $SUPERSEDED; do
-            # Re-read current state immediately before closing. Selection
-            # happened minutes earlier, and a pull request can be retitled,
-            # transferred or closed in between; only a still-open description
-            # update by the same author is closed.
-            meta=$(gh pr view "$pr" --json title,state,author \
-              -q '[.title, .state, .author.login] | @tsv')
-            IFS=$'\t' read -r title state author <<<"$meta"
+          # Re-read current state immediately before closing. Selection
+          # happened minutes earlier, and a pull request can be retitled,
+          # retargeted, transferred or closed in between. A pull request is
+          # only closed when it is still open, still authored by the
+          # description bot, still targeting the default branch, and still
+          # carries the exact title it was superseded under.
+          close_superseded() {
+            expected="$1"; shift
+            for pr in "$@"; do
+              meta=$(gh pr view "$pr" --json title,state,author,baseRefName \
+                -q '[.state, .author.login, .baseRefName, .title] | @tsv')
+              IFS=$'\t' read -r state author base title <<<"$meta"
 
-            if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
-              || ! grep -qxF "$title" <<<"$recognised_titles"; then
-              echo "::notice::Leaving #$pr open: no longer a $BOT_LOGIN description update."
-              continue
-            fi
+              if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
+                || [ "$base" != "$DEFAULT_BRANCH" ] || [ "$title" != "$expected" ]; then
+                echo "::notice::Leaving #$pr open: it no longer matches the pull request that was superseded."
+                continue
+              fi
 
-            gh pr close "$pr" \
-              --comment "Superseded by the newer OpenAPI description update(s) ${merged:-just merged}. Closing automatically." \
-              || echo "::warning::Failed to close #$pr"
-          done
+              gh pr close "$pr" \
+                --comment "Superseded by the newer OpenAPI description update(s) ${merged:-just merged}. Closing automatically." \
+                || echo "::warning::Failed to close #$pr"
+            done
+          }
+
+          close_superseded "$title_30" ${SUPERSEDED_30:-}
+          close_superseded "$title_31" ${SUPERSEDED_31:-}
 
           echo "status=merged" >>"$GITHUB_OUTPUT"
           echo "detail=Merged $merged" >>"$GITHUB_OUTPUT"
@@ -461,25 +517,34 @@ jobs:
       - name: Summarize exceptions
         if: >-
           failure() ||
+          steps.checks.outputs.status == 'blocked' ||
           steps.breaking.outputs.status == 'breaking' ||
           steps.freeze.outputs.status == 'frozen' ||
           steps.pin.outputs.status == 'stale' ||
-          steps.merge.outputs.status == 'stale'
+          steps.merge.outputs.status == 'stale' ||
+          steps.merge.outputs.status == 'out-of-scope'
         env:
+          CHECKS_STATUS: ${{ steps.checks.outputs.status }}
+          CHECKS_DETAIL: ${{ steps.checks.outputs.detail }}
           FREEZE_STATUS: ${{ steps.freeze.outputs.status }}
           FREEZE_DETAIL: ${{ steps.freeze.outputs.detail }}
           BREAKING_STATUS: ${{ steps.breaking.outputs.status }}
           BREAKING_DETAIL: ${{ steps.breaking.outputs.detail }}
           PIN_STATUS: ${{ steps.pin.outputs.status }}
           MERGE_STATUS: ${{ steps.merge.outputs.status }}
+          MERGE_DETAIL: ${{ steps.merge.outputs.detail }}
         run: |
           {
             echo "## Auto-merge did not proceed"
             echo
-            if [ "$FREEZE_STATUS" = 'frozen' ]; then
+            if [ "$CHECKS_STATUS" = 'blocked' ]; then
+              echo "Required checks were not green: $CHECKS_DETAIL"
+            elif [ "$FREEZE_STATUS" = 'frozen' ]; then
               echo "A merge freeze was detected: $FREEZE_DETAIL"
             elif [ "$BREAKING_STATUS" = 'breaking' ]; then
               echo "Potential breaking changes were detected: $BREAKING_DETAIL"
+            elif [ "$MERGE_STATUS" = 'out-of-scope' ]; then
+              echo "A candidate changed files outside the description directories: $MERGE_DETAIL"
             elif [ "$PIN_STATUS" = 'stale' ] || [ "$MERGE_STATUS" = 'stale' ]; then
               echo "A candidate pull request was updated mid-run, so nothing was merged."
             else

@@ -37,7 +37,8 @@ class SelectionTest(unittest.TestCase):
         self.assertEqual(out['found'], 'true')
         self.assertEqual(out['pr_30'], '2')
         self.assertEqual(out['pr_31'], '3')
-        self.assertEqual(out['superseded'], '1')
+        self.assertEqual(out['superseded_30'], '1')
+        self.assertEqual(out['superseded_31'], '')
 
     def test_ties_broken_by_number(self):
         same = '2026-01-01T00:00:00Z'
@@ -46,7 +47,7 @@ class SelectionTest(unittest.TestCase):
             pr(11, sel.TITLE_30, created=same),
         ]))
         self.assertEqual(out['pr_30'], '11')
-        self.assertEqual(out['superseded'], '10')
+        self.assertEqual(out['superseded_30'], '10')
 
     def test_unrelated_bot_pull_requests_are_never_superseded(self):
         prs = [
@@ -60,19 +61,22 @@ class SelectionTest(unittest.TestCase):
         ]
         out = as_dict(sel.outputs(prs))
         self.assertEqual(out['pr_30'], '2')
-        self.assertEqual(out['superseded'], '1')
+        self.assertEqual(out['superseded_30'], '1')
+        self.assertEqual(out['superseded_31'], '')
 
     def test_only_unrelated_pull_requests_means_nothing_to_do(self):
         out = as_dict(sel.outputs([pr(1, 'Bump some dependency')]))
         self.assertEqual(out['found'], 'false')
         self.assertEqual(out['pr_30'], '')
         self.assertEqual(out['pr_31'], '')
-        self.assertEqual(out['superseded'], '')
+        self.assertEqual(out['superseded_30'], '')
+        self.assertEqual(out['superseded_31'], '')
 
     def test_empty_input(self):
         out = as_dict(sel.outputs([]))
         self.assertEqual(out['found'], 'false')
-        self.assertEqual(out['superseded'], '')
+        self.assertEqual(out['superseded_30'], '')
+        self.assertEqual(out['superseded_31'], '')
 
     def test_one_title_only(self):
         out = as_dict(sel.outputs([pr(9, sel.TITLE_31)]))
@@ -80,7 +84,7 @@ class SelectionTest(unittest.TestCase):
         self.assertEqual(out['pr_30'], '')
         self.assertEqual(out['sha_30'], '')
         self.assertEqual(out['pr_31'], '9')
-        self.assertEqual(out['superseded'], '')
+        self.assertEqual(out['superseded_31'], '')
 
 
 class ShaPinningTest(unittest.TestCase):
@@ -111,7 +115,7 @@ class ShaPinningTest(unittest.TestCase):
         self.assertEqual(out['sha_30'], '')
         # #1 is older, but its replacement was never validated, so it must
         # not be closed.
-        self.assertEqual(out['superseded'], '')
+        self.assertEqual(out['superseded_30'], '')
 
     def test_unpinnable_title_does_not_block_the_other_title(self):
         prs = [
@@ -125,10 +129,21 @@ class ShaPinningTest(unittest.TestCase):
         self.assertEqual(out['pr_30'], '')
         self.assertEqual(out['pr_31'], '4')
         # Only the 3.1 sibling is superseded; the 3.0 pair is left alone.
-        self.assertEqual(out['superseded'], '3')
+        self.assertEqual(out['superseded_30'], '')
+        self.assertEqual(out['superseded_31'], '3')
 
-    def test_titles_flag_lists_recognised_titles(self):
-        self.assertEqual(list(sel.TITLES), [sel.TITLE_30, sel.TITLE_31])
+    def test_superseded_numbers_stay_with_their_title(self):
+        prs = [
+            pr(1, sel.TITLE_30, created='2026-01-01T00:00:00Z'),
+            pr(2, sel.TITLE_30, created='2026-01-04T00:00:00Z'),
+            pr(3, sel.TITLE_31, created='2026-01-02T00:00:00Z'),
+            pr(4, sel.TITLE_31, created='2026-01-03T00:00:00Z'),
+        ]
+        _, superseded = sel.select(prs)
+        # The association is what lets the workflow confirm a pull request
+        # still carries the title it was superseded under before closing it.
+        self.assertEqual(superseded[sel.TITLE_30], [1])
+        self.assertEqual(superseded[sel.TITLE_31], [3])
 
     def test_malformed_entries_are_ignored(self):
         out = as_dict(sel.outputs([
@@ -137,21 +152,34 @@ class ShaPinningTest(unittest.TestCase):
             pr(5, sel.TITLE_30),
         ]))
         self.assertEqual(out['pr_30'], '5')
-        self.assertEqual(out['superseded'], '')
+        self.assertEqual(out['superseded_30'], '')
 
 
 class CliTest(unittest.TestCase):
-    def test_titles_flag_prints_exact_titles(self):
+    def _run(self, argv):
         import io
 
         captured, sys.stdout = sys.stdout, io.StringIO()
         try:
-            self.assertEqual(sel.main(['--titles']), 0)
+            code = sel.main(argv)
             printed = sys.stdout.getvalue().splitlines()
         finally:
             sys.stdout = captured
+        return code, printed
 
-        self.assertEqual(printed, [sel.TITLE_30, sel.TITLE_31])
+    def test_title_flag_prints_the_exact_title_for_a_group(self):
+        self.assertEqual(self._run(['--title', '30']), (0, [sel.TITLE_30]))
+        self.assertEqual(self._run(['--title', '31']), (0, [sel.TITLE_31]))
+
+    def test_title_flag_rejects_an_unknown_group(self):
+        import io
+
+        captured, sys.stderr = sys.stderr, io.StringIO()
+        try:
+            with self.assertRaises(SystemExit):
+                sel.main(['--title', '32'])
+        finally:
+            sys.stderr = captured
 
 
 if __name__ == '__main__':
