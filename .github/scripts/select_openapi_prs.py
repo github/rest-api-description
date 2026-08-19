@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Select the OpenAPI description update PRs to merge, and the superseded ones.
 
-Reads the JSON array produced by
+Reads the pages produced by
 
-    gh pr list --state open --author <bot> \
-        --json number,title,headRefOid,createdAt
+    gh api --paginate --slurp "repos/{repo}/pulls?state=open&per_page=100"
 
 on stdin and writes `key=value` lines suitable for `$GITHUB_OUTPUT`.
+
+Every open pull request is read, following pagination to the end, because a
+capped listing would silently drop the oldest matches. Those are exactly the
+superseded pull requests that must be closed: one left open becomes the
+newest open pull request for its title once the merged one closes, and
+merging it would put an earlier description back on the default branch.
 
 Two properties matter for safety and are the reason this is a script rather
 than an inline `jq` filter:
@@ -23,6 +28,10 @@ than an inline `jq` filter:
 * The head commit SHA of each selected pull request is emitted alongside its
   number, so every later step can pin to the exact commit that was inspected
   instead of resolving a branch name again.
+* The author is matched here rather than by a listing flag, because the
+  endpoint that pages over every open pull request cannot filter by author.
+  Keeping the author and title rules together means one tested place decides
+  what is eligible.
 """
 
 import argparse
@@ -35,6 +44,44 @@ TITLES = (TITLE_30, TITLE_31)
 # Output suffix -> exact title. The workflow reads a title through `--title`
 # so the two files never drift apart.
 GROUPS = (('30', TITLE_30), ('31', TITLE_31))
+
+
+def normalise(payload, author):
+    """Flatten paginated pages and map API fields to the names used below.
+
+    `--slurp` yields one list per page, so the payload is a list of lists.
+    A single flat list is accepted too, which keeps the parsing rules the
+    same whichever way the input was produced.
+    """
+    flat = []
+    for entry in payload:
+        if isinstance(entry, list):
+            flat.extend(entry)
+        else:
+            flat.append(entry)
+
+    normalised = []
+    for pr in flat:
+        if not isinstance(pr, dict):
+            continue
+        # An entry whose author cannot be read is skipped rather than
+        # assumed to match: it must never become a merge candidate, and it
+        # must never be closed as superseded.
+        user = pr.get('user')
+        login = user.get('login') if isinstance(user, dict) else None
+        if login != author:
+            continue
+        head = pr.get('head')
+        normalised.append(
+            {
+                'number': pr.get('number'),
+                'title': pr.get('title'),
+                'headRefOid': head.get('sha') if isinstance(head, dict) else None,
+                'createdAt': pr.get('created_at'),
+            }
+        )
+
+    return normalised
 
 
 def _sort_key(pr):
@@ -95,6 +142,10 @@ def outputs(pull_requests):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
+        '--author',
+        help='only consider pull requests opened by this login',
+    )
+    parser.add_argument(
         '--title',
         choices=[suffix for suffix, _ in GROUPS],
         help='print the exact recognised title for one output group and exit',
@@ -105,12 +156,16 @@ def main(argv=None):
         print(dict(GROUPS)[args.title])
         return 0
 
+    if not args.author:
+        print('--author is required when selecting', file=sys.stderr)
+        return 2
+
     payload = json.load(sys.stdin)
     if not isinstance(payload, list):
         print('expected a JSON array of pull requests', file=sys.stderr)
         return 2
 
-    for line in outputs(payload):
+    for line in outputs(normalise(payload, args.author)):
         print(line)
     return 0
 

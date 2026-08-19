@@ -98,12 +98,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh pr list \
-            --state open \
-            --author "$BOT_LOGIN" \
-            --limit 100 \
-            --json number,title,headRefOid,createdAt \
-            | python3 tools/.github/scripts/select_openapi_prs.py >selection.txt
+          # Every open pull request by the bot, following pagination rather
+          # than stopping at a fixed count. A cap that silently drops the
+          # oldest matches would leave superseded pull requests open, and a
+          # later run would then treat one of them as the newest open
+          # candidate and put an earlier description back on the default
+          # branch. During a long freeze these accumulate well past one page.
+          gh api --paginate --slurp \
+            "repos/$GH_REPO/pulls?state=open&per_page=100" \
+            | python3 tools/.github/scripts/select_openapi_prs.py \
+                --author "$BOT_LOGIN" >selection.txt
 
           cat selection.txt
           cat selection.txt >>"$GITHUB_OUTPUT"
@@ -308,13 +312,31 @@ jobs:
               exit 0
             fi
 
-            git diff --stat "$base_commit" "$sha" | sed -n '1,60p' >"summary-$pr.txt"
+            # Kept whole: a truncated inventory would omit files and the
+            # total line, which is the part worth reading. These updates
+            # routinely touch dozens of files but only a few kilobytes of
+            # stat, so this stays far inside the comment size limit. The
+            # guard below is for the pathological case only.
+            git diff --stat "$base_commit" "$sha" >"summary-$pr.txt"
+            if [ "$(wc -c <"summary-$pr.txt")" -gt 60000 ]; then
+              echo "::notice::#$pr has an unusually large change summary; truncating."
+              # `sed -n` rather than `head`: it consumes all input, so the
+              # producer is never killed by SIGPIPE under `pipefail`.
+              sed -n '1,500p' "summary-$pr.txt" >"summary-$pr.trimmed"
+              printf '\n... truncated; see the pull request files tab.\n' \
+                >>"summary-$pr.trimmed"
+              mv "summary-$pr.trimmed" "summary-$pr.txt"
+            fi
           done
 
           echo "status=pinned" >>"$GITHUB_OUTPUT"
 
       - name: Post change summary to pull requests
-        if: steps.pin.outputs.status == 'pinned'
+        # A dry run is for confirming selection, so it stays read-only apart
+        # from the run summary. Posting here would also leave a comment
+        # carrying this commit's marker, which the later real run would treat
+        # as "already summarised" and skip.
+        if: steps.pin.outputs.status == 'pinned' && inputs.dry_run != true
         working-directory: repo
         env:
           GH_TOKEN: ${{ github.token }}
