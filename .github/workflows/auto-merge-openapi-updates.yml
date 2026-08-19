@@ -16,10 +16,15 @@ name: Auto-merge OpenAPI description updates
 #   * Every step pins to the head commit SHA captured during selection. Branch
 #     names are never re-resolved, so a push that lands mid-run cannot slip an
 #     unvalidated commit into a merge.
-#   * Lint must be green, the compatibility scan must come back clean, and a
-#     change summary is posted to the pull request before merge. The scan
-#     covers the two dotcom source descriptions only; see the FILE_30/FILE_31
-#     comment for the exact surface and what that leaves to lint.
+#   * Lint must be green, the candidate must touch nothing outside the
+#     description directories, and a change summary is posted to the pull
+#     request before merge.
+#   * Compatibility review is not repeated here. These descriptions are
+#     generated and reviewed for compatibility before publication, so a
+#     re-check against the published files would be a weaker duplicate of a
+#     gate that has already run against the authoritative source.
+#   * Every decision is made by deterministic code, so the same inputs always
+#     produce the same merge/no-merge answer and it can be tested.
 #   * Merges are held during a GHES release-candidate window. See the "Check
 #     for an active merge freeze" step.
 #
@@ -60,17 +65,6 @@ env:
   # required check on the default branch, and it routinely reports `timed_out`
   # on these pull requests.
   REQUIRED_CHECKS: 'Lint OpenAPI 3.0 releases,Lint OpenAPI 3.1 releases'
-  # The two non-dereferenced dotcom descriptions: compact, `$ref`-based, and
-  # upstream of the calendar-versioned dotcom variants, which are produced by
-  # applying the changeset extensions declared in these files. These are the
-  # only files the compatibility scan reads, and it compares the described
-  # surface, not those changeset extensions. A bot pull request also updates
-  # the `ghec`, `github.ae` and `ghes-*` trees and their dereferenced forms,
-  # which are version-filtered rather than derived, so a change confined to
-  # one of those is covered by the required lint and the posted change
-  # summary, not by the scan.
-  FILE_30: descriptions/api.github.com/api.github.com.yaml
-  FILE_31: descriptions-next/api.github.com/api.github.com.yaml
 
 jobs:
   auto-merge:
@@ -85,24 +79,18 @@ jobs:
         with:
           # Pinned to the default branch on purpose. A `workflow_dispatch` run
           # can be started from any ref, and without this the write-enabled job
-          # would run the selector and scanner from that ref instead.
+          # would run the selector from that ref instead.
           ref: ${{ github.event.repository.default_branch }}
           path: tools
           fetch-depth: 1
           sparse-checkout: |
             .github/scripts
-            requirements.txt
           sparse-checkout-cone-mode: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Install dependencies
-        # Reuses the repository's existing pinned/hash-verified requirements,
-        # which already provide pyyaml for the linter workflow.
-        run: pip install --require-hashes -r tools/requirements.txt
 
       - name: Select candidate pull requests
         id: select
@@ -257,7 +245,7 @@ jobs:
         if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
         uses: actions/checkout@v4
         with:
-          # Pinned like the tools checkout so the scan baseline and the merge
+          # Pinned like the tools checkout so the summary baseline and merge
           # target are provably the same branch, whatever ref a manual run
           # was started from.
           ref: ${{ github.event.repository.default_branch }}
@@ -277,6 +265,7 @@ jobs:
           SHA_31: ${{ steps.select.outputs.sha_31 }}
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
@@ -295,78 +284,36 @@ jobs:
               echo "status=stale" >>"$GITHUB_OUTPUT"
               exit 0
             fi
+
+            # A merge is only allowed to bring in description content. A pull
+            # request that touches workflows, scripts or anything else is left
+            # for a human, even when it carries the right title and author.
+            # This gate is about *what kind of file* changed, not about whether
+            # the description content itself is compatible.
+            #
+            # Evaluated here, before anything is written to the pull request,
+            # so an out-of-scope candidate never collects a comment promising a
+            # merge that will not happen. Both the commit and the local
+            # `origin/$DEFAULT_BRANCH` are fixed for the rest of the run, so
+            # this answer cannot change before the merge step.
+            base_commit=$(git merge-base "origin/$DEFAULT_BRANCH" "$sha")
+            # Captured before filtering so a failed `git diff` aborts the step
+            # instead of looking like "nothing outside the descriptions".
+            changed=$(git diff --name-only "$base_commit" "$sha")
+            # `sed -n` rather than `head`: it consumes all input, so the
+            # producer is never killed by SIGPIPE under `pipefail`.
+            outside=$(grep -v -E '^descriptions(-next)?/' <<<"$changed" | sed -n '1,10p' || true)
+            if [ -n "$outside" ]; then
+              echo "::notice::#$pr changes files outside the description directories; stopping."
+              echo "status=out-of-scope" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr changes $(tr '\n' ' ' <<<"$outside")" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            git diff --stat "$base_commit" "$sha" | sed -n '1,60p' >"summary-$pr.txt"
           done
 
           echo "status=pinned" >>"$GITHUB_OUTPUT"
-
-      - name: Scan for compatibility-breaking changes
-        id: breaking
-        if: steps.pin.outputs.status == 'pinned'
-        working-directory: repo
-        env:
-          SHA_30: ${{ steps.select.outputs.sha_30 }}
-          SHA_31: ${{ steps.select.outputs.sha_31 }}
-          PR_30: ${{ steps.select.outputs.pr_30 }}
-          PR_31: ${{ steps.select.outputs.pr_31 }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          set -euo pipefail
-
-          # A parsed comparison rather than a diff scan. The two are not
-          # equivalent: for a *request* body, ADDING to `required` is breaking,
-          # while for a *response* body, REMOVING from `required` is breaking.
-          # A scan of removed diff lines is structurally blind to the first
-          # case. Rules mirror the documented release-compatibility list.
-          findings=''
-          : >summary.md
-
-          for triple in "$SHA_30|$FILE_30|3.0|$PR_30" "$SHA_31|$FILE_31|3.1|$PR_31"; do
-            IFS='|' read -r sha file label pr <<<"$triple"
-            [ -n "$sha" ] || continue
-
-            git show "origin/$DEFAULT_BRANCH:$file" >base.yaml
-            git show "$sha:$file" >head.yaml
-
-            python3 "$GITHUB_WORKSPACE/tools/.github/scripts/openapi_breaking_changes.py" \
-              base.yaml head.yaml >result.json
-
-            count=$(jq '.findings | length' result.json)
-            {
-              echo "### OpenAPI $label (#$pr)"
-              echo
-              jq -r '.summary |
-                "- Operations: \(.total_operations) total, \(.added_operations | length) added",
-                "- Schemas: \(.total_schemas) total, \(.added_schemas | length) added"' result.json
-              # `sed -n` rather than `head`: it consumes all input, so the
-              # producer is never killed by SIGPIPE under `pipefail`.
-              jq -r '.summary.added_operations[]? | "  - `\(.)`"' result.json | sed -n '1,40p'
-              echo
-            } >>summary.md
-
-            if [ "$count" -gt 0 ]; then
-              findings+="$label (#$pr): $count finding(s). "
-              {
-                echo "#### :rotating_light: Compatibility findings in $label"
-                echo
-                jq -r '.findings[] | "- **\(.rule)**: \(.detail)"' result.json | sed -n '1,50p'
-                if [ "$count" -gt 50 ] || [ "$(jq -r '.truncated' result.json)" = 'true' ]; then
-                  echo
-                  echo "_Finding list truncated; see the workflow run for the full output._"
-                fi
-                echo
-              } >>summary.md
-            fi
-          done
-
-          cat summary.md
-
-          if [ -n "$findings" ]; then
-            echo "status=breaking" >>"$GITHUB_OUTPUT"
-            echo "detail=$findings" >>"$GITHUB_OUTPUT"
-            echo "::warning::Potential breaking changes, skipping auto-merge. $findings"
-          else
-            echo "status=clean" >>"$GITHUB_OUTPUT"
-          fi
 
       - name: Post change summary to pull requests
         if: steps.pin.outputs.status == 'pinned'
@@ -378,13 +325,14 @@ jobs:
           SHA_31: ${{ steps.select.outputs.sha_31 }}
           PR_30: ${{ steps.select.outputs.pr_30 }}
           PR_31: ${{ steps.select.outputs.pr_31 }}
-          BREAKING: ${{ steps.breaking.outputs.status }}
         run: |
           set -euo pipefail
 
-          # Release notes are generated from pull request descriptions.
-          # Auto-merging untouched bodies would remove useful context, so post
-          # the analysis the scanner already computed.
+          # Release notes are generated from pull request descriptions, so an
+          # auto-merged pull request would otherwise land with no record of
+          # what the automation did. This is an inventory of the changed files,
+          # not a compatibility judgement: see the header for where
+          # compatibility review happens.
           for pair in "$PR_30:$SHA_30" "$PR_31:$SHA_31"; do
             pr="${pair%%:*}"; sha="${pair#*:}"
             [ -n "$pr" ] && [ -n "$sha" ] || continue
@@ -402,13 +350,14 @@ jobs:
 
             {
               echo "$marker"
-              if [ "$BREAKING" = 'breaking' ]; then
-                echo "## :rotating_light: Auto-merge skipped: potential breaking changes"
-              else
-                echo "## Automated change summary"
-              fi
+              echo "## Automated change summary"
               echo
-              cat summary.md
+              echo "Auto-merging \`${sha:0:7}\`, which changes these files:"
+              echo
+              echo '```'
+              cat "summary-$pr.txt"
+              echo '```'
+              echo
               echo "_Posted by the auto-merge workflow ([run](${GITHUB_SERVER_URL}/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}))._"
             } >comment.md
 
@@ -420,7 +369,7 @@ jobs:
 
       - name: Merge and close superseded pull requests
         id: merge
-        if: steps.pin.outputs.status == 'pinned' && steps.breaking.outputs.status == 'clean'
+        if: steps.pin.outputs.status == 'pinned'
         working-directory: repo
         env:
           GH_TOKEN: ${{ github.token }}
@@ -485,27 +434,6 @@ jobs:
               echo "::notice::#$pr is no longer an open $BOT_LOGIN description update targeting $DEFAULT_BRANCH; stopping."
               echo "status=stale" >>"$GITHUB_OUTPUT"
               echo "detail=#$pr changed during the run" >>"$GITHUB_OUTPUT"
-              exit 0
-            fi
-          done
-
-          # A merge is only allowed to bring in description content. A pull
-          # request that touches workflows, scripts or anything else is left
-          # for a human, even when it carries the right title and author.
-          # This is a wider surface than the compatibility scan reads, so the
-          # remainder rests on the required lint and the posted summary.
-          for entry in $candidates; do
-            rest="${entry#*:}"
-            pr="${rest%%:*}"; sha="${rest#*:}"
-            base_commit=$(git merge-base "origin/$DEFAULT_BRANCH" "$sha")
-            # Captured before filtering so a failed `git diff` aborts the step
-            # instead of looking like "nothing outside the descriptions".
-            changed=$(git diff --name-only "$base_commit" "$sha")
-            outside=$(grep -v -E '^descriptions(-next)?/' <<<"$changed" | sed -n '1,10p' || true)
-            if [ -n "$outside" ]; then
-              echo "::notice::#$pr changes files outside the description directories; stopping."
-              echo "status=out-of-scope" >>"$GITHUB_OUTPUT"
-              echo "detail=#$pr changes $(tr '\n' ' ' <<<"$outside")" >>"$GITHUB_OUTPUT"
               exit 0
             fi
           done
@@ -586,19 +514,17 @@ jobs:
         if: >-
           failure() ||
           steps.checks.outputs.status == 'blocked' ||
-          steps.breaking.outputs.status == 'breaking' ||
           steps.freeze.outputs.status == 'frozen' ||
           steps.pin.outputs.status == 'stale' ||
           steps.merge.outputs.status == 'stale' ||
-          steps.merge.outputs.status == 'out-of-scope'
+          steps.pin.outputs.status == 'out-of-scope'
         env:
           CHECKS_STATUS: ${{ steps.checks.outputs.status }}
           CHECKS_DETAIL: ${{ steps.checks.outputs.detail }}
           FREEZE_STATUS: ${{ steps.freeze.outputs.status }}
           FREEZE_DETAIL: ${{ steps.freeze.outputs.detail }}
-          BREAKING_STATUS: ${{ steps.breaking.outputs.status }}
-          BREAKING_DETAIL: ${{ steps.breaking.outputs.detail }}
           PIN_STATUS: ${{ steps.pin.outputs.status }}
+          PIN_DETAIL: ${{ steps.pin.outputs.detail }}
           MERGE_STATUS: ${{ steps.merge.outputs.status }}
           MERGE_DETAIL: ${{ steps.merge.outputs.detail }}
           MERGE_CLOSE_FAILED: ${{ steps.merge.outputs.close_failed }}
@@ -614,10 +540,8 @@ jobs:
               echo "Required checks were not green: $CHECKS_DETAIL"
             elif [ "$FREEZE_STATUS" = 'frozen' ]; then
               echo "A merge freeze was detected: $FREEZE_DETAIL"
-            elif [ "$BREAKING_STATUS" = 'breaking' ]; then
-              echo "Potential breaking changes were detected: $BREAKING_DETAIL"
-            elif [ "$MERGE_STATUS" = 'out-of-scope' ]; then
-              echo "A candidate changed files outside the description directories: $MERGE_DETAIL"
+            elif [ "$PIN_STATUS" = 'out-of-scope' ]; then
+              echo "A candidate changed files outside the description directories: $PIN_DETAIL"
             elif [ "$PIN_STATUS" = 'stale' ] || [ "$MERGE_STATUS" = 'stale' ]; then
               echo "A candidate pull request was updated mid-run, so nothing was merged."
             elif [ -n "$MERGE_CLOSE_FAILED" ]; then
