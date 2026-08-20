@@ -13290,6 +13290,8 @@ paths:
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
       responses:
         '200':
           description: Response
@@ -13673,7 +13675,7 @@ paths:
     get:
       summary: Get billing AI credit usage report for an enterprise
       description: |-
-        Gets a report of AI credit usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise.
+        Gets a report of AI credit usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise, or a custom role holder with fine-grained read access to enterprise billing. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can get this usage report.
 
         **Note:** Only data from the past 24 months is accessible via this endpoint.
       tags:
@@ -13713,14 +13715,14 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/settings/billing/budgets":
     get:
       summary: Get all budgets
       description: |-
-        Gets budgets for an enterprise. Enterprise owners and billing managers can view all budgets. Organization administrators can view budgets scoped to organizations and repositories they administer.
+        Gets budgets for an enterprise. Enterprise owners and billing managers can view all budgets, and organization administrators can view budgets scoped to organizations and repositories they administer. A custom role holder with fine-grained read access to enterprise billing can also view budgets. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can list all budgets in the enterprise.
         Each page returns up to 100 budgets.
       tags:
       - billing
@@ -13779,14 +13781,22 @@ paths:
           "$ref": "#/components/responses/forbidden"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
     post:
       summary: Create a budget
-      description: Creates a new budget for an enterprise. The authenticated user
-        must be an enterprise admin, organization admin, or billing manager of the
-        enterprise.
+      description: Creates a new budget for an enterprise. Enterprise owners and billing
+        managers can create budgets scoped to the enterprise, all users in the enterprise,
+        or any organization in it. Organization administrators can create budgets
+        for their organizations, and repository-scoped budgets require administration
+        of the repository's owning organization. A custom role holder with fine-grained
+        write access to enterprise billing can create budgets scoped to a single user
+        or a cost center, including all users in a cost center, without an additional
+        administrator role; the role requirements above still apply to the other scopes.
+        An installation access token for a GitHub App installed on the enterprise
+        with write access to enterprise billing can create budgets for any target
+        in the enterprise.
       tags:
       - billing
       operationId: billing/create-budget
@@ -13940,15 +13950,19 @@ paths:
                     documentation_url: https://docs.github.com/rest/billing/budgets#create-a-budget
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
   "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}":
     get:
       summary: Get a budget by ID
       description: Gets a budget by ID. Enterprise owners and billing managers can
-        view any budget in the enterprise. Organization administrators can view budgets
-        scoped to organizations and repositories they administer.
+        view any budget in the enterprise, and organization administrators can view
+        budgets scoped to organizations and repositories they administer. A custom
+        role holder with fine-grained read access to enterprise billing can also view
+        the budget. An installation access token for a GitHub App installed on the
+        enterprise with read access to enterprise billing can get any budget in the
+        enterprise.
       tags:
       - billing
       operationId: billing/get-budget
@@ -13973,14 +13987,22 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
     patch:
       summary: Update a budget
-      description: Updates an existing budget for an enterprise. The authenticated
-        user must be an enterprise admin, organization admin, or billing manager of
-        the enterprise.
+      description: Updates an existing budget for an enterprise. Enterprise owners
+        and billing managers can update budgets scoped to the enterprise, all users
+        in the enterprise, or any organization in it. Organization administrators
+        can update budgets for their organizations, and repository-scoped budgets
+        require administration of the repository's owning organization. A custom role
+        holder with fine-grained write access to enterprise billing can update budgets
+        scoped to a single user or a cost center, including all users in a cost center,
+        without an additional administrator role; the role requirements above still
+        apply to the other scopes. An installation access token for a GitHub App installed
+        on the enterprise with write access to enterprise billing can update any budget
+        in the enterprise.
       tags:
       - billing
       operationId: billing/update-budget
@@ -14144,15 +14166,20 @@ paths:
                     documentation_url: https://docs.github.com/rest/billing/budgets#update-a-budget
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
     delete:
       summary: Delete a budget
       description: Deletes a budget by ID. Enterprise owners and billing managers
-        can delete any budget in the enterprise. Organization administrators can delete
+        can delete any budget in the enterprise, organization administrators can delete
         budgets scoped to organizations they administer, and repository administrators
-        can delete budgets scoped to repositories they administer.
+        can delete budgets scoped to repositories they administer in those organizations.
+        A custom role holder with fine-grained write access to enterprise billing
+        does not by itself get permission to delete a budget for a target they do
+        not administer. An installation access token for a GitHub App installed on
+        the enterprise with write access to enterprise billing can delete any budget
+        in the enterprise.
       tags:
       - billing
       operationId: billing/delete-budget
@@ -14177,16 +14204,19 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
   "/enterprises/{enterprise}/settings/billing/budgets/{budget_id}/user-states":
     get:
       summary: Get user states for a multi-user budget
       description: Lists per-user budget state for a multi-user customer scoped budget.
-        Enterprise owners and billing managers can view state across the enterprise.
-        Organization administrators can view state for budgets scoped to organizations
-        they administer.
+        Enterprise owners and billing managers can view state across the enterprise,
+        and organization administrators can view state for budgets scoped to organizations
+        they administer. A custom role holder with fine-grained read access to enterprise
+        billing can also view budget user states. An installation access token for
+        a GitHub App installed on the enterprise with read access to enterprise billing
+        can list user states for any multi-user budget in the enterprise.
       tags:
       - billing
       operationId: billing/get-budget-user-states
@@ -14244,15 +14274,19 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: budgets
   "/enterprises/{enterprise}/settings/billing/cost-centers":
     get:
       summary: Get all cost centers for an enterprise
       description: Gets a list of all the cost centers for an enterprise. Enterprise
-        owners and billing managers can view all cost centers. Organization owners
-        can view cost centers associated with resources they administer.
+        owners and billing managers can view all cost centers, and organization owners
+        can view cost centers associated with resources they administer. A custom
+        role holder with fine-grained read access to enterprise billing can also view
+        cost centers. An installation access token for a GitHub App installed on the
+        enterprise with read access to enterprise billing can list all cost centers
+        in the enterprise.
       tags:
       - billing
       operationId: billing/get-all-cost-centers
@@ -14275,13 +14309,16 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     post:
       summary: Create a new cost center
-      description: Creates a new cost center for an enterprise. The authenticated
-        user must be an enterprise owner or billing manager.
+      description: Creates a new cost center for an enterprise. Enterprise owners
+        and billing managers can create cost centers. A custom role holder with fine-grained
+        write access to enterprise billing can also create cost centers. An installation
+        access token for a GitHub App installed on the enterprise with write access
+        to enterprise billing can create cost centers in the enterprise.
       tags:
       - billing
       operationId: billing/create-cost-center
@@ -14440,15 +14477,18 @@ paths:
                     message: An internal server error occurred. Please try again later.
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}":
     get:
       summary: Get a cost center by ID
       description: Gets a cost center by ID. Enterprise owners and billing managers
-        can view any cost center. Organization owners can view cost centers associated
-        with resources they administer.
+        can view any cost center, and organization owners can view cost centers associated
+        with resources they administer. A custom role holder with fine-grained read
+        access to enterprise billing can also view the cost center. An installation
+        access token for a GitHub App installed on the enterprise with read access
+        to enterprise billing can get any cost center in the enterprise.
       tags:
       - billing
       operationId: billing/get-cost-center
@@ -14473,14 +14513,18 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     patch:
       summary: Update a cost center
       description: Updates an existing cost center. Enterprise owners and billing
-        managers can update any cost center. Organization owners can update cost centers
-        associated with resources they administer.
+        managers can update any cost center, and organization owners can update cost
+        centers associated with resources they administer. A custom role holder with
+        fine-grained write access to enterprise billing can also update cost centers.
+        An installation access token for a GitHub App installed on the enterprise
+        with write access to enterprise billing can update any cost center in the
+        enterprise.
       tags:
       - billing
       operationId: billing/update-cost-center
@@ -14554,14 +14598,17 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     delete:
       summary: Delete a cost center
       description: Archives a cost center by ID. Enterprise owners and billing managers
-        can archive any cost center. Organization owners can archive cost centers
-        associated with resources they administer.
+        can archive any cost center, and organization owners can archive cost centers
+        associated with resources they administer. A custom role holder with fine-grained
+        write access to enterprise billing can also archive cost centers. An installation
+        access token for a GitHub App installed on the enterprise with write access
+        to enterprise billing can archive any cost center in the enterprise.
       tags:
       - billing
       operationId: billing/delete-cost-center
@@ -14586,7 +14633,7 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/cost-centers/{cost_center_id}/resource":
@@ -14595,7 +14642,7 @@ paths:
       description: |-
         Adds resources to a cost center.
 
-        The usage for the resources will be charged to the cost center's budget. Enterprise owners and billing managers can add any resource. Organization owners can add non-team resources to cost centers associated with resources they administer.
+        The usage for the resources will be charged to the cost center's budget. Enterprise owners and billing managers can add any resource, and organization owners can add non-team resources to cost centers associated with resources they administer. A custom role holder with fine-grained write access to enterprise billing can also add resources. An installation access token for a GitHub App installed on the enterprise with write access to enterprise billing can add resources to any cost center in the enterprise.
       tags:
       - billing
       operationId: billing/add-resource-to-cost-center
@@ -14653,7 +14700,7 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
     delete:
@@ -14661,7 +14708,7 @@ paths:
       description: |-
         Remove resources from a cost center.
 
-        The usage for the resources will no longer be charged to the cost center's budget. Enterprise owners and billing managers can remove any resource. Organization owners can remove non-team resources from cost centers associated with resources they administer.
+        The usage for the resources will no longer be charged to the cost center's budget. Enterprise owners and billing managers can remove any resource, and organization owners can remove non-team resources from cost centers associated with resources they administer. A custom role holder with fine-grained write access to enterprise billing can also remove resources. An installation access token for a GitHub App installed on the enterprise with write access to enterprise billing can remove resources from any cost center in the enterprise.
       tags:
       - billing
       operationId: billing/remove-resource-from-cost-center
@@ -14718,14 +14765,14 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: cost-centers
   "/enterprises/{enterprise}/settings/billing/premium_request/usage":
     get:
       summary: Get billing premium request usage report for an enterprise
       description: |-
-        Gets a report of premium request usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise.
+        Gets a report of premium request usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise, or a custom role holder with fine-grained read access to enterprise billing. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can get this usage report.
 
         **Note:** Only data from the past 24 months is accessible via this endpoint.
       tags:
@@ -14765,14 +14812,18 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/settings/billing/reports":
     get:
       summary: List usage report exports
       description: Lists all usage report exports for an enterprise. The authenticated
-        user must be an enterprise admin or billing manager.
+        user must be an enterprise admin or billing manager, or a custom role holder
+        with fine-grained read access to enterprise billing. An installation access
+        token for a GitHub App installed on the enterprise with write access to enterprise
+        administration, or with read access to enterprise billing, can also list usage
+        report exports.
       tags:
       - billing
       operationId: billing/list-usage-report-exports
@@ -14810,7 +14861,7 @@ paths:
       summary: Create a usage report export
       description: |-
         Initiates the generation of a usage report export for an enterprise. The report will be processed asynchronously
-        and can be downloaded once completed. The authenticated user must be an enterprise admin or billing manager.
+        and can be downloaded once completed. The authenticated user must be an enterprise admin or billing manager, or a custom role holder with fine-grained read access to enterprise billing. An installation access token for a GitHub App installed on the enterprise with write access to enterprise administration, or with read access to enterprise billing, can also initiate a usage report export.
       tags:
       - billing
       operationId: billing/create-usage-report-export
@@ -14859,7 +14910,11 @@ paths:
     get:
       summary: Get a usage report export
       description: Gets the status and details of a usage report export by ID. The
-        authenticated user must be an enterprise admin or billing manager.
+        authenticated user must be an enterprise admin or billing manager, or a custom
+        role holder with fine-grained read access to enterprise billing. An installation
+        access token for a GitHub App installed on the enterprise with write access
+        to enterprise administration, or with read access to enterprise billing, can
+        also get a usage report export.
       tags:
       - billing
       operationId: billing/get-usage-report-export
@@ -14898,7 +14953,7 @@ paths:
     get:
       summary: Get billing usage report for an enterprise
       description: |-
-        Gets a report of usage by cost center for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise. By default this endpoint will return usage that does not have a cost center.
+        Gets a report of usage by cost center for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise, or a custom role holder with fine-grained read access to enterprise billing. By default this endpoint will return usage that does not have a cost center. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can get this usage report.
 
         **Note:** This endpoint is only available to enterprises with access to the enhanced billing platform. For more information, see "[About the enhanced billing platform for enterprises](https://docs.github.com/enterprise-cloud@latest/billing/using-the-enhanced-billing-platform-for-enterprises/about-the-enhanced-billing-platform-for-enterprises#how-do-i-know-if-i-can-access-the-enhanced-billing-platform)."
       tags:
@@ -14939,7 +14994,7 @@ paths:
     get:
       summary: Get billing usage summary for an enterprise
       description: |-
-        Gets a summary report of usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise. By default, this endpoint will return usage across all cost centers in the enterprise.
+        Gets a summary report of usage for an enterprise. To use this endpoint, you must be an administrator or billing manager of the enterprise, or a custom role holder with fine-grained read access to enterprise billing. By default, this endpoint will return usage across all cost centers in the enterprise. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can get this usage summary report.
 
         **Note:** Only data from the past 24 months is accessible via this endpoint.
       tags:
@@ -14971,7 +15026,7 @@ paths:
           "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/teams":
@@ -38006,6 +38061,8 @@ paths:
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
       responses:
         '200':
           description: Response
@@ -53931,6 +53988,7 @@ paths:
                 dismissed_comment:
                   type: string
                   description: An optional comment explaining the dismissal.
+                  maxLength: 280
               required:
               - dismissed_reason
             examples:
@@ -54022,8 +54080,8 @@ paths:
                   - deny
                 message:
                   type: string
-                  description: A message to include with the review. Has a maximum
-                    character length of 2048.
+                  description: A message to include with the review.
+                  maxLength: 2048
               required:
               - status
               - message
@@ -66987,6 +67045,8 @@ paths:
       - "$ref": "#/components/parameters/direction"
       - "$ref": "#/components/parameters/page"
       - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/pagination-before"
+      - "$ref": "#/components/parameters/pagination-after"
       responses:
         '200':
           description: Response
@@ -68730,6 +68790,47 @@ paths:
               "$ref": "#/components/headers/link"
         '422':
           "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: activity
+        subcategory: starring
+  "/repos/{owner}/{repo}/stargazers/count":
+    get:
+      summary: Get stargazer count
+      description: Gets the current number of users who have starred the repository.
+        Users who previously starred the repository but later removed their star are
+        not included.
+      tags:
+      - activity
+      operationId: activity/get-stargazer-count-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/activity/starring#get-stargazer-count
+      parameters:
+      - "$ref": "#/components/parameters/owner"
+      - "$ref": "#/components/parameters/repo"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - count
+                properties:
+                  count:
+                    type: integer
+                    minimum: 0
+                    examples:
+                    - 42
+              examples:
+                default:
+                  value:
+                    count: 42
+        '404':
+          "$ref": "#/components/responses/not_found"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -127638,10 +127739,10 @@ components:
           additionalProperties: false
         sha:
           description: 'The commit SHA associated with this dependency snapshot. Maximum
-            length: 40 characters.'
+            length: 64 characters.'
           type: string
           minLength: 40
-          maxLength: 40
+          maxLength: 64
           examples:
           - ddc951f4b1293222421f2c8df679786153acf689
         ref:
