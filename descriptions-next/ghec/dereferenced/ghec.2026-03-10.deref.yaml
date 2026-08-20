@@ -27827,6 +27827,8 @@ paths:
       - *111
       - *19
       - *17
+      - *109
+      - *110
       responses:
         '200':
           description: Response
@@ -28850,7 +28852,7 @@ paths:
         '503': *196
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/settings/billing/budgets":
@@ -30897,7 +30899,7 @@ paths:
         '503': *196
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/settings/billing/reports":
@@ -31424,7 +31426,7 @@ paths:
         '503': *196
       x-github:
         githubCloudOnly: true
-        enabledForGitHubApps: false
+        enabledForGitHubApps: true
         category: billing
         subcategory: usage
   "/enterprises/{enterprise}/teams":
@@ -69542,6 +69544,8 @@ paths:
       - *111
       - *19
       - *17
+      - *109
+      - *110
       responses:
         '200':
           description: Response
@@ -98471,10 +98475,10 @@ paths:
                   additionalProperties: false
                 sha:
                   description: 'The commit SHA associated with this dependency snapshot.
-                    Maximum length: 40 characters.'
+                    Maximum length: 64 characters.'
                   type: string
                   minLength: 40
-                  maxLength: 40
+                  maxLength: 64
                   examples:
                   - ddc951f4b1293222421f2c8df679786153acf689
                 ref:
@@ -99717,6 +99721,7 @@ paths:
                 dismissed_comment:
                   type: string
                   description: An optional comment explaining the dismissal.
+                  maxLength: 280
               required:
               - dismissed_reason
             examples:
@@ -99803,8 +99808,8 @@ paths:
                   - deny
                 message:
                   type: string
-                  description: A message to include with the review. Has a maximum
-                    character length of 2048.
+                  description: A message to include with the review.
+                  maxLength: 2048
               required:
               - status
               - message
@@ -121974,6 +121979,8 @@ paths:
       - *111
       - *19
       - *17
+      - *109
+      - *110
       responses:
         '200':
           description: Response
@@ -124546,6 +124553,46 @@ paths:
           headers:
             Link: *46
         '422': *15
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: activity
+        subcategory: starring
+  "/repos/{owner}/{repo}/stargazers/count":
+    get:
+      summary: Get stargazer count
+      description: Gets the current number of users who have starred the repository.
+        Users who previously starred the repository but later removed their star are
+        not included.
+      tags:
+      - activity
+      operationId: activity/get-stargazer-count-for-repo
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/activity/starring#get-stargazer-count
+      parameters:
+      - *492
+      - *493
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - count
+                properties:
+                  count:
+                    type: integer
+                    minimum: 0
+                    examples:
+                    - 42
+              examples:
+                default:
+                  value:
+                    count: 42
+        '404': *6
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
