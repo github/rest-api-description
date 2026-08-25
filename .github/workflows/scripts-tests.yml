@@ -1,0 +1,29 @@
+---
+name: Test workflow scripts
+permissions:
+  contents: read
+
+on:
+  push:
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/scripts-tests.yml'
+  pull_request:
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/scripts-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  unittest:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        name: Install Python
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover --start-directory .github/scripts --verbose
+        name: Run script tests

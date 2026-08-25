@@ -1,0 +1,687 @@
+name: Auto-merge OpenAPI description updates
+
+# Merges the newest open `github-openapi-bot` "Update OpenAPI 3.x Descriptions"
+# pull requests and closes the older superseded ones.
+#
+# Why a workflow rather than native auto-merge: these pull requests carry 100K+
+# line diffs across 64+ files, and `GET /pulls/{n}/files` returns 422 on them,
+# so the list of changed files is read from a blobless clone instead. The merge
+# itself goes through `PUT /pulls/{n}/merge`, because the default branch
+# requires a pull request and so refuses a direct push; that call can time out
+# at the gateway on diffs this size, which the merge step handles.
+#
+# Safety properties:
+#   * Only pull requests titled exactly "Update OpenAPI 3.0 Descriptions" or
+#     "Update OpenAPI 3.1 Descriptions" are ever merged or closed, and a
+#     superseded pull request is re-checked against the exact title it was
+#     superseded under, immediately before it is closed.
+#   * Every step pins to the head commit SHA captured during selection. Branch
+#     names are never re-resolved, and the merge call itself requires that SHA,
+#     so a push that lands mid-run cannot slip an unvalidated commit into a
+#     merge.
+#   * Lint must be green, the candidate must touch nothing outside the
+#     description directories, and a change summary is posted to the pull
+#     request before merge.
+#   * Compatibility review is not repeated here. These descriptions are
+#     generated and reviewed for compatibility before publication, so a
+#     re-check against the published files would be a weaker duplicate of a
+#     gate that has already run against the authoritative source.
+#   * Every decision is made by deterministic code, so the same inputs always
+#     produce the same merge/no-merge answer and it can be tested.
+#   * Merges are held during a GHES release-candidate window. See the "Check
+#     for an active merge freeze" step.
+#
+# Scripts are run from a checkout of this repository's default branch, never
+# from the candidate pull request.
+
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Analyze and report, but do not merge or close anything'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  # Reading check runs for the candidate commits.
+  checks: read
+  # Reading labels and issues for the merge-freeze signal.
+  issues: read
+
+concurrency:
+  group: auto-merge-openapi-updates
+  cancel-in-progress: false
+
+env:
+  BOT_LOGIN: github-openapi-bot
+  # Status checks that must be green before merging. CodeQL is deliberately
+  # excluded: default setup only scans the `actions` language, it is not a
+  # required check on the default branch, and it routinely reports `timed_out`
+  # on these pull requests.
+  REQUIRED_CHECKS: 'Lint OpenAPI 3.0 releases,Lint OpenAPI 3.1 releases'
+
+jobs:
+  auto-merge:
+    name: Auto-merge OpenAPI updates
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.merge.outputs.status }}
+      detail: ${{ steps.merge.outputs.detail }}
+    steps:
+      - name: Checkout workflow scripts
+        uses: actions/checkout@v4
+        with:
+          # Pinned to the default branch on purpose. A `workflow_dispatch` run
+          # can be started from any ref, and without this the write-enabled job
+          # would run the selector from that ref instead.
+          ref: ${{ github.event.repository.default_branch }}
+          path: tools
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Select candidate pull requests
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # Every open pull request by the bot, following pagination rather
+          # than stopping at a fixed count. A cap that silently drops the
+          # oldest matches would leave superseded pull requests open, and a
+          # later run would then treat one of them as the newest open
+          # candidate and put an earlier description back on the default
+          # branch. During a long freeze these accumulate well past one page.
+          gh api --paginate --slurp \
+            "repos/$GH_REPO/pulls?state=open&per_page=100" \
+            | python3 tools/.github/scripts/select_openapi_prs.py \
+                --author "$BOT_LOGIN" >selection.txt
+
+          cat selection.txt
+          cat selection.txt >>"$GITHUB_OUTPUT"
+
+      - name: Verify required checks are green
+        id: checks
+        if: steps.select.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA_30: ${{ steps.select.outputs.sha_30 }}
+          SHA_31: ${{ steps.select.outputs.sha_31 }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+        run: |
+          set -euo pipefail
+
+          blocked=''
+          for pair in "$PR_30:$SHA_30" "$PR_31:$SHA_31"; do
+            pr="${pair%%:*}"; sha="${pair#*:}"
+            [ -n "$pr" ] && [ -n "$sha" ] || continue
+
+            # Checks are read for the exact commit selected above, which is
+            # also the commit that is scanned and merged.
+            runs=$(gh api "repos/$GH_REPO/commits/$sha/check-runs" --paginate \
+              -q '.check_runs[] | "\(.name)\t\(.status)\t\(.conclusion)"')
+
+            IFS=',' read -ra required <<<"$REQUIRED_CHECKS"
+            for name in "${required[@]}"; do
+              matches=$(awk -F'\t' -v n="$name" '$1 == n' <<<"$runs")
+              if [ -z "$matches" ]; then
+                blocked+="PR #$pr: required check '$name' has not reported. "
+                continue
+              fi
+              if grep -qv $'\tcompleted\tsuccess$' <<<"$matches"; then
+                blocked+="PR #$pr: check '$name' is not passing. "
+              fi
+            done
+          done
+
+          if [ -n "$blocked" ]; then
+            echo "status=blocked" >>"$GITHUB_OUTPUT"
+            echo "detail=$blocked" >>"$GITHUB_OUTPUT"
+            echo "::notice::$blocked"
+          else
+            echo "status=green" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for an active merge freeze
+        id: freeze
+        if: steps.checks.outputs.status == 'green'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA_30: ${{ steps.select.outputs.sha_30 }}
+          SHA_31: ${{ steps.select.outputs.sha_31 }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          # Around a GHES release candidate, hold description merges until the
+          # coordinated release content is ready. A new GHES version appearing
+          # in the candidate before it exists on the default branch is the
+          # signal that this window may be active.
+
+          reason=''
+
+          # --- Signal 1: an explicit, human-controlled hold ----------------
+          # A label is the escape hatch that does not depend on inference, and
+          # lets a human stop merges for any reason at all.
+          # Output is captured before matching: under `pipefail`, an early
+          # exiting `grep -q` could otherwise make the producer look failed
+          # and silently drop this signal.
+          labels=$(gh label list --search 'merge-freeze' --json name -q '.[].name')
+          if grep -qxF 'merge-freeze' <<<"$labels"; then
+            frozen=$(gh issue list --label 'merge-freeze' --state open --json number,title \
+              -q '.[] | "#\(.number) \(.title)"' | sed -n '1,5p')
+            if [ -n "$frozen" ]; then
+              reason+="Open 'merge-freeze' issue(s): $(tr '\n' ';' <<<"$frozen") "
+            fi
+          fi
+
+          # --- Signal 2: a GHES version not yet on the default branch ------
+          # Contents are read at the pinned commit, not at a branch name.
+          # These reads fail closed: a transient API error that looked like
+          # "no GHES directories" would silently drop the signal, so only a
+          # genuine 404 (the directory does not exist at that ref) becomes an
+          # empty listing. Anything else holds the merge.
+          errors=$(mktemp)
+
+          ghes_dirs() {
+            local ref="$1" dir="$2" listing
+            if listing=$(gh api "repos/$GH_REPO/contents/$dir?ref=$ref" -q '.[].name' 2>"$errors"); then
+              grep '^ghes-' <<<"$listing" | sort -u || true
+              return 0
+            fi
+            grep -q 'HTTP 404' "$errors" && return 0
+            cat "$errors" >&2
+            return 1
+          }
+
+          hold_unverifiable() {
+            echo "::error::Could not read $1 at $2 to check for a GHES release window; holding."
+            echo "status=frozen" >>"$GITHUB_OUTPUT"
+            echo "detail=Could not verify the GHES release state for $1 at $2" >>"$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          if ! ghes_on_default=$(ghes_dirs "$DEFAULT_BRANCH" descriptions); then
+            hold_unverifiable descriptions "$DEFAULT_BRANCH"
+          fi
+
+          for sha in "$SHA_30" "$SHA_31"; do
+            [ -n "$sha" ] || continue
+            for dir in descriptions descriptions-next; do
+              if ! on_pr=$(ghes_dirs "$sha" "$dir"); then
+                hold_unverifiable "$dir" "${sha:0:7}"
+              fi
+              [ -n "$on_pr" ] || continue
+              new=$(comm -13 <(echo "$ghes_on_default") <(echo "$on_pr") | tr '\n' ' ')
+              if [ -n "${new// /}" ]; then
+                reason+="${sha:0:7}/$dir introduces new GHES version(s): $new "
+              fi
+            done
+          done
+
+          if [ -n "$reason" ]; then
+            echo "status=frozen" >>"$GITHUB_OUTPUT"
+            echo "detail=$reason" >>"$GITHUB_OUTPUT"
+            echo "::warning::Merge freeze in effect, holding. $reason"
+          else
+            echo "status=clear" >>"$GITHUB_OUTPUT"
+            echo "No merge freeze detected."
+          fi
+
+      - name: Checkout repository (blobless)
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
+        uses: actions/checkout@v4
+        with:
+          # Pinned like the tools checkout so the comparison baseline is
+          # provably the default branch, whatever ref a manual run was started
+          # from.
+          ref: ${{ github.event.repository.default_branch }}
+          path: repo
+          # Only used to read which files a candidate changes, which the API
+          # cannot answer for pull requests this large. A blobless fetch keeps
+          # this off the ~4.6 GB of history; blobs are fetched lazily.
+          filter: blob:none
+          fetch-depth: 0
+
+      - name: Fetch and pin candidate commits
+        id: pin
+        if: steps.checks.outputs.status == 'green' && steps.freeze.outputs.status == 'clear'
+        working-directory: repo
+        env:
+          SHA_30: ${{ steps.select.outputs.sha_30 }}
+          SHA_31: ${{ steps.select.outputs.sha_31 }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          # `refs/pull/<n>/head` is fetched rather than the head branch so the
+          # commit selected earlier is obtained by SHA. If the branch has since
+          # moved, that object is simply not present and the run stops instead
+          # of validating one commit and merging another.
+          for pair in "$PR_30:$SHA_30" "$PR_31:$SHA_31"; do
+            pr="${pair%%:*}"; sha="${pair#*:}"
+            [ -n "$pr" ] && [ -n "$sha" ] || continue
+
+            git fetch --no-tags --filter=blob:none origin "refs/pull/$pr/head"
+
+            if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
+              echo "::notice::#$pr no longer resolves to $sha; stopping this run."
+              echo "status=stale" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            # A merge is only allowed to bring in description content. A pull
+            # request that touches workflows, scripts or anything else is left
+            # for a human, even when it carries the right title and author.
+            # This gate is about *what kind of file* changed, not about whether
+            # the description content itself is compatible.
+            #
+            # Evaluated here, before anything is written to the pull request,
+            # so an out-of-scope candidate never collects a comment promising a
+            # merge that will not happen. Both the commit and the local
+            # `origin/$DEFAULT_BRANCH` are fixed for the rest of the run, so
+            # this answer cannot change before the merge step.
+            base_commit=$(git merge-base "origin/$DEFAULT_BRANCH" "$sha")
+            # Captured before filtering so a failed `git diff` aborts the step
+            # instead of looking like "nothing outside the descriptions".
+            changed=$(git diff --name-only "$base_commit" "$sha")
+            # `sed -n` rather than `head`: it consumes all input, so the
+            # producer is never killed by SIGPIPE under `pipefail`.
+            outside=$(grep -v -E '^descriptions(-next)?/' <<<"$changed" | sed -n '1,10p' || true)
+            if [ -n "$outside" ]; then
+              echo "::notice::#$pr changes files outside the description directories; stopping."
+              echo "status=out-of-scope" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr changes $(tr '\n' ' ' <<<"$outside")" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            # Kept whole: a truncated inventory would omit files and the
+            # total line, which is the part worth reading. These updates
+            # routinely touch dozens of files but only a few kilobytes of
+            # stat, so this stays far inside the comment size limit. The
+            # guard below is for the pathological case only.
+            git diff --stat "$base_commit" "$sha" >"summary-$pr.txt"
+            if [ "$(wc -c <"summary-$pr.txt")" -gt 60000 ]; then
+              echo "::notice::#$pr has an unusually large change summary; truncating."
+              # `sed -n` rather than `head`: it consumes all input, so the
+              # producer is never killed by SIGPIPE under `pipefail`.
+              sed -n '1,500p' "summary-$pr.txt" >"summary-$pr.trimmed"
+              printf '\n... truncated; see the pull request files tab.\n' \
+                >>"summary-$pr.trimmed"
+              mv "summary-$pr.trimmed" "summary-$pr.txt"
+            fi
+          done
+
+          echo "status=pinned" >>"$GITHUB_OUTPUT"
+
+      - name: Post change summary to pull requests
+        # A dry run is for confirming selection, so it stays read-only apart
+        # from the run summary. Posting here would also leave a comment
+        # carrying this commit's marker, which the later real run would treat
+        # as "already summarised" and skip.
+        if: steps.pin.outputs.status == 'pinned' && inputs.dry_run != true
+        working-directory: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA_30: ${{ steps.select.outputs.sha_30 }}
+          SHA_31: ${{ steps.select.outputs.sha_31 }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+        run: |
+          set -euo pipefail
+
+          # Release notes are generated from pull request descriptions, so an
+          # auto-merged pull request would otherwise land with no record of
+          # what the automation did. This is an inventory of the changed files,
+          # not a compatibility judgement: see the header for where
+          # compatibility review happens.
+          for pair in "$PR_30:$SHA_30" "$PR_31:$SHA_31"; do
+            pr="${pair%%:*}"; sha="${pair#*:}"
+            [ -n "$pr" ] && [ -n "$sha" ] || continue
+
+            # The marker is per commit, so re-running for the same head does
+            # not add a duplicate comment. Comments are captured before
+            # matching so an early exiting `grep -q` cannot make `gh` look
+            # failed under `pipefail`.
+            marker="<!-- auto-merge-summary:$sha -->"
+            comments=$(gh pr view "$pr" --json comments -q '.comments[].body')
+            if grep -qF "$marker" <<<"$comments"; then
+              echo "Summary for $sha already posted on #$pr."
+              continue
+            fi
+
+            {
+              echo "$marker"
+              echo "## Automated change summary"
+              echo
+              echo "Auto-merging \`${sha:0:7}\`, which changes these files:"
+              echo
+              echo '```'
+              cat "summary-$pr.txt"
+              echo '```'
+              echo
+              echo "_Posted by the auto-merge workflow ([run](${GITHUB_SERVER_URL}/${GH_REPO}/actions/runs/${GITHUB_RUN_ID}))._"
+            } >comment.md
+
+            # No fallback: the summary is part of the merge contract, so a
+            # failure here must stop the run before the merge step. The
+            # per-commit marker makes a later retry safe.
+            gh pr comment "$pr" --body-file comment.md
+          done
+
+      - name: Merge and close superseded pull requests
+        id: merge
+        if: steps.pin.outputs.status == 'pinned'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA_30: ${{ steps.select.outputs.sha_30 }}
+          SHA_31: ${{ steps.select.outputs.sha_31 }}
+          PR_30: ${{ steps.select.outputs.pr_30 }}
+          PR_31: ${{ steps.select.outputs.pr_31 }}
+          SUPERSEDED_30: ${{ steps.select.outputs.superseded_30 }}
+          SUPERSEDED_31: ${{ steps.select.outputs.superseded_31 }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          # Titles come from the selection script so there is a single source
+          # of truth for what this workflow is allowed to touch, and each
+          # group is matched against its own exact title rather than against
+          # "either of the two".
+          selector="$GITHUB_WORKSPACE/tools/.github/scripts/select_openapi_prs.py"
+          title_30=$(python3 "$selector" --title 30)
+          title_31=$(python3 "$selector" --title 31)
+
+          title_for() {
+            case "$1" in
+              30) printf '%s\n' "$title_30" ;;
+              31) printf '%s\n' "$title_31" ;;
+            esac
+          }
+
+          candidates=''
+          for entry in "30:$PR_30:$SHA_30" "31:$PR_31:$SHA_31"; do
+            rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
+            [ -n "$pr" ] && [ -n "$sha" ] || continue
+            candidates+="$entry "
+          done
+
+          # Confirm every candidate is still exactly what was validated: the
+          # same commit, still open, still authored by the description bot,
+          # still titled as a description update, and still targeting the
+          # default branch. Any mismatch means the pull request changed
+          # mid-run, so nothing is merged or closed.
+          for entry in $candidates; do
+            suffix="${entry%%:*}"; rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
+            meta=$(gh pr view "$pr" \
+              --json headRefOid,state,author,title,baseRefName \
+              -q '[.headRefOid, .state, .author.login, .baseRefName, .title] | @tsv')
+            IFS=$'\t' read -r current state author base title <<<"$meta"
+
+            if [ "$current" != "$sha" ]; then
+              echo "::notice::#$pr moved from $sha to $current since validation; stopping."
+              echo "status=stale" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr moved during the run" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
+              || [ "$base" != "$DEFAULT_BRANCH" ] \
+              || [ "$title" != "$(title_for "$suffix")" ]; then
+              echo "::notice::#$pr is no longer an open $BOT_LOGIN description update targeting $DEFAULT_BRANCH; stopping."
+              echo "status=stale" >>"$GITHUB_OUTPUT"
+              echo "detail=#$pr changed during the run" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run: would merge ${candidates:-none}, close: ${SUPERSEDED_30:-} ${SUPERSEDED_31:-}"
+            echo "status=dry-run" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Merged through the pull request API rather than by pushing the
+          # default branch: the branch requires a pull request, so a direct
+          # push is refused, and merging the pull request is the path that
+          # satisfies that rule without needing an exemption.
+          #
+          # `--match-head-commit` makes the server reject the merge unless the
+          # head is still the validated commit. That check and the merge are
+          # one atomic operation, so unlike a read followed by a write there is
+          # no window in which the head can move in between. It also makes the
+          # retry below safe: a retry can only ever merge the same commit.
+          merge_pr() {
+            pr="$1"; sha="$2"
+            for attempt in 1 2 3 4 5; do
+              if gh pr merge "$pr" --merge --match-head-commit "$sha"; then
+                return 0
+              fi
+
+              # These pull requests are large enough that the call can time out
+              # at the gateway while the merge still completes, so the recorded
+              # state is the authority here, not the exit code.
+              if [ "$(gh pr view "$pr" --json merged -q .merged 2>/dev/null)" = 'true' ]; then
+                echo "#$pr is merged; the call that performed it did not report back."
+                return 0
+              fi
+
+              if [ "$attempt" -lt 5 ]; then
+                echo "::notice::Merge attempt $attempt for #$pr did not succeed; retrying."
+                sleep $((attempt * 15))
+              fi
+            done
+            return 1
+          }
+
+          merged=''
+          merge_failed=''
+          # The two versions are independent: they touch disjoint trees and are
+          # selected and superseded separately, so one failing must not change
+          # what happens to the other. Each version that merges is recorded so
+          # its superseded pull requests are still closed below.
+          merged_groups=''
+          for entry in $candidates; do
+            suffix="${entry%%:*}"; rest="${entry#*:}"
+            pr="${rest%%:*}"; sha="${rest#*:}"
+
+            if merge_pr "$pr" "$sha"; then
+              merged+="#$pr "
+              merged_groups+="$suffix "
+            else
+              merge_failed+="#$pr "
+              echo "::error::#$pr could not be merged."
+            fi
+          done
+
+          # Recorded immediately after the merges: everything below can fail,
+          # and none of it may hide what already landed.
+          if [ -n "$merge_failed" ]; then
+            echo "status=merge-failed" >>"$GITHUB_OUTPUT"
+            echo "detail=${merged:+merged ${merged% }, but }${merge_failed% } could not be merged" >>"$GITHUB_OUTPUT"
+          else
+            echo "status=merged" >>"$GITHUB_OUTPUT"
+            echo "detail=${merged% }" >>"$GITHUB_OUTPUT"
+          fi
+
+          # Re-read current state immediately before closing. Selection
+          # happened minutes earlier, and a pull request can be retitled,
+          # retargeted, transferred or closed in between. A pull request is
+          # only closed when it is still open, still authored by the
+          # description bot, still targeting the default branch, and still
+          # carries the exact title it was superseded under.
+          close_failed=''
+          close_superseded() {
+            expected="$1"; shift
+            for pr in "$@"; do
+              # A failed read is treated exactly like a failed close: the pull
+              # request is still open and still needs a human.
+              if ! meta=$(gh pr view "$pr" --json title,state,author,baseRefName \
+                -q '[.state, .author.login, .baseRefName, .title] | @tsv'); then
+                close_failed+="#$pr "
+                continue
+              fi
+              IFS=$'\t' read -r state author base title <<<"$meta"
+
+              if [ "$state" != 'OPEN' ] || [ "$author" != "$BOT_LOGIN" ] \
+                || [ "$base" != "$DEFAULT_BRANCH" ] || [ "$title" != "$expected" ]; then
+                echo "::notice::Leaving #$pr open: it no longer matches the pull request that was superseded."
+                continue
+              fi
+
+              gh pr close "$pr" \
+                --comment "Superseded by the newer OpenAPI description update(s) ${merged% }. Closing automatically." \
+                || close_failed+="#$pr "
+            done
+          }
+
+          # Only for versions that actually merged. Closing them is what stops
+          # the next run from selecting a stale snapshot: once the newest pull
+          # request is merged and therefore closed, an older one left open
+          # becomes the newest open one, and merging that would put an earlier
+          # description back on the default branch. A version whose merge
+          # failed keeps its superseded pull requests, because its newest one
+          # is still open and still the right candidate.
+          for suffix in $merged_groups; do
+            case "$suffix" in
+              30) close_superseded "$title_30" ${SUPERSEDED_30:-} ;;
+              31) close_superseded "$title_31" ${SUPERSEDED_31:-} ;;
+            esac
+          done
+
+          # A superseded pull request left open would be picked up as a
+          # candidate by the next run, so this must not pass silently.
+          if [ -n "$close_failed" ]; then
+            echo "close_failed=${close_failed% }" >>"$GITHUB_OUTPUT"
+            echo "::error::Failed to close superseded pull request(s): $close_failed"
+          fi
+
+          if [ -n "$close_failed" ] || [ -n "$merge_failed" ]; then
+            exit 1
+          fi
+
+      - name: Report outcome
+        # Runs on every completed path so the outcome is decided in exactly one
+        # place and the job summary and the notification cannot disagree.
+        if: ${{ !cancelled() }}
+        env:
+          CHATTERBOX_URL: ${{ secrets.CHATTERBOX_URL }}
+          CHATTERBOX_TOKEN: ${{ secrets.CHATTERBOX_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SELECT_FOUND: ${{ steps.select.outputs.found }}
+          CHECKS_STATUS: ${{ steps.checks.outputs.status }}
+          CHECKS_DETAIL: ${{ steps.checks.outputs.detail }}
+          FREEZE_STATUS: ${{ steps.freeze.outputs.status }}
+          FREEZE_DETAIL: ${{ steps.freeze.outputs.detail }}
+          PIN_STATUS: ${{ steps.pin.outputs.status }}
+          PIN_DETAIL: ${{ steps.pin.outputs.detail }}
+          MERGE_STATUS: ${{ steps.merge.outputs.status }}
+          MERGE_DETAIL: ${{ steps.merge.outputs.detail }}
+          MERGE_CLOSE_FAILED: ${{ steps.merge.outputs.close_failed }}
+        run: |
+          set -euo pipefail
+
+          # `notify` marks the outcomes a person needs to see. The schedule runs
+          # twelve times a day, and a freeze or a red check persists across many
+          # of those runs, so notifying on them would produce a stream of
+          # identical messages that trains people to ignore the channel. Those
+          # outcomes are recorded in the job summary instead. Lint failures
+          # already have their own notification.
+          notify='false'
+
+          if [ "$MERGE_STATUS" = 'merge-failed' ]; then
+            icon=':x:'
+            headline='Auto-merge failed'
+            detail="The workflow $MERGE_DETAIL.${MERGE_CLOSE_FAILED:+ Superseded pull request(s) $MERGE_CLOSE_FAILED could not be closed either.}"
+            notify='true'
+          elif [ -n "$MERGE_CLOSE_FAILED" ]; then
+            icon=':warning:'
+            headline='Auto-merge needs follow-up'
+            detail="Merged $MERGE_DETAIL, but superseded pull request(s) $MERGE_CLOSE_FAILED could not be closed. Close them manually, otherwise the next run treats one of them as a candidate."
+            notify='true'
+          elif [ "$MERGE_STATUS" = 'merged' ]; then
+            icon=':white_check_mark:'
+            headline='Auto-merged OpenAPI description updates'
+            detail="Merged $MERGE_DETAIL"
+            notify='true'
+          elif [ "$MERGE_STATUS" = 'dry-run' ]; then
+            icon=':information_source:'
+            headline='Auto-merge dry run'
+            detail='Nothing was merged or closed.'
+          elif [ "$CHECKS_STATUS" = 'blocked' ]; then
+            icon=':warning:'
+            headline='Auto-merge did not proceed'
+            detail="Required checks were not green: $CHECKS_DETAIL"
+          elif [ "$FREEZE_STATUS" = 'frozen' ]; then
+            icon=':snowflake:'
+            headline='Auto-merge held'
+            detail="A merge freeze was detected: $FREEZE_DETAIL"
+          elif [ "$PIN_STATUS" = 'out-of-scope' ]; then
+            icon=':warning:'
+            headline='Auto-merge did not proceed'
+            detail="A candidate changed files outside the description directories: $PIN_DETAIL"
+            notify='true'
+          elif [ "$PIN_STATUS" = 'stale' ] || [ "$MERGE_STATUS" = 'stale' ]; then
+            icon=':information_source:'
+            headline='Auto-merge did not proceed'
+            detail='A candidate pull request was updated mid-run, so nothing was merged.'
+          elif [ "$SELECT_FOUND" = 'false' ]; then
+            icon=':information_source:'
+            headline='Nothing to do'
+            detail='No open OpenAPI description update pull requests.'
+          else
+            icon=':x:'
+            headline='Auto-merge failed'
+            detail='The workflow failed before merging. Review the failed step above.'
+            notify='true'
+          fi
+
+          # Written before the notification is attempted, so the run always
+          # carries the outcome even if posting it fails.
+          {
+            echo "## $headline"
+            echo
+            echo "$detail"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+          echo "$headline: $detail"
+          [ "$notify" = 'true' ] || exit 0
+
+          if [ -z "${CHATTERBOX_URL:-}" ] || [ -z "${CHATTERBOX_TOKEN:-}" ]; then
+            echo "CHATTERBOX_URL or CHATTERBOX_TOKEN is not configured; skipping notification."
+            exit 0
+          fi
+
+          message=$(printf '%s\n' \
+            "$icon $headline in ${GH_REPO}." \
+            "• ${detail}" \
+            "• Run: ${RUN_URL}")
+
+          curl --fail --silent --show-error \
+            -X POST \
+            -u "${CHATTERBOX_TOKEN}:" \
+            "${CHATTERBOX_URL%/}/topics/%23api-platform" \
+            --data "$message"
