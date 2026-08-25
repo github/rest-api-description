@@ -21074,6 +21074,57 @@ paths:
         enabledForGitHubApps: true
         category: copilot
         subcategory: copilot-usage-metrics
+  "/enterprises/{enterprise}/credential-authorizations":
+    delete:
+      summary: Revoke enterprise-delegated credential authorizations
+      description: |-
+        Queues revocation of every active organization credential authorization created through enterprise
+        delegation for the enterprise. Credential authorizations created through SAML or other flows are not affected.
+
+        The authenticated GitHub App must be owned by the enterprise or one of its organizations,
+        installed on the enterprise, and have the `enterprise_credentials:write` permission.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/revoke-delegated-credential-authorizations
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/credential-authorizations#revoke-enterprise-delegated-credential-authorizations
+      parameters:
+      - *40
+      - name: integration_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: |-
+          The database ID of a GitHub App currently owned by the enterprise or one of its organizations,
+          or a formerly owned GitHub App with delegation history for the enterprise.
+          When provided, only credential authorizations delegated by that App are revoked. When omitted,
+          all enterprise-delegated credential authorizations for the enterprise are revoked.
+      responses:
+        '202':
+          description: Delegated credential authorization revocation was queued.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+              examples:
+                default:
+                  value:
+                    message: Enterprise-delegated credential authorization revocation
+                      has been queued
+        '403': *27
+        '404': *6
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: credential-authorizations
   "/enterprises/{enterprise}/credential-authorizations/revoke-all":
     post:
       summary: Revoke all credential authorizations for an enterprise
@@ -99296,8 +99347,11 @@ paths:
   "/repos/{owner}/{repo}/dependency-graph/sbom":
     get:
       summary: Export a software bill of materials (SBOM) for a repository.
-      description: Exports the software bill of materials (SBOM) for a repository
-        in SPDX JSON format.
+      description: |-
+        > [!WARNING]
+        > **Closing down notice:** This operation is closing down and will not be accessible after November 13, 2026. Please migrate to the asynchronous flow. Use "[Request generation of a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#request-generation-of-a-software-bill-of-materials-sbom-for-a-repository)" to trigger the report, then "[Fetch a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#fetch-a-software-bill-of-materials-sbom-for-a-repository)" to retrieve it. For more information, see the [changelog](https://github.blog/changelog/2026-05-12-synchronous-sbom-api-deprecated/).
+
+        Exports the software bill of materials (SBOM) for a repository in SPDX JSON format.
       tags:
       - dependency-graph
       operationId: dependency-graph/export-sbom
@@ -99550,6 +99604,9 @@ paths:
         githubCloudOnly: false
         category: dependency-graph
         subcategory: sboms
+        deprecationDate: '2026-05-12'
+        removalDate: '2026-11-13'
+      deprecated: true
   "/repos/{owner}/{repo}/dependency-graph/sbom/fetch-report/{sbom_uuid}":
     get:
       summary: Fetch a software bill of materials (SBOM) for a repository.
