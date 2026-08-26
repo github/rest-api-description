@@ -17329,7 +17329,7 @@ paths:
           headers:
             Link: *46
         '404': *6
-        '503': &196
+        '503': &197
           description: Service unavailable
           content:
             application/json:
@@ -20920,6 +20920,57 @@ paths:
         enabledForGitHubApps: true
         category: copilot
         subcategory: copilot-usage-metrics
+  "/enterprises/{enterprise}/credential-authorizations":
+    delete:
+      summary: Revoke enterprise-delegated credential authorizations
+      description: |-
+        Queues revocation of every active organization credential authorization created through enterprise
+        delegation for the enterprise. Credential authorizations created through SAML or other flows are not affected.
+
+        The authenticated GitHub App must be owned by the enterprise or one of its organizations,
+        installed on the enterprise, and have the `enterprise_credentials:write` permission.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/revoke-delegated-credential-authorizations
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/credential-authorizations#revoke-enterprise-delegated-credential-authorizations
+      parameters:
+      - *40
+      - name: integration_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: |-
+          The database ID of a GitHub App currently owned by the enterprise or one of its organizations,
+          or a formerly owned GitHub App with delegation history for the enterprise.
+          When provided, only credential authorizations delegated by that App are revoked. When omitted,
+          all enterprise-delegated credential authorizations for the enterprise are revoked.
+      responses:
+        '202':
+          description: Delegated credential authorization revocation was queued.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+              examples:
+                default:
+                  value:
+                    message: Enterprise-delegated credential authorization revocation
+                      has been queued
+        '403': *27
+        '404': *6
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: credential-authorizations
   "/enterprises/{enterprise}/credential-authorizations/revoke-all":
     post:
       summary: Revoke all credential authorizations for an enterprise
@@ -23230,7 +23281,7 @@ paths:
                 type: array
                 items: *146
               examples:
-                default: &213
+                default: &149
                   value:
                   - id: 1
                     name: Justice League
@@ -23974,6 +24025,45 @@ paths:
         enabledForGitHubApps: false
         category: copilot
         subcategory: copilot-user-management
+  "/enterprises/{enterprise}/members/{username}/teams":
+    get:
+      summary: List enterprise teams for a user
+      description: |-
+        Lists all enterprise teams that a user is a member of. This endpoint is available only for
+        enterprises using the new enterprise teams experience.
+
+        The authenticated user must be an enterprise owner or have the `enterprise_teams:read` permission.
+      tags:
+      - enterprise-team-memberships
+      operationId: enterprise-team-memberships/list-teams-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-teams/enterprise-team-members#list-enterprise-teams-for-a-user
+      parameters:
+      - *40
+      - *131
+      - *17
+      - *19
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *146
+              examples:
+                default: *149
+          headers:
+            Link: *46
+        '401': *23
+        '403': *27
+        '404': *6
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: enterprise-teams
+        subcategory: enterprise-team-members
   "/enterprises/{enterprise}/network-configurations":
     get:
       summary: List hosted compute network configurations for an enterprise
@@ -24005,7 +24095,7 @@ paths:
                     type: integer
                   network_configurations:
                     type: array
-                    items: &149
+                    items: &150
                       title: Hosted compute network configuration
                       description: A hosted compute network configuration.
                       type: object
@@ -24156,9 +24246,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: &150
+                default: &151
                   value:
                     id: 123456789ABCDEF
                     name: My network configuration
@@ -24185,7 +24275,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/network-configurations#get-a-hosted-compute-network-configuration-for-an-enterprise
       parameters:
       - *40
-      - &151
+      - &152
         name: network_configuration_id
         description: Unique identifier of the hosted compute network configuration.
         in: path
@@ -24197,9 +24287,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: *150
+                default: *151
           headers:
             Link: *46
       x-github:
@@ -24219,7 +24309,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/network-configurations#update-a-hosted-compute-network-configuration-for-an-enterprise
       parameters:
       - *40
-      - *151
+      - *152
       requestBody:
         required: true
         content:
@@ -24272,9 +24362,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: *150
+                default: *151
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: false
@@ -24292,7 +24382,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/network-configurations#delete-a-hosted-compute-network-configuration-from-an-enterprise
       parameters:
       - *40
-      - *151
+      - *152
       responses:
         '204':
           description: Response
@@ -24405,7 +24495,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &152
+                items: &153
                   title: Custom Property for Organization
                   description: Custom property defined for an organization
                   allOf:
@@ -24483,7 +24573,7 @@ paths:
                     - property_name
                     - value_type
               examples:
-                default: &153
+                default: &154
                   value:
                   - property_name: environment
                     url: https://api.github.com/enterprises/github/org-properties/schema/environment
@@ -24543,7 +24633,7 @@ paths:
                   type: array
                   description: The array of organization custom properties to create
                     or update.
-                  items: *152
+                  items: *153
                   minItems: 1
                   maxItems: 100
               required:
@@ -24576,9 +24666,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *152
+                items: *153
               examples:
-                default: *153
+                default: *154
         '403': *27
         '404': *6
         '422': *7
@@ -24605,7 +24695,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties-for-orgs#get-an-organization-custom-property-definition-from-an-enterprise
       parameters:
       - *40
-      - &154
+      - &155
         name: custom_property_name
         description: The custom property name
         in: path
@@ -24617,9 +24707,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *152
+              schema: *153
               examples:
-                default: &155
+                default: &156
                   value:
                     property_name: environment
                     url: https://api.github.com/enterprises/github/org-properties/schema/environment
@@ -24656,7 +24746,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties-for-orgs#create-or-update-an-organization-custom-property-definition-on-an-enterprise
       parameters:
       - *40
-      - *154
+      - *155
       requestBody:
         required: true
         content:
@@ -24734,9 +24824,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *152
+              schema: *153
               examples:
-                default: *155
+                default: *156
         '403': *27
         '404': *6
         '422': *7
@@ -24762,7 +24852,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties-for-orgs#remove-an-organization-custom-property-definition-from-an-enterprise
       parameters:
       - *40
-      - *154
+      - *155
       responses:
         '204': *125
         '403': *27
@@ -24815,7 +24905,7 @@ paths:
                       - Hello-World
                     properties:
                       type: array
-                      items: &156
+                      items: &157
                         title: Custom Property Value
                         description: Custom property name and associated value
                         type: object
@@ -24901,7 +24991,7 @@ paths:
                   type: array
                   description: List of custom property names and associated values
                     to apply to the organizations.
-                  items: *156
+                  items: *157
               required:
               - organization_logins
               - properties
@@ -24951,7 +25041,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &157
+                items: &158
                   title: Organization Custom Property
                   description: Custom property defined on an organization
                   type: object
@@ -25029,7 +25119,7 @@ paths:
                   - property_name
                   - value_type
               examples:
-                default: &158
+                default: &159
                   value:
                   - property_name: environment
                     url: https://api.github.com/orgs/github/properties/schema/environment
@@ -25087,7 +25177,7 @@ paths:
                 properties:
                   type: array
                   description: The array of custom properties to create or update.
-                  items: *157
+                  items: *158
                   minItems: 1
                   maxItems: 100
               required:
@@ -25117,9 +25207,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *157
+                items: *158
               examples:
-                default: *158
+                default: *159
         '403': *27
         '404': *6
       x-github:
@@ -25143,15 +25233,15 @@ paths:
       parameters:
       - *40
       - *88
-      - *154
+      - *155
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *157
+              schema: *158
               examples:
-                default: &159
+                default: &160
                   value:
                     property_name: environment
                     url: https://api.github.com/orgs/github/properties/schema/environment
@@ -25184,15 +25274,15 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties#get-a-custom-property-for-an-enterprise
       parameters:
       - *40
-      - *154
+      - *155
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *157
+              schema: *158
               examples:
-                default: *159
+                default: *160
         '403': *27
         '404': *6
       x-github:
@@ -25214,7 +25304,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties#create-or-update-a-custom-property-for-an-enterprise
       parameters:
       - *40
-      - *154
+      - *155
       requestBody:
         required: true
         content:
@@ -25294,9 +25384,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *157
+              schema: *158
               examples:
-                default: *159
+                default: *160
         '403': *27
         '404': *6
       x-github:
@@ -25318,7 +25408,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/custom-properties#remove-a-custom-property-for-an-enterprise
       parameters:
       - *40
-      - *154
+      - *155
       responses:
         '204': *125
         '403': *27
@@ -25360,7 +25450,7 @@ paths:
                   - push
                   - repository
                   default: branch
-                enforcement: &168
+                enforcement: &169
                   type: string
                   description: The enforcement level of the ruleset. `evaluate` allows
                     admins to test rules before enforcing them. Admins can view insights
@@ -25373,7 +25463,7 @@ paths:
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: &169
+                  items: &170
                     title: Repository Ruleset Bypass Actor
                     type: object
                     description: An actor that can bypass rules in a ruleset
@@ -25417,7 +25507,7 @@ paths:
                         - pull_request
                         - exempt
                         default: always
-                conditions: &193
+                conditions: &194
                   title: Enterprise ruleset conditions
                   type: object
                   description: |-
@@ -25430,7 +25520,7 @@ paths:
                     description: Conditions to target organizations by name and all
                       repositories
                     allOf:
-                    - &160
+                    - &161
                       title: Repository ruleset conditions for organization names
                       type: object
                       description: Parameters for an organization name condition
@@ -25456,7 +25546,7 @@ paths:
                                 type: string
                       required:
                       - organization_name
-                    - &163
+                    - &164
                       title: Repository ruleset conditions for repository names
                       type: object
                       description: Parameters for a repository name condition
@@ -25485,7 +25575,7 @@ paths:
                                 is prevented.
                       required:
                       - repository_name
-                    - &162
+                    - &163
                       title: Repository ruleset conditions for ref names
                       type: object
                       description: Parameters for a repository ruleset ref name condition
@@ -25513,8 +25603,8 @@ paths:
                     description: Conditions to target organizations by name and repositories
                       by property
                     allOf:
-                    - *160
-                    - &165
+                    - *161
+                    - &166
                       title: Repository ruleset conditions for repository properties
                       type: object
                       description: Parameters for a repository property condition
@@ -25527,7 +25617,7 @@ paths:
                               description: The repository properties and values to
                                 include. All of these properties must match for the
                                 condition to pass.
-                              items: &161
+                              items: &162
                                 title: Repository ruleset property targeting definition
                                 type: object
                                 description: Parameters for a targeting a repository
@@ -25558,16 +25648,16 @@ paths:
                               description: The repository properties and values to
                                 exclude. The condition will not pass if any of these
                                 properties match.
-                              items: *161
+                              items: *162
                       required:
                       - repository_property
-                    - *162
+                    - *163
                   - type: object
                     title: organization_id_and_repository_name
                     description: Conditions to target organizations by id and all
                       repositories
                     allOf:
-                    - &164
+                    - &165
                       title: Repository ruleset conditions for organization IDs
                       type: object
                       description: Parameters for an organization ID condition
@@ -25584,22 +25674,22 @@ paths:
                                 type: integer
                       required:
                       - organization_id
+                    - *164
                     - *163
-                    - *162
                   - type: object
                     title: organization_id_and_repository_property
                     description: Conditions to target organization by id and repositories
                       by property
                     allOf:
-                    - *164
                     - *165
-                    - *162
+                    - *166
+                    - *163
                   - type: object
                     title: organization_property_and_repository_name
                     description: Conditions to target organizations by property and
                       all repositories
                     allOf:
-                    - &167
+                    - &168
                       title: Repository ruleset conditions for organization properties
                       type: object
                       description: Parameters for a organization property condition
@@ -25612,7 +25702,7 @@ paths:
                               description: The organization properties and values
                                 to include. All of these properties must match for
                                 the condition to pass.
-                              items: &166
+                              items: &167
                                 title: Repository ruleset property targeting definition
                                 type: object
                                 description: Parameters for a targeting a organization
@@ -25636,28 +25726,28 @@ paths:
                               description: The organization properties and values
                                 to exclude. The condition will not pass if any of
                                 these properties match.
-                              items: *166
+                              items: *167
                       required:
                       - organization_property
+                    - *164
                     - *163
-                    - *162
                   - type: object
                     title: organization_property_and_repository_property
                     description: Conditions to target organizations by property and
                       repositories by property
                     allOf:
-                    - *167
-                    - *165
-                    - *162
+                    - *168
+                    - *166
+                    - *163
                 rules:
                   type: array
                   description: An array of rules within the ruleset.
-                  items: &194
+                  items: &195
                     title: Repository Rule
                     type: object
                     description: A repository rule.
                     oneOf:
-                    - &170
+                    - &171
                       title: creation
                       description: Only allow users with bypass permission to create
                         matching refs.
@@ -25669,7 +25759,7 @@ paths:
                           type: string
                           enum:
                           - creation
-                    - &171
+                    - &172
                       title: update
                       description: Only allow users with bypass permission to update
                         matching refs.
@@ -25690,7 +25780,7 @@ paths:
                                 repository
                           required:
                           - update_allows_fetch_and_merge
-                    - &172
+                    - &173
                       title: deletion
                       description: Only allow users with bypass permissions to delete
                         matching refs.
@@ -25702,7 +25792,7 @@ paths:
                           type: string
                           enum:
                           - deletion
-                    - &173
+                    - &174
                       title: required_linear_history
                       description: Prevent merge commits from being pushed to matching
                         refs.
@@ -25714,7 +25804,7 @@ paths:
                           type: string
                           enum:
                           - required_linear_history
-                    - &174
+                    - &175
                       title: required_deployments
                       description: Choose which environments must be successfully
                         deployed to before refs can be pushed into a ref that matches
@@ -25738,7 +25828,7 @@ paths:
                                 type: string
                           required:
                           - required_deployment_environments
-                    - &175
+                    - &176
                       title: required_signatures
                       description: Commits pushed to matching refs must have verified
                         signatures.
@@ -25750,7 +25840,7 @@ paths:
                           type: string
                           enum:
                           - required_signatures
-                    - &176
+                    - &177
                       title: pull_request
                       description: Require all commits be made to a non-target branch
                         and submitted via a pull request before they can be merged.
@@ -25890,7 +25980,7 @@ paths:
                           - require_last_push_approval
                           - required_approving_review_count
                           - required_review_thread_resolution
-                    - &177
+                    - &178
                       title: required_status_checks
                       description: Choose which status checks must pass before the
                         ref is updated. When enabled, commits must first be pushed
@@ -25937,7 +26027,7 @@ paths:
                           required:
                           - required_status_checks
                           - strict_required_status_checks_policy
-                    - &178
+                    - &179
                       title: non_fast_forward
                       description: Prevent users with push access from force pushing
                         to refs.
@@ -25949,7 +26039,7 @@ paths:
                           type: string
                           enum:
                           - non_fast_forward
-                    - &179
+                    - &180
                       title: commit_message_pattern
                       description: Parameters to be used for the commit_message_pattern
                         rule
@@ -25986,7 +26076,7 @@ paths:
                           required:
                           - operator
                           - pattern
-                    - &180
+                    - &181
                       title: commit_author_email_pattern
                       description: Parameters to be used for the commit_author_email_pattern
                         rule
@@ -26023,7 +26113,7 @@ paths:
                           required:
                           - operator
                           - pattern
-                    - &181
+                    - &182
                       title: committer_email_pattern
                       description: Parameters to be used for the committer_email_pattern
                         rule
@@ -26060,7 +26150,7 @@ paths:
                           required:
                           - operator
                           - pattern
-                    - &182
+                    - &183
                       title: branch_name_pattern
                       description: Parameters to be used for the branch_name_pattern
                         rule
@@ -26097,7 +26187,7 @@ paths:
                           required:
                           - operator
                           - pattern
-                    - &183
+                    - &184
                       title: tag_name_pattern
                       description: Parameters to be used for the tag_name_pattern
                         rule
@@ -26134,7 +26224,7 @@ paths:
                           required:
                           - operator
                           - pattern
-                    - &187
+                    - &188
                       title: file_path_restriction
                       description: Prevent commits that include changes in specified
                         file and folder paths from being pushed to the commit graph.
@@ -26158,7 +26248,7 @@ paths:
                                 type: string
                           required:
                           - restricted_file_paths
-                    - &188
+                    - &189
                       title: max_file_path_length
                       description: Prevent commits that include file paths that exceed
                         the specified character limit from being pushed to the commit
@@ -26182,7 +26272,7 @@ paths:
                               maximum: 32767
                           required:
                           - max_file_path_length
-                    - &189
+                    - &190
                       title: file_extension_restriction
                       description: Prevent commits that include files with specified
                         file extensions from being pushed to the commit graph.
@@ -26205,7 +26295,7 @@ paths:
                                 type: string
                           required:
                           - restricted_file_extensions
-                    - &190
+                    - &191
                       title: max_file_size
                       description: Prevent commits with individual files that exceed
                         the specified limit from being pushed to the commit graph.
@@ -26229,7 +26319,7 @@ paths:
                               maximum: 100
                           required:
                           - max_file_size
-                    - &184
+                    - &185
                       title: workflows
                       description: Require all changes made to a targeted branch to
                         pass the specified workflows before they can be merged.
@@ -26278,7 +26368,7 @@ paths:
                                 - repository_id
                           required:
                           - workflows
-                    - &185
+                    - &186
                       title: code_scanning
                       description: Choose which tools must provide code scanning results
                         before the reference is updated. When configured, code scanning
@@ -26338,7 +26428,7 @@ paths:
                                 - tool
                           required:
                           - code_scanning_tools
-                    - &186
+                    - &187
                       title: copilot_code_review
                       description: Request Copilot code review for new pull requests
                         automatically if the author has access to Copilot code review
@@ -26388,7 +26478,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: &191
+              schema: &192
                 title: Repository ruleset
                 type: object
                 description: A set of rules to apply when specified conditions are
@@ -26423,11 +26513,11 @@ paths:
                   source:
                     type: string
                     description: The name of the source
-                  enforcement: *168
+                  enforcement: *169
                   bypass_actors:
                     type: array
                     description: The actors that can bypass the rules in this ruleset
-                    items: *169
+                    items: *170
                   current_user_can_bypass:
                     type: string
                     description: |-
@@ -26459,7 +26549,7 @@ paths:
                             description: The html URL of the ruleset
                   conditions:
                     anyOf:
-                    - *162
+                    - *163
                     - &439
                       title: Organization ruleset conditions
                       type: object
@@ -26474,14 +26564,14 @@ paths:
                         description: Conditions to target repositories by name and
                           refs by name
                         allOf:
-                        - *162
                         - *163
+                        - *164
                       - type: object
                         title: repository_id_and_ref_name
                         description: Conditions to target repositories by id and refs
                           by name
                         allOf:
-                        - *162
+                        - *163
                         - title: Repository ruleset conditions for repository IDs
                           type: object
                           description: Parameters for a repository ID condition
@@ -26503,8 +26593,8 @@ paths:
                         description: Conditions to target repositories by property
                           and refs by name
                         allOf:
-                        - *162
-                        - *165
+                        - *163
+                        - *166
                     type:
                     - 'null'
                     - object
@@ -26515,10 +26605,10 @@ paths:
                       type: object
                       description: A repository rule.
                       oneOf:
-                      - *170
                       - *171
                       - *172
                       - *173
+                      - *174
                       - &765
                         title: merge_queue
                         description: Merges must be performed via a merge queue.
@@ -26597,7 +26687,6 @@ paths:
                             - merge_method
                             - min_entries_to_merge
                             - min_entries_to_merge_wait_minutes
-                      - *174
                       - *175
                       - *176
                       - *177
@@ -26610,6 +26699,7 @@ paths:
                       - *184
                       - *185
                       - *186
+                      - *187
                       - &766
                         title: license_compliance_scanning
                         description: Enforce any added or changed dependencies to
@@ -26622,10 +26712,10 @@ paths:
                             type: string
                             enum:
                             - license_compliance_scanning
-                      - *187
                       - *188
                       - *189
                       - *190
+                      - *191
                   created_at:
                     type: string
                     format: date-time
@@ -26633,7 +26723,7 @@ paths:
                     type: string
                     format: date-time
               examples:
-                default: &192
+                default: &193
                   value:
                     id: 21
                     name: super cool ruleset
@@ -26692,9 +26782,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
-                default: *192
+                default: *193
         '404': *6
         '500': *39
       x-github:
@@ -26738,16 +26828,16 @@ paths:
                   - tag
                   - push
                   - repository
-                enforcement: *168
+                enforcement: *169
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: *169
-                conditions: *193
+                  items: *170
+                conditions: *194
                 rules:
                   description: An array of rules within the ruleset.
                   type: array
-                  items: *194
+                  items: *195
             examples:
               default:
                 value:
@@ -26771,9 +26861,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
-                default: *192
+                default: *193
         '404': *6
         '500': *39
       x-github:
@@ -26835,7 +26925,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &195
+                items: &196
                   title: Ruleset version
                   type: object
                   description: The historical version of a ruleset
@@ -26914,7 +27004,7 @@ paths:
             application/json:
               schema: &443
                 allOf:
-                - *195
+                - *196
                 - type: object
                   required:
                   - state
@@ -27839,7 +27929,7 @@ paths:
           headers:
             Link: *46
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: false
@@ -27909,7 +27999,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &197
+                items: &198
                   title: Secret Scanning Custom Pattern
                   description: A custom pattern for secret scanning.
                   type: object
@@ -27961,7 +28051,7 @@ paths:
                       description: List of regexes that the secret must not match.
                       items:
                         type: string
-                    custom_pattern_version: &198
+                    custom_pattern_version: &199
                       type:
                       - string
                       - 'null'
@@ -28110,7 +28200,7 @@ paths:
                   created_patterns:
                     type: array
                     description: The list of successfully created custom patterns.
-                    items: *197
+                    items: *198
               examples:
                 default: &467
                   value:
@@ -28228,7 +28318,7 @@ paths:
                       pattern_id:
                         type: integer
                         description: The ID of the custom pattern to delete.
-                      custom_pattern_version: *198
+                      custom_pattern_version: *199
                 post_delete_action:
                   type: string
                   description: |-
@@ -28252,7 +28342,7 @@ paths:
         '400': *14
         '403': *27
         '404': *6
-        '412': &199
+        '412': &200
           description: Precondition Failed
           content:
             application/json:
@@ -28326,7 +28416,7 @@ paths:
                   description: Updated list of regexes that the secret must not match.
                   items:
                     type: string
-                custom_pattern_version: *198
+                custom_pattern_version: *199
             examples:
               default: &472
                 value:
@@ -28343,7 +28433,7 @@ paths:
           description: Pattern updated successfully.
           content:
             application/json:
-              schema: *197
+              schema: *198
               examples:
                 default: &473
                   value:
@@ -28365,7 +28455,7 @@ paths:
         '400': *14
         '403': *27
         '404': *6
-        '412': *199
+        '412': *200
         '422': *15
   "/enterprises/{enterprise}/secret-scanning/pattern-configurations":
     get:
@@ -28398,11 +28488,11 @@ paths:
                   related to push protection.
                 type: object
                 properties:
-                  pattern_config_version: *198
+                  pattern_config_version: *199
                   provider_pattern_overrides:
                     type: array
                     description: Overrides for partner patterns.
-                    items: &200
+                    items: &201
                       type: object
                       properties:
                         token_type:
@@ -28471,7 +28561,7 @@ paths:
                   custom_pattern_overrides:
                     type: array
                     description: Overrides for custom patterns defined by the organization.
-                    items: *200
+                    items: *201
               examples:
                 default: &475
                   value:
@@ -28528,7 +28618,7 @@ paths:
             schema:
               type: object
               properties:
-                pattern_config_version: *198
+                pattern_config_version: *199
                 provider_pattern_settings:
                   type: array
                   description: Pattern settings for provider patterns.
@@ -28554,7 +28644,7 @@ paths:
                       token_type:
                         type: string
                         description: The ID of the pattern to configure.
-                      custom_pattern_version: *198
+                      custom_pattern_version: *199
                       push_protection_setting:
                         type: string
                         description: Push protection setting to set for the pattern.
@@ -28734,7 +28824,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/usage#get-billing-ai-credit-usage-report-for-an-enterprise
       parameters:
       - *40
-      - &204
+      - &205
         name: year
         description: If specified, only return results for a single year. The value
           of `year` is an integer with four digits representing a year. For example,
@@ -28743,7 +28833,7 @@ paths:
         required: false
         schema:
           type: integer
-      - &205
+      - &206
         name: month
         description: If specified, only return results for a single month. The value
           of `month` is an integer between `1` and `12`. Default value is the current
@@ -28752,7 +28842,7 @@ paths:
         required: false
         schema:
           type: integer
-      - &206
+      - &207
         name: day
         description: If specified, only return results for a single day. The value
           of `day` is an integer between `1` and `31`. If no `year` or `month` is
@@ -28761,7 +28851,7 @@ paths:
         required: false
         schema:
           type: integer
-      - &207
+      - &208
         name: organization
         description: The organization name to query usage for. The name is not case
           sensitive.
@@ -28769,21 +28859,21 @@ paths:
         required: false
         schema:
           type: string
-      - &208
+      - &209
         name: user
         description: The user name to query usage for. The name is not case sensitive.
         in: query
         required: false
         schema:
           type: string
-      - &209
+      - &210
         name: model
         description: The model name to query usage for. The name is not case sensitive.
         in: query
         required: false
         schema:
           type: string
-      - &210
+      - &211
         name: product
         description: The product name to query usage for. The name is not case sensitive.
         in: query
@@ -28922,7 +29012,7 @@ paths:
         '403': *27
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -29471,7 +29561,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/budgets#get-a-budget-by-id
       parameters:
       - *40
-      - &201
+      - &202
         name: budget_id
         description: The ID corresponding to the budget.
         in: path
@@ -29587,7 +29677,7 @@ paths:
         '404': *6
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -29890,7 +29980,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/budgets#delete-a-budget
       parameters:
       - *40
-      - *201
+      - *202
       responses:
         '200':
           description: Response when deleting a budget
@@ -29917,7 +30007,7 @@ paths:
         '404': *6
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -29941,7 +30031,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/budgets#get-user-states-for-a-multi-user-budget
       parameters:
       - *40
-      - *201
+      - *202
       - name: page
         description: The page number of results to fetch.
         in: query
@@ -30036,7 +30126,7 @@ paths:
         '404': *6
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30180,7 +30270,7 @@ paths:
         '400': *14
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30368,7 +30458,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/cost-centers#get-a-cost-center-by-id
       parameters:
       - *40
-      - &203
+      - &204
         name: cost_center_id
         description: The ID corresponding to the cost center.
         in: path
@@ -30453,7 +30543,7 @@ paths:
                 - name
                 - resources
               examples:
-                default: &202
+                default: &203
                   value:
                     id: 2eeb8ffe-6903-11ee-8c99-0242ac120002
                     name: Cost Center Name
@@ -30471,7 +30561,7 @@ paths:
         '400': *14
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30612,15 +30702,15 @@ paths:
                 - name
                 - resources
               examples:
-                update-cost-center: *202
-                update-cost-center-with-cap: *202
+                update-cost-center: *203
+                update-cost-center-with-cap: *203
         '400': *14
         '403': *27
         '404': *6
         '409': *120
         '422': *15
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30642,7 +30732,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/cost-centers#delete-a-cost-center
       parameters:
       - *40
-      - *203
+      - *204
       responses:
         '200':
           description: Response when deleting a cost center
@@ -30681,7 +30771,7 @@ paths:
         '404': *6
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30702,7 +30792,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/cost-centers#add-resources-to-a-cost-center
       parameters:
       - *40
-      - *203
+      - *204
       requestBody:
         required: true
         content:
@@ -30783,7 +30873,7 @@ paths:
         '403': *27
         '409': *120
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30803,7 +30893,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/cost-centers#remove-resources-from-a-cost-center
       parameters:
       - *40
-      - *203
+      - *204
       requestBody:
         required: true
         content:
@@ -30855,7 +30945,7 @@ paths:
         '400': *14
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -30876,13 +30966,13 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/usage#get-billing-premium-request-usage-report-for-an-enterprise
       parameters:
       - *40
-      - *204
       - *205
       - *206
       - *207
       - *208
       - *209
       - *210
+      - *211
       - name: cost_center_id
         description: The ID corresponding to a cost center. An ID of 'none' will target
           usage not associated to any cost center.
@@ -31015,7 +31105,7 @@ paths:
         '403': *27
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31049,7 +31139,7 @@ paths:
                   usage_report_exports:
                     type: array
                     description: List of usage report exports
-                    items: &211
+                    items: &212
                       type: object
                       properties:
                         id:
@@ -31147,7 +31237,7 @@ paths:
         '403': *27
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31213,9 +31303,9 @@ paths:
           description: Report export request accepted
           content:
             application/json:
-              schema: *211
+              schema: *212
               examples:
-                usage-report-export: &212
+                usage-report-export: &213
                   value:
                     id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
                     report_type: detailed
@@ -31231,7 +31321,7 @@ paths:
         '403': *27
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31266,14 +31356,14 @@ paths:
           description: Usage report export details
           content:
             application/json:
-              schema: *211
+              schema: *212
               examples:
-                usage-report-export: *212
+                usage-report-export: *213
         '401': *23
         '403': *27
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31294,7 +31384,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/usage#get-billing-usage-report-for-an-enterprise
       parameters:
       - *40
-      - *204
+      - *205
       - name: month
         description: If specified, only return results for a single month. The value
           of `month` is an integer between `1` and `12`. If no year is specified the
@@ -31303,7 +31393,7 @@ paths:
         required: false
         schema:
           type: integer
-      - *206
+      - *207
       - name: cost_center_id
         description: The ID corresponding to a cost center. The default value is no
           cost center.
@@ -31386,7 +31476,7 @@ paths:
         '400': *14
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31407,17 +31497,17 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/billing/usage#get-billing-usage-summary-for-an-enterprise
       parameters:
       - *40
-      - *204
       - *205
       - *206
       - *207
+      - *208
       - name: repository
         description: The repository name to query for usage in the format owner/repository.
         in: query
         required: false
         schema:
           type: string
-      - *210
+      - *211
       - name: sku
         description: The SKU to query for usage.
         in: query
@@ -31550,7 +31640,7 @@ paths:
         '400': *14
         '403': *27
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -31579,7 +31669,7 @@ paths:
                 type: array
                 items: *146
               examples:
-                default: *213
+                default: *149
           headers:
             Link: *46
         '403': *27
@@ -31670,7 +31760,7 @@ paths:
             application/json:
               schema: *146
               examples:
-                default: &218
+                default: &219
                   value:
                     id: 1
                     name: Justice League
@@ -32174,7 +32264,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-teams/enterprise-teams#get-an-enterprise-team
       parameters:
       - *40
-      - &219
+      - &218
         name: team_slug
         description: The slug of the team name.
         in: path
@@ -32186,9 +32276,99 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *146
+              schema:
+                title: Enterprise Team
+                description: Group of enterprise owners and/or members
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  slug:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+                  sync_to_organizations:
+                    type: string
+                    description: 'Retired: this field will not be returned with GHEC
+                      enterprise teams.'
+                    examples:
+                    - disabled
+                  organization_selection_type:
+                    type: string
+                    examples:
+                    - selected
+                  group_id:
+                    type:
+                    - string
+                    - 'null'
+                    examples:
+                    - 62ab9291-fae2-468e-974b-7e45096d5021
+                  group_name:
+                    type:
+                    - string
+                    - 'null'
+                    description: 'Retired: this field will not be returned with GHEC
+                      enterprise teams.'
+                    examples:
+                    - Justice League
+                  html_url:
+                    type: string
+                    format: uri
+                    examples:
+                    - https://github.com/enterprises/dc/teams/justice-league
+                  members_url:
+                    type: string
+                  members_count:
+                    type: integer
+                    description: The number of members in the enterprise team.
+                    examples:
+                    - 3
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  notification_setting:
+                    type: string
+                    description: Whether team members will receive notifications when
+                      the team is mentioned.
+                    enum:
+                    - notifications_enabled
+                    - notifications_disabled
+                    examples:
+                    - notifications_enabled
+                required:
+                - id
+                - url
+                - members_url
+                - members_count
+                - name
+                - html_url
+                - slug
+                - created_at
+                - updated_at
+                - group_id
               examples:
-                default: *218
+                default:
+                  value:
+                    id: 1
+                    name: Justice League
+                    description: A great team.
+                    slug: justice-league
+                    url: https://api.github.com/enterprises/dc/teams/1
+                    group_id: 62ab9291-fae2-468e-974b-7e45096d5021
+                    html_url: https://github.com/enterprises/dc/teams/justice-league
+                    members_url: https://api.github.com/enterprises/dc/teams/1/memberships{/member}
+                    members_count: 3
+                    created_at: '2019-01-26T19:01:12Z'
+                    updated_at: '2019-01-26T19:14:43Z'
           headers:
             Link: *46
         '403': *27
@@ -32208,7 +32388,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-teams/enterprise-teams#update-an-enterprise-team
       parameters:
       - *40
-      - *219
+      - *218
       requestBody:
         required: true
         content:
@@ -32278,7 +32458,7 @@ paths:
             application/json:
               schema: *146
               examples:
-                default: *218
+                default: *219
           headers:
             Link: *46
         '403': *27
@@ -32301,7 +32481,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-teams/enterprise-teams#delete-an-enterprise-team
       parameters:
       - *40
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -34692,7 +34872,7 @@ paths:
                     created_at: '2022-06-07T07:50:26Z'
         '304': *36
         '403': *27
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -40065,7 +40245,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *156
+                items: *157
               examples:
                 default: &739
                   value:
@@ -40113,7 +40293,7 @@ paths:
                   type: array
                   description: A list of custom property names and associated values
                     to apply to the organization.
-                  items: *156
+                  items: *157
               required:
               - properties
             examples:
@@ -40233,20 +40413,28 @@ paths:
                     examples:
                     - github
                   company:
-                    type: string
+                    type:
+                    - string
+                    - 'null'
                     examples:
                     - GitHub
                   blog:
-                    type: string
+                    type:
+                    - string
+                    - 'null'
                     format: uri
                     examples:
                     - https://github.com/blog
                   location:
-                    type: string
+                    type:
+                    - string
+                    - 'null'
                     examples:
                     - San Francisco
                   email:
-                    type: string
+                    type:
+                    - string
+                    - 'null'
                     format: email
                     examples:
                     - octocat@github.com
@@ -48169,7 +48357,7 @@ paths:
           headers:
             Link: *46
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -48345,7 +48533,7 @@ paths:
               schema: *3
         '429':
           description: Too Many Requests
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -48388,7 +48576,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -48483,7 +48671,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -48515,7 +48703,7 @@ paths:
         '204':
           description: Deletion successful
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -48598,7 +48786,7 @@ paths:
           headers:
             Link: *46
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -61345,7 +61533,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/organization-roles#remove-all-organization-roles-for-a-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -61371,7 +61559,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/organization-roles#assign-an-organization-role-to-a-team
       parameters:
       - *88
-      - *219
+      - *218
       - *144
       responses:
         '204':
@@ -61402,7 +61590,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/organization-roles#remove-an-organization-role-from-a-team
       parameters:
       - *88
-      - *219
+      - *218
       - *144
       responses:
         '204':
@@ -67235,9 +67423,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *157
+                items: *158
               examples:
-                default: *158
+                default: *159
         '403': *27
         '404': *6
       x-github:
@@ -67275,7 +67463,7 @@ paths:
                 properties:
                   type: array
                   description: The array of custom properties to create or update.
-                  items: *157
+                  items: *158
                   minItems: 1
                   maxItems: 100
               required:
@@ -67305,9 +67493,9 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *157
+                items: *158
               examples:
-                default: *158
+                default: *159
         '403': *27
         '404': *6
       x-github:
@@ -67329,15 +67517,15 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/custom-properties#get-a-custom-property-for-an-organization
       parameters:
       - *88
-      - *154
+      - *155
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *157
+              schema: *158
               examples:
-                default: *159
+                default: *160
         '403': *27
         '404': *6
       x-github:
@@ -67361,7 +67549,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/custom-properties#create-or-update-a-custom-property-for-an-organization
       parameters:
       - *88
-      - *154
+      - *155
       requestBody:
         required: true
         content:
@@ -67382,9 +67570,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *157
+              schema: *158
               examples:
-                default: *159
+                default: *160
         '403': *27
         '404': *6
       x-github:
@@ -67408,7 +67596,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/custom-properties#remove-a-custom-property-for-an-organization
       parameters:
       - *88
-      - *154
+      - *155
       responses:
         '204': *125
         '403': *27
@@ -67472,7 +67660,7 @@ paths:
                       - octocat/Hello-World
                     properties:
                       type: array
-                      items: *156
+                      items: *157
                       description: List of custom property names and associated values
                   required:
                   - repository_id
@@ -67541,7 +67729,7 @@ paths:
                   type: array
                   description: List of custom property names and associated values
                     to apply to the repositories.
-                  items: *156
+                  items: *157
               required:
               - repository_names
               - properties
@@ -69102,7 +69290,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *191
+                items: *192
               examples:
                 default:
                   value:
@@ -69170,11 +69358,11 @@ paths:
                   - push
                   - repository
                   default: branch
-                enforcement: *168
+                enforcement: *169
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: *169
+                  items: *170
                 conditions: *439
                 rules:
                   type: array
@@ -69184,7 +69372,6 @@ paths:
                     type: object
                     description: A repository rule.
                     oneOf:
-                    - *170
                     - *171
                     - *172
                     - *173
@@ -69198,13 +69385,14 @@ paths:
                     - *181
                     - *182
                     - *183
-                    - *187
+                    - *184
                     - *188
                     - *189
                     - *190
-                    - *184
+                    - *191
                     - *185
                     - *186
+                    - *187
               required:
               - name
               - enforcement
@@ -69242,7 +69430,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: &440
                   value:
@@ -69651,7 +69839,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: *440
         '404': *6
@@ -69697,11 +69885,11 @@ paths:
                   - tag
                   - push
                   - repository
-                enforcement: *168
+                enforcement: *169
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: *169
+                  items: *170
                 conditions: *439
                 rules:
                   description: An array of rules within the ruleset.
@@ -69741,7 +69929,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: *440
         '404': *6
@@ -69801,7 +69989,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *195
+                items: *196
               examples:
                 default: *442
         '404': *6
@@ -69954,7 +70142,7 @@ paths:
           headers:
             Link: *46
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -69993,7 +70181,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *197
+                items: *198
               examples:
                 default: *464
           headers:
@@ -70045,7 +70233,7 @@ paths:
                   created_patterns:
                     type: array
                     description: The list of successfully created custom patterns.
-                    items: *197
+                    items: *198
               examples:
                 default: *467
         '400': *14
@@ -70124,7 +70312,7 @@ paths:
         '400': *14
         '403': *27
         '404': *6
-        '412': *199
+        '412': *200
   "/orgs/{org}/secret-scanning/custom-patterns/{pattern_id}":
     patch:
       summary: Update an organization custom pattern
@@ -70163,13 +70351,13 @@ paths:
           description: Pattern updated successfully.
           content:
             application/json:
-              schema: *197
+              schema: *198
               examples:
                 default: *473
         '400': *14
         '403': *27
         '404': *6
-        '412': *199
+        '412': *200
         '422': *15
   "/orgs/{org}/secret-scanning/pattern-configurations":
     get:
@@ -70227,7 +70415,7 @@ paths:
             schema:
               type: object
               properties:
-                pattern_config_version: *198
+                pattern_config_version: *199
                 provider_pattern_settings:
                   type: array
                   description: Pattern settings for provider patterns.
@@ -70253,7 +70441,7 @@ paths:
                       token_type:
                         type: string
                         description: The ID of the pattern to configure.
-                      custom_pattern_version: *198
+                      custom_pattern_version: *199
                       push_protection_setting:
                         type: string
                         description: Push protection setting to set for the pattern.
@@ -71098,7 +71286,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/security-managers#add-a-security-manager-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -71124,7 +71312,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/security-managers#remove-a-security-manager-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -71447,7 +71635,7 @@ paths:
                     type: integer
                   network_configurations:
                     type: array
-                    items: *149
+                    items: *150
               examples:
                 default: *480
           headers:
@@ -71526,9 +71714,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: *150
+                default: *151
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -71549,15 +71737,15 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/network-configurations#get-a-hosted-compute-network-configuration-for-an-organization
       parameters:
       - *88
-      - *151
+      - *152
       responses:
         '200':
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: *150
+                default: *151
           headers:
             Link: *46
       x-github:
@@ -71579,7 +71767,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/network-configurations#update-a-hosted-compute-network-configuration-for-an-organization
       parameters:
       - *88
-      - *151
+      - *152
       requestBody:
         required: true
         content:
@@ -71632,9 +71820,9 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *149
+              schema: *150
               examples:
-                default: *150
+                default: *151
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -71654,7 +71842,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/orgs/network-configurations#delete-a-hosted-compute-network-configuration-from-an-organization
       parameters:
       - *88
-      - *151
+      - *152
       responses:
         '204':
           description: Response
@@ -72087,20 +72275,28 @@ paths:
                         examples:
                         - github
                       company:
-                        type: string
+                        type:
+                        - string
+                        - 'null'
                         examples:
                         - GitHub
                       blog:
-                        type: string
+                        type:
+                        - string
+                        - 'null'
                         format: uri
                         examples:
                         - https://github.com/blog
                       location:
-                        type: string
+                        type:
+                        - string
+                        - 'null'
                         examples:
                         - San Francisco
                       email:
-                        type: string
+                        type:
+                        - string
+                        - 'null'
                         format: email
                         examples:
                         - octocat@github.com
@@ -72401,7 +72597,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#get-a-team-by-name
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '200':
           description: Response
@@ -72431,7 +72627,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#update-a-team
       parameters:
       - *88
-      - *219
+      - *218
       requestBody:
         required: false
         content:
@@ -72535,7 +72731,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#delete-a-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -72562,7 +72758,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/external-groups#list-a-connection-between-an-external-group-and-a-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '200':
           description: Response
@@ -72591,7 +72787,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/external-groups#update-the-connection-between-an-external-group-and-a-team
       parameters:
       - *88
-      - *219
+      - *218
       requestBody:
         required: true
         content:
@@ -72638,7 +72834,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/external-groups#remove-the-connection-between-an-external-group-and-a-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '204':
           description: Response
@@ -72664,7 +72860,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/members#list-pending-team-invitations
       parameters:
       - *88
-      - *219
+      - *218
       - *17
       - *19
       responses:
@@ -72702,7 +72898,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/members#list-team-members
       parameters:
       - *88
-      - *219
+      - *218
       - name: role
         description: Filters members returned by their role in the team.
         in: query
@@ -72918,7 +73114,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/members#get-team-membership-for-a-user
       parameters:
       - *88
-      - *219
+      - *218
       - *131
       responses:
         '200':
@@ -72990,7 +73186,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/members#add-or-update-team-membership-for-a-user
       parameters:
       - *88
-      - *219
+      - *218
       - *131
       requestBody:
         required: false
@@ -73054,7 +73250,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/members#remove-team-membership-for-a-user
       parameters:
       - *88
-      - *219
+      - *218
       - *131
       responses:
         '204':
@@ -73084,7 +73280,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#list-team-repositories
       parameters:
       - *88
-      - *219
+      - *218
       - *17
       - *19
       responses:
@@ -73126,7 +73322,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#check-team-permissions-for-a-repository
       parameters:
       - *88
-      - *219
+      - *218
       - *492
       - *493
       responses:
@@ -73776,7 +73972,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#add-or-update-team-repository-permissions
       parameters:
       - *88
-      - *219
+      - *218
       - *492
       - *493
       requestBody:
@@ -73824,7 +74020,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#remove-a-repository-from-a-team
       parameters:
       - *88
-      - *219
+      - *218
       - *492
       - *493
       responses:
@@ -73853,7 +74049,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/team-sync#list-idp-groups-for-a-team
       parameters:
       - *88
-      - *219
+      - *218
       responses:
         '200':
           description: Response
@@ -73885,7 +74081,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/team-sync#create-or-update-idp-group-connections
       parameters:
       - *88
-      - *219
+      - *218
       requestBody:
         required: true
         content:
@@ -73962,7 +74158,7 @@ paths:
         url: https://docs.github.com/enterprise-cloud@latest/rest/teams/teams#list-child-teams
       parameters:
       - *88
-      - *219
+      - *218
       - *17
       - *19
       responses:
@@ -88487,7 +88683,7 @@ paths:
             application/json:
               schema: *3
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -88551,7 +88747,7 @@ paths:
                     created_at: '2026-01-23T12:34:56Z'
         '403': *563
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -88656,7 +88852,7 @@ paths:
                     ai_findings_option: on_push
         '403': *563
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -88790,7 +88986,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -89025,7 +89221,7 @@ paths:
             application/json:
               schema: *3
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -89243,7 +89439,7 @@ paths:
         '304': *36
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -89390,7 +89586,7 @@ paths:
             application/json:
               schema: *3
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -89594,7 +89790,7 @@ paths:
         '404': *6
         '422':
           description: Unprocessable Entity
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -89698,7 +89894,7 @@ paths:
                     - source
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -89876,7 +90072,7 @@ paths:
                     warning: ''
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -89985,7 +90181,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -90124,7 +90320,7 @@ paths:
         '400': *14
         '403': *579
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -90267,7 +90463,7 @@ paths:
                     commit_oid: 1927de39fefa25a9d0e64e3f540ff824a72f538c
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -90343,7 +90539,7 @@ paths:
           description: Found
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -90376,7 +90572,7 @@ paths:
           description: Response
         '403': *579
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -90835,7 +91031,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -90873,7 +91069,7 @@ paths:
               examples:
                 default: *593
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -91033,7 +91229,7 @@ paths:
                     source_location_prefix: "/"
                     artifact_url: https://example.com
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -91150,7 +91346,7 @@ paths:
                     schedule: weekly
         '403': *573
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -91278,7 +91474,7 @@ paths:
           content:
             application/json:
               schema: *3
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -91422,7 +91618,7 @@ paths:
         '404': *6
         '413':
           description: Payload Too Large if the sarif field is too large
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -91493,7 +91689,7 @@ paths:
         '403': *573
         '404':
           description: Not Found if the sarif id does not match any upload
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -92121,7 +92317,7 @@ paths:
         '401': *23
         '403': *27
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -92427,7 +92623,7 @@ paths:
         '403': *27
         '404': *6
         '422': *15
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -94894,7 +95090,7 @@ paths:
         '422': *15
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
         '409': *120
       x-github:
         githubCloudOnly: false
@@ -96068,7 +96264,7 @@ paths:
                 default: *620
         '404': *6
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -97184,7 +97380,7 @@ paths:
         '422': *15
         '404': *6
         '409': *120
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -98589,7 +98785,7 @@ paths:
               schema: *3
         '400': *14
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         category: dependency-graph
@@ -98597,8 +98793,11 @@ paths:
   "/repos/{owner}/{repo}/dependency-graph/sbom":
     get:
       summary: Export a software bill of materials (SBOM) for a repository.
-      description: Exports the software bill of materials (SBOM) for a repository
-        in SPDX JSON format.
+      description: |-
+        > [!WARNING]
+        > **Closing down notice:** This operation is closing down and will not be accessible after November 13, 2026. Please migrate to the asynchronous flow. Use "[Request generation of a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#request-generation-of-a-software-bill-of-materials-sbom-for-a-repository)" to trigger the report, then "[Fetch a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#fetch-a-software-bill-of-materials-sbom-for-a-repository)" to retrieve it. For more information, see the [changelog](https://github.blog/changelog/2026-05-12-synchronous-sbom-api-deprecated/).
+
+        Exports the software bill of materials (SBOM) for a repository in SPDX JSON format.
       tags:
       - dependency-graph
       operationId: dependency-graph/export-sbom
@@ -98851,6 +99050,9 @@ paths:
         githubCloudOnly: false
         category: dependency-graph
         subcategory: sboms
+        deprecationDate: '2026-05-12'
+        removalDate: '2026-11-13'
+      deprecated: true
   "/repos/{owner}/{repo}/dependency-graph/sbom/fetch-report/{sbom_uuid}":
     get:
       summary: Fetch a software bill of materials (SBOM) for a repository.
@@ -106626,7 +106828,7 @@ paths:
         '400': *14
         '403': *27
         '422': *15
-        '503': *196
+        '503': *197
         '404': *6
         '410': *31
       x-github:
@@ -106970,7 +107172,7 @@ paths:
         '403': *27
         '404': *6
         '410': *31
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -108469,7 +108671,7 @@ paths:
               examples:
                 default: *687
         '422': *15
-        '503': *196
+        '503': *197
         '403': *27
         '301': *498
         '404': *6
@@ -110425,7 +110627,7 @@ paths:
         '403': *27
         '404': *6
         '422': *15
-        '503': *196
+        '503': *197
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -110532,7 +110734,7 @@ paths:
         '403': *27
         '404': *6
         '422': *15
-        '503': *196
+        '503': *197
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -110568,7 +110770,7 @@ paths:
         '403': *27
         '404': *6
         '422': *15
-        '503': *196
+        '503': *197
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -111360,7 +111562,7 @@ paths:
         '403': *27
         '404': *6
         '422': *7
-        '503': *196
+        '503': *197
       x-github:
         triggersNotification: true
         githubCloudOnly: false
@@ -115168,7 +115370,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *156
+                items: *157
               examples:
                 default: *739
         '403': *27
@@ -115205,7 +115407,7 @@ paths:
                   type: array
                   description: A list of custom property names and associated values
                     to apply to the repositories.
-                  items: *156
+                  items: *157
               required:
               - properties
             examples:
@@ -116721,7 +116923,7 @@ paths:
             application/json:
               schema: *3
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -116892,7 +117094,7 @@ paths:
         '401': *23
         '403': *27
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -117358,7 +117560,7 @@ paths:
             Link: *46
         '422': *15
         '500': *39
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -121182,7 +121384,7 @@ paths:
                   description: A repository rule with ruleset details.
                   oneOf:
                   - allOf:
-                    - *170
+                    - *171
                     - &764
                       title: repository ruleset data for rule
                       description: User-defined metadata to store domain-specific
@@ -121203,19 +121405,16 @@ paths:
                           type: integer
                           description: The ID of the ruleset that includes this rule.
                   - allOf:
-                    - *171
-                    - *764
-                  - allOf:
                     - *172
                     - *764
                   - allOf:
                     - *173
                     - *764
                   - allOf:
-                    - *765
+                    - *174
                     - *764
                   - allOf:
-                    - *174
+                    - *765
                     - *764
                   - allOf:
                     - *175
@@ -121254,10 +121453,10 @@ paths:
                     - *186
                     - *764
                   - allOf:
-                    - *766
+                    - *187
                     - *764
                   - allOf:
-                    - *187
+                    - *766
                     - *764
                   - allOf:
                     - *188
@@ -121267,6 +121466,9 @@ paths:
                     - *764
                   - allOf:
                     - *190
+                    - *764
+                  - allOf:
+                    - *191
                     - *764
               examples:
                 default:
@@ -121326,7 +121528,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *191
+                items: *192
               examples:
                 default:
                   value:
@@ -121394,12 +121596,12 @@ paths:
                   - tag
                   - push
                   default: branch
-                enforcement: *168
+                enforcement: *169
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: *169
-                conditions: *162
+                  items: *170
+                conditions: *163
                 rules:
                   type: array
                   description: An array of rules within the ruleset.
@@ -121434,7 +121636,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: &778
                   value:
@@ -121580,7 +121782,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: *778
         '404': *6
@@ -121626,12 +121828,12 @@ paths:
                   - branch
                   - tag
                   - push
-                enforcement: *168
+                enforcement: *169
                 bypass_actors:
                   type: array
                   description: The actors that can bypass the rules in this ruleset
-                  items: *169
-                conditions: *162
+                  items: *170
+                conditions: *163
                 rules:
                   description: An array of rules within the ruleset.
                   type: array
@@ -121663,7 +121865,7 @@ paths:
           description: Response
           content:
             application/json:
-              schema: *191
+              schema: *192
               examples:
                 default: *778
         '404': *6
@@ -121725,7 +121927,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *195
+                items: *196
               examples:
                 default: *442
         '404': *6
@@ -122109,7 +122311,7 @@ paths:
         '404':
           description: Repository is public or secret scanning is disabled for the
             repository
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -122335,7 +122537,7 @@ paths:
         '404':
           description: Repository is public, or secret scanning is disabled for the
             repository, or the resource is not found
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -122497,7 +122699,7 @@ paths:
           description: State does not match the resolution or resolution comment,
             assignee does not have write access to the repository, or the requested
             validity change could not be applied to this alert
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -122635,7 +122837,7 @@ paths:
         '404':
           description: Repository is public, or secret scanning is disabled for the
             repository, or the resource is not found
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -122675,7 +122877,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *197
+                items: *198
               examples:
                 default: *464
           headers:
@@ -122728,7 +122930,7 @@ paths:
                   created_patterns:
                     type: array
                     description: The list of successfully created custom patterns.
-                    items: *197
+                    items: *198
               examples:
                 default: *467
         '400': *14
@@ -122808,7 +123010,7 @@ paths:
         '400': *14
         '403': *27
         '404': *6
-        '412': *199
+        '412': *200
   "/repos/{owner}/{repo}/secret-scanning/custom-patterns/{pattern_id}":
     patch:
       summary: Update a repository custom pattern
@@ -122848,13 +123050,13 @@ paths:
           description: Pattern updated successfully.
           content:
             application/json:
-              schema: *197
+              schema: *198
               examples:
                 default: *473
         '400': *14
         '403': *27
         '404': *6
-        '412': *199
+        '412': *200
         '422': *15
   "/repos/{owner}/{repo}/secret-scanning/push-protection-bypasses":
     post:
@@ -122929,7 +123131,7 @@ paths:
             this repository.
         '422':
           description: Bad request, input data missing or incorrect.
-        '503': *196
+        '503': *197
       x-github:
         enabledForGitHubApps: true
         githubCloudOnly: false
@@ -122958,7 +123160,7 @@ paths:
         '404':
           description: Repository does not have GitHub Advanced Security or secret
             scanning enabled
-        '503': *196
+        '503': *197
         '200':
           description: Response
           content:
@@ -129563,7 +129765,7 @@ paths:
                         releases_url: http://api.github.com/repos/octocat/Hello-World/releases{/id}
                       score: 1
         '304': *36
-        '503': *196
+        '503': *197
         '422': *15
         '403': *27
       x-github:
@@ -130293,7 +130495,7 @@ paths:
                     - quoted_text
                     items:
                     - "..."
-        '503': *196
+        '503': *197
         '422': *15
         '304': *36
         '403': *27
@@ -130927,7 +131129,7 @@ paths:
                         spdx_id: MIT
                         node_id: MDc6TGljZW5zZW1pdA==
                         html_url: https://api.github.com/licenses/mit
-        '503': *196
+        '503': *197
         '422': *15
         '304': *36
       x-github:
@@ -131400,7 +131602,7 @@ paths:
                       events_url: https://api.github.com/users/mojombo/events{/privacy}
                       site_admin: true
         '304': *36
-        '503': *196
+        '503': *197
         '422': *15
       x-github:
         githubCloudOnly: false
@@ -133158,7 +133360,7 @@ paths:
         '401': *23
         '403': *27
         '404': *6
-        '503': *196
+        '503': *197
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -139675,6 +139877,8 @@ paths:
       summary: Get a user
       description: |-
         Provides publicly available information about someone with a GitHub account.
+
+        The `events_url` value is a URI template. Replace `{/privacy}` with `/public` to retrieve only public events. Omit it to retrieve public events and, when authenticated as the user, private events. For more information, see "[List events for the authenticated user](https://docs.github.com/enterprise-cloud@latest/rest/activity/events#list-events-for-the-authenticated-user)."
 
         If you are requesting information about an [Enterprise Managed User](https://docs.github.com/enterprise-cloud@latest/enterprise-cloud@latest/admin/managing-iam/understanding-iam-for-enterprises/about-enterprise-managed-users), or a GitHub App bot that is installed in an organization that uses Enterprise Managed Users, your requests must be authenticated as a user or GitHub App that has access to the organization to view that account's information. If you are not authorized, the request will return a `404 Not Found` status.
 
@@ -152300,7 +152504,7 @@ webhooks:
                   type: string
                   enum:
                   - created
-                definition: *157
+                definition: *158
                 enterprise: *904
                 installation: *905
                 organization: *906
@@ -152467,7 +152671,7 @@ webhooks:
                   type: string
                   enum:
                   - promote_to_enterprise
-                definition: *157
+                definition: *158
                 enterprise: *904
                 installation: *905
                 organization: *906
@@ -152547,7 +152751,7 @@ webhooks:
                   type: string
                   enum:
                   - updated
-                definition: *157
+                definition: *158
                 enterprise: *904
                 installation: *905
                 organization: *906
@@ -152635,11 +152839,11 @@ webhooks:
                 new_property_values:
                   type: array
                   description: The new custom property values for the repository.
-                  items: *156
+                  items: *157
                 old_property_values:
                   type: array
                   description: The old custom property values for the repository.
-                  items: *156
+                  items: *157
               required:
               - action
               - repository
@@ -190367,7 +190571,7 @@ webhooks:
                   type: string
                   enum:
                   - created
-                definition: *152
+                definition: *153
                 enterprise: *904
                 sender: *4
               required:
@@ -190521,7 +190725,7 @@ webhooks:
                   type: string
                   enum:
                   - updated
-                definition: *152
+                definition: *153
                 enterprise: *904
                 installation: *905
                 sender: *4
@@ -190602,11 +190806,11 @@ webhooks:
                 new_property_values:
                   type: array
                   description: The new custom property values.
-                  items: *156
+                  items: *157
                 old_property_values:
                   type: array
                   description: The old custom property values.
-                  items: *156
+                  items: *157
               required:
               - action
               - organization
@@ -263869,7 +264073,7 @@ webhooks:
                 installation: *905
                 organization: *906
                 repository: *907
-                repository_ruleset: *191
+                repository_ruleset: *192
                 sender: *4
               required:
               - action
@@ -263951,7 +264155,7 @@ webhooks:
                 installation: *905
                 organization: *906
                 repository: *907
-                repository_ruleset: *191
+                repository_ruleset: *192
                 sender: *4
               required:
               - action
@@ -264033,7 +264237,7 @@ webhooks:
                 installation: *905
                 organization: *906
                 repository: *907
-                repository_ruleset: *191
+                repository_ruleset: *192
                 changes:
                   type: object
                   properties:
@@ -264052,16 +264256,16 @@ webhooks:
                       properties:
                         added:
                           type: array
-                          items: *162
+                          items: *163
                         deleted:
                           type: array
-                          items: *162
+                          items: *163
                         updated:
                           type: array
                           items:
                             type: object
                             properties:
-                              condition: *162
+                              condition: *163
                               changes:
                                 type: object
                                 properties:

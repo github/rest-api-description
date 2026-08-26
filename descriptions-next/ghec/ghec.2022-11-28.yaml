@@ -10521,6 +10521,59 @@ paths:
         enabledForGitHubApps: true
         category: copilot
         subcategory: copilot-usage-metrics
+  "/enterprises/{enterprise}/credential-authorizations":
+    delete:
+      summary: Revoke enterprise-delegated credential authorizations
+      description: |-
+        Queues revocation of every active organization credential authorization created through enterprise
+        delegation for the enterprise. Credential authorizations created through SAML or other flows are not affected.
+
+        The authenticated GitHub App must be owned by the enterprise or one of its organizations,
+        installed on the enterprise, and have the `enterprise_credentials:write` permission.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/revoke-delegated-credential-authorizations
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/credential-authorizations#revoke-enterprise-delegated-credential-authorizations
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - name: integration_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: |-
+          The database ID of a GitHub App currently owned by the enterprise or one of its organizations,
+          or a formerly owned GitHub App with delegation history for the enterprise.
+          When provided, only credential authorizations delegated by that App are revoked. When omitted,
+          all enterprise-delegated credential authorizations for the enterprise are revoked.
+      responses:
+        '202':
+          description: Delegated credential authorization revocation was queued.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+              examples:
+                default:
+                  value:
+                    message: Enterprise-delegated credential authorization revocation
+                      has been queued
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: credential-authorizations
   "/enterprises/{enterprise}/credential-authorizations/revoke-all":
     post:
       summary: Revoke all credential authorizations for an enterprise
@@ -11993,6 +12046,51 @@ paths:
         enabledForGitHubApps: false
         category: copilot
         subcategory: copilot-user-management
+  "/enterprises/{enterprise}/members/{username}/teams":
+    get:
+      summary: List enterprise teams for a user
+      description: |-
+        Lists all enterprise teams that a user is a member of. This endpoint is available only for
+        enterprises using the new enterprise teams experience.
+
+        The authenticated user must be an enterprise owner or have the `enterprise_teams:read` permission.
+      tags:
+      - enterprise-team-memberships
+      operationId: enterprise-team-memberships/list-teams-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-teams/enterprise-team-members#list-enterprise-teams-for-a-user
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/username"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/enterprise-team"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-teams-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: enterprise-teams
+        subcategory: enterprise-team-members
   "/enterprises/{enterprise}/network-configurations":
     get:
       summary: List hosted compute network configurations for an enterprise
@@ -15597,10 +15695,10 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/enterprise-team"
+                "$ref": "#/components/schemas/enterprise-team-with-member-count"
               examples:
                 default:
-                  "$ref": "#/components/examples/enterprise-teams-item"
+                  "$ref": "#/components/examples/enterprise-teams-item-with-member-count"
           headers:
             Link:
               "$ref": "#/components/headers/link"
@@ -53041,8 +53139,11 @@ paths:
   "/repos/{owner}/{repo}/dependency-graph/sbom":
     get:
       summary: Export a software bill of materials (SBOM) for a repository.
-      description: Exports the software bill of materials (SBOM) for a repository
-        in SPDX JSON format.
+      description: |-
+        > [!WARNING]
+        > **Closing down notice:** This operation is closing down and will not be accessible after November 13, 2026. Please migrate to the asynchronous flow. Use "[Request generation of a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#request-generation-of-a-software-bill-of-materials-sbom-for-a-repository)" to trigger the report, then "[Fetch a software bill of materials (SBOM) for a repository](https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/sboms#fetch-a-software-bill-of-materials-sbom-for-a-repository)" to retrieve it. For more information, see the [changelog](https://github.blog/changelog/2026-05-12-synchronous-sbom-api-deprecated/).
+
+        Exports the software bill of materials (SBOM) for a repository in SPDX JSON format.
       tags:
       - dependency-graph
       operationId: dependency-graph/export-sbom
@@ -53073,6 +53174,9 @@ paths:
         githubCloudOnly: false
         category: dependency-graph
         subcategory: sboms
+        deprecationDate: '2026-05-12'
+        removalDate: '2026-11-13'
+      deprecated: true
   "/repos/{owner}/{repo}/dependency-graph/sbom/fetch-report/{sbom_uuid}":
     get:
       summary: Fetch a software bill of materials (SBOM) for a repository.
@@ -77331,6 +77435,8 @@ paths:
       summary: Get a user
       description: |-
         Provides publicly available information about someone with a GitHub account.
+
+        The `events_url` value is a URI template. Replace `{/privacy}` with `/public` to retrieve only public events. Omit it to retrieve public events and, when authenticated as the user, private events. For more information, see "[List events for the authenticated user](https://docs.github.com/enterprise-cloud@latest/rest/activity/events#list-events-for-the-authenticated-user)."
 
         If you are requesting information about an [Enterprise Managed User](https://docs.github.com/enterprise-cloud@latest/enterprise-cloud@latest/admin/managing-iam/understanding-iam-for-enterprises/about-enterprise-managed-users), or a GitHub App bot that is installed in an organization that uses Enterprise Managed Users, your requests must be authenticated as a user or GitHub App that has access to the organization to view that account's information. If you are not authorized, the request will return a `404 Not Found` status.
 
@@ -111113,6 +111219,85 @@ components:
       - timePeriod
       - enterprise
       - usageItems
+    enterprise-team-with-member-count:
+      title: Enterprise Team
+      description: Group of enterprise owners and/or members
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+          format: uri
+        sync_to_organizations:
+          type: string
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          examples:
+          - disabled
+        organization_selection_type:
+          type: string
+          examples:
+          - selected
+        group_id:
+          type:
+          - string
+          - 'null'
+          examples:
+          - 62ab9291-fae2-468e-974b-7e45096d5021
+        group_name:
+          type:
+          - string
+          - 'null'
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          examples:
+          - Justice League
+        html_url:
+          type: string
+          format: uri
+          examples:
+          - https://github.com/enterprises/dc/teams/justice-league
+        members_url:
+          type: string
+        members_count:
+          type: integer
+          description: The number of members in the enterprise team.
+          examples:
+          - 3
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        notification_setting:
+          type: string
+          description: Whether team members will receive notifications when the team
+            is mentioned.
+          enum:
+          - notifications_enabled
+          - notifications_disabled
+          examples:
+          - notifications_enabled
+      required:
+      - id
+      - url
+      - members_url
+      - members_count
+      - name
+      - html_url
+      - slug
+      - created_at
+      - updated_at
+      - group_id
     visual-studio-subscription-assignment:
       title: Visual Studio Subscription Assignment
       description: Visual Studio Subscription Assignment
@@ -114441,20 +114626,28 @@ components:
           examples:
           - github
         company:
-          type: string
+          type:
+          - string
+          - 'null'
           examples:
           - GitHub
         blog:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           examples:
           - https://github.com/blog
         location:
-          type: string
+          type:
+          - string
+          - 'null'
           examples:
           - San Francisco
         email:
-          type: string
+          type:
+          - string
+          - 'null'
           format: email
           examples:
           - octocat@github.com
@@ -120648,20 +120841,28 @@ components:
           examples:
           - github
         company:
-          type: string
+          type:
+          - string
+          - 'null'
           examples:
           - GitHub
         blog:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uri
           examples:
           - https://github.com/blog
         location:
-          type: string
+          type:
+          - string
+          - 'null'
           examples:
           - San Francisco
         email:
-          type: string
+          type:
+          - string
+          - 'null'
           format: email
           examples:
           - octocat@github.com
@@ -256870,6 +257071,19 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
+    enterprise-teams-item-with-member-count:
+      value:
+        id: 1
+        name: Justice League
+        description: A great team.
+        slug: justice-league
+        url: https://api.github.com/enterprises/dc/teams/1
+        group_id: 62ab9291-fae2-468e-974b-7e45096d5021
+        html_url: https://github.com/enterprises/dc/teams/justice-league
+        members_url: https://api.github.com/enterprises/dc/teams/1/memberships{/member}
+        members_count: 3
+        created_at: '2019-01-26T19:01:12Z'
+        updated_at: '2019-01-26T19:14:43Z'
     visual-studio-subscription-assignment-paginated:
       value:
         total_count: 1
