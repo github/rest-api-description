@@ -5981,6 +5981,51 @@ paths:
         enabledForGitHubApps: false
         category: dependabot
         subcategory: repository-access
+  "/enterprises/{enterprise}/members/{username}/teams":
+    get:
+      summary: List enterprise teams for a user
+      description: |-
+        Lists all enterprise teams that a user is a member of. This endpoint is available only for
+        enterprises using the new enterprise teams experience.
+
+        The authenticated user must be an enterprise owner or have the `enterprise_teams:read` permission.
+      tags:
+      - enterprise-team-memberships
+      operationId: enterprise-team-memberships/list-teams-for-user
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#list-enterprise-teams-for-a-user
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/username"
+      - "$ref": "#/components/parameters/per-page"
+      - "$ref": "#/components/parameters/page"
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/enterprise-team"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-teams-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: false
+        category: enterprise-teams
+        subcategory: enterprise-team-members
   "/enterprises/{enterprise}/teams":
     get:
       summary: List enterprise teams
@@ -6548,10 +6593,10 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/enterprise-team"
+                "$ref": "#/components/schemas/enterprise-team-with-member-count"
               examples:
                 default:
-                  "$ref": "#/components/examples/enterprise-teams-item"
+                  "$ref": "#/components/examples/enterprise-teams-item-with-member-count"
           headers:
             Link:
               "$ref": "#/components/headers/link"
@@ -42009,8 +42054,11 @@ paths:
   "/repos/{owner}/{repo}/dependency-graph/sbom":
     get:
       summary: Export a software bill of materials (SBOM) for a repository.
-      description: Exports the software bill of materials (SBOM) for a repository
-        in SPDX JSON format.
+      description: |-
+        > [!WARNING]
+        > **Closing down notice:** This operation is closing down and will not be accessible after November 13, 2026. Please migrate to the asynchronous flow. Use "[Request generation of a software bill of materials (SBOM) for a repository](https://docs.github.com/rest/dependency-graph/sboms#request-generation-of-a-software-bill-of-materials-sbom-for-a-repository)" to trigger the report, then "[Fetch a software bill of materials (SBOM) for a repository](https://docs.github.com/rest/dependency-graph/sboms#fetch-a-software-bill-of-materials-sbom-for-a-repository)" to retrieve it. For more information, see the [changelog](https://github.blog/changelog/2026-05-12-synchronous-sbom-api-deprecated/).
+
+        Exports the software bill of materials (SBOM) for a repository in SPDX JSON format.
       tags:
       - dependency-graph
       operationId: dependency-graph/export-sbom
@@ -42041,6 +42089,9 @@ paths:
         githubCloudOnly: false
         category: dependency-graph
         subcategory: sboms
+        deprecationDate: '2026-05-12'
+        removalDate: '2026-11-13'
+      deprecated: true
   "/repos/{owner}/{repo}/dependency-graph/sbom/fetch-report/{sbom_uuid}":
     get:
       summary: Fetch a software bill of materials (SBOM) for a repository.
@@ -64176,6 +64227,8 @@ paths:
       summary: Get a user
       description: |-
         Provides publicly available information about someone with a GitHub account.
+
+        The `events_url` value is a URI template. Replace `{/privacy}` with `/public` to retrieve only public events. Omit it to retrieve public events and, when authenticated as the user, private events. For more information, see "[List events for the authenticated user](https://docs.github.com/rest/activity/events#list-events-for-the-authenticated-user)."
 
         If you are requesting information about an [Enterprise Managed User](https://docs.github.com/enterprise-cloud@latest/admin/managing-iam/understanding-iam-for-enterprises/about-enterprise-managed-users), or a GitHub App bot that is installed in an organization that uses Enterprise Managed Users, your requests must be authenticated as a user or GitHub App that has access to the organization to view that account's information. If you are not authorized, the request will return a `404 Not Found` status.
 
@@ -90102,6 +90155,76 @@ components:
       - public_members_url
       - avatar_url
       - description
+    enterprise-team-with-member-count:
+      title: Enterprise Team
+      description: Group of enterprise owners and/or members
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+          format: uri
+        sync_to_organizations:
+          type: string
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          example: disabled
+        organization_selection_type:
+          type: string
+          example: selected
+        group_id:
+          nullable: true
+          type: string
+          example: 62ab9291-fae2-468e-974b-7e45096d5021
+        group_name:
+          nullable: true
+          type: string
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          example: Justice League
+        html_url:
+          type: string
+          format: uri
+          example: https://github.com/enterprises/dc/teams/justice-league
+        members_url:
+          type: string
+        members_count:
+          type: integer
+          description: The number of members in the enterprise team.
+          example: 3
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        notification_setting:
+          type: string
+          description: Whether team members will receive notifications when the team
+            is mentioned.
+          example: notifications_enabled
+          enum:
+          - notifications_enabled
+          - notifications_disabled
+      required:
+      - id
+      - url
+      - members_url
+      - members_count
+      - name
+      - html_url
+      - slug
+      - created_at
+      - updated_at
+      - group_id
     actor:
       title: Actor
       description: Actor
@@ -93981,17 +94104,21 @@ components:
         company:
           type: string
           example: GitHub
+          nullable: true
         blog:
           type: string
           format: uri
           example: https://github.com/blog
+          nullable: true
         location:
           type: string
           example: San Francisco
+          nullable: true
         email:
           type: string
           format: email
           example: octocat@github.com
+          nullable: true
         twitter_username:
           type: string
           example: github
@@ -103259,17 +103386,21 @@ components:
         company:
           type: string
           example: GitHub
+          nullable: true
         blog:
           type: string
           format: uri
           example: https://github.com/blog
+          nullable: true
         location:
           type: string
           example: San Francisco
+          nullable: true
         email:
           type: string
           format: email
           example: octocat@github.com
+          nullable: true
         twitter_username:
           type: string
           example: github
@@ -233731,6 +233862,19 @@ components:
         public_members_url: https://api.github.com/orgs/github/public_members{/member}
         avatar_url: https://github.com/images/error/octocat_happy.gif
         description: A great organization
+    enterprise-teams-item-with-member-count:
+      value:
+        id: 1
+        name: Justice League
+        description: A great team.
+        slug: justice-league
+        url: https://api.github.com/enterprises/dc/teams/1
+        group_id: 62ab9291-fae2-468e-974b-7e45096d5021
+        html_url: https://github.com/enterprises/dc/teams/justice-league
+        members_url: https://api.github.com/enterprises/dc/teams/1/memberships{/member}
+        members_count: 3
+        created_at: '2019-01-26T19:01:12Z'
+        updated_at: '2019-01-26T19:14:43Z'
     public-events-items:
       value:
       - id: '22249084947'
@@ -259866,17 +260010,17 @@ components:
         - updated
         - epss_percentage
         default: created
-    enterprise-team:
-      name: enterprise-team
-      description: The slug version of the enterprise team name. You can also substitute
-        this value with the enterprise team id.
+    username:
+      name: username
+      description: The handle for the GitHub user account.
       in: path
       required: true
       schema:
         type: string
-    username:
-      name: username
-      description: The handle for the GitHub user account.
+    enterprise-team:
+      name: enterprise-team
+      description: The slug version of the enterprise team name. You can also substitute
+        this value with the enterprise team id.
       in: path
       required: true
       schema:
