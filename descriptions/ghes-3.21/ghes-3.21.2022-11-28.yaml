@@ -50622,8 +50622,10 @@ paths:
   "/user":
     get:
       summary: Get the authenticated user
-      description: OAuth app tokens and personal access tokens (classic) need the
-        `user` scope in order for the response to include private profile information.
+      description: |-
+        OAuth app tokens and personal access tokens (classic) need the `read:user` scope, or the broader `user` scope, for this endpoint to return the private user response. The private user response includes additional fields such as `private_gists`, `total_private_repos`, `owned_private_repos`, `disk_usage`, `collaborators`, and `two_factor_authentication`. Tokens without these scopes receive the public user response.
+
+        The private and public user response types are unrelated to the [private profile](https://docs.github.com/enterprise-server@3.21/account-and-profile/concepts/personal-profile#private-profiles) setting. A token without scopes still authenticates as the token's owner, so values subject to private profile visibility, such as `followers` and `following`, may differ from an unauthenticated response.
       tags:
       - users
       operationId: users/get-authenticated
@@ -53802,6 +53804,8 @@ paths:
       description: |-
         Provides publicly available information about someone with a GitHub account.
 
+        If the specified user has a [private profile](https://docs.github.com/enterprise-server@3.21/account-and-profile/concepts/personal-profile#private-profiles), the `followers` and `following` values are `0` unless the request is authenticated as that user. A request authenticated as the specified user returns the actual values even if the token has no OAuth scopes.
+
         The `events_url` value is a URI template. Replace `{/privacy}` with `/public` to retrieve only public events. Omit it to retrieve public events and, when authenticated as the user, private events. For more information, see "[List events for the authenticated user](https://docs.github.com/enterprise-server@3.21/rest/activity/events#list-events-for-the-authenticated-user)."
 
         The `email` key in the following response is the publicly visible email address from your GitHub Enterprise Server [profile page](https://github.com/settings/profile). When setting up your profile, you can select a primary email address to be public which provides an email entry for this endpoint. If you do not set a public email address for `email`, then it will have a value of `null`. You only see publicly visible email addresses when authenticated with GitHub Enterprise Server. For more information, see [Authentication](https://docs.github.com/enterprise-server@3.21/rest/guides/getting-started-with-the-rest-api#authentication).
@@ -53984,7 +53988,10 @@ paths:
   "/users/{username}/followers":
     get:
       summary: List followers of a user
-      description: Lists the people following the specified user.
+      description: |-
+        Lists the people following the specified user.
+
+        If the specified user has a [private profile](https://docs.github.com/enterprise-server@3.21/account-and-profile/concepts/personal-profile#private-profiles), this endpoint returns an empty list unless the request is authenticated as that user. A request authenticated as the specified user returns the list even if the token has no OAuth scopes.
       tags:
       - users
       operationId: users/list-followers-for-user
@@ -54018,7 +54025,10 @@ paths:
   "/users/{username}/following":
     get:
       summary: List the people a user follows
-      description: Lists the people who the specified user follows.
+      description: |-
+        Lists the people who the specified user follows.
+
+        If the specified user has a [private profile](https://docs.github.com/enterprise-server@3.21/account-and-profile/concepts/personal-profile#private-profiles), this endpoint returns an empty list unless the request is authenticated as that user. A request authenticated as the specified user returns the list even if the token has no OAuth scopes.
       tags:
       - users
       operationId: users/list-following-for-user
@@ -55577,6 +55587,8 @@ paths:
       summary: List repositories starred by a user
       description: |-
         Lists repositories a user has starred.
+
+        If the specified user has a [private profile](https://docs.github.com/enterprise-server@3.21/account-and-profile/concepts/personal-profile#private-profiles), this endpoint returns an empty list unless the request is authenticated as that user. A request authenticated as the specified user returns starred repositories visible to the token even if the token has no OAuth scopes.
 
         This endpoint supports the following custom media types. For more information, see "[Media types](https://docs.github.com/enterprise-server@3.21/rest/using-the-rest-api/getting-started-with-the-rest-api#media-types)."
 
