@@ -16696,6 +16696,85 @@
         }
       }
     },
+    "/orgs/{org}/actions/runners/deprecations/{version}": {
+      "get": {
+        "summary": "Get runner version end-of-life schedule for an organization",
+        "description": "Gets the end-of-life schedule for a specific runner version in an organization. Returns the runner version\nand the dates when registration and runtime support will end.\n\nAuthenticated users must have admin access to the organization to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-runner-version-deprecation-for-org",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-an-organization"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/org"
+          },
+          {
+            "name": "version",
+            "description": "The runner version to look up.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2.300.0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "runner_version"
+                  ],
+                  "properties": {
+                    "runner_version": {
+                      "type": "string",
+                      "description": "The runner version string.",
+                      "example": "2.300.0"
+                    },
+                    "registration_deprecates_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "The date after which this runner version can no longer register. Null if no schedule is set.",
+                      "example": "2026-08-01T00:00:00Z"
+                    },
+                    "runtime_deprecates_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "The date after which jobs will no longer be dispatched to runners on this version.",
+                      "example": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "runner_version": "2.300.0",
+                      "runtime_deprecates_at": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
     "/orgs/{org}/actions/runners/downloads": {
       "get": {
         "summary": "List runner applications for an organization",
@@ -42538,6 +42617,88 @@
             "headers": {
               "Link": {
                 "$ref": "#/components/headers/link"
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "actions",
+          "subcategory": "self-hosted-runners"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/actions/runners/deprecations/{version}": {
+      "get": {
+        "summary": "Get runner version end-of-life schedule for a repository",
+        "description": "Gets the end-of-life schedule for a specific runner version in a repository. Returns the runner version\nand the dates when registration and runtime support will end.\n\nAuthenticated users must have admin access to the repository to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` scope to use this endpoint.",
+        "tags": [
+          "actions"
+        ],
+        "operationId": "actions/get-runner-version-deprecation-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/actions/self-hosted-runners#get-runner-version-end-of-life-schedule-for-a-repository"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "version",
+            "description": "The runner version to look up.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2.300.0"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "runner_version"
+                  ],
+                  "properties": {
+                    "runner_version": {
+                      "type": "string",
+                      "description": "The runner version string.",
+                      "example": "2.300.0"
+                    },
+                    "registration_deprecates_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "The date after which this runner version can no longer register. Null if no schedule is set.",
+                      "example": "2026-08-01T00:00:00Z"
+                    },
+                    "runtime_deprecates_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true,
+                      "description": "The date after which jobs will no longer be dispatched to runners on this version.",
+                      "example": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "runner_version": "2.300.0",
+                      "runtime_deprecates_at": "2026-09-01T00:00:00Z"
+                    }
+                  }
+                }
               }
             }
           }
@@ -76205,7 +76366,14 @@
             "$ref": "#/components/responses/not_found"
           },
           "422": {
-            "$ref": "#/components/responses/validation_failed"
+            "description": "Validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/repository-advisory-description-validation-error"
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -76294,7 +76462,45 @@
             "$ref": "#/components/responses/not_found"
           },
           "422": {
-            "$ref": "#/components/responses/validation_failed"
+            "description": "Validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/repository-advisory-description-validation-error"
+                },
+                "examples": {
+                  "missing_section": {
+                    "value": {
+                      "message": "Advisory description does not satisfy this repository's report template.",
+                      "documentation_url": "https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability",
+                      "errors": [
+                        {
+                          "resource": "RepositoryAdvisory",
+                          "field": "description",
+                          "code": "missing_section",
+                          "section": "Impact"
+                        }
+                      ]
+                    }
+                  },
+                  "unchecked_required_option": {
+                    "value": {
+                      "message": "Advisory description does not satisfy this repository's report template.",
+                      "documentation_url": "https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability",
+                      "errors": [
+                        {
+                          "resource": "RepositoryAdvisory",
+                          "field": "description",
+                          "code": "unchecked_required_option",
+                          "section": "Terms",
+                          "option": "I have read the reporting guidelines"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -156317,6 +156523,77 @@
           "vulnerabilities"
         ],
         "additionalProperties": false
+      },
+      "repository-advisory-description-validation-error": {
+        "title": "Repository Advisory Description Validation Error",
+        "description": "The description does not answer the repository's report template.",
+        "type": "object",
+        "required": [
+          "message",
+          "documentation_url"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "documentation_url": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code"
+              ],
+              "properties": {
+                "resource": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string",
+                  "description": "A machine-readable identifier for the problem. `missing_section`, `empty_section`, `unchecked_required_option`, and `sections_out_of_order` come from validating the description against the repository's report template; other codes are shared with other validation failures on this endpoint."
+                },
+                "index": {
+                  "type": "integer"
+                },
+                "value": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "section": {
+                  "type": "string",
+                  "description": "The report template section the violation concerns."
+                },
+                "option": {
+                  "type": "string",
+                  "description": "The checkbox option left unticked. Only present when `code` is `unchecked_required_option`."
+                }
+              }
+            }
+          }
+        }
       },
       "private-vulnerability-report-create": {
         "type": "object",

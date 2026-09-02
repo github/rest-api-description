@@ -21169,7 +21169,7 @@ paths:
                     runner_version: 2.300.0
                     runtime_deprecates_at: '2026-09-01T00:00:00Z'
       x-github:
-        githubCloudOnly: true
+        githubCloudOnly: false
         enabledForGitHubApps: true
         category: actions
         subcategory: self-hosted-runners
@@ -42082,7 +42082,7 @@ paths:
                     runner_version: 2.300.0
                     runtime_deprecates_at: '2026-09-01T00:00:00Z'
       x-github:
-        githubCloudOnly: true
+        githubCloudOnly: false
         enabledForGitHubApps: true
         category: actions
         subcategory: self-hosted-runners
@@ -67361,7 +67361,11 @@ paths:
         '404':
           "$ref": "#/components/responses/not_found"
         '422':
-          "$ref": "#/components/responses/validation_failed"
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/repository-advisory-description-validation-error"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -67419,7 +67423,33 @@ paths:
         '404':
           "$ref": "#/components/responses/not_found"
         '422':
-          "$ref": "#/components/responses/validation_failed"
+          description: Validation failed.
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/repository-advisory-description-validation-error"
+              examples:
+                missing_section:
+                  value:
+                    message: Advisory description does not satisfy this repository's
+                      report template.
+                    documentation_url: https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+                    errors:
+                    - resource: RepositoryAdvisory
+                      field: description
+                      code: missing_section
+                      section: Impact
+                unchecked_required_option:
+                  value:
+                    message: Advisory description does not satisfy this repository's
+                      report template.
+                    documentation_url: https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+                    errors:
+                    - resource: RepositoryAdvisory
+                      field: description
+                      code: unchecked_required_option
+                      section: Terms
+                      option: I have read the reporting guidelines
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -132024,6 +132054,57 @@ components:
       - description
       - vulnerabilities
       additionalProperties: false
+    repository-advisory-description-validation-error:
+      title: Repository Advisory Description Validation Error
+      description: The description does not answer the repository's report template.
+      type: object
+      required:
+      - message
+      - documentation_url
+      properties:
+        message:
+          type: string
+        documentation_url:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            properties:
+              resource:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+              code:
+                type: string
+                description: A machine-readable identifier for the problem. `missing_section`,
+                  `empty_section`, `unchecked_required_option`, and `sections_out_of_order`
+                  come from validating the description against the repository's report
+                  template; other codes are shared with other validation failures
+                  on this endpoint.
+              index:
+                type: integer
+              value:
+                oneOf:
+                - type: string
+                  nullable: true
+                - type: integer
+                  nullable: true
+                - type: array
+                  nullable: true
+                  items:
+                    type: string
+              section:
+                type: string
+                description: The report template section the violation concerns.
+              option:
+                type: string
+                description: The checkbox option left unticked. Only present when
+                  `code` is `unchecked_required_option`.
     private-vulnerability-report-create:
       type: object
       properties:
