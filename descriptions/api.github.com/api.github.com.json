@@ -78090,6 +78090,99 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/stargazers/history": {
+      "get": {
+        "summary": "Get repository star history",
+        "description": "Returns repository stars grouped by calendar weeks, most recent first. Pages move backward toward the repository's creation week, and weeks within a page are ordered newest to oldest, so concatenating pages produces one continuous series. Weeks without stars contain zero counts. Week and day boundaries are not guaranteed to align with UTC. The `days` array contains the number of stars created on each day of the week, starting on Sunday.",
+        "tags": [
+          "activity"
+        ],
+        "operationId": "activity/get-stargazer-history-for-repo",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/activity/starring#get-repository-star-history"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "name": "per_page",
+            "description": "The number of results per page (max 30). For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 30,
+              "minimum": 1,
+              "maximum": 30
+            }
+          },
+          {
+            "name": "page",
+            "description": "The page number of the results to fetch (max 100). For more information, see \"[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api).\"",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Repository star history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "items": {
+                    "$ref": "#/components/schemas/stargazer-history"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": [
+                      {
+                        "week": 1754784000,
+                        "total": 19,
+                        "days": [
+                          0,
+                          12,
+                          7,
+                          0,
+                          0,
+                          0,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "activity",
+          "subcategory": "starring"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/stats/code_frequency": {
       "get": {
         "summary": "Get the weekly commit activity",
@@ -156315,6 +156408,44 @@
         "required": [
           "starred_at",
           "user"
+        ]
+      },
+      "stargazer-history": {
+        "title": "Stargazer History",
+        "description": "Stargazer History",
+        "type": "object",
+        "properties": {
+          "days": {
+            "description": "The number of stars created on each day of the week, starting on Sunday.",
+            "type": "array",
+            "example": [
+              0,
+              12,
+              7,
+              0,
+              0,
+              0,
+              0
+            ],
+            "items": {
+              "type": "integer"
+            }
+          },
+          "total": {
+            "description": "The number of stars created during the week.",
+            "type": "integer",
+            "example": 19
+          },
+          "week": {
+            "description": "The start of the week, given as a Unix timestamp.",
+            "type": "integer",
+            "example": 1754784000
+          }
+        },
+        "required": [
+          "days",
+          "total",
+          "week"
         ]
       },
       "code-frequency-stat": {
