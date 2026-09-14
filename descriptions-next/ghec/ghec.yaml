@@ -10972,6 +10972,330 @@ paths:
         enabledForGitHubApps: true
         category: enterprise-admin
         subcategory: credential-authorizations
+  "/enterprises/{enterprise}/credentials":
+    get:
+      summary: List enterprise token inventory
+      description: |-
+        Lists an enterprise's credential inventory: both credentials currently authorized to access the enterprise and credentials owned by enterprise members that have no current enterprise authorization. Covers personal access tokens (classic and fine-grained), OAuth App and GitHub App user tokens, SSH keys, GitHub App installations, and federated credentials, assembled on demand from the canonical sources. Results are paginated with an opaque cursor via the `Link` header; there is no total count.
+
+        You must be an enterprise owner (or hold a role with the "View enterprise credentials" permission) to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/list-enterprise-token-inventory
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/per-page"
+      - name: after
+        description: A cursor, as given in the `Link` header, for the next page of
+          results.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: token_types
+        description: A comma-separated list of credential types to filter by.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: authorization_state
+        description: Filter by enterprise-access status.
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - currently_authorized
+          - member_owned_only
+      - name: owner
+        description: Filter to credentials owned by this user, given as a login.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: organization
+        description: Filter to credentials authorized to this organization in the
+          enterprise, given as a login.
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: application
+        description: Filter to credentials for this application, given as a GitHub
+          App slug or an OAuth App client id.
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/enterprise-token-inventory-item"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-token-inventory-items"
+          headers:
+            Link:
+              "$ref": "#/components/headers/link"
+            x-github-enterprise-credentials-truncated:
+              description: Present and set to `true` when the walk hit the safety
+                ceiling or time budget, so the result is a partial page. Absent otherwise.
+              schema:
+                type: string
+            x-github-enterprise-credentials-incomplete-results:
+              description: Present and set to `true` when the result is incomplete
+                for any reason (truncated, or a source was omitted). A client must
+                not read an absent `Link` next page as "complete" without also checking
+                this header. Absent otherwise.
+              schema:
+                type: string
+            x-github-enterprise-credentials-generated-at:
+              description: The as-of assembly time of the result, in ISO 8601 format.
+                The inventory is stitched from replica reads over the request, not
+                a point-in-time snapshot.
+              schema:
+                type: string
+                format: date-time
+            x-github-enterprise-credentials-sources-unavailable:
+              description: Present when one or more credential sources failed and
+                were omitted; a comma-separated list of the affected token types (for
+                example, `classic_pat,ssh_key`). Absent when all sources succeeded.
+              schema:
+                type: string
+            x-github-enterprise-credentials-metadata-incomplete:
+              description: Present and set to `true` when best-effort per-credential
+                metadata (scopes, permissions, repository selection, or expiration
+                policy) could not be fully loaded for some rows; the rows are all
+                present, but that metadata may be absent. Absent when all metadata
+                loaded.
+              schema:
+                type: string
+            x-github-enterprise-credentials-expiry-incomplete:
+              description: Present and set to `true` when one or more fine-grained
+                PAT expiry values could not be filled, so those rows carry `expiry_unknown`
+                and their `never_expires` / `past_expiration_policy` are not asserted.
+                Absent when all expiry was resolved.
+              schema:
+                type: string
+        '404':
+          description: Resource not found
+        '422':
+          description: Validation failed
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/token-inventory#list-enterprise-token-inventory
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: token-inventory
+  "/enterprises/{enterprise}/credentials/exports":
+    post:
+      summary: Create an enterprise token inventory export
+      description: |-
+        Starts an asynchronous CSV export of the enterprise token inventory and returns an opaque export id to poll. Limited to a small number of exports per enterprise per day.
+
+        The generated file is UTF-8 CSV with a header row, using RFC 4180 field quoting and escaping and LF (`\n`) line endings. Timestamps are ISO-8601 in UTC (for example, `2026-09-15T12:00:00Z`). An empty cell means the value is null or unknown, never `false`. Multi-value cells join their entries with `; ` — this includes `scopes` and `permissions`, where each permission is encoded as a `resource:action` pair (for example, `contents:write; issues:read`). The file has one row per (credential, authorizing organization); the credential columns repeat while `organization_id` and `organization` vary, and a credential with no organization grant appears once with empty organization columns. `authorization_count` is the credential's total number of organization authorizations across the enterprise, plus one when `enterprise_authorized` is true, independent of any filters applied to the export. `credential_id` is a raw source-table id that can collide across credential types, so it is unique only together with `credential_type`, and only for the types that populate it (classic and fine-grained PATs, OAuth and GitHub App user tokens); SSH keys are keyed by `fingerprint`, while GitHub App installations and federated JTIs have no unique per-row column. `owner_type` (`user`, `oauth_application`, or `github_app`) disambiguates the id space of `owner_id`. `expiry_status` is `expires`, `never`, or `unknown` — `unknown` marks a credential whose expiration could not be determined, so a blank `expires_at` is never mistaken for one that never expires.
+
+        You must be an enterprise owner (or hold a role with the "View enterprise credentials" permission) to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/create-enterprise-token-inventory-export
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Optional filters that scope the export to a subset of the
+                inventory.
+              properties:
+                token_types:
+                  type: array
+                  description: The credential types to include.
+                  items:
+                    type: string
+                authorization_state:
+                  type: string
+                  description: Filter by enterprise-access status.
+                  enum:
+                  - currently_authorized
+                  - member_owned_only
+                owner:
+                  type: string
+                  description: Filter to credentials owned by this user, given as
+                    a login.
+                organization:
+                  type: string
+                  description: Filter to credentials authorized to this organization
+                    in the enterprise, given as a login.
+                application:
+                  type: string
+                  description: Filter to credentials for this application, given as
+                    a GitHub App slug or an OAuth App client id.
+            examples:
+              default:
+                value:
+                  owner: octocat
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/enterprise-token-inventory-export"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-token-inventory-export"
+        '404':
+          description: Resource not found
+        '422':
+          description: Validation failed
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal error, for example the export job could not be enqueued.
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/token-inventory#create-an-enterprise-token-inventory-export
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: token-inventory
+  "/enterprises/{enterprise}/credentials/exports/{export_id}":
+    get:
+      summary: Get an enterprise token inventory export
+      description: |-
+        Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.
+
+        You must be an enterprise owner (or hold a role with the "View enterprise credentials" permission) to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-token-inventory-export
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - name: export_id
+        description: The opaque id of the export, as returned when it was created.
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/enterprise-token-inventory-export"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-token-inventory-export"
+        '302':
+          description: The export is ready; redirects to a short-lived download URL.
+          headers:
+            x-github-enterprise-credentials-truncated:
+              description: Present and set to `true` when the export hit the safety
+                ceiling, so the CSV is a partial inventory. Absent otherwise.
+              schema:
+                type: string
+            x-github-enterprise-credentials-incomplete-results:
+              description: Present and set to `true` when the export is incomplete
+                for any reason (truncated, or a source was omitted), so the CSV must
+                not be treated as a complete inventory. Absent otherwise.
+              schema:
+                type: string
+            x-github-enterprise-credentials-generated-at:
+              description: The as-of assembly time of the export, in ISO 8601 format.
+              schema:
+                type: string
+                format: date-time
+            x-github-enterprise-credentials-sources-unavailable:
+              description: Present when one or more credential sources failed and
+                were omitted from the export; a comma-separated list of the affected
+                token types. Absent when all sources succeeded.
+              schema:
+                type: string
+            x-github-enterprise-credentials-metadata-incomplete:
+              description: Present and set to `true` when best-effort per-credential
+                metadata (scopes, permissions, repository selection, or expiration
+                policy) could not be fully loaded for some rows; the rows are all
+                present in the export, but that metadata may be absent. Absent when
+                all metadata loaded.
+              schema:
+                type: string
+            x-github-enterprise-credentials-expiry-incomplete:
+              description: Present and set to `true` when one or more fine-grained
+                PAT expiry values could not be filled in the export, so those rows
+                carry `expiry_status` = `unknown` and their `past_expiration_policy`
+                is not asserted. Absent when all expiry was resolved.
+              schema:
+                type: string
+        '404':
+          description: Resource not found
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/token-inventory#get-an-enterprise-token-inventory-export
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: token-inventory
+  "/enterprises/{enterprise}/credentials/{inventory_id}":
+    get:
+      summary: Get an enterprise token inventory item
+      description: |-
+        Returns a single credential from the enterprise token inventory. Use the opaque `inventory_id` returned by the list endpoint for the same enterprise.
+
+        You must be an enterprise owner (or hold a role with the "View enterprise credentials" permission) to use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-token-inventory-item
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - name: inventory_id
+        description: The opaque inventory_id returned by the list endpoint for this
+          enterprise. Pass it unchanged. Its value can differ for the same credential
+          between responses.
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/enterprise-token-inventory-item"
+              examples:
+                default:
+                  "$ref": "#/components/examples/enterprise-token-inventory-item"
+        '404':
+          description: Resource not found
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/token-inventory#get-an-enterprise-token-inventory-item
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: token-inventory
   "/enterprises/{enterprise}/dependabot/alerts":
     get:
       summary: List Dependabot alerts for an enterprise
@@ -107004,6 +107328,241 @@ components:
       - download_links
       - report_start_day
       - report_end_day
+    enterprise-token-inventory-item:
+      title: Enterprise Token Inventory Item
+      description: A credential or GitHub App installation in an enterprise's token
+        inventory.
+      type: object
+      required:
+      - inventory_id
+      - item_type
+      - credential_type
+      - credential_state
+      - authorization_state
+      - effective_access_state
+      - enterprise_authorized
+      - authorization_count
+      - authorized_organizations
+      properties:
+        inventory_id:
+          type: string
+          description: Opaque identifier for retrieving this item within the enterprise.
+            Its value can differ between responses for the same credential.
+        credential_id:
+          type:
+          - integer
+          - 'null'
+          description: The credential's ID for audit-log correlation, unique only
+            within its `credential_type`. Null for SSH keys, GitHub App installations,
+            and federated credentials.
+        hashed_token:
+          type:
+          - string
+          - 'null'
+          description: Base64-encoded SHA-256 hash of the token, matching `hashed_token`
+            in audit events. Null when not reported.
+        fingerprint:
+          type:
+          - string
+          - 'null'
+          description: The SSH key's SHA-256 fingerprint, matching audit events. Null
+            for other credential types.
+        item_type:
+          type: string
+          enum:
+          - credential
+          - token_issuer_principal
+        credential_type:
+          type: string
+          enum:
+          - classic_pat
+          - oauth_app_user_token
+          - github_app_user_token
+          - fine_grained_pat
+          - ssh_key
+          - github_app_installation
+          - federated_jti
+        display_name:
+          type:
+          - string
+          - 'null'
+        owner:
+          type:
+          - object
+          - 'null'
+          properties:
+            id:
+              type: integer
+            login:
+              type: string
+            name:
+              type:
+              - string
+              - 'null'
+        owner_type:
+          type:
+          - string
+          - 'null'
+          enum:
+          - user
+          - oauth_application
+          - github_app
+          - 
+          description: The type of credential owner.
+        application:
+          type:
+          - object
+          - 'null'
+          properties:
+            id:
+              type: integer
+            name:
+              type:
+              - string
+              - 'null'
+        credential_state:
+          type: string
+          enum:
+          - active
+          - expired
+          - revoked
+          - deleted
+        authorization_state:
+          type: string
+          enum:
+          - currently_authorized
+          - member_owned_only
+        effective_access_state:
+          type: string
+          enum:
+          - effective
+          - not_effective
+          - unknown
+        state_reason:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        next_expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        credential_instance_count:
+          type:
+          - integer
+          - 'null'
+        enterprise_authorized:
+          type: boolean
+          description: Whether the item is authorized directly at the enterprise level.
+        authorization_count:
+          type: integer
+          description: Number of authorizing organizations, plus one when `enterprise_authorized`
+            is true.
+        authorized_organizations:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              login:
+                type: string
+        age_days:
+          type:
+          - integer
+          - 'null'
+          description: Age of the credential in whole days at assembly time.
+        never_expires:
+          type: boolean
+          description: Whether this is an active credential with no expiration. False
+            for GitHub App installations and credentials with unknown expiration.
+        past_expiration_policy:
+          type:
+          - boolean
+          - 'null'
+          description: Whether the credential exceeds a configured lifetime limit
+            or an advisory age baseline. Null when not evaluated.
+        past_expiration_policy_basis:
+          type:
+          - string
+          - 'null'
+          enum:
+          - enforced_limit
+          - proposed_baseline
+          - 
+          description: 'The basis for `past_expiration_policy`: an enforced PAT lifetime
+            limit or an advisory age baseline.'
+        expiry_unknown:
+          type: boolean
+          description: Whether the credential's expiration could not be determined.
+        scopes:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: OAuth scopes recorded for the token. Null when not reported
+            for the credential type.
+        permissions:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+          description: Permissions by resource for fine-grained PATs and GitHub App
+            installations. Null when not reported; an empty object means no recorded
+            permissions.
+        repository_selection:
+          type:
+          - string
+          - 'null'
+          enum:
+          - all
+          - subset
+          - none
+          - 
+          description: Repository selection for the credential. Null when not reported;
+            `none` means no repositories are selected.
+    enterprise-token-inventory-export:
+      title: Enterprise Token Inventory Export
+      description: The status of an asynchronous enterprise token inventory CSV export.
+      type: object
+      required:
+      - export_id
+      - status
+      properties:
+        export_id:
+          type: string
+          description: Opaque id for the export, used to poll its status.
+        status:
+          type: string
+          description: The state of the export job.
+          enum:
+          - pending
+          - queued
+          - started
+          - success
+          - error
+        as_of:
+          type:
+          - string
+          - 'null'
+          description: When the export was requested.
     dependabot-alert-package:
       type: object
       description: Details for the vulnerable package.
@@ -256936,6 +257495,197 @@ components:
         endpoint: "/chat/completions"
         body: '{"choices":[{"message":{"content":"Hi there!"}}]}'
         "@timestamp": 1719600000500
+    enterprise-token-inventory-items:
+      value:
+      - inventory_id: MDEyMzQ1Njc4OWFiY2RlZg
+        credential_id: 987654
+        hashed_token: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+        fingerprint: 
+        item_type: credential
+        credential_type: classic_pat
+        display_name: ci-automation
+        owner:
+          id: 1
+          login: octocat
+        owner_type: user
+        application: 
+        credential_state: active
+        authorization_state: currently_authorized
+        effective_access_state: effective
+        state_reason: 
+        created_at: '2024-01-15T09:00:00Z'
+        last_used_at: '2024-06-01T12:30:00Z'
+        expires_at: '2025-01-15T09:00:00Z'
+        next_expires_at: '2025-01-15T09:00:00Z'
+        credential_instance_count: 1
+        enterprise_authorized: false
+        authorization_count: 1
+        authorized_organizations:
+        - id: 10
+          login: acme-eng
+        age_days: 138
+        never_expires: false
+        past_expiration_policy: false
+        past_expiration_policy_basis: enforced_limit
+        expiry_unknown: false
+        scopes:
+        - repo
+        - read:org
+        permissions: 
+        repository_selection: 
+      - inventory_id: ZmVkY2JhOTg3NjU0MzIxMA
+        credential_id: 246810
+        hashed_token: B4iMbnUY6xW/eOlR2nDqA9pKz3sVt1cX8mZ0jL5wQpE=
+        fingerprint: 
+        item_type: credential
+        credential_type: oauth_app_user_token
+        display_name: Acme Deploy
+        owner:
+          id: 2
+          login: hubot
+        owner_type: user
+        application:
+          id: 42
+          name: Acme Deploy
+        credential_state: active
+        authorization_state: currently_authorized
+        effective_access_state: effective
+        state_reason: 
+        created_at: '2024-03-10T14:00:00Z'
+        last_used_at: '2024-06-02T08:15:00Z'
+        expires_at: 
+        next_expires_at: 
+        credential_instance_count: 1
+        enterprise_authorized: false
+        authorization_count: 2
+        authorized_organizations:
+        - id: 10
+          login: acme-eng
+        - id: 11
+          login: acme-ops
+        age_days: 83
+        never_expires: true
+        past_expiration_policy: false
+        past_expiration_policy_basis: proposed_baseline
+        expiry_unknown: false
+        scopes:
+        - read:user
+        - repo
+        permissions: 
+        repository_selection: 
+      - inventory_id: c3NoLWtleS1leGFtcGxlLTAwMQ
+        credential_id: 
+        hashed_token: 
+        fingerprint: SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8
+        item_type: credential
+        credential_type: ssh_key
+        display_name: laptop-2024
+        owner:
+          id: 3
+          login: monalisa
+        owner_type: user
+        application: 
+        credential_state: active
+        authorization_state: currently_authorized
+        effective_access_state: effective
+        state_reason: 
+        created_at: '2023-11-01T10:00:00Z'
+        last_used_at: '2024-05-20T16:45:00Z'
+        expires_at: 
+        next_expires_at: 
+        credential_instance_count: 1
+        enterprise_authorized: false
+        authorization_count: 1
+        authorized_organizations:
+        - id: 10
+          login: acme-eng
+        age_days: 213
+        never_expires: true
+        past_expiration_policy: true
+        past_expiration_policy_basis: proposed_baseline
+        expiry_unknown: false
+        scopes: 
+        permissions: 
+        repository_selection: 
+      - inventory_id: YWJjZGVmMDEyMzQ1Njc4OQ
+        credential_id: 135790
+        hashed_token: 
+        fingerprint: 
+        item_type: credential
+        credential_type: fine_grained_pat
+        display_name: release-bot
+        owner:
+          id: 3
+          login: monalisa
+        owner_type: user
+        application: 
+        credential_state: active
+        authorization_state: currently_authorized
+        effective_access_state: effective
+        state_reason: 
+        created_at: '2024-05-01T10:00:00Z'
+        last_used_at: '2024-06-03T16:45:00Z'
+        expires_at: '2024-11-01T10:00:00Z'
+        next_expires_at: '2024-11-01T10:00:00Z'
+        credential_instance_count: 1
+        enterprise_authorized: false
+        authorization_count: 1
+        authorized_organizations:
+        - id: 10
+          login: acme-eng
+        age_days: 45
+        never_expires: false
+        past_expiration_policy: false
+        past_expiration_policy_basis: enforced_limit
+        expiry_unknown: false
+        scopes: 
+        permissions:
+          contents: read
+          pull_requests: write
+        repository_selection: subset
+    enterprise-token-inventory-export:
+      value:
+        export_id: 7b99499081e815c76d819dabdab70202df7fa01adf9a84803ca43963edb6a507
+        status: queued
+        as_of: 2026-07-30 21:00:00 UTC
+    enterprise-token-inventory-item:
+      value:
+        inventory_id: MDEyMzQ1Njc4OWFiY2RlZg
+        credential_id: 987654
+        hashed_token: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+        fingerprint: 
+        item_type: credential
+        credential_type: classic_pat
+        display_name: ci-automation
+        owner:
+          id: 1
+          login: octocat
+        owner_type: user
+        application: 
+        credential_state: active
+        authorization_state: currently_authorized
+        effective_access_state: effective
+        state_reason: 
+        created_at: '2024-01-15T09:00:00Z'
+        last_used_at: '2024-06-01T12:30:00Z'
+        expires_at: '2025-01-15T09:00:00Z'
+        next_expires_at: '2025-01-15T09:00:00Z'
+        credential_instance_count: 1
+        enterprise_authorized: false
+        authorization_count: 1
+        authorized_organizations:
+        - id: 10
+          login: acme-eng
+        age_days: 138
+        never_expires: false
+        past_expiration_policy: false
+        past_expiration_policy_basis: enforced_limit
+        expiry_unknown: false
+        scopes:
+        - repo
+        - read:org
+        permissions: 
+        repository_selection: 
     dependabot-alerts-for-organization:
       value:
       - number: 2
