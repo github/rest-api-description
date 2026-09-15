@@ -109137,6 +109137,64 @@ components:
           - merge_method
           - min_entries_to_merge
           - min_entries_to_merge_wait_minutes
+    repository-rule-code-quality:
+      title: code_quality
+      description: Choose which severity levels of code quality results should block
+        pull request merges. When configured, a code quality analysis must be done
+        on the pull request before the changes can be merged.
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - code_quality
+        parameters:
+          type: object
+          properties:
+            severity:
+              type: string
+              description: The lowest severity level at which code quality reviews
+                need to be resolved before commits can be merged.
+              enum:
+              - errors
+              - warnings
+              - notes
+              - all
+          required:
+          - severity
+    repository-rule-code-coverage:
+      title: code_coverage
+      description: Enforce minimum line coverage thresholds on pull requests. When
+        configured, uploaded coverage data must meet the specified criteria before
+        changes can be merged.
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - code_coverage
+        parameters:
+          type: object
+          properties:
+            max_coverage_drop:
+              type: number
+              format: float
+              description: The maximum percentage points that line coverage may drop
+                relative to the default branch. Pull requests that reduce line coverage
+                by more than this amount will be blocked.
+              minimum: 0.0
+              maximum: 100.0
+            minimum_coverage:
+              type: number
+              format: float
+              description: The absolute minimum line coverage percentage required.
+                Pull requests with line coverage below this threshold will be blocked.
+              minimum: 0.0
+              maximum: 100.0
     repository-rule-license-compliance-scanning:
       title: license_compliance_scanning
       description: Enforce any added or changed dependencies to comply with the organization's
@@ -109171,6 +109229,8 @@ components:
       - "$ref": "#/components/schemas/repository-rule-tag-name-pattern"
       - "$ref": "#/components/schemas/repository-rule-workflows"
       - "$ref": "#/components/schemas/repository-rule-code-scanning"
+      - "$ref": "#/components/schemas/repository-rule-code-quality"
+      - "$ref": "#/components/schemas/repository-rule-code-coverage"
       - "$ref": "#/components/schemas/repository-rule-copilot-code-review"
       - "$ref": "#/components/schemas/repository-rule-license-compliance-scanning"
       - "$ref": "#/components/schemas/repository-rule-file-path-restriction"
