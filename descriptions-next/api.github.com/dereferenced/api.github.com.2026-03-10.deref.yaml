@@ -9931,6 +9931,7 @@ paths:
                       enum:
                       - enforced
                       - unenforced
+                      - enterprise_enforced
                     url:
                       type: string
                       format: uri
@@ -10227,6 +10228,7 @@ paths:
                   enum:
                   - enforced
                   - unenforced
+                  - enterprise_enforced
                   default: enforced
               required:
               - name
@@ -10608,6 +10610,7 @@ paths:
                   enum:
                   - enforced
                   - unenforced
+                  - enterprise_enforced
             examples:
               default:
                 summary: Example for updating a code security configuration
@@ -10860,7 +10863,7 @@ paths:
         description: |-
           A comma-separated list of statuses. If specified, only repositories with these attachment statuses will be returned.
 
-          Can be: `all`, `attached`, `attaching`, `removed`, `enforced`, `failed`, `updating`, `removed_by_enterprise`
+          Can be: `all`, `attached`, `attaching`, `removed`, `enforced`, `failed`, `updating`, `removed_by_enterprise`, `enterprise_enforced`
         in: query
         required: false
         schema:
@@ -10891,6 +10894,7 @@ paths:
                       - failed
                       - updating
                       - removed_by_enterprise
+                      - enterprise_enforced
                     repository: &62
                       title: Simple Repository
                       description: A GitHub repository.
@@ -33011,7 +33015,9 @@ paths:
 
         The authenticated user must be an administrator or security manager for the organization to use this endpoint.
 
-        OAuth app tokens and personal access tokens (classic) need the `write:org` scope to use this endpoint.
+        Repositories with active enterprise-enforced attachments are skipped unless the authenticated user can manage the enterprise's code security settings; the rest are detached. Inactive enterprise-enforced attachments, such as failed attachments, are detached. The request still returns `204` if every repository is skipped.
+
+        OAuth app tokens and classic PATs require the `write:org` scope. Managing enterprise-enforced configurations also requires `admin:enterprise` and is not supported by fine-grained PATs or GitHub App access tokens.
       tags:
       - code-security
       operationId: code-security/detach-configuration
@@ -33409,7 +33415,11 @@ paths:
 
         The authenticated user must be an administrator or security manager for the organization to use this endpoint.
 
-        OAuth app tokens and personal access tokens (classic) need the `write:org` scope to use this endpoint.
+        Directly applying an enterprise-enforced configuration also requires permission to manage the enterprise's code security settings. Without it, the request returns `403` and no repositories change.
+
+        When applying a different configuration, repositories with active enterprise-enforced attachments are skipped unless the authenticated user can manage the enterprise's code security settings; the remaining repositories are updated. The request still returns `202` if every repository is skipped.
+
+        OAuth app tokens and classic PATs require the `write:org` scope. Directly applying an enterprise-enforced configuration also requires `admin:enterprise` and is not supported by fine-grained PATs or GitHub App access tokens.
       tags:
       - code-security
       operationId: code-security/attach-configuration
@@ -33458,6 +33468,7 @@ paths:
                   - 91
       responses:
         '202': *34
+        '403': *27
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -33471,9 +33482,11 @@ paths:
 
         This configuration will be applied to the matching repository type (all, none, public, private and internal) by default when they are created.
 
-        The authenticated user must be an administrator or security manager for the organization to use this endpoint.
+        The authenticated user must be an administrator or security manager for the organization to use this endpoint. Setting an enterprise-enforced configuration as the default also requires permission to manage the enterprise's code security settings.
 
-        OAuth app tokens and personal access tokens (classic) need the `write:org` scope to use this endpoint.
+        A default set with this endpoint is an organization default, even if the configuration is owned or enforced by the enterprise. An enterprise-enforced configuration set as an enterprise-level default for the same repository visibility takes precedence.
+
+        OAuth app tokens and classic PATs require the `write:org` scope; setting an enterprise-enforced configuration as the default also requires `admin:enterprise`. Fine-grained PATs and GitHub App access tokens cannot perform that action.
       tags:
       - code-security
       operationId: code-security/set-configuration-as-default
@@ -33567,7 +33580,7 @@ paths:
         description: |-
           A comma-separated list of statuses. If specified, only repositories with these attachment statuses will be returned.
 
-          Can be: `all`, `attached`, `attaching`, `detached`, `removed`, `enforced`, `failed`, `updating`, `removed_by_enterprise`
+          Can be: `all`, `attached`, `attaching`, `detached`, `removed`, `enforced`, `failed`, `updating`, `removed_by_enterprise`, `enterprise_enforced`
         in: query
         required: false
         schema:
@@ -52231,6 +52244,67 @@ paths:
                                     - tool
                               required:
                               - code_scanning_tools
+                        - title: code_quality
+                          description: Choose which severity levels of code quality
+                            results should block pull request merges. When configured,
+                            a code quality analysis must be done on the pull request
+                            before the changes can be merged.
+                          type: object
+                          required:
+                          - type
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - code_quality
+                            parameters:
+                              type: object
+                              properties:
+                                severity:
+                                  type: string
+                                  description: The lowest severity level at which
+                                    code quality reviews need to be resolved before
+                                    commits can be merged.
+                                  enum:
+                                  - errors
+                                  - warnings
+                                  - notes
+                                  - all
+                              required:
+                              - severity
+                        - title: code_coverage
+                          description: Enforce minimum line coverage thresholds on
+                            pull requests. When configured, uploaded coverage data
+                            must meet the specified criteria before changes can be
+                            merged.
+                          type: object
+                          required:
+                          - type
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                              - code_coverage
+                            parameters:
+                              type: object
+                              properties:
+                                max_coverage_drop:
+                                  type: number
+                                  format: float
+                                  description: The maximum percentage points that
+                                    line coverage may drop relative to the default
+                                    branch. Pull requests that reduce line coverage
+                                    by more than this amount will be blocked.
+                                  minimum: 0.0
+                                  maximum: 100.0
+                                minimum_coverage:
+                                  type: number
+                                  format: float
+                                  description: The absolute minimum line coverage
+                                    percentage required. Pull requests with line coverage
+                                    below this threshold will be blocked.
+                                  minimum: 0.0
+                                  maximum: 100.0
                         - &323
                           title: copilot_code_review
                           description: Request Copilot code review for new pull requests
@@ -75608,6 +75682,7 @@ paths:
                     - failed
                     - updating
                     - removed_by_enterprise
+                    - enterprise_enforced
                   configuration: *44
               examples:
                 default:
