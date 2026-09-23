@@ -90,12 +90,6 @@ tags:
   description: Interact with GitHub Classroom.
 - name: desktop
   description: Desktop specific endpoints.
-- name: enterprise-teams
-  description: Endpoints to manage GitHub Enterprise Teams.
-- name: enterprise-team-memberships
-  description: Endpoints to manage GitHub Enterprise Team memberships.
-- name: enterprise-team-organizations
-  description: Endpoints to manage GitHub Enterprise Team organization assignments.
 - name: code-security
   description: Endpoints to manage Code security using the REST API.
 - name: private-registries
@@ -5900,753 +5894,6 @@ paths:
         enabledForGitHubApps: false
         category: dependabot
         subcategory: repository-access
-  "/enterprises/{enterprise}/members/{username}/teams":
-    get:
-      summary: List enterprise teams for a user
-      description: |-
-        Lists all enterprise teams that a user is a member of. This endpoint is available only for
-        enterprises using the new enterprise teams experience.
-
-        The authenticated user must be an enterprise owner or have the `enterprise_teams:read` permission.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/list-teams-for-user
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#list-enterprise-teams-for-a-user
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/username"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/enterprise-team"
-              examples:
-                default:
-                  "$ref": "#/components/examples/enterprise-teams-items"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-        '401':
-          "$ref": "#/components/responses/requires_authentication"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-        '404':
-          "$ref": "#/components/responses/not_found"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-  "/enterprises/{enterprise}/teams":
-    get:
-      summary: List enterprise teams
-      description: List all teams in the enterprise for the authenticated user
-      tags:
-      - enterprise-teams
-      operationId: enterprise-teams/list
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-teams#list-enterprise-teams
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/enterprise-team"
-              examples:
-                default:
-                  "$ref": "#/components/examples/enterprise-teams-items"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-teams
-    post:
-      summary: Create an enterprise team
-      description: To create an enterprise team, the authenticated user must be an
-        owner of the enterprise.
-      tags:
-      - enterprise-teams
-      operationId: enterprise-teams/create
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-teams#create-an-enterprise-team
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: The name of the team.
-                description:
-                  type:
-                  - string
-                  - 'null'
-                  description: A description of the team.
-                sync_to_organizations:
-                  type: string
-                  description: |
-                    Retired: this field is no longer supported.
-                    Whether the enterprise team should be reflected in each organization.
-                    This value cannot be set.
-                  enum:
-                  - all
-                  - disabled
-                  default: disabled
-                organization_selection_type:
-                  type: string
-                  description: |
-                    Specifies which organizations in the enterprise should have access to this team. Can be one of `disabled`, `selected`, or `all`.
-                    `disabled`: The team is not assigned to any organizations. This is the default when you create a new team.
-                    `selected`: The team is assigned to specific organizations. You can then use the [add organization assignments API](https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#add-organization-assignments) endpoint.
-                    `all`: The team is assigned to all current and future organizations in the enterprise.
-                  enum:
-                  - disabled
-                  - selected
-                  - all
-                  default: disabled
-                group_id:
-                  type:
-                  - string
-                  - 'null'
-                  description: The ID of the IdP group to assign team membership with.
-                    You can get this value from the [REST API endpoints for SCIM](https://docs.github.com/rest/scim#list-provisioned-scim-groups-for-an-enterprise).
-                notification_setting:
-                  type: string
-                  description: |
-                    The notification setting the team is set to. The options are:
-
-                    * `notifications_enabled` - team members receive notifications when the team is @mentioned.
-                    * `notifications_disabled` - no one receives notifications.
-
-                    Default: `notifications_enabled`
-                  enum:
-                  - notifications_enabled
-                  - notifications_disabled
-              required:
-              - name
-            examples:
-              default:
-                value:
-                  name: Justice League
-                  description: A great team.
-                  group_id: 62ab9291-fae2-468e-974b-7e45096d5021
-      responses:
-        '201':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/enterprise-team"
-              examples:
-                default:
-                  "$ref": "#/components/examples/enterprise-teams-item"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-teams
-  "/enterprises/{enterprise}/teams/{enterprise-team}/memberships":
-    get:
-      summary: List members in an enterprise team
-      description: Lists all team members in an enterprise team.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/list
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#list-members-in-an-enterprise-team
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/simple-user"
-              examples:
-                default:
-                  "$ref": "#/components/examples/simple-user-items"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-  "/enterprises/{enterprise}/teams/{enterprise-team}/memberships/add":
-    post:
-      summary: Bulk add team members
-      description: Add multiple team members to an enterprise team.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/bulk-add
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#bulk-add-team-members
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - usernames
-              properties:
-                usernames:
-                  type: array
-                  description: The GitHub user handles to add to the team.
-                  items:
-                    type: string
-                    description: The handle for the GitHub user account.
-            examples:
-              default:
-                value:
-                  usernames:
-                  - monalisa
-                  - octocat
-      responses:
-        '200':
-          description: Successfully added team members.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/simple-user"
-              examples:
-                default:
-                  "$ref": "#/components/examples/simple-user-items"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-  "/enterprises/{enterprise}/teams/{enterprise-team}/memberships/remove":
-    post:
-      summary: Bulk remove team members
-      description: Remove multiple team members from an enterprise team.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/bulk-remove
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#bulk-remove-team-members
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - usernames
-              properties:
-                usernames:
-                  type: array
-                  description: The GitHub user handles to be removed from the team.
-                  items:
-                    type: string
-                    description: The handle for the GitHub user account.
-            examples:
-              default:
-                value:
-                  usernames:
-                  - monalisa
-                  - octocat
-      responses:
-        '200':
-          description: Successfully removed team members.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/simple-user"
-              examples:
-                default:
-                  "$ref": "#/components/examples/simple-user-items"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-  "/enterprises/{enterprise}/teams/{enterprise-team}/memberships/{username}":
-    get:
-      summary: Get enterprise team membership
-      description: Returns whether the user is a member of the enterprise team.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/get
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#get-enterprise-team-membership
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/username"
-      responses:
-        '200':
-          description: User is a member of the enterprise team.
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/simple-user"
-              examples:
-                exampleKey1:
-                  "$ref": "#/components/examples/simple-user"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-    put:
-      summary: Add team member
-      description: Add a team member to an enterprise team.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/add
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#add-team-member
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/username"
-      responses:
-        '201':
-          description: Successfully added team member
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/simple-user"
-              examples:
-                exampleKey1:
-                  "$ref": "#/components/examples/simple-user"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-    delete:
-      summary: Remove team membership
-      description: Remove membership of a specific user from a particular team in
-        an enterprise.
-      tags:
-      - enterprise-team-memberships
-      operationId: enterprise-team-memberships/remove
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-members#remove-team-membership
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/username"
-      responses:
-        '204':
-          description: Response
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-members
-  "/enterprises/{enterprise}/teams/{enterprise-team}/organizations":
-    get:
-      summary: Get organization assignments
-      description: Get all organizations assigned to an enterprise team
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/get-assignments
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#get-organization-assignments
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/per-page"
-      - "$ref": "#/components/parameters/page"
-      responses:
-        '200':
-          description: An array of organizations the team is assigned to
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/organization-simple"
-              examples:
-                default:
-                  "$ref": "#/components/examples/organization-simple"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-  "/enterprises/{enterprise}/teams/{enterprise-team}/organizations/add":
-    post:
-      summary: Add organization assignments
-      description: Assign an enterprise team to multiple organizations.
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/bulk-add
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#add-organization-assignments
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - organization_slugs
-              properties:
-                organization_slugs:
-                  type: array
-                  description: Organization slug to assign the team to.
-                  items:
-                    type: string
-                    description: Organization slug to assign the team to
-            examples:
-              default:
-                value:
-                  organization_slugs:
-                  - github
-      responses:
-        '200':
-          description: Successfully assigned the enterprise team to organizations.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/organization-simple"
-              examples:
-                default:
-                  "$ref": "#/components/examples/organization-simple-items"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-  "/enterprises/{enterprise}/teams/{enterprise-team}/organizations/remove":
-    post:
-      summary: Remove organization assignments
-      description: Unassign an enterprise team from multiple organizations.
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/bulk-remove
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#remove-organization-assignments
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - organization_slugs
-              properties:
-                organization_slugs:
-                  type: array
-                  description: Organization slug to unassign the team from.
-                  items:
-                    type: string
-                    description: Organization slug to unassign the team from
-            examples:
-              default:
-                value:
-                  organization_slugs:
-                  - github
-      responses:
-        '204':
-          description: Successfully unassigned the enterprise team from organizations.
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-  "/enterprises/{enterprise}/teams/{enterprise-team}/organizations/{org}":
-    get:
-      summary: Get organization assignment
-      description: Check if an enterprise team is assigned to an organization
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/get-assignment
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#get-organization-assignment
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/org"
-      responses:
-        '200':
-          description: The team is assigned to the organization
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/organization-simple"
-              examples:
-                default:
-                  "$ref": "#/components/examples/organization-simple"
-        '404':
-          description: The team is not assigned to the organization
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-    put:
-      summary: Add an organization assignment
-      description: Assign an enterprise team to an organization.
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/add
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#add-an-organization-assignment
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/org"
-      responses:
-        '201':
-          description: Successfully assigned the enterprise team to the organization.
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/organization-simple"
-              examples:
-                default:
-                  "$ref": "#/components/examples/organization-simple"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-    delete:
-      summary: Delete an organization assignment
-      description: Unassign an enterprise team from an organization.
-      tags:
-      - enterprise-team-organizations
-      operationId: enterprise-team-organizations/delete
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#delete-an-organization-assignment
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/enterprise-team"
-      - "$ref": "#/components/parameters/org"
-      responses:
-        '204':
-          description: Successfully unassigned the enterprise team from the organization.
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-team-organizations
-  "/enterprises/{enterprise}/teams/{team_slug}":
-    get:
-      summary: Get an enterprise team
-      description: Gets a team using the team's slug. To create the slug, GitHub replaces
-        special characters in the name string, changes all words to lowercase, and
-        replaces spaces with a `-` separator and adds the "ent:" prefix. For example,
-        "My TEam Näme" would become `ent:my-team-name`.
-      tags:
-      - enterprise-teams
-      operationId: enterprise-teams/get
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-teams#get-an-enterprise-team
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/team-slug"
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/enterprise-team-with-member-count"
-              examples:
-                default:
-                  "$ref": "#/components/examples/enterprise-teams-item-with-member-count"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-teams
-    patch:
-      summary: Update an enterprise team
-      description: To edit a team, the authenticated user must be an enterprise owner.
-      tags:
-      - enterprise-teams
-      operationId: enterprise-teams/update
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-teams#update-an-enterprise-team
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/team-slug"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type:
-                  - string
-                  - 'null'
-                  description: A new name for the team.
-                description:
-                  type:
-                  - string
-                  - 'null'
-                  description: A new description for the team.
-                sync_to_organizations:
-                  type: string
-                  description: |
-                    Retired: this field is no longer supported.
-                    Whether the enterprise team should be reflected in each organization.
-                    This value cannot be changed.
-                  enum:
-                  - all
-                  - disabled
-                  default: disabled
-                organization_selection_type:
-                  type: string
-                  description: |
-                    Specifies which organizations in the enterprise should have access to this team. Can be one of `disabled`, `selected`, or `all`.
-                    `disabled`: The team is not assigned to any organizations. This is the default when you create a new team.
-                    `selected`: The team is assigned to specific organizations. You can then use the [add organization assignments API](https://docs.github.com/rest/enterprise-teams/enterprise-team-organizations#add-organization-assignments).
-                    `all`: The team is assigned to all current and future organizations in the enterprise.
-                  enum:
-                  - disabled
-                  - selected
-                  - all
-                  default: disabled
-                group_id:
-                  type:
-                  - string
-                  - 'null'
-                  description: The ID of the IdP group to assign team membership with.
-                    The new IdP group will replace the existing one, or replace existing
-                    direct members if the team isn't currently linked to an IdP group.
-                notification_setting:
-                  type: string
-                  description: |
-                    The notification setting the team is set to. The options are:
-
-                    * `notifications_enabled` - team members receive notifications when the team is @mentioned.
-                    * `notifications_disabled` - no one receives notifications.
-                  enum:
-                  - notifications_enabled
-                  - notifications_disabled
-            examples:
-              default:
-                value:
-                  name: Justice League
-                  description: A great team.
-                  group_id: 62ab9291-fae2-468e-974b-7e45096d5021
-      responses:
-        '200':
-          description: Response
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/enterprise-team"
-              examples:
-                default:
-                  "$ref": "#/components/examples/enterprise-teams-item"
-          headers:
-            Link:
-              "$ref": "#/components/headers/link"
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-teams
-    delete:
-      summary: Delete an enterprise team
-      description: |-
-        To delete an enterprise team, the authenticated user must be an enterprise owner.
-
-        If you are an enterprise owner, deleting an enterprise team will delete all of its IdP mappings as well.
-      tags:
-      - enterprise-teams
-      operationId: enterprise-teams/delete
-      externalDocs:
-        description: API method documentation
-        url: https://docs.github.com/rest/enterprise-teams/enterprise-teams#delete-an-enterprise-team
-      parameters:
-      - "$ref": "#/components/parameters/enterprise"
-      - "$ref": "#/components/parameters/team-slug"
-      responses:
-        '204':
-          description: Response
-        '403':
-          "$ref": "#/components/responses/forbidden"
-      x-github:
-        githubCloudOnly: false
-        enabledForGitHubApps: false
-        category: enterprise-teams
-        subcategory: enterprise-teams
   "/events":
     get:
       summary: List public events
@@ -90480,229 +89727,6 @@ components:
             - type: 'null'
             - "$ref": "#/components/schemas/simple-repository"
       additionalProperties: false
-    enterprise-team:
-      title: Enterprise Team
-      description: Group of enterprise owners and/or members
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        description:
-          type: string
-        slug:
-          type: string
-        url:
-          type: string
-          format: uri
-        sync_to_organizations:
-          type: string
-          description: 'Retired: this field will not be returned with GHEC enterprise
-            teams.'
-          examples:
-          - disabled | all
-        organization_selection_type:
-          type: string
-          examples:
-          - disabled | selected | all
-        group_id:
-          type:
-          - string
-          - 'null'
-          examples:
-          - 62ab9291-fae2-468e-974b-7e45096d5021
-        group_name:
-          type:
-          - string
-          - 'null'
-          description: 'Retired: this field will not be returned with GHEC enterprise
-            teams.'
-          examples:
-          - Justice League
-        html_url:
-          type: string
-          format: uri
-          examples:
-          - https://github.com/enterprises/dc/teams/justice-league
-        members_url:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        notification_setting:
-          type: string
-          description: Whether team members will receive notifications when the team
-            is mentioned.
-          enum:
-          - notifications_enabled
-          - notifications_disabled
-          examples:
-          - notifications_enabled
-      required:
-      - id
-      - url
-      - members_url
-      - name
-      - html_url
-      - slug
-      - created_at
-      - updated_at
-      - group_id
-    organization-simple:
-      title: Organization Simple
-      description: A GitHub organization.
-      type: object
-      properties:
-        login:
-          type: string
-          examples:
-          - github
-        id:
-          type: integer
-          examples:
-          - 1
-        node_id:
-          type: string
-          examples:
-          - MDEyOk9yZ2FuaXphdGlvbjE=
-        url:
-          type: string
-          format: uri
-          examples:
-          - https://api.github.com/orgs/github
-        repos_url:
-          type: string
-          format: uri
-          examples:
-          - https://api.github.com/orgs/github/repos
-        events_url:
-          type: string
-          format: uri
-          examples:
-          - https://api.github.com/orgs/github/events
-        hooks_url:
-          type: string
-          examples:
-          - https://api.github.com/orgs/github/hooks
-        issues_url:
-          type: string
-          examples:
-          - https://api.github.com/orgs/github/issues
-        members_url:
-          type: string
-          examples:
-          - https://api.github.com/orgs/github/members{/member}
-        public_members_url:
-          type: string
-          examples:
-          - https://api.github.com/orgs/github/public_members{/member}
-        avatar_url:
-          type: string
-          examples:
-          - https://github.com/images/error/octocat_happy.gif
-        description:
-          type:
-          - string
-          - 'null'
-          examples:
-          - A great organization
-      required:
-      - login
-      - url
-      - id
-      - node_id
-      - repos_url
-      - events_url
-      - hooks_url
-      - issues_url
-      - members_url
-      - public_members_url
-      - avatar_url
-      - description
-    enterprise-team-with-member-count:
-      title: Enterprise Team
-      description: Group of enterprise owners and/or members
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        description:
-          type: string
-        slug:
-          type: string
-        url:
-          type: string
-          format: uri
-        sync_to_organizations:
-          type: string
-          description: 'Retired: this field will not be returned with GHEC enterprise
-            teams.'
-          examples:
-          - disabled
-        organization_selection_type:
-          type: string
-          examples:
-          - selected
-        group_id:
-          type:
-          - string
-          - 'null'
-          examples:
-          - 62ab9291-fae2-468e-974b-7e45096d5021
-        group_name:
-          type:
-          - string
-          - 'null'
-          description: 'Retired: this field will not be returned with GHEC enterprise
-            teams.'
-          examples:
-          - Justice League
-        html_url:
-          type: string
-          format: uri
-          examples:
-          - https://github.com/enterprises/dc/teams/justice-league
-        members_url:
-          type: string
-        members_count:
-          type: integer
-          description: The number of members in the enterprise team.
-          examples:
-          - 3
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        notification_setting:
-          type: string
-          description: Whether team members will receive notifications when the team
-            is mentioned.
-          enum:
-          - notifications_enabled
-          - notifications_disabled
-          examples:
-          - notifications_enabled
-      required:
-      - id
-      - url
-      - members_url
-      - members_count
-      - name
-      - html_url
-      - slug
-      - created_at
-      - updated_at
-      - group_id
     actor:
       title: Actor
       description: Actor
@@ -93880,6 +92904,77 @@ components:
       - reason
       - url
       - subscribed
+    organization-simple:
+      title: Organization Simple
+      description: A GitHub organization.
+      type: object
+      properties:
+        login:
+          type: string
+          examples:
+          - github
+        id:
+          type: integer
+          examples:
+          - 1
+        node_id:
+          type: string
+          examples:
+          - MDEyOk9yZ2FuaXphdGlvbjE=
+        url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/orgs/github
+        repos_url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/orgs/github/repos
+        events_url:
+          type: string
+          format: uri
+          examples:
+          - https://api.github.com/orgs/github/events
+        hooks_url:
+          type: string
+          examples:
+          - https://api.github.com/orgs/github/hooks
+        issues_url:
+          type: string
+          examples:
+          - https://api.github.com/orgs/github/issues
+        members_url:
+          type: string
+          examples:
+          - https://api.github.com/orgs/github/members{/member}
+        public_members_url:
+          type: string
+          examples:
+          - https://api.github.com/orgs/github/public_members{/member}
+        avatar_url:
+          type: string
+          examples:
+          - https://github.com/images/error/octocat_happy.gif
+        description:
+          type:
+          - string
+          - 'null'
+          examples:
+          - A great organization
+      required:
+      - login
+      - url
+      - id
+      - node_id
+      - repos_url
+      - events_url
+      - hooks_url
+      - issues_url
+      - members_url
+      - public_members_url
+      - avatar_url
+      - description
     actions-cache-retention-limit-for-organization:
       title: Actions cache retention limit for an organization
       description: GitHub Actions cache retention policy for an organization.
@@ -97800,6 +96895,79 @@ components:
       - public_code_suggestions
       - seat_management_setting
       additionalProperties: true
+    enterprise-team:
+      title: Enterprise Team
+      description: Group of enterprise owners and/or members
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+          format: uri
+        sync_to_organizations:
+          type: string
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          examples:
+          - disabled | all
+        organization_selection_type:
+          type: string
+          examples:
+          - disabled | selected | all
+        group_id:
+          type:
+          - string
+          - 'null'
+          examples:
+          - 62ab9291-fae2-468e-974b-7e45096d5021
+        group_name:
+          type:
+          - string
+          - 'null'
+          description: 'Retired: this field will not be returned with GHEC enterprise
+            teams.'
+          examples:
+          - Justice League
+        html_url:
+          type: string
+          format: uri
+          examples:
+          - https://github.com/enterprises/dc/teams/justice-league
+        members_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        notification_setting:
+          type: string
+          description: Whether team members will receive notifications when the team
+            is mentioned.
+          enum:
+          - notifications_enabled
+          - notifications_disabled
+          examples:
+          - notifications_enabled
+      required:
+      - id
+      - url
+      - members_url
+      - name
+      - html_url
+      - slug
+      - created_at
+      - updated_at
+      - group_id
     copilot-seat-details:
       title: Copilot Business Seat Detail
       description: Information about a Copilot Business seat assignment for a user,
@@ -237196,111 +236364,6 @@ components:
           teams_url: https://api.github.com/repos/octocat/example-repo/teams
           trees_url: https://api.github.com/repos/octocat/example-repo/git/trees{/sha}
           hooks_url: https://api.github.com/repos/octocat/example-repo/hooks
-    enterprise-teams-items:
-      value:
-      - id: 1
-        name: Justice League
-        description: A great team.
-        slug: justice-league
-        url: https://api.github.com/enterprises/dc/teams/justice-league
-        group_id: 62ab9291-fae2-468e-974b-7e45096d5021
-        html_url: https://github.com/enterprises/dc/teams/justice-league
-        members_url: https://api.github.com/enterprises/dc/teams/justice-league/members{/member}
-        created_at: '2019-01-26T19:01:12Z'
-        updated_at: '2019-01-26T19:14:43Z'
-    enterprise-teams-item:
-      value:
-        id: 1
-        name: Justice League
-        description: A great team.
-        slug: justice-league
-        url: https://api.github.com/enterprises/dc/teams/justice-league
-        group_id: 62ab9291-fae2-468e-974b-7e45096d5021
-        html_url: https://github.com/enterprises/dc/teams/justice-league
-        members_url: https://api.github.com/enterprises/dc/teams/justice-league/members{/member}
-        created_at: '2019-01-26T19:01:12Z'
-        updated_at: '2019-01-26T19:14:43Z'
-    simple-user-items:
-      value:
-      - login: octocat
-        id: 1
-        node_id: MDQ6VXNlcjE=
-        avatar_url: https://github.com/images/error/octocat_happy.gif
-        gravatar_id: ''
-        url: https://api.github.com/users/octocat
-        html_url: https://github.com/octocat
-        followers_url: https://api.github.com/users/octocat/followers
-        following_url: https://api.github.com/users/octocat/following{/other_user}
-        gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-        starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-        subscriptions_url: https://api.github.com/users/octocat/subscriptions
-        organizations_url: https://api.github.com/users/octocat/orgs
-        repos_url: https://api.github.com/users/octocat/repos
-        events_url: https://api.github.com/users/octocat/events{/privacy}
-        received_events_url: https://api.github.com/users/octocat/received_events
-        type: User
-        site_admin: false
-    simple-user:
-      value:
-        login: octocat
-        id: 1
-        node_id: MDQ6VXNlcjE=
-        avatar_url: https://github.com/images/error/octocat_happy.gif
-        gravatar_id: ''
-        url: https://api.github.com/users/octocat
-        html_url: https://github.com/octocat
-        followers_url: https://api.github.com/users/octocat/followers
-        following_url: https://api.github.com/users/octocat/following{/other_user}
-        gists_url: https://api.github.com/users/octocat/gists{/gist_id}
-        starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
-        subscriptions_url: https://api.github.com/users/octocat/subscriptions
-        organizations_url: https://api.github.com/users/octocat/orgs
-        repos_url: https://api.github.com/users/octocat/repos
-        events_url: https://api.github.com/users/octocat/events{/privacy}
-        received_events_url: https://api.github.com/users/octocat/received_events
-        type: User
-        site_admin: false
-    organization-simple:
-      value:
-        login: github
-        id: 1
-        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
-        url: https://api.github.com/orgs/github
-        repos_url: https://api.github.com/orgs/github/repos
-        events_url: https://api.github.com/orgs/github/events
-        hooks_url: https://api.github.com/orgs/github/hooks
-        issues_url: https://api.github.com/orgs/github/issues
-        members_url: https://api.github.com/orgs/github/members{/member}
-        public_members_url: https://api.github.com/orgs/github/public_members{/member}
-        avatar_url: https://github.com/images/error/octocat_happy.gif
-        description: A great organization
-    organization-simple-items:
-      value:
-      - login: github
-        id: 1
-        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
-        url: https://api.github.com/orgs/github
-        repos_url: https://api.github.com/orgs/github/repos
-        events_url: https://api.github.com/orgs/github/events
-        hooks_url: https://api.github.com/orgs/github/hooks
-        issues_url: https://api.github.com/orgs/github/issues
-        members_url: https://api.github.com/orgs/github/members{/member}
-        public_members_url: https://api.github.com/orgs/github/public_members{/member}
-        avatar_url: https://github.com/images/error/octocat_happy.gif
-        description: A great organization
-    enterprise-teams-item-with-member-count:
-      value:
-        id: 1
-        name: Justice League
-        description: A great team.
-        slug: justice-league
-        url: https://api.github.com/enterprises/dc/teams/1
-        group_id: 62ab9291-fae2-468e-974b-7e45096d5021
-        html_url: https://github.com/enterprises/dc/teams/justice-league
-        members_url: https://api.github.com/enterprises/dc/teams/1/memberships{/member}
-        members_count: 3
-        created_at: '2019-01-26T19:01:12Z'
-        updated_at: '2019-01-26T19:14:43Z'
     public-events-items:
       value:
       - id: '22249084947'
@@ -238681,6 +237744,20 @@ components:
                     ~~~~~~==~==~~~==~==~~~~~~
                      ~~~~~~==~==~==~==~~~~~~
                          :~==~==~==~==~~
+    organization-simple-items:
+      value:
+      - login: github
+        id: 1
+        node_id: MDEyOk9yZ2FuaXphdGlvbjE=
+        url: https://api.github.com/orgs/github
+        repos_url: https://api.github.com/orgs/github/repos
+        events_url: https://api.github.com/orgs/github/events
+        hooks_url: https://api.github.com/orgs/github/hooks
+        issues_url: https://api.github.com/orgs/github/issues
+        members_url: https://api.github.com/orgs/github/members{/member}
+        public_members_url: https://api.github.com/orgs/github/public_members{/member}
+        avatar_url: https://github.com/images/error/octocat_happy.gif
+        description: A great organization
     billing-ai-credit-usage-report-org:
       value:
         timePeriod:
@@ -239979,6 +239056,26 @@ components:
         - repository_id: 1
           bundle_url: https://tmastaging.blob.core.windows.net/attestations/1/2024/11/08/5.json.sn?se=2024-11-09T17%3A13%3A43Z&sig=jPSbbJnIEshUyCjBLU5Ykq0uuGc5UYxTZE1%2FhdBNMXk%3D&sp=r&spr=https%2Chttp&sr=b&st=2024-11-08T17%3A13%3A43Z&sv=2024-08-04
           initiator: user
+    simple-user-items:
+      value:
+      - login: octocat
+        id: 1
+        node_id: MDQ6VXNlcjE=
+        avatar_url: https://github.com/images/error/octocat_happy.gif
+        gravatar_id: ''
+        url: https://api.github.com/users/octocat
+        html_url: https://github.com/octocat
+        followers_url: https://api.github.com/users/octocat/followers
+        following_url: https://api.github.com/users/octocat/following{/other_user}
+        gists_url: https://api.github.com/users/octocat/gists{/gist_id}
+        starred_url: https://api.github.com/users/octocat/starred{/owner}{/repo}
+        subscriptions_url: https://api.github.com/users/octocat/subscriptions
+        organizations_url: https://api.github.com/users/octocat/orgs
+        repos_url: https://api.github.com/users/octocat/repos
+        events_url: https://api.github.com/users/octocat/events{/privacy}
+        received_events_url: https://api.github.com/users/octocat/received_events
+        type: User
+        site_admin: false
     campaign-org-items:
       value:
       - number: 3
@@ -263456,35 +262553,6 @@ components:
         - updated
         - epss_percentage
         default: created
-    username:
-      name: username
-      description: The handle for the GitHub user account.
-      in: path
-      required: true
-      schema:
-        type: string
-    enterprise-team:
-      name: enterprise-team
-      description: The slug version of the enterprise team name. You can also substitute
-        this value with the enterprise team id.
-      in: path
-      required: true
-      schema:
-        type: string
-    org:
-      name: org
-      description: The organization name. The name is not case sensitive.
-      in: path
-      required: true
-      schema:
-        type: string
-    team-slug:
-      name: team_slug
-      description: The slug of the team name.
-      in: path
-      required: true
-      schema:
-        type: string
     public-events-per-page:
       name: per_page
       description: The number of results per page (max 100). For more information,
@@ -263599,6 +262667,13 @@ components:
       required: false
       schema:
         type: integer
+    org:
+      name: org
+      description: The organization name. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
     billing-usage-report-year:
       name: year
       description: If specified, only return results for a single year. The value
@@ -263766,6 +262841,13 @@ components:
         minLength: 71
         maxLength: 71
         pattern: "^sha256:[a-f0-9]{64}$"
+    username:
+      name: username
+      description: The handle for the GitHub user account.
+      in: path
+      required: true
+      schema:
+        type: string
     tool-name:
       name: tool_name
       description: The name of a code scanning tool. Only results by this tool will
@@ -263981,6 +263063,13 @@ components:
     repo-name:
       name: repo_name
       description: repo_name parameter
+      in: path
+      required: true
+      schema:
+        type: string
+    team-slug:
+      name: team_slug
+      description: The slug of the team name.
       in: path
       required: true
       schema:
