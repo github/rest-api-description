@@ -7878,6 +7878,8 @@ paths:
       description: |-
         Creates an audit log streaming configuration for any of the supported streaming endpoints: Azure Blob Storage, Azure Event Hubs, Amazon S3, Splunk, Google Cloud Storage, Datadog.
 
+        Microsoft Agent365 and Microsoft Purview streams require Microsoft Entra authorization and cannot be created with this endpoint. Configure those destinations from the enterprise audit log streaming settings.
+
         When using this endpoint, you must encrypt the credentials following the same encryption steps as outlined in the guide on encrypting secrets. See "[Encrypting secrets for the REST API](/rest/guides/encrypting-secrets-for-the-rest-api)."
       tags:
       - enterprise-admin
@@ -7978,6 +7980,8 @@ paths:
       description: |-
         Updates an existing audit log stream configuration for an enterprise.
 
+        Microsoft Agent365 streams are configured through Microsoft Entra authorization. For those streams, this endpoint can only pause or resume the stream. Authorization-managed fields cannot be updated; delete and recreate the stream to change its Entra tenant or authorization.
+
         When using this endpoint, you must encrypt the credentials following the same encryption steps as outlined in the guide on encrypting secrets. See "[Encrypting secrets for the REST API](/rest/guides/encrypting-secrets-for-the-rest-api)."
       tags:
       - enterprise-admin
@@ -8010,6 +8014,7 @@ paths:
                   - HTTPS Event Collector
                   - Google Cloud Storage
                   - Datadog
+                  - Microsoft Agent365
                 vendor_specific:
                   type: object
                   oneOf:
@@ -8021,6 +8026,12 @@ paths:
                   - "$ref": "#/components/schemas/hec-config"
                   - "$ref": "#/components/schemas/google-cloud-config"
                   - "$ref": "#/components/schemas/datadog-config"
+                  - type: object
+                    title: MicrosoftAgent365Config
+                    description: Empty configuration used when pausing or resuming
+                      a Microsoft Agent365 stream.
+                    maxProperties: 0
+                    additionalProperties: false
               required:
               - enabled
               - stream_type
