@@ -74781,7 +74781,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -76368,7 +76368,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -79721,7 +79721,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -301466,7 +301466,7 @@
                             },
                             {
                               "title": "code_coverage",
-                              "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                              "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                               "type": "object",
                               "required": [
                                 "type"
@@ -304288,7 +304288,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -306509,7 +306509,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -309352,7 +309352,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -707188,6 +707188,127 @@
                       {
                         "allOf": [
                           {
+                            "title": "code_quality",
+                            "description": "Choose which severity levels of code quality results should block pull request merges. When configured, a code quality analysis must be done on the pull request before the changes can be merged.",
+                            "type": "object",
+                            "required": [
+                              "type"
+                            ],
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "code_quality"
+                                ]
+                              },
+                              "parameters": {
+                                "type": "object",
+                                "properties": {
+                                  "severity": {
+                                    "type": "string",
+                                    "description": "The lowest severity level at which code quality reviews need to be resolved before commits can be merged.",
+                                    "enum": [
+                                      "errors",
+                                      "warnings",
+                                      "notes",
+                                      "all"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "severity"
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "title": "repository ruleset data for rule",
+                            "description": "User-defined metadata to store domain-specific information limited to 8 keys with scalar values.",
+                            "properties": {
+                              "ruleset_source_type": {
+                                "type": "string",
+                                "description": "The type of source for the ruleset that includes this rule.",
+                                "enum": [
+                                  "Repository",
+                                  "Organization"
+                                ]
+                              },
+                              "ruleset_source": {
+                                "type": "string",
+                                "description": "The name of the source of the ruleset that includes this rule."
+                              },
+                              "ruleset_id": {
+                                "type": "integer",
+                                "description": "The ID of the ruleset that includes this rule."
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "allOf": [
+                          {
+                            "title": "code_coverage",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
+                            "type": "object",
+                            "required": [
+                              "type"
+                            ],
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "code_coverage"
+                                ]
+                              },
+                              "parameters": {
+                                "type": "object",
+                                "properties": {
+                                  "max_coverage_drop": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "description": "The maximum percentage points that line coverage may drop relative to the default branch. Pull requests that reduce line coverage by more than this amount will be blocked.",
+                                    "minimum": 0.0,
+                                    "maximum": 100.0
+                                  },
+                                  "minimum_coverage": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "description": "The absolute minimum line coverage percentage required. Pull requests with line coverage below this threshold will be blocked.",
+                                    "minimum": 0.0,
+                                    "maximum": 100.0
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "title": "repository ruleset data for rule",
+                            "description": "User-defined metadata to store domain-specific information limited to 8 keys with scalar values.",
+                            "properties": {
+                              "ruleset_source_type": {
+                                "type": "string",
+                                "description": "The type of source for the ruleset that includes this rule.",
+                                "enum": [
+                                  "Repository",
+                                  "Organization"
+                                ]
+                              },
+                              "ruleset_source": {
+                                "type": "string",
+                                "description": "The name of the source of the ruleset that includes this rule."
+                              },
+                              "ruleset_id": {
+                                "type": "integer",
+                                "description": "The ID of the ruleset that includes this rule."
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "allOf": [
+                          {
                             "title": "copilot_code_review",
                             "description": "Request Copilot code review for new pull requests automatically if the author has access to Copilot code review and their premium requests quota has not reached the limit.",
                             "type": "object",
@@ -708865,7 +708986,7 @@
                             },
                             {
                               "title": "code_coverage",
-                              "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                              "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                               "type": "object",
                               "required": [
                                 "type"
@@ -710143,7 +710264,7 @@
                         },
                         {
                           "title": "code_coverage",
-                          "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                          "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                           "type": "object",
                           "required": [
                             "type"
@@ -711629,7 +711750,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -713869,7 +713990,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -715162,7 +715283,7 @@
                         },
                         {
                           "title": "code_coverage",
-                          "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                          "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                           "type": "object",
                           "required": [
                             "type"
@@ -716644,7 +716765,7 @@
                           },
                           {
                             "title": "code_coverage",
-                            "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                            "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                             "type": "object",
                             "required": [
                               "type"
@@ -1617970,7 +1618091,7 @@
                             },
                             {
                               "title": "code_coverage",
-                              "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                              "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                               "type": "object",
                               "required": [
                                 "type"
@@ -1621065,7 +1621186,7 @@
                             },
                             {
                               "title": "code_coverage",
-                              "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                              "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                               "type": "object",
                               "required": [
                                 "type"
@@ -1624160,7 +1624281,7 @@
                             },
                             {
                               "title": "code_coverage",
-                              "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                              "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                               "type": "object",
                               "required": [
                                 "type"
@@ -1625362,7 +1625483,7 @@
                                 },
                                 {
                                   "title": "code_coverage",
-                                  "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                                  "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                                   "type": "object",
                                   "required": [
                                     "type"
@@ -1626392,7 +1626513,7 @@
                                 },
                                 {
                                   "title": "code_coverage",
-                                  "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                                  "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                                   "type": "object",
                                   "required": [
                                     "type"
@@ -1627425,7 +1627546,7 @@
                                     },
                                     {
                                       "title": "code_coverage",
-                                      "description": "Enforce minimum line coverage thresholds on pull requests. When configured, uploaded coverage data must meet the specified criteria before changes can be merged.",
+                                      "description": "Enforce minimum line coverage thresholds on pull requests. This rule evaluates uploaded coverage data but does not wait for coverage uploads. To ensure coverage is evaluated before merging, make each status check associated with a coverage upload a required status check.",
                                       "type": "object",
                                       "required": [
                                         "type"
