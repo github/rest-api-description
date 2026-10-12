@@ -70648,6 +70648,77 @@ x-webhooks:
         - repository
         - organization
         - app
+  dependabot-alert-withdrawn:
+    post:
+      summary: |-
+        This event occurs when there is activity relating to Dependabot alerts.
+
+        For more information about Dependabot alerts, see "[About Dependabot alerts](https://docs.github.com/code-security/dependabot/dependabot-alerts/about-dependabot-alerts)." For information about the API to manage Dependabot alerts, see "[Dependabot alerts](https://docs.github.com/rest/dependabot/alerts)" in the REST API documentation.
+
+        To subscribe to this event, a GitHub App must have at least read-level access for the "Dependabot alerts" repository permission.
+      description: |
+        A Dependabot alert was withdrawn because the advisory or the vulnerable version
+        range that produced it is no longer valid. The alert contains identifiers
+        captured before deletion for matching external records, rather than the full
+        alert payload used by other actions. Its alert URLs identify the deleted alert
+        and may no longer resolve.
+      operationId: dependabot-alert/withdrawn
+      externalDocs:
+        url: https://docs.github.com/webhooks/webhook-events-and-payloads#dependabot_alert
+      parameters:
+      - name: User-Agent
+        in: header
+        example: GitHub-Hookshot/123abc
+        schema:
+          type: string
+      - name: X-Github-Hook-Id
+        in: header
+        example: 12312312
+        schema:
+          type: string
+      - name: X-Github-Event
+        in: header
+        example: dependabot_alert
+        schema:
+          type: string
+      - name: X-Github-Hook-Installation-Target-Id
+        in: header
+        example: 123123
+        schema:
+          type: string
+      - name: X-Github-Hook-Installation-Target-Type
+        in: header
+        example: repository
+        schema:
+          type: string
+      - name: X-GitHub-Delivery
+        in: header
+        example: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        schema:
+          type: string
+      - name: X-Hub-Signature-256
+        in: header
+        example: sha256=6dcb09b5b57875f334f61aebed695e2e4193db5e
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/webhook-dependabot-alert-withdrawn"
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received
+            successfully
+      x-github:
+        githubCloudOnly: false
+        category: webhooks
+        subcategory: dependabot_alert
+        supported-webhook-types:
+        - repository
+        - organization
+        - app
   deploy-key-created:
     post:
       summary: |-
@@ -119808,6 +119879,111 @@ components:
       description: The [`git ref`](https://docs.github.com/rest/git/refs#get-a-reference)
         resource.
       type: string
+    dependabot-alert-withdrawn-webhook:
+      type: object
+      description: |
+        Identifiers for a withdrawn Dependabot alert, captured before deletion so that
+        consumers can reconcile external records. This is not a full alert representation.
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier of the withdrawn alert.
+          readOnly: true
+        node_id:
+          type: string
+          description: The GraphQL node ID of the withdrawn alert.
+          readOnly: true
+        number:
+          "$ref": "#/components/schemas/alert-number"
+        state:
+          type: string
+          description: The state of the Dependabot alert.
+          readOnly: true
+          enum:
+          - withdrawn
+        dependency:
+          type: object
+          description: Details for the vulnerable dependency.
+          readOnly: true
+          properties:
+            package:
+              "$ref": "#/components/schemas/dependabot-alert-package"
+            manifest_path:
+              type: string
+              description: The full path to the dependency manifest file, relative
+                to the root of the repository.
+              readOnly: true
+              nullable: true
+            scope:
+              type: string
+              description: The execution scope of the vulnerable dependency.
+              readOnly: true
+              nullable: true
+              enum:
+              - development
+              - runtime
+            relationship:
+              type: string
+              description: |
+                The vulnerable dependency's relationship to your project.
+
+                > [!NOTE]
+                > We are rolling out support for dependency relationship across ecosystems. This value will be "unknown" for all dependencies in unsupported ecosystems.
+              readOnly: true
+              nullable: true
+              enum:
+              - unknown
+              - direct
+              - transitive
+              - inconclusive
+          required:
+          - package
+          - manifest_path
+          - scope
+          additionalProperties: false
+        security_advisory:
+          type: object
+          description: Identifiers of the advisory that produced the withdrawn alert.
+          readOnly: true
+          properties:
+            ghsa_id:
+              type: string
+              description: The unique GitHub identifier assigned to the advisory.
+              readOnly: true
+            cve_id:
+              type: string
+              description: The CVE identifier assigned to the advisory, if any.
+              readOnly: true
+              nullable: true
+          required:
+          - ghsa_id
+          - cve_id
+          additionalProperties: false
+        url:
+          "$ref": "#/components/schemas/alert-url"
+        html_url:
+          "$ref": "#/components/schemas/alert-html-url"
+        created_at:
+          "$ref": "#/components/schemas/alert-created-at"
+        withdrawn_at:
+          type: string
+          format: date-time
+          description: 'The time that the alert was withdrawn in ISO 8601 format:
+            `YYYY-MM-DDTHH:MM:SSZ`. This is not the advisory''s withdrawal time.'
+          readOnly: true
+      required:
+      - id
+      - node_id
+      - number
+      - state
+      - dependency
+      - security_advisory
+      - url
+      - html_url
+      - created_at
+      - withdrawn_at
+      additionalProperties: false
     webhooks_deploy_key:
       description: The [`deploy key`](https://docs.github.com/rest/deploy-keys/deploy-keys#get-a-deploy-key)
         resource.
@@ -133536,6 +133712,31 @@ components:
           - reopened
         alert:
           "$ref": "#/components/schemas/dependabot-alert"
+        installation:
+          "$ref": "#/components/schemas/simple-installation"
+        organization:
+          "$ref": "#/components/schemas/organization-simple-webhooks"
+        enterprise:
+          "$ref": "#/components/schemas/enterprise-webhooks"
+        repository:
+          "$ref": "#/components/schemas/repository-webhooks"
+        sender:
+          "$ref": "#/components/schemas/simple-user"
+      required:
+      - action
+      - alert
+      - repository
+      - sender
+    webhook-dependabot-alert-withdrawn:
+      title: Dependabot alert withdrawn event
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - withdrawn
+        alert:
+          "$ref": "#/components/schemas/dependabot-alert-withdrawn-webhook"
         installation:
           "$ref": "#/components/schemas/simple-installation"
         organization:
