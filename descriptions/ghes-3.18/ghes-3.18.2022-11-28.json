@@ -6652,7 +6652,7 @@
     "/enterprises/{enterprise}/actions/cache/usage": {
       "get": {
         "summary": "Get GitHub Actions cache usage for an enterprise",
-        "description": "Gets the total GitHub Actions cache usage for an enterprise.\nThe data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.\n\nOAuth tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "description": "Gets the total GitHub Actions cache usage for an enterprise.\nThe data fetched using this API is refreshed approximately every 5 minutes, so values returned from this endpoint may take at least 5 minutes to get updated.\n\nOAuth tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.\n\n> [!NOTE]\n> The \"Enterprise administration\" fine-grained permission is not available to callers. To use this API, you must use an OAuth app token or a personal access token (classic).",
         "operationId": "actions/get-actions-cache-usage-for-enterprise",
         "tags": [
           "actions"
@@ -6699,7 +6699,7 @@
     "/enterprises/{enterprise}/actions/cache/usage-policy": {
       "get": {
         "summary": "Get GitHub Actions cache usage policy for an enterprise",
-        "description": "Gets the GitHub Actions cache usage policy for an enterprise.\n\nOAuth tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "description": "Gets the GitHub Actions cache usage policy for an enterprise.\n\nOAuth tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.\n\n> [!NOTE]\n> The \"Enterprise administration\" fine-grained permission is not available to callers. To use this API, you must use an OAuth app token or a personal access token (classic).",
         "tags": [
           "actions"
         ],
@@ -6744,7 +6744,7 @@
       },
       "patch": {
         "summary": "Set GitHub Actions cache usage policy for an enterprise",
-        "description": "Sets the GitHub Actions cache usage policy for an enterprise.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "description": "Sets the GitHub Actions cache usage policy for an enterprise.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.\n\n> [!NOTE]\n> The \"Enterprise administration\" fine-grained permission is not available to callers. To use this API, you must use an OAuth app token or a personal access token (classic).",
         "tags": [
           "actions"
         ],
@@ -10808,7 +10808,7 @@
     "/enterprises/{enterprise}/settings/billing/advanced-security": {
       "get": {
         "summary": "Get GitHub Advanced Security active committers for an enterprise",
-        "description": "Gets the GitHub Advanced Security active committers for an enterprise per repository. The authenticated user must be an enterprise admin or billing manager.\n\nEach distinct user login across all repositories is counted as a single Advanced Security seat, so the `total_advanced_security_committers` is not the sum of active_users for each repository.\n\nThe total number of repositories with committer information is tracked by the `total_count` field.",
+        "description": "Gets the GitHub Advanced Security active committers for an enterprise per repository. The authenticated user must be an enterprise admin or billing manager.\n\nEach distinct user login across all repositories is counted as a single Advanced Security seat, so the `total_advanced_security_committers` is not the sum of active_users for each repository.\n\nThe total number of repositories with committer information is tracked by the `total_count` field.\n\n> [!NOTE]\n> The \"Enterprise administration\" fine-grained permission is not available to callers. To use this API, you must use an OAuth app token or a personal access token (classic).",
         "tags": [
           "billing"
         ],
@@ -19758,8 +19758,34 @@
           "202": {
             "$ref": "#/components/responses/accepted"
           },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
           "403": {
             "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "409": {
+            "description": "Conflict because security configuration work is already in progress for the\norganization, security configuration changes are blocked for the organization,\nor another organization in the same enterprise is applying security configurations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed because the body does not match the request schema, `scope`\nis `selected` but `selected_repository_ids` is missing or empty, or a non-empty\n`selected_repository_ids` array is provided for another scope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/validation-error-simple"
+                }
+              }
+            }
           }
         },
         "x-github": {
