@@ -96171,6 +96171,155 @@
         }
       }
     },
+    "/repos/{owner}/{repo}/license-compliance/package-checks": {
+      "post": {
+        "summary": "Check license compliance for packages",
+        "description": "Checks whether packages identified by the supplied package URLs (PURLs) are allowed by the repository's license compliance policy.\n\nFor requests made on behalf of a user, that user must have write access to the repository or the \"View repository license policy\" permission.\nOAuth apps and classic personal access tokens require the `repo` scope.",
+        "tags": [
+          "dependency-graph"
+        ],
+        "operationId": "dependency-graph/check-license-compliance-for-packages",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/dependency-graph/license-compliance#check-license-compliance-for-packages"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "purls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "description": "Package URLs to check against the license compliance policy. Duplicate package URLs are checked once.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "purls"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "purls": [
+                      "pkg:npm/lodash@4.17.21"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Package license compliance results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Package license compliance results",
+                  "description": "License compliance results keyed by the original submitted package URLs.",
+                  "properties": {
+                    "purls": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "description": "The package's license compliance result. Returns `unknown` for malformed package URLs, unsupported ecosystems, or package URLs that cannot be used for license lookup.",
+                            "enum": [
+                              "allowed",
+                              "denied",
+                              "unknown"
+                            ]
+                          },
+                          "license": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The resolved SPDX license expression, or null if unresolved. A package explicitly allowed by policy can return `allowed` with a null license."
+                          },
+                          "reason": {
+                            "type": "string",
+                            "description": "The reason for the compliance result. Returns `unknown` if no specific reason is available.",
+                            "enum": [
+                              "allowed_license",
+                              "allowed_package",
+                              "denied_license",
+                              "unsupported_package_ecosystem",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "status",
+                          "license",
+                          "reason"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "purls"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "purls": {
+                        "pkg:npm/lodash@4.17.21": {
+                          "status": "allowed",
+                          "license": "MIT",
+                          "reason": "allowed_license"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "description": "License compliance policy not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/basic-error"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "dependency-graph",
+          "subcategory": "license-compliance"
+        }
+      }
+    },
     "/repos/{owner}/{repo}/merge-upstream": {
       "post": {
         "summary": "Sync a fork branch with the upstream repository",
