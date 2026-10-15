@@ -35326,6 +35326,7 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/org"
       - "$ref": "#/components/parameters/rule-suite-id"
+      - "$ref": "#/components/parameters/include-metadata"
       responses:
         '200':
           description: Response
@@ -63460,6 +63461,7 @@ paths:
       - "$ref": "#/components/parameters/owner"
       - "$ref": "#/components/parameters/repo"
       - "$ref": "#/components/parameters/rule-suite-id"
+      - "$ref": "#/components/parameters/include-metadata"
       responses:
         '200':
           description: Response
@@ -110944,6 +110946,18 @@ components:
               rule_type:
                 type: string
                 description: The type of rule.
+              metadata:
+                type: object
+                nullable: true
+                oneOf:
+                - "$ref": "#/components/schemas/rule-suite-pull-request"
+                - "$ref": "#/components/schemas/rule-suite-required-status-checks"
+                discriminator:
+                  propertyName: rule_type
+                  mapping:
+                    pull_request: "#/components/schemas/rule-suite-pull-request"
+                    required_status_checks: "#/components/schemas/rule-suite-required-status-checks"
+                description: Additional metadata about the rule evaluation.
               details:
                 type: string
                 nullable: true
@@ -269179,6 +269193,16 @@ components:
       required: true
       schema:
         type: integer
+    include-metadata:
+      name: include_metadata
+      description: |-
+        When set to `true`, the response will include additional metadata for pull request and required status check rule evaluation.
+        Results are capped at 50 entries.
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
     secret-scanning-alert-state:
       name: state
       in: query
