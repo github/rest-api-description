@@ -65872,6 +65872,584 @@
         }
       }
     },
+    "/enterprises/{enterprise}/copilot/apps/model-policies": {
+      "get": {
+        "summary": "Get model policies for enterprise apps",
+        "description": "Use this endpoint to retrieve Copilot model policies for enterprise apps.\nThe response shows which model settings can be changed and which are\ncontrolled by enterprise policy.\n\nFor models whose settings can be changed, the response shows the configured\nsetting or `optional` if no setting has been configured. For models\ncontrolled by enterprise policy, it shows the enterprise setting or the\napplicable default. These settings do not necessarily determine whether\nan individual user can access a model.\n\nEnterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/get-enterprise-apps-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-enterprise-apps"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the apps layer's configured value, or `optional` if the apps layer has not configured this model.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "optional"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the apps layer can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy and available apps policy controls allow the apps layer's policy to be updated."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "optional",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "enterprise_default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_default",
+                          "editable": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      },
+      "patch": {
+        "summary": "Update model policies for enterprise apps",
+        "description": "Use this endpoint to set Copilot model policies for enterprise apps. Set a\nmodel to `enabled` to configure an apps policy, or to `optional` to remove\nthe stored apps policy for that model.\nLocked models cannot be updated.\n\nReturns the apps policy state representation, including enterprise policy and editability.\nThese states are not a final access decision for a user.\n\nEnterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/update-enterprise-apps-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-enterprise-apps"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "models"
+                ],
+                "properties": {
+                  "models": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "model_name",
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "model_name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "policy_state": {
+                          "type": "string",
+                          "description": "Use `optional` to remove the apps policy.",
+                          "enum": [
+                            "enabled",
+                            "disabled",
+                            "optional"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "enabled"
+                      }
+                    ]
+                  }
+                },
+                "clear_apps_policy": {
+                  "value": {
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "optional"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the apps layer's configured value, or `optional` if the apps layer has not configured this model.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "optional"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the apps layer can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy and available apps policy controls allow the apps layer's policy to be updated."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "cleared_apps_policy": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "optional",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      }
+    },
     "/enterprises/{enterprise}/copilot/billing/seats": {
       "get": {
         "summary": "List all Copilot seat assignments for an enterprise",
@@ -69870,6 +70448,575 @@
           "enabledForGitHubApps": true,
           "category": "copilot",
           "subcategory": "copilot-usage-metrics"
+        }
+      }
+    },
+    "/enterprises/{enterprise}/copilot/model-policies": {
+      "get": {
+        "summary": "Get model policies for an enterprise",
+        "description": "Use this endpoint to retrieve Copilot model policies for an enterprise.\nFor enterprises that manage Copilot through organizations, delegated models use the\npolicy state of `delegate_to_organizations`.    \n\nEnterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/get-enterprise-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "default_availability": {
+                      "type": "object",
+                      "required": [
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "policy_state": {
+                          "type": "string",
+                          "description": "The enterprise default availability for models that have not been configured. `delegate_to_organizations` is only returned for enterprises that manage Copilot through organizations.",
+                          "enum": [
+                            "enabled",
+                            "disabled",
+                            "delegate_to_organizations"
+                          ]
+                        }
+                      }
+                    },
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "The enterprise policy for the model. `delegate_to_organizations` is returned for enterprises that manage Copilot through organizations.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_organizations",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "default_availability": {
+                        "policy_state": "enabled"
+                      },
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      },
+      "patch": {
+        "summary": "Update model policies for an enterprise",
+        "description": "Use this endpoint to update Copilot model policies for an enterprise.\nFor enterprises that manage Copilot through organizations, use\n`delegate_to_organizations` to delegate a model or default availability.\nEnterprises without organizations cannot use `delegate_to_organizations`.\n\nEnterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.\n\n OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/update-enterprise-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                  "default_availability": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "policy_state"
+                    ],
+                    "properties": {
+                      "policy_state": {
+                        "type": "string",
+                        "description": "`delegate_to_organizations` is only accepted for enterprises that manage Copilot through organizations.",
+                        "enum": [
+                          "enabled",
+                          "disabled",
+                          "delegate_to_organizations"
+                        ]
+                      }
+                    }
+                  },
+                  "models": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "model_name",
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "model_name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "policy_state": {
+                          "type": "string",
+                          "description": "`delegate_to_organizations` is only accepted for enterprises that manage Copilot through organizations.",
+                          "enum": [
+                            "enabled",
+                            "disabled",
+                            "delegate_to_teams_and_apps",
+                            "delegate_to_organizations"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "default_availability": {
+                      "policy_state": "enabled"
+                    },
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "enabled"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "default_availability": {
+                      "type": "object",
+                      "required": [
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "policy_state": {
+                          "type": "string",
+                          "description": "The enterprise default availability for models that have not been configured. `delegate_to_organizations` is only returned for enterprises that manage Copilot through organizations.",
+                          "enum": [
+                            "enabled",
+                            "disabled",
+                            "delegate_to_organizations"
+                          ]
+                        }
+                      }
+                    },
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "The enterprise policy for the model. `delegate_to_organizations` is returned for enterprises that manage Copilot through organizations.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_organizations",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "default_availability": {
+                        "policy_state": "enabled"
+                      },
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
         }
       }
     },
@@ -110732,6 +111879,602 @@
           "enabledForGitHubApps": false,
           "category": "enterprise-teams",
           "subcategory": "enterprise-team-organizations"
+        }
+      }
+    },
+    "/enterprises/{enterprise}/teams/{team_id}/copilot/model-policies": {
+      "get": {
+        "summary": "Get model policies for an enterprise team",
+        "description": "Use this endpoint to retrieve Copilot model policy states for an enterprise\nteam, along with the corresponding enterprise-level policies. The response\nshows which model policies the team can update based on enterprise policy\nand the available team policy controls.\n\nFor models the team can update, the response shows the team’s configured\nvalue or `optional` if the team has not set one. For locked models, it shows\nthe enterprise’s explicit value or the applicable default availability for\neligible models. These states are not a final access decision for a user.\n\nEnterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/get-enterprise-team-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-an-enterprise-team"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_id",
+            "description": "The unique identifier of the team.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the team's configured value, or `optional` if the team has not configured this model.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "optional"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the team can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy and available team policy controls allow the team's policy to be updated."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "optional",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "enterprise_default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_default",
+                          "editable": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      },
+      "patch": {
+        "summary": "Update model policies for an enterprise team",
+        "description": "Use this endpoint to update Copilot model policies for an enterprise team.\nOnly editable model policies can be updated.\n\nSet a model to `enabled` to configure a team policy, or to `optional` to clear\nthe team’s policy for that model. Locked models cannot be updated.\n\nThe response contains the same policy state information as the corresponding\nGET endpoint, including enterprise policies and whether each model policy\ncan be updated. These states do not necessarily determine whether an\nindividual user can access a model.\n\nEnterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/update-enterprise-team-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-an-enterprise-team"
+        },
+        "parameters": [
+          {
+            "name": "enterprise",
+            "description": "The slug version of the enterprise name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_id",
+            "description": "The unique identifier of the team.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "models"
+                ],
+                "properties": {
+                  "models": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "model_name",
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "model_name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "policy_state": {
+                          "type": "string",
+                          "description": "Use `optional` to remove the team's policy.",
+                          "enum": [
+                            "enabled",
+                            "disabled",
+                            "optional"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "enabled"
+                      }
+                    ]
+                  }
+                },
+                "clear_team_policy": {
+                  "value": {
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "optional"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the team's configured value, or `optional` if the team has not configured this model.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "optional"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the team can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy and available team policy controls allow the team's policy to be updated."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "cleared_team_policy": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "optional",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
         }
       }
     },
@@ -234995,6 +236738,563 @@
           "enabledForGitHubApps": true,
           "category": "copilot",
           "subcategory": "copilot-usage-metrics"
+        }
+      }
+    },
+    "/orgs/{org}/copilot/model-policies": {
+      "get": {
+        "summary": "Get model policies for an organization",
+        "description": "Use this endpoint to retrieve the effective Copilot model policy for every\nmodel available to an organization, whether explicitly configured or\ndetermined by default availability.\n\nFor a model without an effective explicit policy that is eligible for\ndefault availability, the enterprise default is used when it is configured.\nOtherwise, the organization's default is used. A model that is not eligible\nfor default availability and has no effective explicit policy is disabled.\nFor more information, see\n[About default availability of Copilot models](https://docs.github.com/enterprise-cloud@latest/copilot/concepts/enterprise/default-availability#default-availability-of-models).\n\nThe organization must either be independent or belong to an enterprise that is not\nusing enterprise teams for model policy.\n\nOrganization owners can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` or `repo` scope to use this endpoint.\nOrganization SAML authorization and OAuth app access restrictions also apply.",
+        "tags": [
+          "copilot"
+        ],
+        "operationId": "copilot/get-organization-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-model-policy-management#get-model-policies-for-an-organization"
+        },
+        "parameters": [
+          {
+            "name": "org",
+            "description": "The organization name. The name is not case sensitive.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models",
+                    "default_availability"
+                  ],
+                  "properties": {
+                    "default_availability": {
+                      "type": "object",
+                      "description": "The effective default availability for models reported as `delegate_to_default`.",
+                      "required": [
+                        "policy_state",
+                        "editable"
+                      ],
+                      "properties": {
+                        "policy_state": {
+                          "type": "string",
+                          "description": "The effective default availability. The enterprise default is used when it\nis configured. Otherwise, the organization's default is used.",
+                          "enum": [
+                            "enabled",
+                            "disabled"
+                          ]
+                        },
+                        "editable": {
+                          "type": "boolean",
+                          "description": "Whether the organization can update its default availability."
+                        }
+                      }
+                    },
+                    "models": {
+                      "type": "array",
+                      "description": "The effective policies for all models available to the organization.",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string",
+                            "description": "The public identifier of the model."
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "description": "The human-readable name of the model."
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "The policy state after applying inheritance. `enabled` and `disabled` are\nexplicit policies configured for the organization or inherited from its\nenterprise. `delegate_to_default` means the model has no explicit policy and\nfollows `default_availability`. `unconfigured` means the model has no explicit\npolicy and is not eligible for default availability, so it is disabled.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "default_availability": {
+                        "policy_state": "disabled",
+                        "editable": true
+                      },
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled"
+                        },
+                        {
+                          "model_name": "gpt-5",
+                          "display_name": "GPT-5",
+                          "policy_state": "disabled"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "copilot",
+          "subcategory": "copilot-model-policy-management"
+        }
+      },
+      "patch": {
+        "summary": "Update model policies for an organization",
+        "description": "Use this endpoint to set explicit Copilot model policies and default\navailability for an organization. All policies in the request are updated atomically, \nmeaning if any change in the request cannot be applied, none of the changes are saved.\n\nUse the `model_name` values returned by the \"Get model policies for an organization\"\nendpoint. Models with an inherited enterprise policy are locked and cannot be updated.\nDefault availability cannot be updated when its `editable` value is `false`.\n\nThe response contains the effective policies for all models available to the\norganization, not only the policies updated by the request.\n\nThe organization must either be independent or belong to an enterprise that is not\nusing enterprise teams for model policy.\n\nOrganization owners can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` or `repo` scope to use this endpoint.\nOrganization SAML authorization and OAuth app access restrictions apply.",
+        "tags": [
+          "copilot"
+        ],
+        "operationId": "copilot/update-organization-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-model-policy-management#update-model-policies-for-an-organization"
+        },
+        "parameters": [
+          {
+            "name": "org",
+            "description": "The organization name. The name is not case sensitive.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": false,
+                "properties": {
+                  "default_availability": {
+                    "type": "object",
+                    "description": "The organization's default availability for eligible models without an explicit\npolicy. It cannot be updated when it is inherited from the enterprise.",
+                    "additionalProperties": false,
+                    "required": [
+                      "policy_state"
+                    ],
+                    "properties": {
+                      "policy_state": {
+                        "type": "string",
+                        "enum": [
+                          "enabled",
+                          "disabled"
+                        ]
+                      }
+                    }
+                  },
+                  "models": {
+                    "type": "array",
+                    "description": "The model policies to update. Each `model_name` must be unique.",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "model_name",
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "model_name": {
+                          "type": "string",
+                          "description": "The public identifier of a model returned by the get endpoint.",
+                          "minLength": 1
+                        },
+                        "policy_state": {
+                          "type": "string",
+                          "description": "The explicit policy state to set for the organization.",
+                          "enum": [
+                            "enabled",
+                            "disabled"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "default_availability": {
+                      "policy_state": "disabled"
+                    },
+                    "models": [
+                      {
+                        "model_name": "gpt-5.6-sol",
+                        "policy_state": "enabled"
+                      },
+                      {
+                        "model_name": "gpt-5",
+                        "policy_state": "disabled"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models",
+                    "default_availability"
+                  ],
+                  "properties": {
+                    "default_availability": {
+                      "type": "object",
+                      "description": "The effective default availability for models reported as `delegate_to_default`.",
+                      "required": [
+                        "policy_state",
+                        "editable"
+                      ],
+                      "properties": {
+                        "policy_state": {
+                          "type": "string",
+                          "description": "The effective default availability. The enterprise default is used when it\nis configured. Otherwise, the organization's default is used.",
+                          "enum": [
+                            "enabled",
+                            "disabled"
+                          ]
+                        },
+                        "editable": {
+                          "type": "boolean",
+                          "description": "Whether the organization can update its default availability."
+                        }
+                      }
+                    },
+                    "models": {
+                      "type": "array",
+                      "description": "The effective policies for all models available to the organization.",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string",
+                            "description": "The public identifier of the model."
+                          },
+                          "display_name": {
+                            "type": "string",
+                            "description": "The human-readable name of the model."
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "The policy state after applying inheritance. `enabled` and `disabled` are\nexplicit policies configured for the organization or inherited from its\nenterprise. `delegate_to_default` means the model has no explicit policy and\nfollows `default_availability`. `unconfigured` means the model has no explicit\npolicy and is not eligible for default availability, so it is disabled.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "default_availability": {
+                        "policy_state": "disabled",
+                        "editable": true
+                      },
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled"
+                        },
+                        {
+                          "model_name": "gpt-5",
+                          "display_name": "GPT-5",
+                          "policy_state": "disabled"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error",
+                  "description": "Validation Error",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "resource": {
+                            "type": "string"
+                          },
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "index": {
+                            "type": "integer"
+                          },
+                          "value": {
+                            "oneOf": [
+                              {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "copilot",
+          "subcategory": "copilot-model-policy-management"
         }
       }
     },
