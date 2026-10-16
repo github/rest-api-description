@@ -17367,6 +17367,258 @@ paths:
         previews: []
         category: enterprise-admin
         subcategory: licensing
+  "/enterprises/{enterprise}/copilot/apps/model-policies":
+    get:
+      summary: Get model policies for enterprise apps
+      description: |-
+        Use this endpoint to retrieve Copilot model policies for enterprise apps.
+        The response shows which model settings can be changed and which are
+        controlled by enterprise policy.
+
+        For models whose settings can be changed, the response shows the configured
+        setting or `optional` if no setting has been configured. For models
+        controlled by enterprise policy, it shows the enterprise setting or the
+        applicable default. These settings do not necessarily determine whether
+        an individual user can access a model.
+
+        Enterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-apps-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-enterprise-apps
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the apps layer's configured value, or `optional` if the apps layer has not configured this model.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                          - optional
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the apps layer
+                            can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy and available
+                            apps policy controls allow the apps layer's policy to
+                            be updated.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: optional
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                enterprise_default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_default
+                      editable: false
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+    patch:
+      summary: Update model policies for enterprise apps
+      description: |-
+        Use this endpoint to set Copilot model policies for enterprise apps. Set a
+        model to `enabled` to configure an apps policy, or to `optional` to remove
+        the stored apps policy for that model.
+        Locked models cannot be updated.
+
+        Returns the apps policy state representation, including enterprise policy and editability.
+        These states are not a final access decision for a user.
+
+        Enterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/update-enterprise-apps-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-enterprise-apps
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - models
+              properties:
+                models:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        description: Use `optional` to remove the apps policy.
+                        enum:
+                        - enabled
+                        - disabled
+                        - optional
+            examples:
+              default:
+                value:
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: enabled
+              clear_apps_policy:
+                value:
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: optional
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the apps layer's configured value, or `optional` if the apps layer has not configured this model.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                          - optional
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the apps layer
+                            can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy and available
+                            apps policy controls allow the apps layer's policy to
+                            be updated.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                cleared_apps_policy:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: optional
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
   "/enterprises/{enterprise}/copilot/billing/seats":
     get:
       summary: List all Copilot seat assignments for an enterprise
@@ -18536,6 +18788,240 @@ paths:
         enabledForGitHubApps: true
         category: copilot
         subcategory: copilot-usage-metrics
+  "/enterprises/{enterprise}/copilot/model-policies":
+    get:
+      summary: Get model policies for an enterprise
+      description: "Use this endpoint to retrieve Copilot model policies for an enterprise.\nFor
+        enterprises that manage Copilot through organizations, delegated models use
+        the\npolicy state of `delegate_to_organizations`.    \n\nEnterprise owners
+        and users with the `read_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth
+        app tokens and personal access tokens (classic) need the `read:enterprise`
+        scope to use this endpoint."
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  default_availability:
+                    type: object
+                    required:
+                    - policy_state
+                    properties:
+                      policy_state:
+                        type: string
+                        description: The enterprise default availability for models
+                          that have not been configured. `delegate_to_organizations`
+                          is only returned for enterprises that manage Copilot through
+                          organizations.
+                        enum:
+                        - enabled
+                        - disabled
+                        - delegate_to_organizations
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: The enterprise policy for the model. `delegate_to_organizations`
+                            is returned for enterprises that manage Copilot through
+                            organizations.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+              examples:
+                default:
+                  value:
+                    default_availability:
+                      policy_state: enabled
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+    patch:
+      summary: Update model policies for an enterprise
+      description: |-
+        Use this endpoint to update Copilot model policies for an enterprise.
+        For enterprises that manage Copilot through organizations, use
+        `delegate_to_organizations` to delegate a model or default availability.
+        Enterprises without organizations cannot use `delegate_to_organizations`.
+
+        Enterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.
+
+         OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/update-enterprise-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                default_availability:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - policy_state
+                  properties:
+                    policy_state:
+                      type: string
+                      description: "`delegate_to_organizations` is only accepted for
+                        enterprises that manage Copilot through organizations."
+                      enum:
+                      - enabled
+                      - disabled
+                      - delegate_to_organizations
+                models:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        description: "`delegate_to_organizations` is only accepted
+                          for enterprises that manage Copilot through organizations."
+                        enum:
+                        - enabled
+                        - disabled
+                        - delegate_to_teams_and_apps
+                        - delegate_to_organizations
+            examples:
+              default:
+                value:
+                  default_availability:
+                    policy_state: enabled
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  default_availability:
+                    type: object
+                    required:
+                    - policy_state
+                    properties:
+                      policy_state:
+                        type: string
+                        description: The enterprise default availability for models
+                          that have not been configured. `delegate_to_organizations`
+                          is only returned for enterprises that manage Copilot through
+                          organizations.
+                        enum:
+                        - enabled
+                        - disabled
+                        - delegate_to_organizations
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: The enterprise policy for the model. `delegate_to_organizations`
+                            is returned for enterprises that manage Copilot through
+                            organizations.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+              examples:
+                default:
+                  value:
+                    default_availability:
+                      policy_state: enabled
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
   "/enterprises/{enterprise}/copilot/policies/coding_agent":
     put:
       summary: Set the coding agent policy for an enterprise
@@ -24597,6 +25083,261 @@ paths:
         enabledForGitHubApps: false
         category: enterprise-teams
         subcategory: enterprise-team-organizations
+  "/enterprises/{enterprise}/teams/{team_id}/copilot/model-policies":
+    get:
+      summary: Get model policies for an enterprise team
+      description: |-
+        Use this endpoint to retrieve Copilot model policy states for an enterprise
+        team, along with the corresponding enterprise-level policies. The response
+        shows which model policies the team can update based on enterprise policy
+        and the available team policy controls.
+
+        For models the team can update, the response shows the team’s configured
+        value or `optional` if the team has not set one. For locked models, it shows
+        the enterprise’s explicit value or the applicable default availability for
+        eligible models. These states are not a final access decision for a user.
+
+        Enterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-team-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-model-policies-for-an-enterprise-team
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/team-id"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the team's configured value, or `optional` if the team has not configured this model.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                          - optional
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the team can
+                            edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy and available
+                            team policy controls allow the team's policy to be updated.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: optional
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                enterprise_default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_default
+                      editable: false
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+    patch:
+      summary: Update model policies for an enterprise team
+      description: |-
+        Use this endpoint to update Copilot model policies for an enterprise team.
+        Only editable model policies can be updated.
+
+        Set a model to `enabled` to configure a team policy, or to `optional` to clear
+        the team’s policy for that model. Locked models cannot be updated.
+
+        The response contains the same policy state information as the corresponding
+        GET endpoint, including enterprise policies and whether each model policy
+        can be updated. These states do not necessarily determine whether an
+        individual user can access a model.
+
+        Enterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/update-enterprise-team-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-model-policies-for-an-enterprise-team
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - "$ref": "#/components/parameters/team-id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - models
+              properties:
+                models:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        description: Use `optional` to remove the team's policy.
+                        enum:
+                        - enabled
+                        - disabled
+                        - optional
+            examples:
+              default:
+                value:
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: enabled
+              clear_team_policy:
+                value:
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: optional
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the team's configured value, or `optional` if the team has not configured this model.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                          - optional
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the team can
+                            edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy and available
+                            team policy controls allow the team's policy to be updated.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                cleared_team_policy:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: optional
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
   "/enterprises/{enterprise}/teams/{team_slug}":
     get:
       summary: Get an enterprise team
@@ -38859,6 +39600,287 @@ paths:
         enabledForGitHubApps: true
         category: copilot
         subcategory: copilot-usage-metrics
+  "/orgs/{org}/copilot/model-policies":
+    get:
+      summary: Get model policies for an organization
+      description: |-
+        Use this endpoint to retrieve the effective Copilot model policy for every
+        model available to an organization, whether explicitly configured or
+        determined by default availability.
+
+        For a model without an effective explicit policy that is eligible for
+        default availability, the enterprise default is used when it is configured.
+        Otherwise, the organization's default is used. A model that is not eligible
+        for default availability and has no effective explicit policy is disabled.
+        For more information, see
+        [About default availability of Copilot models](https://docs.github.com/enterprise-cloud@latest/copilot/concepts/enterprise/default-availability#default-availability-of-models).
+
+        The organization must either be independent or belong to an enterprise that is not
+        using enterprise teams for model policy.
+
+        Organization owners can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:org` or `repo` scope to use this endpoint.
+        Organization SAML authorization and OAuth app access restrictions also apply.
+      tags:
+      - copilot
+      operationId: copilot/get-organization-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-model-policy-management#get-model-policies-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                - default_availability
+                properties:
+                  default_availability:
+                    type: object
+                    description: The effective default availability for models reported
+                      as `delegate_to_default`.
+                    required:
+                    - policy_state
+                    - editable
+                    properties:
+                      policy_state:
+                        type: string
+                        description: |-
+                          The effective default availability. The enterprise default is used when it
+                          is configured. Otherwise, the organization's default is used.
+                        enum:
+                        - enabled
+                        - disabled
+                      editable:
+                        type: boolean
+                        description: Whether the organization can update its default
+                          availability.
+                  models:
+                    type: array
+                    description: The effective policies for all models available to
+                      the organization.
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      properties:
+                        model_name:
+                          type: string
+                          description: The public identifier of the model.
+                        display_name:
+                          type: string
+                          description: The human-readable name of the model.
+                        policy_state:
+                          type: string
+                          description: |-
+                            The policy state after applying inheritance. `enabled` and `disabled` are
+                            explicit policies configured for the organization or inherited from its
+                            enterprise. `delegate_to_default` means the model has no explicit policy and
+                            follows `default_availability`. `unconfigured` means the model has no explicit
+                            policy and is not eligible for default availability, so it is disabled.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_default
+                          - unconfigured
+              examples:
+                default:
+                  value:
+                    default_availability:
+                      policy_state: disabled
+                      editable: true
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                    - model_name: gpt-5
+                      display_name: GPT-5
+                      policy_state: disabled
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: copilot
+        subcategory: copilot-model-policy-management
+    patch:
+      summary: Update model policies for an organization
+      description: "Use this endpoint to set explicit Copilot model policies and default\navailability
+        for an organization. All policies in the request are updated atomically, \nmeaning
+        if any change in the request cannot be applied, none of the changes are saved.\n\nUse
+        the `model_name` values returned by the \"Get model policies for an organization\"\nendpoint.
+        Models with an inherited enterprise policy are locked and cannot be updated.\nDefault
+        availability cannot be updated when its `editable` value is `false`.\n\nThe
+        response contains the effective policies for all models available to the\norganization,
+        not only the policies updated by the request.\n\nThe organization must either
+        be independent or belong to an enterprise that is not\nusing enterprise teams
+        for model policy.\n\nOrganization owners can use this endpoint.\n\nOAuth app
+        tokens and personal access tokens (classic) need the `admin:org` or `repo`
+        scope to use this endpoint.\nOrganization SAML authorization and OAuth app
+        access restrictions apply."
+      tags:
+      - copilot
+      operationId: copilot/update-organization-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-model-policy-management#update-model-policies-for-an-organization
+      parameters:
+      - "$ref": "#/components/parameters/org"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                default_availability:
+                  type: object
+                  description: |-
+                    The organization's default availability for eligible models without an explicit
+                    policy. It cannot be updated when it is inherited from the enterprise.
+                  additionalProperties: false
+                  required:
+                  - policy_state
+                  properties:
+                    policy_state:
+                      type: string
+                      enum:
+                      - enabled
+                      - disabled
+                models:
+                  type: array
+                  description: The model policies to update. Each `model_name` must
+                    be unique.
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        description: The public identifier of a model returned by
+                          the get endpoint.
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        description: The explicit policy state to set for the organization.
+                        enum:
+                        - enabled
+                        - disabled
+            examples:
+              default:
+                value:
+                  default_availability:
+                    policy_state: disabled
+                  models:
+                  - model_name: gpt-5.6-sol
+                    policy_state: enabled
+                  - model_name: gpt-5
+                    policy_state: disabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                - default_availability
+                properties:
+                  default_availability:
+                    type: object
+                    description: The effective default availability for models reported
+                      as `delegate_to_default`.
+                    required:
+                    - policy_state
+                    - editable
+                    properties:
+                      policy_state:
+                        type: string
+                        description: |-
+                          The effective default availability. The enterprise default is used when it
+                          is configured. Otherwise, the organization's default is used.
+                        enum:
+                        - enabled
+                        - disabled
+                      editable:
+                        type: boolean
+                        description: Whether the organization can update its default
+                          availability.
+                  models:
+                    type: array
+                    description: The effective policies for all models available to
+                      the organization.
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      properties:
+                        model_name:
+                          type: string
+                          description: The public identifier of the model.
+                        display_name:
+                          type: string
+                          description: The human-readable name of the model.
+                        policy_state:
+                          type: string
+                          description: |-
+                            The policy state after applying inheritance. `enabled` and `disabled` are
+                            explicit policies configured for the organization or inherited from its
+                            enterprise. `delegate_to_default` means the model has no explicit policy and
+                            follows `default_availability`. `unconfigured` means the model has no explicit
+                            policy and is not eligible for default availability, so it is disabled.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_default
+                          - unconfigured
+              examples:
+                default:
+                  value:
+                    default_availability:
+                      policy_state: disabled
+                      editable: true
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                    - model_name: gpt-5
+                      display_name: GPT-5
+                      policy_state: disabled
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: copilot
+        subcategory: copilot-model-policy-management
   "/orgs/{org}/credential-authorizations":
     get:
       summary: List SAML SSO authorizations for an organization
@@ -296922,6 +297944,13 @@ components:
       required: true
       schema:
         type: string
+    team-id:
+      name: team_id
+      description: The unique identifier of the team.
+      in: path
+      required: true
+      schema:
+        type: integer
     team-slug:
       name: team_slug
       description: The slug of the team name.
@@ -298241,13 +299270,6 @@ components:
         enum:
         - semantic
         - hybrid
-    team-id:
-      name: team_id
-      description: The unique identifier of the team.
-      in: path
-      required: true
-      schema:
-        type: integer
     repository-id-in-query:
       name: repository_id
       description: ID of the Repository to filter on
