@@ -1655,7 +1655,7 @@ paths:
                       message:
                   - id: 2
                     name: DevTools Hook Env
-                    image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                    image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
                     url: https://github.example.com/api/v3/admin/pre-receive-environments/2
                     html_url: https://github.example.com/admin/pre-receive-environments/2
                     default_environment: false
@@ -1691,7 +1691,7 @@ paths:
                   value:
                     id: 2
                     name: DevTools Hook Env
-                    image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                    image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
                     url: https://github.example.com/api/v3/admin/pre-receive-environments/2
                     html_url: https://github.example.com/admin/pre-receive-environments/2
                     default_environment: false
@@ -1722,7 +1722,7 @@ paths:
               default:
                 value:
                   name: DevTools Hook Env
-                  image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                  image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -1782,7 +1782,7 @@ paths:
                   value:
                     id: 2
                     name: DevTools Hook Env
-                    image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                    image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
                     url: https://github.example.com/api/v3/admin/pre-receive-environments/2
                     html_url: https://github.example.com/admin/pre-receive-environments/2
                     default_environment: false
@@ -1838,7 +1838,7 @@ paths:
               default:
                 value:
                   name: DevTools Hook Env
-                  image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                  image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: false
@@ -2117,7 +2117,7 @@ paths:
                     environment:
                       id: 2
                       name: DevTools Hook Env
-                      image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                      image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
                       url: https://github.example.com/api/v3/admin/pre-receive-environments/2
                       html_url: https://github.example.com/admin/pre-receive-environments/2
                       default_environment: false
@@ -2164,7 +2164,7 @@ paths:
                     environment:
                       id: 2
                       name: DevTools Hook Env
-                      image_url: https://my_file_server/path/to/devtools_env.tar.gz
+                      image_url: https://fileserver.example.com/path/to/devtools_env.tar.gz
                       url: https://github.example.com/api/v3/admin/pre-receive-environments/2
                       html_url: https://github.example.com/admin/pre-receive-environments/2
                       default_environment: false
@@ -6100,6 +6100,10 @@ paths:
                           examples:
                           - true
                         temp_clone_token:
+                          description: |-
+                            When present and non-empty, a temporary credential for read-only Git access to this repository.
+                            It expires five minutes after generation and cannot be used to push changes.
+                            Treat this value as sensitive and avoid recording it in logs.
                           type: string
                         allow_squash_merge:
                           description: Whether to allow squash merges for pull requests.
@@ -27432,6 +27436,7 @@ paths:
         '403': *41
         '304': *40
         '401': *39
+        '422': *25
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -31496,6 +31501,10 @@ paths:
                           examples:
                           - admin
                         temp_clone_token:
+                          description: |-
+                            When present and non-empty, a temporary credential for read-only Git access to this repository.
+                            It expires five minutes after generation and cannot be used to push changes.
+                            Treat this value as sensitive and avoid recording it in logs.
                           type: string
                         delete_branch_on_merge:
                           type: boolean
@@ -50107,6 +50116,10 @@ paths:
                     - type: 'null'
                     - *86
                   temp_clone_token:
+                    description: |-
+                      When present and non-empty, a temporary credential for read-only Git access to this repository.
+                      It expires five minutes after generation and cannot be used to push changes.
+                      Treat this value as sensitive and avoid recording it in logs.
                     type:
                     - string
                     - 'null'
@@ -55068,6 +55081,10 @@ paths:
                     examples:
                     - true
                   temp_clone_token:
+                    description: |-
+                      When present and non-empty, a temporary credential for read-only Git access to this repository.
+                      It expires five minutes after generation and cannot be used to push changes.
+                      Treat this value as sensitive and avoid recording it in logs.
                     type: string
                   allow_squash_merge:
                     description: Whether to allow squash merges for pull requests.
@@ -55805,6 +55822,8 @@ paths:
       summary: Get a repository
       description: |-
         The `parent` and `source` objects are present when the repository is a fork. `parent` is the repository this repository was forked from, `source` is the ultimate source for the network.
+
+        When present and non-empty, `temp_clone_token` is a temporary credential for read-only Git access to this repository. It expires five minutes after generation and cannot be used to push changes. Treat this value as sensitive and avoid recording it in logs.
 
         > [!NOTE]
         > - In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see "[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.22/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization)."
@@ -84014,10 +84033,10 @@ paths:
                   - not_planned
                 duplicate_issue_id:
                   type: integer
-                  description: The ID of the issue to mark as the canonical duplicate
-                    when `state_reason` is `duplicate`. The issue must exist and be
-                    accessible to the authenticated user. Ignored when `state_reason`
-                    is not `duplicate`.
+                  description: 'The ID of the issue that this issue duplicates, used
+                    when marking this issue as a duplicate with `status: Duplicate`
+                    or `state_reason: duplicate`. The issue must exist and be accessible
+                    to the authenticated user.'
                 milestone:
                   oneOf:
                   - type: string
@@ -100189,7 +100208,7 @@ paths:
                           login: jquery
                           id: 70142
                           node_id: MDQ6VXNlcjcwMTQy
-                          avatar_url: https://0.gravatar.com/avatar/6906f317a4733f4379b06c32229ef02f?d=https%3A%2F%2Fidenticons.github.com%2Ff426f04f2f9813718fb806b30e0093de.png
+                          avatar_url: https://avatars.githubusercontent.com/u/70142?v=4
                           gravatar_id: ''
                           url: https://api.github.com/users/jquery
                           html_url: https://github.com/jquery
@@ -101496,6 +101515,10 @@ paths:
                           - push
                         text_matches: *684
                         temp_clone_token:
+                          description: |-
+                            When present and non-empty, a temporary credential for read-only Git access to this repository.
+                            It expires five minutes after generation and cannot be used to push changes.
+                            Treat this value as sensitive and avoid recording it in logs.
                           type: string
                         allow_merge_commit:
                           type: boolean
@@ -110776,6 +110799,10 @@ webhooks:
                         allow_rebase_merge:
                           type: boolean
                         temp_clone_token:
+                          description: |-
+                            When present and non-empty, a temporary credential for read-only Git access to this repository.
+                            It expires five minutes after generation and cannot be used to push changes.
+                            Treat this value as sensitive and avoid recording it in logs.
                           type: string
                         allow_squash_merge:
                           type: boolean
@@ -110838,6 +110865,10 @@ webhooks:
                         network_count:
                           type: integer
                     temp_clone_token:
+                      description: |-
+                        When present and non-empty, a temporary credential for read-only Git access to this repository.
+                        It expires five minutes after generation and cannot be used to push changes.
+                        Treat this value as sensitive and avoid recording it in logs.
                       type: string
                     allow_squash_merge:
                       description: Whether to allow squash merges for pull requests.
@@ -139224,39 +139255,7 @@ webhooks:
                       format: int64
                     labels:
                       type: array
-                      items:
-                        title: Label
-                        type: object
-                        properties:
-                          color:
-                            description: '6-character hex code, without the leading
-                              #, identifying the color'
-                            type: string
-                          default:
-                            type: boolean
-                          description:
-                            type:
-                            - string
-                            - 'null'
-                          id:
-                            type: integer
-                          name:
-                            description: The name of the label.
-                            type: string
-                          node_id:
-                            type: string
-                          url:
-                            description: URL for the label
-                            type: string
-                            format: uri
-                        required:
-                        - id
-                        - node_id
-                        - url
-                        - name
-                        - color
-                        - default
-                        - description
+                      items: *758
                     labels_url:
                       type: string
                       format: uri-template
@@ -140255,39 +140254,7 @@ webhooks:
                         format: int64
                       labels:
                         type: array
-                        items:
-                          title: Label
-                          type: object
-                          properties:
-                            color:
-                              description: '6-character hex code, without the leading
-                                #, identifying the color'
-                              type: string
-                            default:
-                              type: boolean
-                            description:
-                              type:
-                              - string
-                              - 'null'
-                            id:
-                              type: integer
-                            name:
-                              description: The name of the label.
-                              type: string
-                            node_id:
-                              type: string
-                            url:
-                              description: URL for the label
-                              type: string
-                              format: uri
-                          required:
-                          - id
-                          - node_id
-                          - url
-                          - name
-                          - color
-                          - default
-                          - description
+                        items: *758
                       labels_url:
                         type: string
                         format: uri-template
@@ -141029,6 +140996,8 @@ webhooks:
                           type:
                           - object
                           - 'null'
+                          allOf:
+                          - *758
                       labels_url:
                         type: string
                       locked:
@@ -143631,39 +143600,7 @@ webhooks:
                       format: int64
                     labels:
                       type: array
-                      items:
-                        title: Label
-                        type: object
-                        properties:
-                          color:
-                            description: '6-character hex code, without the leading
-                              #, identifying the color'
-                            type: string
-                          default:
-                            type: boolean
-                          description:
-                            type:
-                            - string
-                            - 'null'
-                          id:
-                            type: integer
-                          name:
-                            description: The name of the label.
-                            type: string
-                          node_id:
-                            type: string
-                          url:
-                            description: URL for the label
-                            type: string
-                            format: uri
-                        required:
-                        - id
-                        - node_id
-                        - url
-                        - name
-                        - color
-                        - default
-                        - description
+                      items: *758
                     labels_url:
                       type: string
                       format: uri-template
@@ -150181,39 +150118,7 @@ webhooks:
                       format: int64
                     labels:
                       type: array
-                      items:
-                        title: Label
-                        type: object
-                        properties:
-                          color:
-                            description: '6-character hex code, without the leading
-                              #, identifying the color'
-                            type: string
-                          default:
-                            type: boolean
-                          description:
-                            type:
-                            - string
-                            - 'null'
-                          id:
-                            type: integer
-                          name:
-                            description: The name of the label.
-                            type: string
-                          node_id:
-                            type: string
-                          url:
-                            description: URL for the label
-                            type: string
-                            format: uri
-                        required:
-                        - id
-                        - node_id
-                        - url
-                        - name
-                        - color
-                        - default
-                        - description
+                      items: *758
                     labels_url:
                       type: string
                       format: uri-template
@@ -151235,6 +151140,20 @@ webhooks:
                         - default
                         - description
                         properties:
+                          archived_at:
+                            description: Timestamp indicating when the label was archived,
+                              or `null` if it has not been archived.
+                            type:
+                            - string
+                            - 'null'
+                            format: date-time
+                          archived_by:
+                            description: The user who archived the label, or `null`
+                              if it has not been archived.
+                            allOf:
+                            - *17
+                            type:
+                            - 'null'
                           color:
                             description: '6-character hex code, without the leading
                               #, identifying the color'
