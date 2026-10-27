@@ -1193,7 +1193,7 @@
                 "default": {
                   "value": {
                     "name": "DevTools Hook Env",
-                    "image_url": "https://my_file_server/path/to/devtools_env.tar.gz"
+                    "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz"
                   }
                 }
               }
@@ -1349,7 +1349,7 @@
                 "default": {
                   "value": {
                     "name": "DevTools Hook Env",
-                    "image_url": "https://my_file_server/path/to/devtools_env.tar.gz"
+                    "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz"
                   }
                 }
               }
@@ -12487,6 +12487,9 @@
           },
           "401": {
             "$ref": "#/components/responses/requires_authentication"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
           }
         },
         "x-github": {
@@ -29311,7 +29314,7 @@
     "/repos/{owner}/{repo}": {
       "get": {
         "summary": "Get a repository",
-        "description": "The `parent` and `source` objects are present when the repository is a fork. `parent` is the repository this repository was forked from, `source` is the ultimate source for the network.\n\n> [!NOTE]\n> - In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.18/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n> - To view merge-related settings, you must have the `contents:read` and `contents:write` permissions.",
+        "description": "The `parent` and `source` objects are present when the repository is a fork. `parent` is the repository this repository was forked from, `source` is the ultimate source for the network.\n\nWhen present and non-empty, `temp_clone_token` is a temporary credential for read-only Git access to this repository. It expires five minutes after generation and cannot be used to push changes. Treat this value as sensitive and avoid recording it in logs.\n\n> [!NOTE]\n> - In order to see the `security_and_analysis` block for a repository you must have admin permissions for the repository or be an owner or security manager for the organization that owns the repository. For more information, see \"[Managing security managers in your organization](https://docs.github.com/enterprise-server@3.18/organizations/managing-peoples-access-to-your-organization-with-roles/managing-security-managers-in-your-organization).\"\n> - To view merge-related settings, you must have the `contents:read` and `contents:write` permissions.",
         "tags": [
           "repos"
         ],
@@ -48660,7 +48663,7 @@
                   },
                   "duplicate_issue_id": {
                     "type": "integer",
-                    "description": "The ID of the issue to mark as the canonical duplicate when `state_reason` is `duplicate`. The issue must exist and be accessible to the authenticated user. Ignored when `state_reason` is not `duplicate`."
+                    "description": "The ID of the issue that this issue duplicates, used when marking this issue as a duplicate with `status: Duplicate` or `state_reason: duplicate`. The issue must exist and be accessible to the authenticated user."
                   },
                   "milestone": {
                     "oneOf": [
@@ -99265,6 +99268,7 @@
             "example": true
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_squash_merge": {
@@ -107206,6 +107210,7 @@
             "example": "admin"
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "delete_branch_on_merge": {
@@ -109420,6 +109425,7 @@
             "example": "admin"
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "delete_branch_on_merge": {
@@ -111629,6 +111635,7 @@
             "example": true
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_squash_merge": {
@@ -112222,6 +112229,7 @@
             "$ref": "#/components/schemas/nullable-repository"
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string",
             "nullable": true
           },
@@ -115168,6 +115176,7 @@
             "example": true
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_squash_merge": {
@@ -118576,6 +118585,49 @@
             "$ref": "#/components/schemas/minimal-repository"
           }
         }
+      },
+      "code-scanning-alert-linked-issue": {
+        "description": "A GitHub issue linked to a code scanning alert. The issue may belong to a different repository.",
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer",
+            "description": "The issue number."
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the issue."
+          },
+          "state": {
+            "type": "string",
+            "description": "The state of the issue."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The REST API URL of the issue."
+          },
+          "html_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL to view the issue on GitHub."
+          },
+          "repository": {
+            "$ref": "#/components/schemas/simple-repository"
+          },
+          "issue_type": {
+            "$ref": "#/components/schemas/issue-type"
+          }
+        },
+        "required": [
+          "number",
+          "title",
+          "state",
+          "url",
+          "html_url",
+          "repository",
+          "issue_type"
+        ]
       },
       "code-scanning-alert-items": {
         "type": "object",
@@ -129755,6 +129807,7 @@
             "$ref": "#/components/schemas/search-result-text-matches"
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_merge_commit": {
@@ -131631,6 +131684,7 @@
                 "type": "boolean"
               },
               "temp_clone_token": {
+                "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
                 "type": "string"
               },
               "allow_squash_merge": {
@@ -131694,6 +131748,7 @@
             }
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_squash_merge": {
@@ -134769,45 +134824,7 @@
           "labels": {
             "type": "array",
             "items": {
-              "title": "Label",
-              "type": "object",
-              "properties": {
-                "color": {
-                  "description": "6-character hex code, without the leading #, identifying the color",
-                  "type": "string"
-                },
-                "default": {
-                  "type": "boolean"
-                },
-                "description": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "id": {
-                  "type": "integer"
-                },
-                "name": {
-                  "description": "The name of the label.",
-                  "type": "string"
-                },
-                "node_id": {
-                  "type": "string"
-                },
-                "url": {
-                  "description": "URL for the label",
-                  "type": "string",
-                  "format": "uri"
-                }
-              },
-              "required": [
-                "id",
-                "node_id",
-                "url",
-                "name",
-                "color",
-                "default",
-                "description"
-              ]
+              "$ref": "#/components/schemas/webhooks_label"
             }
           },
           "labels_url": {
@@ -136155,45 +136172,7 @@
           "labels": {
             "type": "array",
             "items": {
-              "title": "Label",
-              "type": "object",
-              "properties": {
-                "color": {
-                  "description": "6-character hex code, without the leading #, identifying the color",
-                  "type": "string"
-                },
-                "default": {
-                  "type": "boolean"
-                },
-                "description": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "id": {
-                  "type": "integer"
-                },
-                "name": {
-                  "description": "The name of the label.",
-                  "type": "string"
-                },
-                "node_id": {
-                  "type": "string"
-                },
-                "url": {
-                  "description": "URL for the label",
-                  "type": "string",
-                  "format": "uri"
-                }
-              },
-              "required": [
-                "id",
-                "node_id",
-                "url",
-                "name",
-                "color",
-                "default",
-                "description"
-              ]
+              "$ref": "#/components/schemas/webhooks_label"
             }
           },
           "labels_url": {
@@ -138073,6 +138052,7 @@
                 "type": "boolean"
               },
               "temp_clone_token": {
+                "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
                 "type": "string"
               },
               "allow_squash_merge": {
@@ -138136,6 +138116,7 @@
             }
           },
           "temp_clone_token": {
+            "description": "When present and non-empty, a temporary credential for read-only Git access to this repository.\nIt expires five minutes after generation and cannot be used to push changes.\nTreat this value as sensitive and avoid recording it in logs.",
             "type": "string"
           },
           "allow_squash_merge": {
@@ -165331,45 +165312,7 @@
                   "labels": {
                     "type": "array",
                     "items": {
-                      "title": "Label",
-                      "type": "object",
-                      "properties": {
-                        "color": {
-                          "description": "6-character hex code, without the leading #, identifying the color",
-                          "type": "string"
-                        },
-                        "default": {
-                          "type": "boolean"
-                        },
-                        "description": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "id": {
-                          "type": "integer"
-                        },
-                        "name": {
-                          "description": "The name of the label.",
-                          "type": "string"
-                        },
-                        "node_id": {
-                          "type": "string"
-                        },
-                        "url": {
-                          "description": "URL for the label",
-                          "type": "string",
-                          "format": "uri"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "node_id",
-                        "url",
-                        "name",
-                        "color",
-                        "default",
-                        "description"
-                      ]
+                      "$ref": "#/components/schemas/webhooks_label"
                     }
                   },
                   "labels_url": {
@@ -166323,7 +166266,12 @@
                     "type": "array",
                     "items": {
                       "type": "object",
-                      "nullable": true
+                      "nullable": true,
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/webhooks_label"
+                        }
+                      ]
                     }
                   },
                   "labels_url": {
@@ -169265,45 +169213,7 @@
               "labels": {
                 "type": "array",
                 "items": {
-                  "title": "Label",
-                  "type": "object",
-                  "properties": {
-                    "color": {
-                      "description": "6-character hex code, without the leading #, identifying the color",
-                      "type": "string"
-                    },
-                    "default": {
-                      "type": "boolean"
-                    },
-                    "description": {
-                      "type": "string",
-                      "nullable": true
-                    },
-                    "id": {
-                      "type": "integer"
-                    },
-                    "name": {
-                      "description": "The name of the label.",
-                      "type": "string"
-                    },
-                    "node_id": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "description": "URL for the label",
-                      "type": "string",
-                      "format": "uri"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "node_id",
-                    "url",
-                    "name",
-                    "color",
-                    "default",
-                    "description"
-                  ]
+                  "$ref": "#/components/schemas/webhooks_label"
                 }
               },
               "labels_url": {
@@ -177343,6 +177253,21 @@
                   ],
                   "nullable": true,
                   "properties": {
+                    "archived_at": {
+                      "description": "Timestamp indicating when the label was archived, or `null` if it has not been archived.",
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "archived_by": {
+                      "description": "The user who archived the label, or `null` if it has not been archived.",
+                      "nullable": true,
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/simple-user"
+                        }
+                      ]
+                    },
                     "color": {
                       "description": "6-character hex code, without the leading #, identifying the color",
                       "type": "string"
@@ -265750,7 +265675,7 @@
           {
             "id": 2,
             "name": "DevTools Hook Env",
-            "image_url": "https://my_file_server/path/to/devtools_env.tar.gz",
+            "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz",
             "url": "https://github.example.com/api/v3/admin/pre-receive-environments/2",
             "html_url": "https://github.example.com/admin/pre-receive-environments/2",
             "default_environment": false,
@@ -265769,7 +265694,7 @@
         "value": {
           "id": 2,
           "name": "DevTools Hook Env",
-          "image_url": "https://my_file_server/path/to/devtools_env.tar.gz",
+          "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz",
           "url": "https://github.example.com/api/v3/admin/pre-receive-environments/2",
           "html_url": "https://github.example.com/admin/pre-receive-environments/2",
           "default_environment": false,
@@ -265787,7 +265712,7 @@
         "value": {
           "id": 2,
           "name": "DevTools Hook Env",
-          "image_url": "https://my_file_server/path/to/devtools_env.tar.gz",
+          "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz",
           "url": "https://github.example.com/api/v3/admin/pre-receive-environments/2",
           "html_url": "https://github.example.com/admin/pre-receive-environments/2",
           "default_environment": false,
@@ -265833,7 +265758,7 @@
             "environment": {
               "id": 2,
               "name": "DevTools Hook Env",
-              "image_url": "https://my_file_server/path/to/devtools_env.tar.gz",
+              "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz",
               "url": "https://github.example.com/api/v3/admin/pre-receive-environments/2",
               "html_url": "https://github.example.com/admin/pre-receive-environments/2",
               "default_environment": false,
@@ -265865,7 +265790,7 @@
           "environment": {
             "id": 2,
             "name": "DevTools Hook Env",
-            "image_url": "https://my_file_server/path/to/devtools_env.tar.gz",
+            "image_url": "https://fileserver.example.com/path/to/devtools_env.tar.gz",
             "url": "https://github.example.com/api/v3/admin/pre-receive-environments/2",
             "html_url": "https://github.example.com/admin/pre-receive-environments/2",
             "default_environment": false,
@@ -289333,7 +289258,7 @@
                   "login": "jquery",
                   "id": 70142,
                   "node_id": "MDQ6VXNlcjcwMTQy",
-                  "avatar_url": "https://0.gravatar.com/avatar/6906f317a4733f4379b06c32229ef02f?d=https%3A%2F%2Fidenticons.github.com%2Ff426f04f2f9813718fb806b30e0093de.png",
+                  "avatar_url": "https://avatars.githubusercontent.com/u/70142?v=4",
                   "gravatar_id": "",
                   "url": "https://api.github.com/users/jquery",
                   "html_url": "https://github.com/jquery",
