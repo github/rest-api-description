@@ -107366,6 +107366,11 @@ paths:
         Lists artifacts attached to an issue. Results are ordered by artifact number.
 
         The `type` parameter filters the response to artifacts of one type.
+        Results can be requested by page. The page defaults to `1`; the page size
+        defaults to `30` and can be set from `1` to `100`.
+
+        The response is a bare array and does not include pagination metadata such as
+        a `Link` header, a total count, or the service's `has_next_page` signal.
       tags:
       - issues
       operationId: issues/list-issue-artifacts
@@ -107414,6 +107419,7 @@ paths:
                   - updated_by_actor
                   - created_at
                   - updated_at
+                  - description
                   properties:
                     id:
                       type: integer
@@ -107581,6 +107587,9 @@ paths:
         The artifact type defaults to `generic` when omitted. Creating an artifact
         requires permission to update the issue.
 
+        The request can return `403` if the repository is read-only or locked, or a
+        GitHub App installation has only `issues: read` permission.
+
         To create an HTML artifact, set `type` to `embedded_html` and provide the HTML source
         in `body`. Open the returned `html_url` to inspect the source, then select
         **Preview** to view the rendered artifact. Select **Show source** to return
@@ -107653,6 +107662,7 @@ paths:
                 default:
                   value:
                     id: 42
+                    html_url: https://github.com/octocat/Hello-World/issues/1347/artifacts/1
                     number: 1
                     type: generic
                     name: Research notes
@@ -107663,6 +107673,7 @@ paths:
                     body_html: |-
                       <h2>Findings</h2>
                       <p>The API supports issue artifacts.</p>
+                    description: The API supports issue artifacts.
                     creator:
                       login: octocat
                       id: 1
@@ -107671,6 +107682,7 @@ paths:
                       id: 1
                     created_at: '2026-09-21T15:00:00Z'
                     updated_at: '2026-09-21T15:00:00Z'
+        '403': *27
         '404': *6
         '410': *30
         '422': *15
@@ -107865,6 +107877,9 @@ paths:
         Updates the name, body, or both for an artifact attached to an issue.
 
         Updating an artifact requires permission to update the issue.
+
+        The request can return `403` if the repository is read-only or locked, or a
+        GitHub App installation has only `issues: read` permission.
       tags:
       - issues
       operationId: issues/update-issue-artifact
@@ -107919,6 +107934,7 @@ paths:
                 default:
                   value:
                     id: 42
+                    html_url: https://github.com/octocat/Hello-World/issues/1347/artifacts/1
                     number: 1
                     type: plan
                     name: Revised implementation plan
@@ -107929,6 +107945,7 @@ paths:
                     body_html: |-
                       <h2>Plan</h2>
                       <p>Build and validate the feature.</p>
+                    description: Build and validate the feature.
                     creator:
                       login: octocat
                       id: 1
@@ -107937,6 +107954,7 @@ paths:
                       id: 2
                     created_at: '2026-09-21T15:00:00Z'
                     updated_at: '2026-09-21T16:00:00Z'
+        '403': *27
         '404': *6
         '410': *30
         '422': *15
@@ -107964,6 +107982,9 @@ paths:
         Permanently deletes an artifact attached to an issue.
 
         Deleting an artifact requires permission to update the issue.
+
+        The request can return `403` if the repository is read-only or locked, or a
+        GitHub App installation has only `issues: read` permission.
       tags:
       - issues
       operationId: issues/delete-issue-artifact
@@ -107983,6 +108004,7 @@ paths:
       responses:
         '204':
           description: The artifact was deleted successfully. No content is returned.
+        '403': *27
         '404': *6
         '410': *30
         '429':
