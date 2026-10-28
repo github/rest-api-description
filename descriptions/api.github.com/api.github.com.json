@@ -197,6 +197,10 @@
       "description": "Endpoints to manage and interact with agent automations."
     },
     {
+      "name": "agent-merge",
+      "description": "Endpoints to manage Agent Merge enrollment for pull requests."
+    },
+    {
       "name": "agent-tasks",
       "description": "Endpoints to manage and interact with agent tasks."
     },
@@ -12464,6 +12468,1883 @@
           },
           "503": {
             "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents/repos/{owner}/{repo}/pulls/{pull_number}/agent-merge": {
+      "get": {
+        "summary": "Get Agent Merge configuration for a pull request",
+        "description": "Gets the Agent Merge configuration for a pull request.\n\nYou must have write access to the repository.\n\nOAuth app tokens and personal access tokens (classic) need the repo scope for private or internal repositories, or the public_repo scope for public repositories.\n",
+        "tags": [
+          "agent-merge"
+        ],
+        "operationId": "agent-merge/get-agent-merge-enrollment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/agent-merge#get-agent-merge-configuration-for-a-pull-request"
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "agent-merge"
+        },
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The account owner of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "pull_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 42
+            },
+            "description": "The number that identifies the pull request."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stored configuration retrieved successfully",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "The Agent Merge configuration for an enrolled pull request.\n",
+                  "required": [
+                    "allowed_actions",
+                    "created_at",
+                    "updated_at",
+                    "user"
+                  ],
+                  "properties": {
+                    "allowed_actions": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "description": "The set of actions which Copilot may perform on the pull request.",
+                      "items": {
+                        "type": "string",
+                        "description": "An action that Agent Merge is explicitly allowed to perform.",
+                        "enum": [
+                          "fix_ci",
+                          "resolve_merge_conflicts"
+                        ],
+                        "example": "fix_ci"
+                      },
+                      "example": [
+                        "fix_ci",
+                        "resolve_merge_conflicts"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the pull request was enrolled for Agent Merge.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the Agent Merge enrollment was last updated.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "user": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "description": "The user who most recently enabled Agent Merge for the pull request",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1,
+                          "description": "The unique identifier of the user",
+                          "example": 9876
+                        }
+                      },
+                      "example": {
+                        "id": 9876
+                      }
+                    }
+                  },
+                  "example": {
+                    "allowed_actions": [
+                      "fix_ci",
+                      "resolve_merge_conflicts"
+                    ],
+                    "created_at": "2026-09-09T12:00:00Z",
+                    "updated_at": "2026-09-09T12:00:00Z",
+                    "user": {
+                      "id": 9876
+                    }
+                  }
+                },
+                "examples": {
+                  "enabled": {
+                    "summary": "Agent Merge configuration for an enrolled pull request",
+                    "value": {
+                      "allowed_actions": [
+                        "fix_ci",
+                        "resolve_merge_conflicts"
+                      ],
+                      "created_at": "2026-09-09T12:00:00Z",
+                      "updated_at": "2026-09-09T12:00:00Z",
+                      "user": {
+                        "id": 9876
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not permitted to read this enrollment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or enrollment is absent, enrollment is disabled, or access is masked as not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Not Found",
+                      "documentation_url": "https://docs.github.com/rest/agent-merge/agent-merge"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Enrollment storage or an authorization dependency is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Agent Merge configuration for a pull request",
+        "description": "Updates the Agent Merge configuration for a pull request, enabling Agent Merge\nor changing the allowed actions that Copilot is allowed to take on the pull\nrequest.\n\nIf Agent Merge is currently enabled for the pull request, only the user\nwho most recently enabled it may change its allowed actions.\n\nIf enrollment eligibility cannot be determined, the operation returns `503`.\n\nThis endpoint is only available to users with a Copilot subscription,\nexcluding Copilot Free users. You must have write access to the repository,\nthe pull request must not be from a fork or part of a stack, and the repository\nmust have the \"Allow automations\" setting enabled.\n\nOAuth app tokens and personal access tokens (classic) need the repo scope for private or internal repositories, or the public_repo scope for public repositories.\n",
+        "tags": [
+          "agent-merge"
+        ],
+        "operationId": "agent-merge/put-agent-merge-enrollment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/agent-merge#update-agent-merge-configuration-for-a-pull-request"
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "agent-merge"
+        },
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The account owner of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "pull_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 42
+            },
+            "description": "The number that identifies the pull request."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The Agent Merge enrollment configuration",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "The Agent Merge enrollment configuration",
+                "required": [
+                  "allowed_actions"
+                ],
+                "properties": {
+                  "allowed_actions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "description": "The set of actions that Copilot may perform on the pull request.",
+                    "items": {
+                      "type": "string",
+                      "description": "An action that Agent Merge is explicitly allowed to perform.",
+                      "enum": [
+                        "fix_ci",
+                        "resolve_merge_conflicts"
+                      ],
+                      "example": "fix_ci"
+                    },
+                    "example": [
+                      "fix_ci"
+                    ]
+                  }
+                },
+                "example": {
+                  "allowed_actions": [
+                    "fix_ci"
+                  ]
+                }
+              },
+              "examples": {
+                "fix_ci": {
+                  "summary": "Only ask Copilot to fix failing Actions workflows",
+                  "value": {
+                    "allowed_actions": [
+                      "fix_ci"
+                    ]
+                  }
+                },
+                "multiple_actions": {
+                  "summary": "Ask Copilot to fix failing Actions workflows and resolve merge conflicts",
+                  "value": {
+                    "allowed_actions": [
+                      "fix_ci",
+                      "resolve_merge_conflicts"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing Agent Merge enrollment updated",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "The Agent Merge configuration for an enrolled pull request.\n",
+                  "required": [
+                    "allowed_actions",
+                    "created_at",
+                    "updated_at",
+                    "user"
+                  ],
+                  "properties": {
+                    "allowed_actions": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "description": "The set of actions which Copilot may perform on the pull request.",
+                      "items": {
+                        "type": "string",
+                        "description": "An action that Agent Merge is explicitly allowed to perform.",
+                        "enum": [
+                          "fix_ci",
+                          "resolve_merge_conflicts"
+                        ],
+                        "example": "fix_ci"
+                      },
+                      "example": [
+                        "fix_ci",
+                        "resolve_merge_conflicts"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the pull request was enrolled for Agent Merge.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the Agent Merge enrollment was last updated.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "user": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "description": "The user who most recently enabled Agent Merge for the pull request",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1,
+                          "description": "The unique identifier of the user",
+                          "example": 9876
+                        }
+                      },
+                      "example": {
+                        "id": 9876
+                      }
+                    }
+                  },
+                  "example": {
+                    "allowed_actions": [
+                      "fix_ci",
+                      "resolve_merge_conflicts"
+                    ],
+                    "created_at": "2026-09-09T12:00:00Z",
+                    "updated_at": "2026-09-09T12:00:00Z",
+                    "user": {
+                      "id": 9876
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "allowed_actions": [
+                        "fix_ci"
+                      ],
+                      "created_at": "2026-09-09T12:00:00Z",
+                      "updated_at": "2026-09-09T13:00:00Z",
+                      "user": {
+                        "id": 9876
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Pull request enrolled for Agent Merge",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "description": "The Agent Merge configuration for an enrolled pull request.\n",
+                  "required": [
+                    "allowed_actions",
+                    "created_at",
+                    "updated_at",
+                    "user"
+                  ],
+                  "properties": {
+                    "allowed_actions": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "description": "The set of actions which Copilot may perform on the pull request.",
+                      "items": {
+                        "type": "string",
+                        "description": "An action that Agent Merge is explicitly allowed to perform.",
+                        "enum": [
+                          "fix_ci",
+                          "resolve_merge_conflicts"
+                        ],
+                        "example": "fix_ci"
+                      },
+                      "example": [
+                        "fix_ci",
+                        "resolve_merge_conflicts"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the pull request was enrolled for Agent Merge.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the Agent Merge enrollment was last updated.",
+                      "example": "2026-09-09T12:00:00Z"
+                    },
+                    "user": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "description": "The user who most recently enabled Agent Merge for the pull request",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1,
+                          "description": "The unique identifier of the user",
+                          "example": 9876
+                        }
+                      },
+                      "example": {
+                        "id": 9876
+                      }
+                    }
+                  },
+                  "example": {
+                    "allowed_actions": [
+                      "fix_ci",
+                      "resolve_merge_conflicts"
+                    ],
+                    "created_at": "2026-09-09T12:00:00Z",
+                    "updated_at": "2026-09-09T12:00:00Z",
+                    "user": {
+                      "id": 9876
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "allowed_actions": [
+                        "fix_ci"
+                      ],
+                      "created_at": "2026-09-09T12:00:00Z",
+                      "updated_at": "2026-09-09T12:00:00Z",
+                      "user": {
+                        "id": 9876
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Bad Request",
+                      "documentation_url": "https://docs.github.com/rest/agent-merge/agent-merge"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks the permissions or eligibility to enroll the pull request for Agent Merge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource is absent or masked as not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Enrollment changed during the write; no replacement was committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Enrollment changed during the request. Retry the operation.",
+                      "documentation_url": "https://docs.github.com/rest/agent-merge/agent-merge"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Ineligible pull request, invalid action selection, or unknown body properties",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Enrollment storage or an authorization dependency is unavailable, or eligibility is unknown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Disable Agent Merge for a pull request",
+        "description": "Disables Agent Merge for a pull request.\n\nYou must have write access to the repository. Disabling does not require\nenrollment eligibility: your Copilot subscription, coding-agent and Automations\npolicies, the Agent Merge execution flag, pull request state, stack membership,\nand repository archive state do not prevent cleanup. Authentication, token\nrepository selection, and \"Agent tasks\" write permission remain required.\n\nOAuth app tokens and personal access tokens (classic) need the repo scope for private or internal repositories, or the public_repo scope for public repositories.\n",
+        "tags": [
+          "agent-merge"
+        ],
+        "operationId": "agent-merge/delete-agent-merge-enrollment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/pulls/agent-merge#disable-agent-merge-for-a-pull-request"
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "pulls",
+          "subcategory": "agent-merge"
+        },
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The account owner of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the repository. The name is not case sensitive."
+          },
+          {
+            "name": "pull_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "example": 42
+            },
+            "description": "The number that identifies the pull request."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Agent Merge successfully disabled for the pull request",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "example": "no-store"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller lacks write permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource or enrollment is absent or masked as not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Enrollment changed during the write; no replacement was committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "message": "Enrollment changed during the request. Retry the operation.",
+                      "documentation_url": "https://docs.github.com/rest/agent-merge/agent-merge"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Structured error response following GitHub REST API conventions.\nFor 422 Unprocessable Entity the errors array contains validation\ndetails; for other error status codes only message and\ndocumentation_url are returned.",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Summary message (e.g. \"Validation Failed\", \"Not Found\")"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "A single validation error",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "enum": [
+                              "missing",
+                              "missing_field",
+                              "invalid",
+                              "already_exists",
+                              "unprocessable",
+                              "custom"
+                            ],
+                            "description": "Machine-readable error code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable message (populated when code is \"custom\")"
+                          }
+                        }
+                      },
+                      "description": "List of validation errors (present only for 422 responses)"
+                    },
+                    "documentation_url": {
+                      "type": "string",
+                      "description": "URL to relevant API documentation"
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "description": "Stable machine-readable code identifying the specific known failure. Omitted for failures without a classified cause."
+                    },
+                    "limited_resource": {
+                      "type": "string",
+                      "description": "Which resource was rate limited, present when `error_code` is `rate_limit_exceeded` and the resource is known. One of `api`, `sandbox`, or `token_mint`. Clients should tolerate new values."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Enrollment storage, authorization, or required publication is unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -90246,6 +92127,336 @@
                       "message": "Cannot update severity value when CVSS is set."
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "security-advisories",
+          "subcategory": "repository-advisories"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/comments": {
+      "get": {
+        "summary": "List repository security advisory comments",
+        "description": "Lists comments on a repository security advisory.\n\nAccessing internal comments requires write access to the advisory.\n\nCallers with read-only access to the advisory receive only eligible post-publication comments. For unpublished advisories, these callers receive an empty list.",
+        "tags": [
+          "security-advisories"
+        ],
+        "operationId": "security-advisories/list-repository-advisory-comments",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/security-advisories/repository-advisories#list-repository-security-advisory-comments"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/ghsa_id"
+          },
+          {
+            "$ref": "#/components/parameters/since"
+          },
+          {
+            "$ref": "#/components/parameters/per-page"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/repository-advisory-comment"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/repository-advisory-comment-items"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "security-advisories",
+          "subcategory": "repository-advisories"
+        }
+      },
+      "post": {
+        "summary": "Create a repository advisory comment",
+        "description": "Creates a comment on a repository security advisory.\n\nIn order to create a comment, the authenticated user must be an advisory collaborator, security manager, or repository administrator.",
+        "tags": [
+          "security-advisories"
+        ],
+        "operationId": "security-advisories/create-repository-advisory-comment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/security-advisories/repository-advisories#create-a-repository-advisory-comment"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/ghsa_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "description": "The contents of the comment."
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "body": "Thanks for the report. We are working on a fix."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/repository-advisory-comment"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 1,
+                      "node_id": "MDEzOlJlcG9zaXRvcnlBZHZpc29yeUNvbW1lbnQx",
+                      "body": "Thanks for the report. We are working on a fix.",
+                      "user": {
+                        "login": "octocat",
+                        "id": 1,
+                        "node_id": "MDQ6VXNlcjE=",
+                        "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+                        "gravatar_id": "",
+                        "url": "https://api.github.com/users/octocat",
+                        "html_url": "https://github.com/octocat",
+                        "followers_url": "https://api.github.com/users/octocat/followers",
+                        "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+                        "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+                        "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+                        "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+                        "organizations_url": "https://api.github.com/users/octocat/orgs",
+                        "repos_url": "https://api.github.com/users/octocat/repos",
+                        "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+                        "received_events_url": "https://api.github.com/users/octocat/received_events",
+                        "type": "User",
+                        "site_admin": false
+                      },
+                      "author_association": "OWNER",
+                      "created_at": "2022-01-01T00:00:00Z",
+                      "updated_at": "2022-01-01T00:00:00Z",
+                      "url": "https://api.github.com/repos/octocat/Hello-World/security-advisories/GHSA-abcd-1234-efgh/comments/1",
+                      "html_url": "https://github.com/octocat/Hello-World/security/advisories/GHSA-abcd-1234-efgh#advisory-comment-1",
+                      "advisory_url": "https://api.github.com/repos/octocat/Hello-World/security-advisories/GHSA-abcd-1234-efgh"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "security-advisories",
+          "subcategory": "repository-advisories"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/comments/{comment_id}": {
+      "get": {
+        "summary": "Get a repository advisory comment",
+        "description": "Get a comment on a repository security advisory using the comment's ID.\n\nAdvisory collaborators can view all non-confidential comments on advisories they have access to.\nOther users can only view comments that are not considered internal.\n\nGitHub Apps and fine-grained personal access tokens with the `repository_advisories: read` permission can view all non-confidential comments, including internal comments.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:read` scope to get a comment on a security advisory in a private repository, or any unpublished security advisory that the authenticated user has access to.",
+        "tags": [
+          "security-advisories"
+        ],
+        "operationId": "security-advisories/get-repository-advisory-comment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/security-advisories/repository-advisories#get-a-repository-advisory-comment"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/ghsa_id"
+          },
+          {
+            "$ref": "#/components/parameters/comment-id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/repository-advisory-comment"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/repository-advisory-comment"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "security-advisories",
+          "subcategory": "repository-advisories"
+        }
+      },
+      "patch": {
+        "summary": "Update a repository advisory comment",
+        "description": "Update the body of a comment on a repository security advisory using the comment's ID.\n\nIn order to update a comment, the authenticated user must be the author of the comment, or a security manager or administrator of the repository.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
+        "tags": [
+          "security-advisories"
+        ],
+        "operationId": "security-advisories/update-repository-advisory-comment",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/security-advisories/repository-advisories#update-a-repository-advisory-comment"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          },
+          {
+            "$ref": "#/components/parameters/ghsa_id"
+          },
+          {
+            "$ref": "#/components/parameters/comment-id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "description": "The contents of the comment."
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "body": "Updated comment body."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/repository-advisory-comment"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/repository-advisory-comment"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/validation-error"
                 }
               }
             }
@@ -171556,6 +173767,70 @@
             }
           }
         },
+        "additionalProperties": false
+      },
+      "repository-advisory-comment": {
+        "title": "Repository Advisory Comment",
+        "description": "A comment on a repository security advisory.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique identifier of the advisory comment.",
+            "example": 42,
+            "type": "integer",
+            "format": "int64"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "url": {
+            "description": "API URL for the advisory comment.",
+            "example": "https://api.github.com/repos/octocat/Hello-World/security-advisories/GHSA-abcd-1234-5679/comments/1",
+            "type": "string",
+            "format": "uri"
+          },
+          "html_url": {
+            "description": "Web URL for the advisory comment.",
+            "type": "string",
+            "format": "uri"
+          },
+          "body": {
+            "description": "Contents of the advisory comment.",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/nullable-simple-user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2011-04-14T16:00:49Z"
+          },
+          "advisory_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author_association": {
+            "$ref": "#/components/schemas/author-association"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "url",
+          "html_url",
+          "body",
+          "user",
+          "created_at",
+          "updated_at",
+          "advisory_url",
+          "author_association"
+        ],
         "additionalProperties": false
       },
       "pull-request-stack-minimal": {
@@ -351728,6 +354003,74 @@
           }
         ]
       },
+      "repository-advisory-comment-items": {
+        "value": [
+          {
+            "id": 1,
+            "node_id": "MDI1OlJlcG9zaXRvcnlBZHZpc29yeUNvbW1lbnQx",
+            "url": "https://api.github.com/repos/exampleUser/exampleRepo/security-advisories/GHSA-1234-5678-1234/comments/1",
+            "html_url": "https://github.com/exampleUser/exampleRepo/security/advisories/GHSA-1234-5678-1234#advisory-comment-1",
+            "body": "Body of the attachment",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "node_id": "MDQ6VXNlcjE=",
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "gravatar_id": "41d064eb2195891e12d0413f63227ea7",
+              "url": "https://api.github.com/users/octocat",
+              "html_url": "https://github.com/octocat",
+              "followers_url": "https://api.github.com/users/octocat/followers",
+              "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+              "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+              "organizations_url": "https://api.github.com/users/octocat/orgs",
+              "repos_url": "https://api.github.com/users/octocat/repos",
+              "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/octocat/received_events",
+              "type": "User",
+              "site_admin": false
+            },
+            "created_at": "2011-04-18T23:23:56Z",
+            "updated_at": "2011-04-18T23:23:56Z",
+            "advisory_url": "https://api.github.com/repos/exampleUser/exampleRepo/security-advisories/GHSA-1234-5678-1234",
+            "author_association": "CONTRIBUTOR"
+          }
+        ]
+      },
+      "repository-advisory-comment": {
+        "value": {
+          "id": 1,
+          "node_id": "MDI1OlJlcG9zaXRvcnlBZHZpc29yeUNvbW1lbnQx",
+          "url": "https://api.github.com/repos/octocat/Hello-World/security-advisories/GHSA-1234-5678-1234/comments/1",
+          "html_url": "https://github.com/octocat/Hello-World/security/advisories/GHSA-1234-5678-1234#advisory-comment-1",
+          "body": "Me too",
+          "user": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
+          "created_at": "2011-04-14T16:00:49Z",
+          "updated_at": "2011-04-14T16:00:49Z",
+          "advisory_url": "https://api.github.com/repos/octocat/Hello-World/security-advisories/GHSA-1234-5678-1234",
+          "author_association": "COLLABORATOR"
+        }
+      },
       "simple-user-items-default-response": {
         "summary": "Default response",
         "value": [
@@ -357706,7 +360049,7 @@
             ],
             "config": {
               "content_type": "json",
-              "url": "https://smee.io/****************",
+              "url": "https://example.com/",
               "insecure_ssl": "0"
             },
             "updated_at": "2019-05-15T15:20:49Z",
