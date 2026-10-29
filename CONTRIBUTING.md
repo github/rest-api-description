@@ -38,6 +38,15 @@ This workflow is defined in `.github/workflows/linter-failure-notifier.yml`.
 0. Push to your fork and [submit a pull request][pr]
 0. Pat your self on the back and wait for your pull request to be reviewed and merged.
 
+## Workflow script tests
+
+Run the workflow script tests with Python 3 and Node.js 22:
+
+```sh
+python3 -m unittest discover --start-directory .github/scripts --verbose
+node --test .github/scripts/test_*.js
+```
+
 ## Resources
 
 - [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)

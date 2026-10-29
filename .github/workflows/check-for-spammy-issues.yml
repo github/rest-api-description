@@ -31,8 +31,11 @@ jobs:
             }
             const titleWordCountMin = 3
 
-            let body = issue.body.replace(/<\!---.*?-->/g, "");
-            body = body.replace(/^\s*(#)\s*(.+?)\s*\n/gm, "");
+            let body = (issue.body ?? '').replace(/<\!---.*?-->/g, "");
+            body = body
+              .split('\n')
+              .filter(line => !line.trimStart().startsWith('#'))
+              .join('\n');
 
             let bodyWordCount = 0
             if (body) {
