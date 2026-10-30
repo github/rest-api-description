@@ -32,7 +32,57 @@ jobs:
             const titleWordCountMin = 3
 
             let body = issue.body.replace(/<\!---.*?-->/g, "");
-            body = body.replace(/^\s*(#)\s*(.+?)\s*\n/gm, "");
+            const isLineBreak = character => /[\r\n\u2028\u2029]/.test(character);
+            const parts = [];
+            let keptStart = 0;
+            let headingStart = 0;
+            let index = 0;
+
+            // Preserve the legacy matcher's cross-line whitespace behavior without backtracking.
+            while (index < body.length) {
+              const character = body[index];
+              if (character === '#' && headingStart !== null) {
+                let next = index + 1;
+                let end = -1;
+                let hasInlineWhitespace = false;
+                while (next < body.length && /\s/.test(body[next])) {
+                  if (!isLineBreak(body[next])) {
+                    hasInlineWhitespace = true;
+                  }
+                  if (body[next] === '\n' && hasInlineWhitespace) {
+                    end = next + 1;
+                  }
+                  next++;
+                }
+
+                // A content line takes precedence over a whitespace-only heading.
+                while (next < body.length && !isLineBreak(body[next])) {
+                  next++;
+                }
+                while (next < body.length && /\s/.test(body[next])) {
+                  if (body[next] === '\n') {
+                    end = next + 1;
+                  }
+                  next++;
+                }
+                if (end !== -1) {
+                  parts.push(body.slice(keptStart, headingStart));
+                  keptStart = end;
+                  index = end;
+                  headingStart = end;
+                  continue;
+                }
+              }
+              if (!/\s/.test(character)) {
+                headingStart = null;
+              }
+              if (isLineBreak(character) && headingStart === null) {
+                headingStart = index + 1;
+              }
+              index++;
+            }
+            parts.push(body.slice(keptStart));
+            body = parts.join('');
 
             let bodyWordCount = 0
             if (body) {

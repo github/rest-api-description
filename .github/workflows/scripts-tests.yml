@@ -8,10 +8,14 @@ on:
     paths:
       - '.github/scripts/**'
       - '.github/workflows/scripts-tests.yml'
+      - '.github/workflows/check-for-spammy-issues.yml'
+      - '.github/ISSUE_TEMPLATE/schema-inaccuracy.md'
   pull_request:
     paths:
       - '.github/scripts/**'
       - '.github/workflows/scripts-tests.yml'
+      - '.github/workflows/check-for-spammy-issues.yml'
+      - '.github/ISSUE_TEMPLATE/schema-inaccuracy.md'
   workflow_dispatch:
 
 jobs:
@@ -27,3 +31,9 @@ jobs:
           python-version: '3.12'
       - run: python3 -m unittest discover --start-directory .github/scripts --verbose
         name: Run script tests
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        name: Install NodeJS
+        with:
+          node-version: '22'
+      - run: node --test .github/scripts/test_*.js
+        name: Run JavaScript script tests
