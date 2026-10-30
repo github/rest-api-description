@@ -179,6 +179,7 @@ test('preserves template decisions and exact title/body thresholds', () => {
   assert.ok(template);
   assertClosed(template, { title: '[Schema Inaccuracy] <Describe Problem>' });
   assert.deepEqual(runWorkflow(template, { title: 'A descriptive issue title' }), []);
+  assert.deepEqual(runWorkflow(template, { title: 'Too short' }), []);
   assertClosed('one two three four five');
   assert.deepEqual(runWorkflow('one two three four five six'), []);
   assertClosed('', { title: 'two words' });
