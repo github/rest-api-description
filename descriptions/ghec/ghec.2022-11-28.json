@@ -28186,6 +28186,390 @@
         }
       }
     },
+    "/enterprises/{enterprise}/copilot/fusion/model-policies": {
+      "get": {
+        "summary": "Get Copilot Fusion model policies for an enterprise",
+        "description": "Gets model policy states for the enterprise GitHub Copilot Fusion layer and the separately read enterprise-layer policies.\nIdentifies which models the Copilot Fusion layer can edit based on the enterprise policy.\n\nEditable models show the Copilot Fusion layer's configured value. When the Copilot Fusion layer has not set a value, they show `enabled`,\nbecause Copilot Fusion only restricts models it explicitly disables.\nLocked models show the enterprise's explicit value or the applied default availability for eligible models.\nWhen the default availability is applied and delegated to organizations, models that follow it show `enabled`.\nModels not supported by Copilot Fusion are omitted.\nThese states are not a final access decision for a user. An `enabled` Copilot Fusion policy does not grant access to a model\nthat the user's applicable model policies deny.\n\nEnterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/get-enterprise-fusion-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-copilot-fusion-model-policies-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,\nbecause Copilot Fusion only restricts models it explicitly disables.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `enabled` when locked to an applied default availability that is delegated to organizations.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the Copilot Fusion layer can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_organizations",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy allows the Copilot Fusion layer's policy to be updated."
+                          },
+                          "required_for_copilot_fusion_max": {
+                            "type": "boolean",
+                            "enum": [
+                              true
+                            ],
+                            "readOnly": true,
+                            "description": "Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.\nOnly present with the value `true`; otherwise omitted.\nOmission does not guarantee that the model is optional or that Copilot Fusion Max is available.\nThis read-only metadata does not change model policy."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "summary": "Explicit Fusion disable under enterprise delegation",
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "disabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "no_fusion_restriction": {
+                    "summary": "No saved Fusion policy under enterprise delegation",
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "enterprise_default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "gpt-5.6-sol",
+                          "display_name": "OpenAI GPT-5.6 Sol",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_default",
+                          "editable": false
+                        }
+                      ]
+                    }
+                  },
+                  "max_requirements": {
+                    "summary": "Illustrative registry requirements, independent of policy state",
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "example-required-model",
+                          "display_name": "Example required model",
+                          "policy_state": "disabled",
+                          "enterprise_policy_state": "disabled",
+                          "editable": false,
+                          "required_for_copilot_fusion_max": true
+                        },
+                        {
+                          "model_name": "example-not-required-model",
+                          "display_name": "Example non-required model",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        },
+                        {
+                          "model_name": "example-unknown-model",
+                          "display_name": "Example model with unknown requirement",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "enabled",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      },
+      "patch": {
+        "summary": "Update Copilot Fusion model policies for an enterprise",
+        "description": "Updates editable model policies for the enterprise GitHub Copilot Fusion layer.\n\n`enabled` and `disabled` set a Copilot Fusion policy.\nAn `enabled` policy adds no Copilot Fusion restriction; it does not grant access to a model that the user's applicable model policies deny.\nA `disabled` policy prevents Copilot Fusion from using that model.\nLocked models and models not supported by Copilot Fusion cannot be updated. Models not supported by Copilot Fusion are omitted from the response.\n\nReturns the Copilot Fusion policy state representation, including enterprise policy and editability.\nThese states are not a final access decision for a user.\n\nEnterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.",
+        "tags": [
+          "enterprise-admin"
+        ],
+        "operationId": "enterprise-admin/update-enterprise-fusion-model-policies",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-copilot-fusion-model-policies-for-an-enterprise"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/enterprise"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "models"
+                ],
+                "properties": {
+                  "models": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "model_name",
+                        "policy_state"
+                      ],
+                      "properties": {
+                        "model_name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "policy_state": {
+                          "type": "string",
+                          "enum": [
+                            "enabled",
+                            "disabled"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "models": [
+                      {
+                        "model_name": "claude-sonnet-4",
+                        "policy_state": "enabled"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "models"
+                  ],
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "model_name",
+                          "display_name",
+                          "policy_state",
+                          "enterprise_policy_state",
+                          "editable"
+                        ],
+                        "properties": {
+                          "model_name": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "policy_state": {
+                            "type": "string",
+                            "description": "When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,\nbecause Copilot Fusion only restricts models it explicitly disables.\nWhen locked, the enterprise's explicit value or its applied default availability for an eligible model.\nReturns `enabled` when locked to an applied default availability that is delegated to organizations.\nReturns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.",
+                            "enum": [
+                              "enabled",
+                              "disabled"
+                            ]
+                          },
+                          "enterprise_policy_state": {
+                            "type": "string",
+                            "description": "The separately read enterprise-layer policy for this model, used to determine whether the Copilot Fusion layer can edit its policy.",
+                            "enum": [
+                              "enabled",
+                              "disabled",
+                              "delegate_to_teams_and_apps",
+                              "delegate_to_organizations",
+                              "delegate_to_default",
+                              "unconfigured"
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean",
+                            "description": "Whether the enterprise policy allows the Copilot Fusion layer's policy to be updated."
+                          },
+                          "required_for_copilot_fusion_max": {
+                            "type": "boolean",
+                            "enum": [
+                              true
+                            ],
+                            "readOnly": true,
+                            "description": "Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.\nOnly present with the value `true`; otherwise omitted.\nOmission does not guarantee that the model is optional or that Copilot Fusion Max is available.\nThis read-only metadata does not change model policy."
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "claude-sonnet-4",
+                          "display_name": "Anthropic Claude Sonnet 4",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  },
+                  "max_requirements": {
+                    "summary": "Illustrative registry requirements, independent of policy state",
+                    "value": {
+                      "models": [
+                        {
+                          "model_name": "example-required-model",
+                          "display_name": "Example required model",
+                          "policy_state": "disabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true,
+                          "required_for_copilot_fusion_max": true
+                        },
+                        {
+                          "model_name": "example-not-required-model",
+                          "display_name": "Example non-required model",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "delegate_to_teams_and_apps",
+                          "editable": true
+                        },
+                        {
+                          "model_name": "example-unknown-model",
+                          "display_name": "Example model with unknown requirement",
+                          "policy_state": "enabled",
+                          "enterprise_policy_state": "enabled",
+                          "editable": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": true,
+          "enabledForGitHubApps": true,
+          "category": "enterprise-admin",
+          "subcategory": "ai-controls"
+        }
+      }
+    },
     "/enterprises/{enterprise}/copilot/metrics/reports/enterprise-1-day": {
       "get": {
         "summary": "Get Copilot enterprise usage metrics for a specific day",
@@ -356590,7 +356974,7 @@
             "client_id": "Iv1.8a61f9b3a7aba766"
           },
           "note": "optional note",
-          "note_url": "http://optional/note/url",
+          "note_url": "https://example.com/optional/note/url",
           "updated_at": "2011-09-06T20:39:23Z",
           "created_at": "2011-09-06T17:26:27Z",
           "fingerprint": "jklmnop12345678",
@@ -356631,7 +357015,7 @@
             "client_id": "Iv1.8a61f9b3a7aba766"
           },
           "note": "optional note",
-          "note_url": "http://optional/note/url",
+          "note_url": "https://example.com/optional/note/url",
           "updated_at": "2011-09-06T20:39:23Z",
           "created_at": "2011-09-06T17:26:27Z",
           "fingerprint": "jklmnop12345678",
