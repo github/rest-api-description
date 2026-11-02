@@ -20848,7 +20848,7 @@ paths:
                       name: my github app
                       client_id: Iv1.8a61f9b3a7aba766
                     note: optional note
-                    note_url: http://optional/note/url
+                    note_url: https://example.com/optional/note/url
                     updated_at: '2011-09-06T20:39:23Z'
                     created_at: '2011-09-06T17:26:27Z'
                     fingerprint: jklmnop12345678
@@ -21053,7 +21053,7 @@ paths:
                       name: my github app
                       client_id: Iv1.8a61f9b3a7aba766
                     note: optional note
-                    note_url: http://optional/note/url
+                    note_url: https://example.com/optional/note/url
                     updated_at: '2011-09-06T20:39:23Z'
                     created_at: '2011-09-06T17:26:27Z'
                     fingerprint: jklmnop12345678
@@ -34990,6 +34990,311 @@ paths:
         '403': *27
         '404': *6
         '422': *15
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+  "/enterprises/{enterprise}/copilot/fusion/model-policies":
+    get:
+      summary: Get Copilot Fusion model policies for an enterprise
+      description: |-
+        Gets model policy states for the enterprise GitHub Copilot Fusion layer and the separately read enterprise-layer policies.
+        Identifies which models the Copilot Fusion layer can edit based on the enterprise policy.
+
+        Editable models show the Copilot Fusion layer's configured value. When the Copilot Fusion layer has not set a value, they show `enabled`,
+        because Copilot Fusion only restricts models it explicitly disables.
+        Locked models show the enterprise's explicit value or the applied default availability for eligible models.
+        When the default availability is applied and delegated to organizations, models that follow it show `enabled`.
+        Models not supported by Copilot Fusion are omitted.
+        These states are not a final access decision for a user. An `enabled` Copilot Fusion policy does not grant access to a model
+        that the user's applicable model policies deny.
+
+        Enterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-fusion-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-copilot-fusion-model-policies-for-an-enterprise
+      parameters:
+      - *36
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,
+                            because Copilot Fusion only restricts models it explicitly disables.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `enabled` when locked to an applied default availability that is delegated to organizations.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the Copilot
+                            Fusion layer can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy allows the Copilot
+                            Fusion layer's policy to be updated.
+                        required_for_copilot_fusion_max:
+                          type: boolean
+                          enum:
+                          - true
+                          readOnly: true
+                          description: |-
+                            Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.
+                            Only present with the value `true`; otherwise omitted.
+                            Omission does not guarantee that the model is optional or that Copilot Fusion Max is available.
+                            This read-only metadata does not change model policy.
+              examples:
+                default:
+                  summary: Explicit Fusion disable under enterprise delegation
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: disabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                no_fusion_restriction:
+                  summary: No saved Fusion policy under enterprise delegation
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                enterprise_default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_default
+                      editable: false
+                max_requirements:
+                  summary: Illustrative registry requirements, independent of policy
+                    state
+                  value:
+                    models:
+                    - model_name: example-required-model
+                      display_name: Example required model
+                      policy_state: disabled
+                      enterprise_policy_state: disabled
+                      editable: false
+                      required_for_copilot_fusion_max: true
+                    - model_name: example-not-required-model
+                      display_name: Example non-required model
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                    - model_name: example-unknown-model
+                      display_name: Example model with unknown requirement
+                      policy_state: enabled
+                      enterprise_policy_state: enabled
+                      editable: true
+        '401': *23
+        '403': *27
+        '404': *6
+        '503': *133
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+    patch:
+      summary: Update Copilot Fusion model policies for an enterprise
+      description: |-
+        Updates editable model policies for the enterprise GitHub Copilot Fusion layer.
+
+        `enabled` and `disabled` set a Copilot Fusion policy.
+        An `enabled` policy adds no Copilot Fusion restriction; it does not grant access to a model that the user's applicable model policies deny.
+        A `disabled` policy prevents Copilot Fusion from using that model.
+        Locked models and models not supported by Copilot Fusion cannot be updated. Models not supported by Copilot Fusion are omitted from the response.
+
+        Returns the Copilot Fusion policy state representation, including enterprise policy and editability.
+        These states are not a final access decision for a user.
+
+        Enterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/update-enterprise-fusion-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-copilot-fusion-model-policies-for-an-enterprise
+      parameters:
+      - *36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - models
+              properties:
+                models:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        enum:
+                        - enabled
+                        - disabled
+            examples:
+              default:
+                value:
+                  models:
+                  - model_name: claude-sonnet-4
+                    policy_state: enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,
+                            because Copilot Fusion only restricts models it explicitly disables.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `enabled` when locked to an applied default availability that is delegated to organizations.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the Copilot
+                            Fusion layer can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy allows the Copilot
+                            Fusion layer's policy to be updated.
+                        required_for_copilot_fusion_max:
+                          type: boolean
+                          enum:
+                          - true
+                          readOnly: true
+                          description: |-
+                            Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.
+                            Only present with the value `true`; otherwise omitted.
+                            Omission does not guarantee that the model is optional or that Copilot Fusion Max is available.
+                            This read-only metadata does not change model policy.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: claude-sonnet-4
+                      display_name: Anthropic Claude Sonnet 4
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                max_requirements:
+                  summary: Illustrative registry requirements, independent of policy
+                    state
+                  value:
+                    models:
+                    - model_name: example-required-model
+                      display_name: Example required model
+                      policy_state: disabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                      required_for_copilot_fusion_max: true
+                    - model_name: example-not-required-model
+                      display_name: Example non-required model
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                    - model_name: example-unknown-model
+                      display_name: Example model with unknown requirement
+                      policy_state: enabled
+                      enterprise_policy_state: enabled
+                      editable: true
+        '401': *23
+        '403': *27
+        '404': *6
+        '422': *15
+        '503': *133
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
