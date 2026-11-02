@@ -24503,6 +24503,320 @@ paths:
         enabledForGitHubApps: true
         category: enterprise-admin
         subcategory: ai-controls
+  "/enterprises/{enterprise}/copilot/fusion/model-policies":
+    get:
+      summary: Get Copilot Fusion model policies for an enterprise
+      description: |-
+        Gets model policy states for the enterprise GitHub Copilot Fusion layer and the separately read enterprise-layer policies.
+        Identifies which models the Copilot Fusion layer can edit based on the enterprise policy.
+
+        Editable models show the Copilot Fusion layer's configured value. When the Copilot Fusion layer has not set a value, they show `enabled`,
+        because Copilot Fusion only restricts models it explicitly disables.
+        Locked models show the enterprise's explicit value or the applied default availability for eligible models.
+        When the default availability is applied and delegated to organizations, models that follow it show `enabled`.
+        Models not supported by Copilot Fusion are omitted.
+        These states are not a final access decision for a user. An `enabled` Copilot Fusion policy does not grant access to a model
+        that the user's applicable model policies deny.
+
+        Enterprise owners and users with the `read_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `read:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/get-enterprise-fusion-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#get-copilot-fusion-model-policies-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,
+                            because Copilot Fusion only restricts models it explicitly disables.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `enabled` when locked to an applied default availability that is delegated to organizations.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the Copilot
+                            Fusion layer can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy allows the Copilot
+                            Fusion layer's policy to be updated.
+                        required_for_copilot_fusion_max:
+                          type: boolean
+                          enum:
+                          - true
+                          readOnly: true
+                          description: |-
+                            Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.
+                            Only present with the value `true`; otherwise omitted.
+                            Omission does not guarantee that the model is optional or that Copilot Fusion Max is available.
+                            This read-only metadata does not change model policy.
+              examples:
+                default:
+                  summary: Explicit Fusion disable under enterprise delegation
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: disabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                no_fusion_restriction:
+                  summary: No saved Fusion policy under enterprise delegation
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                enterprise_default:
+                  value:
+                    models:
+                    - model_name: gpt-5.6-sol
+                      display_name: OpenAI GPT-5.6 Sol
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_default
+                      editable: false
+                max_requirements:
+                  summary: Illustrative registry requirements, independent of policy
+                    state
+                  value:
+                    models:
+                    - model_name: example-required-model
+                      display_name: Example required model
+                      policy_state: disabled
+                      enterprise_policy_state: disabled
+                      editable: false
+                      required_for_copilot_fusion_max: true
+                    - model_name: example-not-required-model
+                      display_name: Example non-required model
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                    - model_name: example-unknown-model
+                      display_name: Example model with unknown requirement
+                      policy_state: enabled
+                      enterprise_policy_state: enabled
+                      editable: true
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
+    patch:
+      summary: Update Copilot Fusion model policies for an enterprise
+      description: |-
+        Updates editable model policies for the enterprise GitHub Copilot Fusion layer.
+
+        `enabled` and `disabled` set a Copilot Fusion policy.
+        An `enabled` policy adds no Copilot Fusion restriction; it does not grant access to a model that the user's applicable model policies deny.
+        A `disabled` policy prevents Copilot Fusion from using that model.
+        Locked models and models not supported by Copilot Fusion cannot be updated. Models not supported by Copilot Fusion are omitted from the response.
+
+        Returns the Copilot Fusion policy state representation, including enterprise policy and editability.
+        These states are not a final access decision for a user.
+
+        Enterprise owners and users with the `write_enterprise_ai_controls` permission can use this endpoint.
+
+        OAuth app tokens and personal access tokens (classic) need the `admin:enterprise` scope to use this endpoint.
+      tags:
+      - enterprise-admin
+      operationId: enterprise-admin/update-enterprise-fusion-model-policies
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/enterprise-admin/ai-controls#update-copilot-fusion-model-policies-for-an-enterprise
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - models
+              properties:
+                models:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - model_name
+                    - policy_state
+                    properties:
+                      model_name:
+                        type: string
+                        minLength: 1
+                      policy_state:
+                        type: string
+                        enum:
+                        - enabled
+                        - disabled
+            examples:
+              default:
+                value:
+                  models:
+                  - model_name: claude-sonnet-4
+                    policy_state: enabled
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - models
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - model_name
+                      - display_name
+                      - policy_state
+                      - enterprise_policy_state
+                      - editable
+                      properties:
+                        model_name:
+                          type: string
+                        display_name:
+                          type: string
+                        policy_state:
+                          type: string
+                          description: |-
+                            When editable, the Copilot Fusion layer's configured value, or `enabled` if the Copilot Fusion layer has not configured this model,
+                            because Copilot Fusion only restricts models it explicitly disables.
+                            When locked, the enterprise's explicit value or its applied default availability for an eligible model.
+                            Returns `enabled` when locked to an applied default availability that is delegated to organizations.
+                            Returns `disabled` when locked without an explicit enterprise value and the model is excluded from default availability.
+                          enum:
+                          - enabled
+                          - disabled
+                        enterprise_policy_state:
+                          type: string
+                          description: The separately read enterprise-layer policy
+                            for this model, used to determine whether the Copilot
+                            Fusion layer can edit its policy.
+                          enum:
+                          - enabled
+                          - disabled
+                          - delegate_to_teams_and_apps
+                          - delegate_to_organizations
+                          - delegate_to_default
+                          - unconfigured
+                        editable:
+                          type: boolean
+                          description: Whether the enterprise policy allows the Copilot
+                            Fusion layer's policy to be updated.
+                        required_for_copilot_fusion_max:
+                          type: boolean
+                          enum:
+                          - true
+                          readOnly: true
+                          description: |-
+                            Indicates that the model registry explicitly marks this model as required for Copilot Fusion Max.
+                            Only present with the value `true`; otherwise omitted.
+                            Omission does not guarantee that the model is optional or that Copilot Fusion Max is available.
+                            This read-only metadata does not change model policy.
+              examples:
+                default:
+                  value:
+                    models:
+                    - model_name: claude-sonnet-4
+                      display_name: Anthropic Claude Sonnet 4
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                max_requirements:
+                  summary: Illustrative registry requirements, independent of policy
+                    state
+                  value:
+                    models:
+                    - model_name: example-required-model
+                      display_name: Example required model
+                      policy_state: disabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                      required_for_copilot_fusion_max: true
+                    - model_name: example-not-required-model
+                      display_name: Example non-required model
+                      policy_state: enabled
+                      enterprise_policy_state: delegate_to_teams_and_apps
+                      editable: true
+                    - model_name: example-unknown-model
+                      display_name: Example model with unknown requirement
+                      policy_state: enabled
+                      enterprise_policy_state: enabled
+                      editable: true
+        '401':
+          "$ref": "#/components/responses/requires_authentication"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '422':
+          "$ref": "#/components/responses/validation_failed"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: enterprise-admin
+        subcategory: ai-controls
   "/enterprises/{enterprise}/copilot/metrics/reports/enterprise-1-day":
     get:
       summary: Get Copilot enterprise usage metrics for a specific day
@@ -30163,6 +30477,59 @@ paths:
                   summary: Internal error
                   value:
                     message: An internal server error occurred. Please try again later.
+      x-github:
+        githubCloudOnly: true
+        enabledForGitHubApps: true
+        category: billing
+        subcategory: cost-centers
+  "/enterprises/{enterprise}/settings/billing/cost-centers/memberships":
+    get:
+      summary: Get cost center membership for a resource
+      description: |-
+        Gets the cost center membership information for a specified resource (user, organization, repository, or enterprise team).
+        Enterprise owners, billing managers, and organization owners in the enterprise can view membership information. A custom role holder with fine-grained read access to enterprise billing can also view membership information. An installation access token for a GitHub App installed on the enterprise with read access to enterprise billing can get cost center membership information for any resource in the enterprise.
+        Organization owners are limited to organizations they own, users who belong to those organizations, repositories they can see, and enterprise teams visible to them.
+      tags:
+      - billing
+      operationId: billing/get-cost-center-membership
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/enterprise-cloud@latest/rest/billing/cost-centers#get-cost-center-membership-for-a-resource
+      parameters:
+      - "$ref": "#/components/parameters/enterprise"
+      - name: resource_type
+        in: query
+        required: true
+        description: 'The type of resource to lookup. Must be one of: user, repository,
+          organization, team.'
+        schema:
+          type: string
+          enum:
+          - user
+          - repository
+          - organization
+          - team
+      - name: name
+        in: query
+        required: true
+        description: The identifier for the resource. For users and organizations,
+          this is the login or organization name. For repositories, use the format
+          "owner/repo". For teams, use the enterprise team slug.
+        schema:
+          type: string
+      responses:
+        '200':
+          "$ref": "#/components/responses/billing-cost-center-membership"
+        '400':
+          "$ref": "#/components/responses/bad_request"
+        '403':
+          "$ref": "#/components/responses/forbidden"
+        '404':
+          "$ref": "#/components/responses/not_found"
+        '500':
+          "$ref": "#/components/responses/internal_error"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: true
         enabledForGitHubApps: true
@@ -130316,6 +130683,80 @@ components:
             - id
             - name
             - resources
+    billing-cost-center-membership:
+      type: object
+      properties:
+        resource:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+              - user
+              - organization
+              - repository
+              - team
+              description: The type of resource.
+            identifier:
+              type: object
+              oneOf:
+              - properties:
+                  login:
+                    type: string
+                    description: The login name for a user.
+                required:
+                - login
+                additionalProperties: false
+              - properties:
+                  name:
+                    type: string
+                    description: The name for an organization.
+                required:
+                - name
+                additionalProperties: false
+              - properties:
+                  owner:
+                    type: string
+                    description: The owner of the repository.
+                  name:
+                    type: string
+                    description: The name of the repository.
+                required:
+                - owner
+                - name
+                additionalProperties: false
+              - properties:
+                  slug:
+                    type: string
+                    description: The slug for an enterprise team.
+                required:
+                - slug
+                additionalProperties: false
+              description: The identifier for the resource.
+          required:
+          - type
+          - identifier
+        memberships:
+          type: array
+          items:
+            type: object
+            properties:
+              cost_center:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The unique identifier of the cost center.
+                  name:
+                    type: string
+                    description: The name of the cost center.
+                required:
+                - id
+                - name
+          description: The list of cost center memberships for the resource.
+      required:
+      - resource
+      - memberships
     get-cost-center:
       type: object
       properties:
@@ -269029,7 +269470,7 @@ components:
           name: my github app
           client_id: Iv1.8a61f9b3a7aba766
         note: optional note
-        note_url: http://optional/note/url
+        note_url: https://example.com/optional/note/url
         updated_at: '2011-09-06T20:39:23Z'
         created_at: '2011-09-06T17:26:27Z'
         fingerprint: jklmnop12345678
@@ -269066,7 +269507,7 @@ components:
           name: my github app
           client_id: Iv1.8a61f9b3a7aba766
         note: optional note
-        note_url: http://optional/note/url
+        note_url: https://example.com/optional/note/url
         updated_at: '2011-09-06T20:39:23Z'
         created_at: '2011-09-06T17:26:27Z'
         fingerprint: jklmnop12345678
@@ -274175,6 +274616,44 @@ components:
           - type: Repo
             name: octocat/hello-world
           ai_credit_pool_enabled: false
+    billing-cost-center-membership-user:
+      value:
+        resource:
+          type: user
+          identifier:
+            login: octocat
+        memberships:
+        - cost_center:
+            id: 12345678-1234-1234-1234-123456789012
+            name: Engineering Team
+    billing-cost-center-membership-org:
+      value:
+        resource:
+          type: organization
+          identifier:
+            name: github
+        memberships:
+        - cost_center:
+            id: 87654321-4321-4321-4321-210987654321
+            name: Marketing Team
+    billing-cost-center-membership-repo:
+      value:
+        resource:
+          type: repository
+          identifier:
+            owner: github
+            name: docs
+        memberships:
+        - cost_center:
+            id: 11111111-2222-3333-4444-555555555555
+            name: Documentation Team
+    billing-cost-center-membership-none:
+      value:
+        resource:
+          type: user
+          identifier:
+            login: octocat
+        memberships: []
     get-cost-center:
       value:
         id: 2eeb8ffe-6903-11ee-8c99-0242ac120002
@@ -302534,6 +303013,21 @@ components:
           examples:
             default:
               "$ref": "#/components/examples/get-all-cost-centers"
+    billing-cost-center-membership:
+      description: Success
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/billing-cost-center-membership"
+          examples:
+            user_with_membership:
+              "$ref": "#/components/examples/billing-cost-center-membership-user"
+            organization_with_membership:
+              "$ref": "#/components/examples/billing-cost-center-membership-org"
+            repository_with_membership:
+              "$ref": "#/components/examples/billing-cost-center-membership-repo"
+            user_without_membership:
+              "$ref": "#/components/examples/billing-cost-center-membership-none"
     get_cost_center:
       description: Response when getting a cost center
       content:
