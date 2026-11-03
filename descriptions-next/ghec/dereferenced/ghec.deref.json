@@ -393764,6 +393764,842 @@
         }
       }
     },
+    "/orgs/{org}/teams/{team_slug}/copilot/customizations": {
+      "get": {
+        "summary": "Get Copilot customizations for a team",
+        "description": "> [!NOTE]\n> This endpoint is in public preview and is subject to change.\n\nGets the GitHub-managed Copilot customizations of a team.\n\nThe authenticated user must be an organization owner or a team maintainer. Teams that keep their\ncustomizations in a repository return `409`.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` or `read:org` scope to use this endpoint.",
+        "tags": [
+          "copilot"
+        ],
+        "operationId": "copilot/get-copilot-team-customizations",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-team-customizations#get-copilot-customizations-for-a-team"
+        },
+        "parameters": [
+          {
+            "name": "org",
+            "description": "The organization name. The name is not case sensitive.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_slug",
+            "description": "The slug of the team name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The team's customization document. Only the keys `pluginAssignments` and `extraKnownMarketplaces` are supported.",
+                  "properties": {
+                    "pluginAssignments": {
+                      "type": "object",
+                      "description": "Plugins assigned to the team, keyed by `PLUGIN@MARKETPLACE`.",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "state": {
+                            "type": "string",
+                            "description": "The assignment state.",
+                            "enum": [
+                              "defaultEnabled"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "extraKnownMarketplaces": {
+                      "type": "object",
+                      "description": "Additional plugin marketplaces available to the team, keyed by marketplace name.",
+                      "additionalProperties": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "pluginAssignments": {
+                        "code-review@acme-marketplace": {
+                          "state": "defaultEnabled"
+                        }
+                      },
+                      "extraKnownMarketplaces": {
+                        "acme-marketplace": {
+                          "source": {
+                            "source": "github",
+                            "repo": "acme/copilot-marketplace"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "copilot",
+          "subcategory": "copilot-team-customizations"
+        }
+      },
+      "put": {
+        "summary": "Set Copilot customizations for a team",
+        "description": "> [!NOTE]\n> This endpoint is in public preview and is subject to change.\n\nReplaces the GitHub-managed Copilot customizations of a team, creating them on the first write.\n\nThe authenticated user must be an organization owner or a team maintainer. Teams that keep their\ncustomizations in a repository return `409`. Documents that fail validation return `422` with the reason.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "copilot"
+        ],
+        "operationId": "copilot/set-copilot-team-customizations",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-team-customizations#set-copilot-customizations-for-a-team"
+        },
+        "parameters": [
+          {
+            "name": "org",
+            "description": "The organization name. The name is not case sensitive.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_slug",
+            "description": "The slug of the team name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "The team's customization document. Only the keys `pluginAssignments` and `extraKnownMarketplaces` are supported.",
+                "properties": {
+                  "pluginAssignments": {
+                    "type": "object",
+                    "description": "Plugins assigned to the team, keyed by `PLUGIN@MARKETPLACE`.",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "description": "The assignment state.",
+                          "enum": [
+                            "defaultEnabled"
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "extraKnownMarketplaces": {
+                    "type": "object",
+                    "description": "Additional plugin marketplaces available to the team, keyed by marketplace name.",
+                    "additionalProperties": {
+                      "type": "object"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "pluginAssignments": {
+                      "code-review@acme-marketplace": {
+                        "state": "defaultEnabled"
+                      }
+                    },
+                    "extraKnownMarketplaces": {
+                      "acme-marketplace": {
+                        "source": {
+                          "source": "github",
+                          "repo": "acme/copilot-marketplace"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "The team's customization document. Only the keys `pluginAssignments` and `extraKnownMarketplaces` are supported.",
+                  "properties": {
+                    "pluginAssignments": {
+                      "type": "object",
+                      "description": "Plugins assigned to the team, keyed by `PLUGIN@MARKETPLACE`.",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "state": {
+                            "type": "string",
+                            "description": "The assignment state.",
+                            "enum": [
+                              "defaultEnabled"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "extraKnownMarketplaces": {
+                      "type": "object",
+                      "description": "Additional plugin marketplaces available to the team, keyed by marketplace name.",
+                      "additionalProperties": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "pluginAssignments": {
+                        "code-review@acme-marketplace": {
+                          "state": "defaultEnabled"
+                        }
+                      },
+                      "extraKnownMarketplaces": {
+                        "acme-marketplace": {
+                          "source": {
+                            "source": "github",
+                            "repo": "acme/copilot-marketplace"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "copilot",
+          "subcategory": "copilot-team-customizations"
+        }
+      },
+      "delete": {
+        "summary": "Delete Copilot customizations for a team",
+        "description": "> [!NOTE]\n> This endpoint is in public preview and is subject to change.\n\nDeletes the GitHub-managed Copilot customizations of a team. Deleting customizations that don't exist succeeds.\n\nThe authenticated user must be an organization owner or a team maintainer. Teams that keep their\ncustomizations in a repository return `409`.\n\nOAuth app tokens and personal access tokens (classic) need the `admin:org` scope to use this endpoint.",
+        "tags": [
+          "copilot"
+        ],
+        "operationId": "copilot/delete-copilot-team-customizations",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/copilot/copilot-team-customizations#delete-copilot-customizations-for-a-team"
+        },
+        "parameters": [
+          {
+            "name": "org",
+            "description": "The organization name. The name is not case sensitive.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_slug",
+            "description": "The slug of the team name.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          },
+          "500": {
+            "description": "Internal Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Requires authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "copilot",
+          "subcategory": "copilot-team-customizations"
+        }
+      }
+    },
     "/orgs/{org}/teams/{team_slug}/external-groups": {
       "get": {
         "summary": "List a connection between an external group and a team",
