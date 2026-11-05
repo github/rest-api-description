@@ -52839,7 +52839,7 @@
                     "type": "array",
                     "description": "The array of custom properties to create or update.",
                     "items": {
-                      "$ref": "#/components/schemas/custom-property"
+                      "$ref": "#/components/schemas/custom-property-batch-item-payload"
                     },
                     "minItems": 1,
                     "maxItems": 100
@@ -74676,6 +74676,133 @@
           "previews": [],
           "category": "dependabot",
           "subcategory": "alerts"
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/dependabot/runner-settings": {
+      "get": {
+        "summary": "Get repository Dependabot runner settings",
+        "description": "Gets the runner Dependabot uses for this repository: standard GitHub-hosted\nrunners, or labeled runners with their labels and optional runner group. The\nresponse matches the repository's code security settings page.\n\nLabeled runners take effect only for private and internal repositories with\nGitHub Actions enabled. Otherwise, the response shows `standard`.\n\nRepository administrators and users who can manage security products for the\nrepository can use this endpoint. OAuth app tokens and personal access tokens\n(classic) require the `repo` scope for both public and private repositories.\nGitHub App tokens and fine-grained personal access tokens require repository\nAdministration read permission. Workflow `GITHUB_TOKEN` access is not supported.",
+        "tags": [
+          "dependabot"
+        ],
+        "operationId": "dependabot/get-repository-runner-settings",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/dependabot/runner-settings#get-repository-dependabot-runner-settings"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dependabot-runner-settings"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/dependabot-runner-settings"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "dependabot",
+          "subcategory": "runner-settings"
+        }
+      },
+      "put": {
+        "summary": "Set repository Dependabot runner settings",
+        "description": "Sets the runner Dependabot uses for this repository. This is the same setting\nas on the repository's code security settings page.\n\n`labeled` turns on labeled runners with exactly one runner label and an optional\nrunner group. `standard` turns them off and clears the label and group.\n\nLabeled runners are only available for private and internal repositories with\nGitHub Actions enabled. The response returns the settings after the change.\n\nRepository administrators and users who can manage security products for the\nrepository can use this endpoint, subject to enterprise policy. OAuth app tokens\nand personal access tokens (classic) require the `repo` scope. GitHub App tokens\nand fine-grained personal access tokens require repository Administration write\npermission. Workflow `GITHUB_TOKEN` access is not supported.",
+        "tags": [
+          "dependabot"
+        ],
+        "operationId": "dependabot/set-repository-runner-settings",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/dependabot/runner-settings#set-repository-dependabot-runner-settings"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/owner"
+          },
+          {
+            "$ref": "#/components/parameters/repo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dependabot-runner-settings-update"
+              },
+              "examples": {
+                "default": {
+                  "$ref": "#/components/examples/dependabot-runner-settings-update"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dependabot-runner-settings"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/dependabot-runner-settings"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/bad_request"
+          },
+          "401": {
+            "$ref": "#/components/responses/requires_authentication"
+          },
+          "403": {
+            "$ref": "#/components/responses/forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": true,
+          "category": "dependabot",
+          "subcategory": "runner-settings"
         }
       }
     },
@@ -155861,6 +155988,93 @@
             "example": "org_actors",
             "description": "Who can edit the values of the property"
           },
+          "regex": {
+            "type": "string",
+            "nullable": true,
+            "description": "A regular expression (RE2 syntax) that values of the property must match.\nOnly present for properties with a `value_type` of `string` that define a regular expression.",
+            "example": "^[a-z0-9-]+$"
+          },
+          "require_explicit_values": {
+            "type": "boolean",
+            "description": "Whether setting properties values is mandatory"
+          }
+        },
+        "required": [
+          "property_name",
+          "value_type"
+        ]
+      },
+      "custom-property-batch-item-payload": {
+        "title": "Custom Property Batch Item Payload",
+        "description": "Payload for a single custom property definition when creating or updating custom properties in a batch",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "property_name": {
+            "type": "string",
+            "description": "The name of the property"
+          },
+          "value_type": {
+            "type": "string",
+            "example": "single_select",
+            "enum": [
+              "string",
+              "single_select",
+              "multi_select",
+              "true_false",
+              "url"
+            ],
+            "description": "The type of the value for the property"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the property is required."
+          },
+          "default_value": {
+            "oneOf": [
+              {
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
+            "nullable": true,
+            "description": "Default value of the property"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Short description of the property"
+          },
+          "allowed_values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "An ordered list of the allowed values of the property.\nThe property can have up to 200 allowed values."
+          },
+          "values_editable_by": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "org_actors",
+              "org_and_repo_actors"
+            ],
+            "example": "org_actors",
+            "description": "Who can edit the values of the property"
+          },
+          "regex": {
+            "type": "string",
+            "nullable": true,
+            "description": "A regular expression (RE2 syntax) that values of the property must match.\nOnly supported for properties with a `value_type` of `string`.",
+            "example": "^[a-z0-9-]+$"
+          },
           "require_explicit_values": {
             "type": "boolean",
             "description": "Whether setting properties values is mandatory"
@@ -155930,6 +156144,12 @@
             ],
             "example": "org_actors",
             "description": "Who can edit the values of the property"
+          },
+          "regex": {
+            "type": "string",
+            "nullable": true,
+            "description": "A regular expression (RE2 syntax) that values of the property must match.\nOnly supported for properties with a `value_type` of `string`.",
+            "example": "^[a-z0-9-]+$"
           },
           "require_explicit_values": {
             "type": "boolean",
@@ -168981,6 +169201,71 @@
           "fixed_at"
         ],
         "additionalProperties": false
+      },
+      "dependabot-runner-settings": {
+        "title": "Dependabot runner settings",
+        "description": "The runner Dependabot uses for this repository, as shown in the repository settings.",
+        "type": "object",
+        "required": [
+          "runner_type",
+          "runner_labels",
+          "runner_group"
+        ],
+        "properties": {
+          "runner_type": {
+            "description": "`labeled` when Dependabot runs on labeled runners. Otherwise `standard`.",
+            "type": "string",
+            "enum": [
+              "standard",
+              "labeled"
+            ]
+          },
+          "runner_labels": {
+            "description": "Runner labels Dependabot uses. Empty for `standard`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "runner_group": {
+            "description": "Runner group Dependabot uses, or `null` for no group.",
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "dependabot-runner-settings-update": {
+        "title": "Dependabot runner settings update",
+        "description": "The runner Dependabot uses for this repository. `standard` accepts only `runner_type`.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "runner_type"
+        ],
+        "properties": {
+          "runner_type": {
+            "description": "`labeled` for labeled runners, `standard` for standard GitHub-hosted runners.",
+            "type": "string",
+            "enum": [
+              "standard",
+              "labeled"
+            ]
+          },
+          "runner_labels": {
+            "description": "Required for `labeled`. Exactly one non-blank runner label. Not allowed for `standard`.",
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "runner_group": {
+            "description": "Optional for `labeled`. Omitted, `null` or blank means no group. Not allowed for `standard`.",
+            "type": "string",
+            "nullable": true
+          }
+        }
       },
       "dependabot-secret": {
         "title": "Dependabot Secret",
@@ -351065,6 +351350,26 @@
           "dismissed_comment": "This alert is accurate but we use a sanitizer.",
           "fixed_at": null,
           "assignees": []
+        }
+      },
+      "dependabot-runner-settings": {
+        "summary": "Labeled runner with a runner group",
+        "value": {
+          "runner_type": "labeled",
+          "runner_labels": [
+            "dependabot"
+          ],
+          "runner_group": "dependabot-runners"
+        }
+      },
+      "dependabot-runner-settings-update": {
+        "summary": "Select labeled runners in a runner group",
+        "value": {
+          "runner_type": "labeled",
+          "runner_labels": [
+            "dependabot"
+          ],
+          "runner_group": "dependabot-runners"
         }
       },
       "dependabot-secret-paginated": {
