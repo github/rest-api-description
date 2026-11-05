@@ -8545,7 +8545,7 @@ paths:
                   type: array
                   description: The array of custom properties to create or update.
                   items:
-                    "$ref": "#/components/schemas/custom-property"
+                    "$ref": "#/components/schemas/custom-property-batch-item-payload"
                   minItems: 1
                   maxItems: 100
               required:
@@ -22689,7 +22689,7 @@ paths:
                   type: array
                   description: The array of custom properties to create or update.
                   items:
-                    "$ref": "#/components/schemas/custom-property"
+                    "$ref": "#/components/schemas/custom-property-batch-item-payload"
                   minItems: 1
                   maxItems: 100
               required:
@@ -81627,6 +81627,89 @@ components:
           description: Who can edit the values of the property
           examples:
           - org_actors
+        regex:
+          type:
+          - string
+          - 'null'
+          description: |-
+            A regular expression (RE2 syntax) that values of the property must match.
+            Only present for properties with a `value_type` of `string` that define a regular expression.
+          examples:
+          - "^[a-z0-9-]+$"
+      required:
+      - property_name
+      - value_type
+    custom-property-batch-item-payload:
+      title: Custom Property Batch Item Payload
+      description: Payload for a single custom property definition when creating or
+        updating custom properties in a batch
+      type: object
+      additionalProperties: false
+      properties:
+        property_name:
+          type: string
+          description: The name of the property
+        value_type:
+          type: string
+          enum:
+          - string
+          - single_select
+          - multi_select
+          - true_false
+          - url
+          description: The type of the value for the property
+          examples:
+          - single_select
+        required:
+          type: boolean
+          description: Whether the property is required.
+        default_value:
+          oneOf:
+          - type:
+            - string
+            - 'null'
+          - type: array
+            items:
+              type: string
+          description: Default value of the property
+          type:
+          - 'null'
+          - string
+          - array
+        description:
+          type:
+          - string
+          - 'null'
+          description: Short description of the property
+        allowed_values:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+          description: |-
+            An ordered list of the allowed values of the property.
+            The property can have up to 200 allowed values.
+        values_editable_by:
+          type:
+          - string
+          - 'null'
+          enum:
+          - org_actors
+          - org_and_repo_actors
+          -
+          description: Who can edit the values of the property
+          examples:
+          - org_actors
+        regex:
+          type:
+          - string
+          - 'null'
+          description: |-
+            A regular expression (RE2 syntax) that values of the property must match.
+            Only supported for properties with a `value_type` of `string`.
+          examples:
+          - "^[a-z0-9-]+$"
       required:
       - property_name
       - value_type
@@ -81687,6 +81770,15 @@ components:
           description: Who can edit the values of the property
           examples:
           - org_actors
+        regex:
+          type:
+          - string
+          - 'null'
+          description: |-
+            A regular expression (RE2 syntax) that values of the property must match.
+            Only supported for properties with a `value_type` of `string`.
+          examples:
+          - "^[a-z0-9-]+$"
       required:
       - value_type
     ruleset-version:
