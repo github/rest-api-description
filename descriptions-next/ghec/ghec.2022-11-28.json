@@ -66520,7 +66520,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/organization-create-issue-type"
+                "$ref": "#/components/schemas/issue-type-request"
               },
               "examples": {
                 "default": {
@@ -66591,7 +66591,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/organization-update-issue-type"
+                "$ref": "#/components/schemas/issue-type-request"
               },
               "examples": {
                 "default": {
@@ -73279,7 +73279,7 @@
                   },
                   "use_squash_pr_title_as_default": {
                     "type": "boolean",
-                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.",
+                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.**",
                     "default": false,
                     "deprecated": true
                   },
@@ -77887,7 +77887,7 @@
                   },
                   "use_squash_pr_title_as_default": {
                     "type": "boolean",
-                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.",
+                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.**",
                     "default": false,
                     "deprecated": true
                   },
@@ -128019,6 +128019,212 @@
           "enabledForGitHubApps": false,
           "category": "interactions",
           "subcategory": "user"
+        }
+      }
+    },
+    "/user/issue-types": {
+      "get": {
+        "summary": "List issue types",
+        "description": "Lists all issue types for the authenticated user. OAuth app tokens and personal access tokens (classic) need the `read:user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/list-issue-types-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/users/issue-types#list-issue-types"
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/issue-type"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-type-items"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      },
+      "post": {
+        "summary": "Create an issue type",
+        "description": "Creates a new issue type for the authenticated user's personal account.\n\nOAuth app tokens and personal access tokens (classic) need the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/create-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/users/issue-types#create-an-issue-type"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/issue-type-request"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Epic",
+                    "description": "An issue type for a multi-week tracking of work",
+                    "is_enabled": true,
+                    "color": "green"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/issue-type"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-type"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      }
+    },
+    "/user/issue-types/{issue_type_id}": {
+      "put": {
+        "summary": "Update an issue type",
+        "description": "Updates an issue type for the authenticated user.\n\nThe authenticated user must own the issue type. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/update-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/users/issue-types#update-an-issue-type"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/issue-type-id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/issue-type-request"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Epic",
+                    "description": "An issue type for a multi-week tracking of work",
+                    "is_enabled": true,
+                    "color": "green"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/issue-type"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-type"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      },
+      "delete": {
+        "summary": "Delete an issue type",
+        "description": "Deletes an issue type for the authenticated user.\n\nThe authenticated user must own the issue type. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/delete-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/enterprise-cloud@latest/rest/users/issue-types#delete-an-issue-type"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/issue-type-id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
         }
       }
     },
@@ -189020,7 +189226,7 @@
           }
         }
       },
-      "organization-create-issue-type": {
+      "issue-type-request": {
         "type": "object",
         "properties": {
           "name": {
@@ -189028,49 +189234,7 @@
             "type": "string"
           },
           "is_enabled": {
-            "description": "Whether or not the issue type is enabled at the organization level.",
-            "type": "boolean"
-          },
-          "description": {
-            "description": "Description of the issue type.",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "color": {
-            "description": "Color for the issue type.",
-            "type": [
-              "string",
-              "null"
-            ],
-            "enum": [
-              "gray",
-              "blue",
-              "green",
-              "yellow",
-              "orange",
-              "red",
-              "pink",
-              "purple",
-              null
-            ]
-          }
-        },
-        "required": [
-          "name",
-          "is_enabled"
-        ]
-      },
-      "organization-update-issue-type": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "Name of the issue type.",
-            "type": "string"
-          },
-          "is_enabled": {
-            "description": "Whether or not the issue type is enabled at the organization level.",
+            "description": "Whether or not the issue type is enabled.",
             "type": "boolean"
           },
           "description": {

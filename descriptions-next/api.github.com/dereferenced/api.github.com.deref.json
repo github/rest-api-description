@@ -207048,7 +207048,7 @@
                     "type": "string"
                   },
                   "is_enabled": {
-                    "description": "Whether or not the issue type is enabled at the organization level.",
+                    "description": "Whether or not the issue type is enabled.",
                     "type": "boolean"
                   },
                   "description": {
@@ -207291,7 +207291,7 @@
                     "type": "string"
                   },
                   "is_enabled": {
-                    "description": "Whether or not the issue type is enabled at the organization level.",
+                    "description": "Whether or not the issue type is enabled.",
                     "type": "boolean"
                   },
                   "description": {
@@ -278123,7 +278123,7 @@
                   },
                   "use_squash_pr_title_as_default": {
                     "type": "boolean",
-                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.",
+                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.**",
                     "default": false,
                     "deprecated": true
                   },
@@ -318702,7 +318702,7 @@
                   },
                   "use_squash_pr_title_as_default": {
                     "type": "boolean",
-                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.",
+                    "description": "Either `true` to allow squash-merge commits to use pull request title, or `false` to use commit message. **This property is closing down. Please use `squash_merge_commit_title` instead.**",
                     "default": false,
                     "deprecated": true
                   },
@@ -877908,6 +877908,698 @@
           "enabledForGitHubApps": false,
           "category": "interactions",
           "subcategory": "user"
+        }
+      }
+    },
+    "/user/issue-types": {
+      "get": {
+        "summary": "List issue types",
+        "description": "Lists all issue types for the authenticated user. OAuth app tokens and personal access tokens (classic) need the `read:user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/list-issue-types-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-types#list-issue-types"
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "title": "Issue Type",
+                    "description": "The type assigned to the issue. This is only present for issues in repositories where issue types are supported.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "The unique identifier of the issue type."
+                      },
+                      "node_id": {
+                        "type": "string",
+                        "description": "The node identifier of the issue type."
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the issue type."
+                      },
+                      "description": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The description of the issue type."
+                      },
+                      "color": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The color of the issue type.",
+                        "enum": [
+                          "gray",
+                          "blue",
+                          "green",
+                          "yellow",
+                          "orange",
+                          "red",
+                          "pink",
+                          "purple",
+                          null
+                        ]
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "description": "The time the issue type created.",
+                        "format": "date-time"
+                      },
+                      "updated_at": {
+                        "type": "string",
+                        "description": "The time the issue type last updated.",
+                        "format": "date-time"
+                      },
+                      "is_enabled": {
+                        "type": "boolean",
+                        "description": "The enabled state of the issue type."
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "node_id",
+                      "name",
+                      "description"
+                    ]
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "value": [
+                      {
+                        "id": 410,
+                        "node_id": "IT_kwDNAd3NAZo",
+                        "name": "Task",
+                        "description": "A specific piece of work",
+                        "created_at": "2024-12-11T14:39:09Z",
+                        "updated_at": "2024-12-11T14:39:09Z"
+                      },
+                      {
+                        "id": 411,
+                        "node_id": "IT_kwDNAd3NAZs",
+                        "name": "Bug",
+                        "description": "An unexpected problem or behavior",
+                        "created_at": "2024-12-11T14:39:09Z",
+                        "updated_at": "2024-12-11T14:39:09Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      },
+      "post": {
+        "summary": "Create an issue type",
+        "description": "Creates a new issue type for the authenticated user's personal account.\n\nOAuth app tokens and personal access tokens (classic) need the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/create-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-types#create-an-issue-type"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Name of the issue type.",
+                    "type": "string"
+                  },
+                  "is_enabled": {
+                    "description": "Whether or not the issue type is enabled.",
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "description": "Description of the issue type.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "color": {
+                    "description": "Color for the issue type.",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "gray",
+                      "blue",
+                      "green",
+                      "yellow",
+                      "orange",
+                      "red",
+                      "pink",
+                      "purple",
+                      null
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "is_enabled"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Epic",
+                    "description": "An issue type for a multi-week tracking of work",
+                    "is_enabled": true,
+                    "color": "green"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Issue Type",
+                  "description": "The type assigned to the issue. This is only present for issues in repositories where issue types are supported.",
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the issue type."
+                    },
+                    "node_id": {
+                      "type": "string",
+                      "description": "The node identifier of the issue type."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the issue type."
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The description of the issue type."
+                    },
+                    "color": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The color of the issue type.",
+                      "enum": [
+                        "gray",
+                        "blue",
+                        "green",
+                        "yellow",
+                        "orange",
+                        "red",
+                        "pink",
+                        "purple",
+                        null
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "The time the issue type created.",
+                      "format": "date-time"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "description": "The time the issue type last updated.",
+                      "format": "date-time"
+                    },
+                    "is_enabled": {
+                      "type": "boolean",
+                      "description": "The enabled state of the issue type."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "node_id",
+                    "name",
+                    "description"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 410,
+                      "node_id": "IT_kwDNAd3NAZo",
+                      "name": "Task",
+                      "description": "A specific piece of work",
+                      "created_at": "2024-12-11T14:39:09Z",
+                      "updated_at": "2024-12-11T14:39:09Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      }
+    },
+    "/user/issue-types/{issue_type_id}": {
+      "put": {
+        "summary": "Update an issue type",
+        "description": "Updates an issue type for the authenticated user.\n\nThe authenticated user must own the issue type. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/update-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-types#update-an-issue-type"
+        },
+        "parameters": [
+          {
+            "name": "issue_type_id",
+            "description": "The unique identifier of the issue type.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Name of the issue type.",
+                    "type": "string"
+                  },
+                  "is_enabled": {
+                    "description": "Whether or not the issue type is enabled.",
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "description": "Description of the issue type.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "color": {
+                    "description": "Color for the issue type.",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "gray",
+                      "blue",
+                      "green",
+                      "yellow",
+                      "orange",
+                      "red",
+                      "pink",
+                      "purple",
+                      null
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "is_enabled"
+                ]
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Epic",
+                    "description": "An issue type for a multi-week tracking of work",
+                    "is_enabled": true,
+                    "color": "green"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Issue Type",
+                  "description": "The type assigned to the issue. This is only present for issues in repositories where issue types are supported.",
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "The unique identifier of the issue type."
+                    },
+                    "node_id": {
+                      "type": "string",
+                      "description": "The node identifier of the issue type."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the issue type."
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The description of the issue type."
+                    },
+                    "color": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "The color of the issue type.",
+                      "enum": [
+                        "gray",
+                        "blue",
+                        "green",
+                        "yellow",
+                        "orange",
+                        "red",
+                        "pink",
+                        "purple",
+                        null
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "The time the issue type created.",
+                      "format": "date-time"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "description": "The time the issue type last updated.",
+                      "format": "date-time"
+                    },
+                    "is_enabled": {
+                      "type": "boolean",
+                      "description": "The enabled state of the issue type."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "node_id",
+                    "name",
+                    "description"
+                  ]
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": 410,
+                      "node_id": "IT_kwDNAd3NAZo",
+                      "name": "Task",
+                      "description": "A specific piece of work",
+                      "created_at": "2024-12-11T14:39:09Z",
+                      "updated_at": "2024-12-11T14:39:09Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
+        }
+      },
+      "delete": {
+        "summary": "Delete an issue type",
+        "description": "Deletes an issue type for the authenticated user.\n\nThe authenticated user must own the issue type. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/delete-issue-type-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-types#delete-an-issue-type"
+        },
+        "parameters": [
+          {
+            "name": "issue_type_id",
+            "description": "The unique identifier of the issue type.",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Response"
+          },
+          "422": {
+            "description": "Validation failed, or the endpoint has been spammed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Validation Error Simple",
+                  "description": "Validation Error Simple",
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "documentation_url"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Basic Error",
+                  "description": "Basic Error",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-types"
         }
       }
     },
