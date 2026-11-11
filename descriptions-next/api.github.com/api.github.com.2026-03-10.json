@@ -82266,7 +82266,7 @@
           },
           {
             "name": "issue_field_values",
-            "description": "A comma-separated list of issue field filters in `field_slug:value` format.\nOnly issues matching all specified field values are returned.\nRequires issue fields to be enabled for the repository. Issue fields are\nnot available for user-owned repositories, and field availability for\norganization-owned public repositories depends on the organization's\nvisibility settings. For example, `priority:Urgent,severity:High` filters\nissues where the `priority` field is `Urgent` AND the `severity` field is\n`High`.",
+            "description": "A comma-separated list of issue field filters in `field_slug:value` format.\nOnly issues matching all specified field values are returned.\nRequires issue fields to be enabled for the repository. Supports both\nuser-owned and organization-owned repositories. Field availability depends\non the owner's issue field visibility settings and the caller's access.\nFor example, `priority:Urgent,severity:High` filters\nissues where the `priority` field is `Urgent` AND the `severity` field is\n`High`.",
             "in": "query",
             "required": false,
             "schema": {
@@ -82445,7 +82445,7 @@
                   },
                   "issue_field_values": {
                     "type": "array",
-                    "description": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Issue fields are only available for organization-owned repositories with the feature enabled. Field values are silently dropped otherwise.",
+                    "description": "An array of issue field values to set on this issue. Each field value must include the field ID and the value to set. Issue fields must be enabled for the repository owner. Field values are silently dropped otherwise.",
                     "items": {
                       "type": "object",
                       "properties": {
@@ -85485,7 +85485,7 @@
       },
       "post": {
         "summary": "Add issue field values to an issue",
-        "description": "Add custom field values to an issue. You can set values for organization-level issue fields that have been defined for the repository's organization.\nAdding an empty array will clear all existing field values for the issue.\n\nThis endpoint supports the following field data types:\n- **`text`**: String values for text fields\n- **`single_select`**: Option names for single-select fields (must match an existing option name)\n- **`number`**: Numeric values for number fields\n- **`date`**: ISO 8601 date strings for date fields\n\nOnly users with push access to the repository can add issue field values. If you don't have the proper permissions, you'll receive a `403 Forbidden` response.\n\nThis endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\"\nand \"[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api).\"",
+        "description": "Add custom field values to an issue. You can set values for issue fields that have been defined for the repository's owner.\nAdding an empty array will clear all existing field values for the issue.\n\nThis endpoint supports the following field data types:\n- **`text`**: String values for text fields\n- **`single_select`**: Option names for single-select fields (must match an existing option name)\n- **`number`**: Numeric values for number fields\n- **`date`**: ISO 8601 date strings for date fields\n\nOnly users with push access to the repository can add issue field values. If you don't have the proper permissions, you'll receive a `403 Forbidden` response.\n\nThis endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\"\nand \"[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api).\"",
         "tags": [
           "issues"
         ],
@@ -85640,7 +85640,7 @@
       },
       "put": {
         "summary": "Set issue field values for an issue",
-        "description": "Set custom field values for an issue, replacing any existing values. You can set values for organization-level issue fields that have been defined for the repository's organization.\n\nThis endpoint supports the following field data types:\n- **`text`**: String values for text fields\n- **`single_select`**: Option names for single-select fields (must match an existing option name)\n- **`number`**: Numeric values for number fields\n- **`date`**: ISO 8601 date strings for date fields\n\nThis operation will replace all existing field values with the provided ones. If you want to add field values without replacing existing ones, use the `POST` endpoint instead.\n\nOnly users with push access to the repository can set issue field values. If you don't have the proper permissions, you'll receive a `403 Forbidden` response.\n\nThis endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\"\nand \"[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api).\"",
+        "description": "Set custom field values for an issue, replacing any existing values. You can set values for issue fields that have been defined for the repository's owner.\n\nThis endpoint supports the following field data types:\n- **`text`**: String values for text fields\n- **`single_select`**: Option names for single-select fields (must match an existing option name)\n- **`number`**: Numeric values for number fields\n- **`date`**: ISO 8601 date strings for date fields\n\nThis operation will replace all existing field values with the provided ones. If you want to add field values without replacing existing ones, use the `POST` endpoint instead.\n\nOnly users with push access to the repository can set issue field values. If you don't have the proper permissions, you'll receive a `403 Forbidden` response.\n\nThis endpoint triggers [notifications](https://docs.github.com/github/managing-subscriptions-and-notifications-on-github/about-notifications). Creating content too quickly using this endpoint may result in secondary rate limiting. For more information, see \"[Rate limits for the API](https://docs.github.com/rest/using-the-rest-api/rate-limits-for-the-rest-api#about-secondary-rate-limits)\"\nand \"[Best practices for using the REST API](https://docs.github.com/rest/guides/best-practices-for-using-the-rest-api).\"",
         "tags": [
           "issues"
         ],
@@ -105086,6 +105086,267 @@
           "enabledForGitHubApps": false,
           "category": "interactions",
           "subcategory": "user"
+        }
+      }
+    },
+    "/user/issue-fields": {
+      "get": {
+        "summary": "List issue fields",
+        "description": "Lists all issue fields for the authenticated user. OAuth app tokens and personal access tokens (classic) need the `read:user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/list-issue-fields-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-fields#list-issue-fields"
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/user-issue-field"
+                  }
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-field-items"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-fields"
+        }
+      },
+      "post": {
+        "summary": "Create an issue field",
+        "description": "Creates a new issue field for the authenticated user's personal account.\n\nOAuth app tokens and personal access tokens (classic) need the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/create-issue-field-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-fields#create-an-issue-field"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/user-create-issue-field"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "name": "Priority",
+                    "description": "Level of importance for the issue",
+                    "data_type": "single_select",
+                    "visibility": "restricted",
+                    "options": [
+                      {
+                        "name": "High",
+                        "description": "High priority",
+                        "color": "red",
+                        "priority": 1
+                      },
+                      {
+                        "name": "Medium",
+                        "description": "Medium priority",
+                        "color": "yellow",
+                        "priority": 2
+                      },
+                      {
+                        "name": "Low",
+                        "description": "Low priority",
+                        "color": "green",
+                        "priority": 3
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user-issue-field"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-field"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-fields"
+        }
+      }
+    },
+    "/user/issue-fields/{issue_field_id}": {
+      "patch": {
+        "summary": "Update an issue field",
+        "description": "Updates an issue field for the authenticated user.\n\nThe authenticated user must own the issue field. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/update-issue-field-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-fields#update-an-issue-field"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/issue-field-id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/user-update-issue-field"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Update name and description",
+                  "description": "Update the name and description of an issue field",
+                  "value": {
+                    "name": "Priority",
+                    "description": "Level of importance for the issue"
+                  }
+                },
+                "update-single-select-options": {
+                  "summary": "Update single select options",
+                  "description": "Update the options for a single select issue field",
+                  "value": {
+                    "name": "Status",
+                    "description": "Current status of the issue",
+                    "options": [
+                      {
+                        "name": "Backlog",
+                        "description": "Items waiting to be prioritized",
+                        "color": "gray",
+                        "priority": 1
+                      },
+                      {
+                        "name": "In Progress",
+                        "description": "Currently being worked on",
+                        "color": "blue",
+                        "priority": 2
+                      },
+                      {
+                        "name": "Done",
+                        "description": "Completed work",
+                        "color": "green",
+                        "priority": 3
+                      }
+                    ]
+                  }
+                },
+                "update-name-only": {
+                  "summary": "Update name only",
+                  "description": "Update only the name of an issue field",
+                  "value": {
+                    "name": "Updated Field Name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user-issue-field"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/issue-field"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-fields"
+        }
+      },
+      "delete": {
+        "summary": "Delete an issue field",
+        "description": "Deletes an issue field for the authenticated user.\n\nThe authenticated user must own the issue field. OAuth app tokens and personal access tokens (classic)\nneed the `user` scope to use this endpoint.",
+        "tags": [
+          "users"
+        ],
+        "operationId": "users/delete-issue-field-for-authenticated-user",
+        "externalDocs": {
+          "description": "API method documentation",
+          "url": "https://docs.github.com/rest/users/issue-fields#delete-an-issue-field"
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/issue-field-id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/no_content"
+          },
+          "404": {
+            "$ref": "#/components/responses/not_found"
+          },
+          "422": {
+            "$ref": "#/components/responses/validation_failed_simple"
+          }
+        },
+        "x-github": {
+          "githubCloudOnly": false,
+          "enabledForGitHubApps": false,
+          "category": "users",
+          "subcategory": "issue-fields"
         }
       }
     },
@@ -154572,7 +154833,7 @@
       },
       "issue-field": {
         "title": "Issue Field",
-        "description": "A custom attribute defined at the organization level for attaching structured data to issues.",
+        "description": "A custom attribute defined by a repository owner for attaching structured data to issues.",
         "type": [
           "object",
           "null"
@@ -154610,10 +154871,11 @@
           },
           "visibility": {
             "type": "string",
-            "description": "The visibility of the issue field. Can be `organization_members_only` (visible only within the organization) or `all` (visible to all users who can see issues).",
+            "description": "The visibility of the issue field. Organization-owned fields return `organization_members_only` for restricted visibility (visible to organization members and to collaborators on the repository the field is read through), or `all` (visible to all users who can see issues). For create and update requests, use `restricted` instead of the deprecated `organization_members_only` input. Existing REST API versions continue to return `organization_members_only` for restricted organization-owned fields, even when a request uses `restricted`. Any change to this response spelling will be introduced in a future REST API version.",
             "enum": [
               "organization_members_only",
-              "all"
+              "all",
+              "restricted"
             ]
           },
           "options": {
@@ -154726,11 +154988,12 @@
             ]
           },
           "visibility": {
-            "description": "The visibility of the issue field. Can be `organization_members_only` (visible only within the organization) or `all` (visible to all users who can see issues). Only used when the visibility settings feature is enabled. Defaults to `organization_members_only`.",
+            "description": "The visibility of the issue field. Can be `restricted` (visible to organization members and to collaborators on the repository the field is read through) or `all` (visible to all users who can see issues). `organization_members_only` is deprecated. Use `restricted` instead. Removal will be announced for a future REST API version; existing REST API versions will continue to support this value. Only used when the visibility settings feature is enabled. Defaults to `organization_members_only`.",
             "type": "string",
             "enum": [
               "organization_members_only",
-              "all"
+              "all",
+              "restricted"
             ]
           },
           "options": {
@@ -154800,11 +155063,12 @@
             ]
           },
           "visibility": {
-            "description": "The visibility of the issue field. Can be `organization_members_only` (visible only within the organization) or `all` (visible to all users who can see issues). Only used when the visibility settings feature is enabled.",
+            "description": "The visibility of the issue field. Can be `restricted` (visible to organization members and to collaborators on the repository the field is read through) or `all` (visible to all users who can see issues). `organization_members_only` is deprecated. Use `restricted` instead. Removal will be announced for a future REST API version; existing REST API versions will continue to support this value. Only used when the visibility settings feature is enabled.",
             "type": "string",
             "enum": [
               "organization_members_only",
-              "all"
+              "all",
+              "restricted"
             ]
           },
           "options": {
@@ -184911,6 +185175,292 @@
           "subkeys",
           "revoked"
         ]
+      },
+      "user-issue-field": {
+        "title": "User Issue Field",
+        "description": "A custom attribute defined by a personal account for attaching structured data to issues.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The unique identifier of the issue field."
+          },
+          "node_id": {
+            "type": "string",
+            "description": "The node identifier of the issue field."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the issue field."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The description of the issue field."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "The data type of the issue field.",
+            "enum": [
+              "text",
+              "date",
+              "single_select",
+              "multi_select",
+              "number"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "description": "The visibility of the issue field. Can be `restricted` (visible only to the owner and to collaborators on the repository the field is read through) or `all` (visible to all users who can see issues).",
+            "enum": [
+              "restricted",
+              "all"
+            ]
+          },
+          "options": {
+            "description": "Available options for single select and multi select fields.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "The unique identifier of the option."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The name of the option."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The description of the option."
+                },
+                "color": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The color of the option.",
+                  "enum": [
+                    "gray",
+                    "blue",
+                    "green",
+                    "yellow",
+                    "orange",
+                    "red",
+                    "pink",
+                    "purple",
+                    null
+                  ]
+                },
+                "priority": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "The priority of the option for ordering."
+                },
+                "created_at": {
+                  "type": "string",
+                  "description": "The time the option was created.",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "description": "The time the option was last updated.",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "description": "The time the issue field was created.",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "The time the issue field was updated.",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "node_id",
+          "name",
+          "data_type"
+        ]
+      },
+      "user-create-issue-field": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Name of the issue field.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Description of the issue field.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "data_type": {
+            "description": "The data type of the issue field.",
+            "type": "string",
+            "enum": [
+              "text",
+              "date",
+              "single_select",
+              "multi_select",
+              "number"
+            ]
+          },
+          "visibility": {
+            "description": "The visibility of the issue field. Can be `restricted` (visible only to the owner and to collaborators on the repository the field is read through) or `all` (visible to all users who can see issues). Defaults to `restricted`.",
+            "type": "string",
+            "enum": [
+              "restricted",
+              "all"
+            ]
+          },
+          "options": {
+            "description": "Options for select fields. Required when data_type is 'single_select' or 'multi_select'.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "Name of the option.",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "Description of the option.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "color": {
+                  "description": "Color for the option.",
+                  "type": "string",
+                  "enum": [
+                    "gray",
+                    "blue",
+                    "green",
+                    "yellow",
+                    "orange",
+                    "red",
+                    "pink",
+                    "purple"
+                  ]
+                },
+                "priority": {
+                  "description": "Priority of the option for ordering.",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "color",
+                "priority"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "data_type"
+        ]
+      },
+      "user-update-issue-field": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Name of the issue field.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Description of the issue field.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "visibility": {
+            "description": "The visibility of the issue field. Can be `restricted` (visible only to the owner and to collaborators on the repository the field is read through) or `all` (visible to all users who can see issues).",
+            "type": "string",
+            "enum": [
+              "restricted",
+              "all"
+            ]
+          },
+          "options": {
+            "description": "Options for select fields. Only applicable when updating single_select or multi_select fields. When provided, this array **replaces** the entire existing set of options rather than adding to or updating individual options. To retain or update an existing option, include it in the array with its `id`. Options sent without an `id` are treated as new options and may cause existing options to be deleted and recreated.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "The id of an existing option to retain or update. Omit this when creating a new option.",
+                  "type": "integer"
+                },
+                "name": {
+                  "description": "Name of the option.",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "Description of the option.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "color": {
+                  "description": "Color for the option.",
+                  "type": "string",
+                  "enum": [
+                    "gray",
+                    "blue",
+                    "green",
+                    "yellow",
+                    "orange",
+                    "red",
+                    "pink",
+                    "purple"
+                  ]
+                },
+                "priority": {
+                  "description": "Priority of the option for ordering.",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "name",
+                "color",
+                "priority"
+              ]
+            }
+          }
+        }
       },
       "key": {
         "title": "Key",
@@ -367893,7 +368443,7 @@
                 "login": "dtrupenn",
                 "id": 872147,
                 "node_id": "MDQ6VXNlcjg3MjE0Nw==",
-                "avatar_url": "https://secure.gravatar.com/avatar/e7956084e75f239de85d3a31bc172ace?d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-user-420.png",
+                "avatar_url": "https://example.com/avatar/e7956084e75f239de85d3a31bc172ace",
                 "gravatar_id": "",
                 "url": "https://api.github.com/users/dtrupenn",
                 "received_events_url": "https://api.github.com/users/dtrupenn/received_events",
