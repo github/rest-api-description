@@ -94470,6 +94470,76 @@ x-webhooks:
         - repository
         - organization
         - app
+  issues-status-changed:
+    post:
+      summary: |-
+        This event occurs when there is activity relating to an issue. For more information about issues, see "[About issues](https://docs.github.com/issues/tracking-your-work-with-issues/about-issues)." For information about the APIs to manage issues, see [the GraphQL documentation](https://docs.github.com/graphql/reference/objects#issue) or "[Issues](https://docs.github.com/rest/issues)" in the REST API documentation.
+
+        For activity relating to a comment on an issue, use the `issue_comment` event.
+
+        To subscribe to this event, a GitHub App must have at least read-level access for the "Issues" repository permission.
+      description: |-
+        The status of an issue was changed. When the change also closes or reopens the issue, the `closed` or `reopened` action is sent too.
+
+        > [!NOTE]
+        > Issue statuses are in preview and subject to change. They're only available to accounts enrolled in the preview.
+      operationId: issues/status-changed
+      externalDocs:
+        url: https://docs.github.com/webhooks/webhook-events-and-payloads#issues
+      parameters:
+      - name: User-Agent
+        in: header
+        example: GitHub-Hookshot/123abc
+        schema:
+          type: string
+      - name: X-Github-Hook-Id
+        in: header
+        example: 12312312
+        schema:
+          type: string
+      - name: X-Github-Event
+        in: header
+        example: issues
+        schema:
+          type: string
+      - name: X-Github-Hook-Installation-Target-Id
+        in: header
+        example: 123123
+        schema:
+          type: string
+      - name: X-Github-Hook-Installation-Target-Type
+        in: header
+        example: repository
+        schema:
+          type: string
+      - name: X-GitHub-Delivery
+        in: header
+        example: 0b989ba4-242f-11e5-81e1-c7b6966d2516
+        schema:
+          type: string
+      - name: X-Hub-Signature-256
+        in: header
+        example: sha256=6dcb09b5b57875f334f61aebed695e2e4193db5e
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/webhook-issues-status-changed"
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received
+            successfully
+      x-github:
+        githubCloudOnly: false
+        category: webhooks
+        subcategory: issues
+        supported-webhook-types:
+        - repository
+        - organization
+        - app
   issues-transferred:
     post:
       summary: |-
@@ -142464,6 +142534,34 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/issue-field-value"
+        status:
+          title: Planning status
+          description: The status of the issue, or `null` if it has none. Issue statuses
+            are in preview and only available to accounts enrolled in the preview.
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: The stable identifier of the planning status. It does not
+                change when the status is renamed.
+              example: 4
+            name:
+              type: string
+              description: The display name of the planning status, which may change
+                in the future.
+              example: In progress
+            category:
+              type: string
+              description: A stable identifier for the category, such as `backlog`,
+                `planned`, `started`, `completed`, `not_planned` or `duplicate`. Clients
+                should expect new keys to be added.
+              example: started
+          required:
+          - id
+          - name
+          - category
         state:
           description: State of the issue; either 'open' or 'closed'
           type: string
@@ -143476,6 +143574,34 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/issue-field-value"
+        status:
+          title: Planning status
+          description: The status of the issue, or `null` if it has none. Issue statuses
+            are in preview and only available to accounts enrolled in the preview.
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: The stable identifier of the planning status. It does not
+                change when the status is renamed.
+              example: 4
+            name:
+              type: string
+              description: The display name of the planning status, which may change
+                in the future.
+              example: In progress
+            category:
+              type: string
+              description: A stable identifier for the category, such as `backlog`,
+                `planned`, `started`, `completed`, `not_planned` or `duplicate`. Clients
+                should expect new keys to be added.
+              example: started
+          required:
+          - id
+          - name
+          - category
         state:
           description: State of the issue; either 'open' or 'closed'
           type: string
@@ -167986,6 +168112,35 @@ components:
                 type: array
                 items:
                   "$ref": "#/components/schemas/issue-field-value"
+              status:
+                title: Planning status
+                description: The status of the issue, or `null` if it has none. Issue
+                  statuses are in preview and only available to accounts enrolled
+                  in the preview.
+                type: object
+                nullable: true
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    description: The stable identifier of the planning status. It
+                      does not change when the status is renamed.
+                    example: 4
+                  name:
+                    type: string
+                    description: The display name of the planning status, which may
+                      change in the future.
+                    example: In progress
+                  category:
+                    type: string
+                    description: A stable identifier for the category, such as `backlog`,
+                      `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                      Clients should expect new keys to be added.
+                    example: started
+                required:
+                - id
+                - name
+                - category
               state:
                 description: State of the issue; either 'open' or 'closed'
                 type: string
@@ -169051,6 +169206,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -170000,6 +170184,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -170902,6 +171115,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -172131,6 +172373,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -173088,6 +173359,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -174014,6 +174314,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -174920,6 +175249,35 @@ components:
                   type: array
                   items:
                     "$ref": "#/components/schemas/issue-field-value"
+                status:
+                  title: Planning status
+                  description: The status of the issue, or `null` if it has none.
+                    Issue statuses are in preview and only available to accounts enrolled
+                    in the preview.
+                  type: object
+                  nullable: true
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: The stable identifier of the planning status. It
+                        does not change when the status is renamed.
+                      example: 4
+                    name:
+                      type: string
+                      description: The display name of the planning status, which
+                        may change in the future.
+                      example: In progress
+                    category:
+                      type: string
+                      description: A stable identifier for the category, such as `backlog`,
+                        `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                        Clients should expect new keys to be added.
+                      example: started
+                  required:
+                  - id
+                  - name
+                  - category
                 state:
                   description: State of the issue; either 'open' or 'closed'
                   type: string
@@ -176289,6 +176647,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -177280,6 +177667,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
@@ -177386,6 +177802,120 @@ components:
       - issue
       - repository
       - sender
+    webhook-issues-status-changed:
+      title: issues status_changed event
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+          - status_changed
+        changes:
+          description: The changes to the issue. `state` and `state_reason` are only
+            included when the status change also closed or reopened the issue, or
+            changed the reason it was closed.
+          type: object
+          properties:
+            status:
+              type: object
+              properties:
+                from:
+                  title: Planning status
+                  description: The status the issue had before the change, or `null`
+                    if it had none.
+                  type: object
+                  nullable: true
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: The stable identifier of the planning status. It
+                        does not change when the status is renamed.
+                      example: 4
+                    name:
+                      type: string
+                      description: The display name of the planning status, which
+                        may change in the future.
+                      example: In progress
+                    category:
+                      type: string
+                      description: A stable identifier for the category, such as `backlog`,
+                        `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                        Clients should expect new keys to be added.
+                      example: started
+                  required:
+                  - id
+                  - name
+                  - category
+              required:
+              - from
+            state:
+              type: object
+              properties:
+                from:
+                  description: The state of the issue before the change.
+                  type: string
+                  enum:
+                  - open
+                  - closed
+              required:
+              - from
+            state_reason:
+              type: object
+              properties:
+                from:
+                  description: The reason for the state of the issue before the change.
+                  type: string
+                  nullable: true
+              required:
+              - from
+          required:
+          - status
+        enterprise:
+          "$ref": "#/components/schemas/enterprise-webhooks"
+        installation:
+          "$ref": "#/components/schemas/simple-installation"
+        issue:
+          "$ref": "#/components/schemas/webhooks_issue"
+        organization:
+          "$ref": "#/components/schemas/organization-simple-webhooks"
+        repository:
+          "$ref": "#/components/schemas/repository-webhooks"
+        sender:
+          "$ref": "#/components/schemas/simple-user"
+        status:
+          title: Planning status
+          description: The status the issue changed to.
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: The stable identifier of the planning status. It does not
+                change when the status is renamed.
+              example: 4
+            name:
+              type: string
+              description: The display name of the planning status, which may change
+                in the future.
+              example: In progress
+            category:
+              type: string
+              description: A stable identifier for the category, such as `backlog`,
+                `planned`, `started`, `completed`, `not_planned` or `duplicate`. Clients
+                should expect new keys to be added.
+              example: started
+          required:
+          - id
+          - name
+          - category
+      required:
+      - action
+      - changes
+      - issue
+      - repository
+      - sender
+      - status
     webhook-issues-transferred:
       title: issues transferred event
       type: object
@@ -178185,6 +178715,35 @@ components:
                   type: array
                   items:
                     "$ref": "#/components/schemas/issue-field-value"
+                status:
+                  title: Planning status
+                  description: The status of the issue, or `null` if it has none.
+                    Issue statuses are in preview and only available to accounts enrolled
+                    in the preview.
+                  type: object
+                  nullable: true
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: The stable identifier of the planning status. It
+                        does not change when the status is renamed.
+                      example: 4
+                    name:
+                      type: string
+                      description: The display name of the planning status, which
+                        may change in the future.
+                      example: In progress
+                    category:
+                      type: string
+                      description: A stable identifier for the category, such as `backlog`,
+                        `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                        Clients should expect new keys to be added.
+                      example: started
+                  required:
+                  - id
+                  - name
+                  - category
                 state:
                   description: State of the issue; either 'open' or 'closed'
                   type: string
@@ -179706,6 +180265,35 @@ components:
               type: array
               items:
                 "$ref": "#/components/schemas/issue-field-value"
+            status:
+              title: Planning status
+              description: The status of the issue, or `null` if it has none. Issue
+                statuses are in preview and only available to accounts enrolled in
+                the preview.
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: The stable identifier of the planning status. It does
+                    not change when the status is renamed.
+                  example: 4
+                name:
+                  type: string
+                  description: The display name of the planning status, which may
+                    change in the future.
+                  example: In progress
+                category:
+                  type: string
+                  description: A stable identifier for the category, such as `backlog`,
+                    `planned`, `started`, `completed`, `not_planned` or `duplicate`.
+                    Clients should expect new keys to be added.
+                  example: started
+              required:
+              - id
+              - name
+              - category
             state:
               description: State of the issue; either 'open' or 'closed'
               type: string
