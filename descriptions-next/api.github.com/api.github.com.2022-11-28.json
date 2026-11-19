@@ -28536,7 +28536,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For `user` and `multi_user_customer` scopes, this must be `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -28794,7 +28794,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For budgets with `user` or `multi_user_customer` scope, this must remain `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -54193,7 +54193,7 @@
           },
           {
             "name": "type",
-            "description": "Specifies the types of repositories you want returned.",
+            "description": "Specifies the types of repositories you want returned.\n\n- `all`: All repositories the caller can access in the organization.\n- `public`: Public repositories.\n- `private`: Private repositories.\n- `forks`: Repositories that are forks of another repository.\n- `sources`: Repositories that are not forks.\n- `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.\n\nThese filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.\n\nFor more information, see \"[Repository terminology](https://docs.github.com/repositories/creating-and-managing-repositories/about-repositories#repository-terminology).\"",
             "in": "query",
             "required": false,
             "schema": {
@@ -75628,6 +75628,9 @@
           },
           "422": {
             "$ref": "#/components/responses/validation_failed_simple"
+          },
+          "503": {
+            "$ref": "#/components/responses/service_unavailable"
           }
         },
         "x-github": {
@@ -84024,7 +84027,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts": {
       "get": {
         "summary": "List issue artifacts",
-        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
+        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
         "tags": [
           "issues"
         ],
@@ -84299,7 +84302,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts/{artifact_number}": {
       "get": {
         "summary": "Get an issue artifact",
-        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.",
+        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.",
         "tags": [
           "issues"
         ],
@@ -149863,6 +149866,20 @@
                 "description": "The name of the entity to apply the budget to",
                 "examples": [
                   "example-repository-name"
+                ]
+              },
+              "user": {
+                "type": "string",
+                "description": "The user login when the budget is scoped to a single user (`user` scope).",
+                "examples": [
+                  "octocat"
+                ]
+              },
+              "consumed_amount": {
+                "type": "number",
+                "description": "The consumed amount for the specified user within the budget. Only included for `user`-scoped budgets.",
+                "examples": [
+                  42.5
                 ]
               },
               "budget_amount": {
