@@ -10051,8 +10051,9 @@ paths:
   "/enterprise/live-migrations/{migration_id}":
     get:
       summary: Get an Enterprise Live Migration
-      description: Retrieve combined status, progress, cutover readiness, expiration,
-        and timing for an Enterprise Live Migration (ELM) on the current GHES appliance.
+      description: Retrieve combined status, progress, observed source archive state,
+        cutover readiness, expiration, and timing for an Enterprise Live Migration
+        (ELM) on the current GHES appliance.
       externalDocs:
         description: API method documentation
         url: https://docs.github.com/enterprise-server@3.22/rest/enterprise-admin/live-migrations#get-an-enterprise-live-migration
@@ -10091,6 +10092,10 @@ paths:
                         type: string
                       source_repository_name:
                         type: string
+                      source_repository_archived:
+                        type:
+                        - boolean
+                        - 'null'
                       target_repository_name:
                         type: string
                       target_visibility:
@@ -28311,7 +28316,7 @@ paths:
               examples:
                 default:
                   value:
-                  - advancedSecurityEnabled: true
+                    advancedSecurityEnabled: true
                     advancedSecuritySeats: 0
                     clusterSupport: false
                     company: GitHub
@@ -28327,7 +28332,7 @@ paths:
                     referenceNumber: 32a145
                     seats: 0
                     sshAllowed: true
-                    supportKey": ''
+                    supportKey: ''
                     unlimitedSeating: true
         '401':
           description: Unauthorized
@@ -48852,9 +48857,22 @@ paths:
       parameters:
       - *90
       - name: type
-        description: Specifies the types of repositories you want returned. `internal`
-          is not yet supported when a GitHub App calls this endpoint with an installation
-          access token.
+        description: |-
+          Specifies the types of repositories you want returned.
+
+          - `all`: All repositories the caller can access in the organization.
+          - `public`: Public repositories.
+          - `private`: Private repositories.
+          - `forks`: Repositories that are forks of another repository.
+          - `sources`: Repositories that are not forks.
+          - `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.
+          - `internal`: Internal repositories.
+
+          These filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.
+
+          For more information, see "[Repository terminology](https://docs.github.com/enterprise-server@3.22/repositories/creating-and-managing-repositories/about-repositories#repository-terminology)."
+
+          `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.
         in: query
         required: false
         schema:
@@ -74468,6 +74486,7 @@ paths:
         '404': *24
         '409': *124
         '422': *25
+        '503': *116
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -99829,6 +99848,13 @@ paths:
                                 type:
                                 - 'null'
                         sub_issues_summary: *691
+                        parent_issue_url:
+                          description: URL to get the parent issue of this issue,
+                            if it is a sub-issue
+                          type:
+                          - string
+                          - 'null'
+                          format: uri
                         issue_dependencies_summary: *692
                         issue_field_values:
                           type: array
