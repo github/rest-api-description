@@ -49742,9 +49742,22 @@ paths:
       parameters:
       - *90
       - name: type
-        description: Specifies the types of repositories you want returned. `internal`
-          is not yet supported when a GitHub App calls this endpoint with an installation
-          access token.
+        description: |-
+          Specifies the types of repositories you want returned.
+
+          - `all`: All repositories the caller can access in the organization.
+          - `public`: Public repositories.
+          - `private`: Private repositories.
+          - `forks`: Repositories that are forks of another repository.
+          - `sources`: Repositories that are not forks.
+          - `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.
+          - `internal`: Internal repositories.
+
+          These filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.
+
+          For more information, see "[Repository terminology](https://docs.github.com/enterprise-server@3.22/repositories/creating-and-managing-repositories/about-repositories#repository-terminology)."
+
+          `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.
         in: query
         required: false
         schema:
@@ -75596,6 +75609,7 @@ paths:
         '404': *24
         '409': *124
         '422': *25
+        '503': *116
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
