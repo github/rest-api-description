@@ -36276,7 +36276,7 @@
     "/enterprise/live-migrations/{migration_id}": {
       "get": {
         "summary": "Get an Enterprise Live Migration",
-        "description": "Retrieve combined status, progress, cutover readiness, expiration, and timing for an Enterprise Live Migration (ELM) on the current GHES appliance.",
+        "description": "Retrieve combined status, progress, observed source archive state, cutover readiness, expiration, and timing for an Enterprise Live Migration (ELM) on the current GHES appliance.",
         "externalDocs": {
           "description": "API method documentation",
           "url": "https://docs.github.com/enterprise-server@3.21/rest/enterprise-admin/live-migrations#get-an-enterprise-live-migration"
@@ -36327,6 +36327,12 @@
                         },
                         "source_repository_name": {
                           "type": "string"
+                        },
+                        "source_repository_archived": {
+                          "type": [
+                            "boolean",
+                            "null"
+                          ]
                         },
                         "target_repository_name": {
                           "type": "string"
@@ -63659,15 +63665,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -63677,11 +63692,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -63749,7 +63770,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -124755,28 +124777,26 @@
                 },
                 "examples": {
                   "default": {
-                    "value": [
-                      {
-                        "advancedSecurityEnabled": true,
-                        "advancedSecuritySeats": 0,
-                        "clusterSupport": false,
-                        "company": "GitHub",
-                        "croquetSupport": true,
-                        "customTerms": true,
-                        "evaluation": false,
-                        "expireAt": "2025-01-02T07:59:59Z",
-                        "insightsEnabled": true,
-                        "insightsExpireAt": "2025-01-02T07:59:59.999Z",
-                        "learningLabEvaluationExpires": "2023-01-02T07:59:59Z",
-                        "learningLabSeats": 100,
-                        "perpetual": false,
-                        "referenceNumber": "32a145",
-                        "seats": 0,
-                        "sshAllowed": true,
-                        "supportKey\"": "",
-                        "unlimitedSeating": true
-                      }
-                    ]
+                    "value": {
+                      "advancedSecurityEnabled": true,
+                      "advancedSecuritySeats": 0,
+                      "clusterSupport": false,
+                      "company": "GitHub",
+                      "croquetSupport": true,
+                      "customTerms": true,
+                      "evaluation": false,
+                      "expireAt": "2025-01-02T07:59:59Z",
+                      "insightsEnabled": true,
+                      "insightsExpireAt": "2025-01-02T07:59:59.999Z",
+                      "learningLabEvaluationExpires": "2023-01-02T07:59:59Z",
+                      "learningLabSeats": 100,
+                      "perpetual": false,
+                      "referenceNumber": "32a145",
+                      "seats": 0,
+                      "sshAllowed": true,
+                      "supportKey": "",
+                      "unlimitedSeating": true
+                    }
                   }
                 }
               }
@@ -193434,15 +193454,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -193452,11 +193481,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -193524,7 +193559,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -293145,7 +293181,7 @@
           },
           {
             "name": "type",
-            "description": "Specifies the types of repositories you want returned. `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
+            "description": "Specifies the types of repositories you want returned.\n\n- `all`: All repositories the caller can access in the organization.\n- `public`: Public repositories.\n- `private`: Private repositories.\n- `forks`: Repositories that are forks of another repository.\n- `sources`: Repositories that are not forks.\n- `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.\n- `internal`: Internal repositories.\n\nThese filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.\n\nFor more information, see \"[Repository terminology](https://docs.github.com/enterprise-server@3.21/repositories/creating-and-managing-repositories/about-repositories#repository-terminology).\"\n\n`internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
             "in": "query",
             "required": false,
             "schema": {
@@ -450691,6 +450727,27 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -460853,15 +460910,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -460871,11 +460937,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -460943,7 +461015,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -461272,15 +461345,24 @@
                       "description": "The repository the dismissal request is for.",
                       "properties": {
                         "id": {
-                          "type": "integer",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
                           "description": "The ID of the repository the dismissal request is for."
                         },
                         "name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The name of the repository the dismissal request is for."
                         },
                         "full_name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The full name of the repository the dismissal request is for."
                         }
                       }
@@ -461290,11 +461372,17 @@
                       "description": "The organization associated with the repository the dismissal request is for.",
                       "properties": {
                         "id": {
-                          "type": "integer",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
                           "description": "The ID of the organization."
                         },
                         "name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The name of the organization."
                         }
                       }
@@ -461362,7 +461450,8 @@
                         "denied",
                         "approved",
                         "cancelled",
-                        "expired"
+                        "expired",
+                        "deleted"
                       ]
                     },
                     "requester_comment": {
@@ -751571,6 +751660,14 @@
                               "completed",
                               "percent_completed"
                             ]
+                          },
+                          "parent_issue_url": {
+                            "description": "URL to get the parent issue of this issue, if it is a sub-issue",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri"
                           },
                           "issue_dependencies_summary": {
                             "title": "Issue Dependencies Summary",
