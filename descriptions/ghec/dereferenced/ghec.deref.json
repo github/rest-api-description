@@ -79275,7 +79275,7 @@
     "/enterprises/{enterprise}/credentials/exports/{export_id}": {
       "get": {
         "summary": "Get an enterprise token inventory export",
-        "description": "Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.\n\nYou must be an enterprise owner (or hold a role with the \"View enterprise credentials\" permission) to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.",
+        "description": "Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.\n\nA completed export can be downloaded for 5 days. After that this endpoint returns `404`, and you need to request a new export.\n\nYou must be an enterprise owner (or hold a role with the \"View enterprise credentials\" permission) to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.",
         "tags": [
           "enterprise-admin"
         ],
@@ -82824,14 +82824,17 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -82842,10 +82845,12 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the organization."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the organization."
                           }
                         }
@@ -82909,7 +82914,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -114345,7 +114351,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For `user` and `multi_user_customer` scopes, this must be `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -114480,6 +114486,16 @@
                           "type": "string",
                           "description": "The name of the entity to apply the budget to",
                           "example": "example-repository-name"
+                        },
+                        "user": {
+                          "type": "string",
+                          "description": "The user login when the budget is scoped to a single user (`user` scope).",
+                          "example": "octocat"
+                        },
+                        "consumed_amount": {
+                          "type": "number",
+                          "description": "The consumed amount for the specified user within the budget. Only included for `user`-scoped budgets.",
+                          "example": 42.5
                         },
                         "budget_amount": {
                           "type": "integer",
@@ -115203,7 +115219,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For budgets with `user` or `multi_user_customer` scope, this must remain `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -116606,7 +116622,7 @@
                   },
                   "ai_credit_pool_enabled": {
                     "type": "boolean",
-                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
+                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\nIt can't be enabled for enterprises on Copilot pay-as-you-go billing.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
                   }
                 }
               },
@@ -117585,7 +117601,7 @@
                   },
                   "ai_credit_pool_enabled": {
                     "type": "boolean",
-                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
+                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\nIt can't be enabled for enterprises on Copilot pay-as-you-go billing.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
                   }
                 },
                 "anyOf": [
@@ -244542,14 +244558,17 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -244560,10 +244579,12 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the organization."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the organization."
                           }
                         }
@@ -244627,7 +244648,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -328297,7 +328319,7 @@
           },
           {
             "name": "type",
-            "description": "Specifies the types of repositories you want returned. `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
+            "description": "Specifies the types of repositories you want returned.\n\n- `all`: All repositories the caller can access in the organization.\n- `private`: Private repositories.\n- `forks`: Repositories that are forks of another repository.\n- `sources`: Repositories that are not forks.\n- `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.\n- `internal`: Internal repositories.\n\nThese filters can overlap. For example, a fork can be private or internal, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.\n\nFor more information, see \"[Repository terminology](https://docs.github.com/enterprise-cloud@latest/repositories/creating-and-managing-repositories/about-repositories#repository-terminology).\"\n\n`internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
             "in": "query",
             "required": false,
             "schema": {
@@ -497531,6 +497553,27 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -507169,14 +507212,17 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -507187,10 +507233,12 @@
                         "properties": {
                           "id": {
                             "type": "integer",
+                            "nullable": true,
                             "description": "The ID of the organization."
                           },
                           "name": {
                             "type": "string",
+                            "nullable": true,
                             "description": "The name of the organization."
                           }
                         }
@@ -507254,7 +507302,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -507576,14 +507625,17 @@
                       "properties": {
                         "id": {
                           "type": "integer",
+                          "nullable": true,
                           "description": "The ID of the repository the dismissal request is for."
                         },
                         "name": {
                           "type": "string",
+                          "nullable": true,
                           "description": "The name of the repository the dismissal request is for."
                         },
                         "full_name": {
                           "type": "string",
+                          "nullable": true,
                           "description": "The full name of the repository the dismissal request is for."
                         }
                       }
@@ -507594,10 +507646,12 @@
                       "properties": {
                         "id": {
                           "type": "integer",
+                          "nullable": true,
                           "description": "The ID of the organization."
                         },
                         "name": {
                           "type": "string",
+                          "nullable": true,
                           "description": "The name of the organization."
                         }
                       }
@@ -507661,7 +507715,8 @@
                         "denied",
                         "approved",
                         "cancelled",
-                        "expired"
+                        "expired",
+                        "deleted"
                       ]
                     },
                     "requester_comment": {
@@ -578792,7 +578847,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts": {
       "get": {
         "summary": "List issue artifacts",
-        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
+        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
         "tags": [
           "issues"
         ],
@@ -579599,7 +579654,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts/{artifact_number}": {
       "get": {
         "summary": "Get an issue artifact",
-        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.",
+        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.",
         "tags": [
           "issues"
         ],
@@ -670887,6 +670942,18 @@
                                   "type": "boolean",
                                   "example": false
                                 },
+                                "copilot_code_review_severity": {
+                                  "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                                  "type": "string",
+                                  "nullable": true,
+                                  "enum": [
+                                    "low",
+                                    "medium",
+                                    "high",
+                                    null
+                                  ],
+                                  "example": null
+                                },
                                 "copilot_code_review_sources": {
                                   "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
                                   "type": "array",
@@ -703474,6 +703541,18 @@
                         "type": "boolean",
                         "example": false
                       },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "example": null
+                      },
                       "copilot_code_review_sources": {
                         "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
                         "type": "array",
@@ -704061,6 +704140,18 @@
                       "description": "Whether this comment was produced by Copilot code review. Not returned for issue timeline events.",
                       "type": "boolean",
                       "example": false
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "example": null
                     },
                     "copilot_code_review_sources": {
                       "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
@@ -704691,6 +704782,18 @@
                       "description": "Whether this comment was produced by Copilot code review. Not returned for issue timeline events.",
                       "type": "boolean",
                       "example": false
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "example": null
                     },
                     "copilot_code_review_sources": {
                       "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
@@ -718656,6 +718759,18 @@
                         "type": "boolean",
                         "example": false
                       },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "example": null
+                      },
                       "copilot_code_review_sources": {
                         "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
                         "type": "array",
@@ -719329,6 +719444,18 @@
                       "description": "Whether this comment was produced by Copilot code review. Not returned for issue timeline events.",
                       "type": "boolean",
                       "example": false
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "example": null
                     },
                     "copilot_code_review_sources": {
                       "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
@@ -720045,6 +720172,18 @@
                       "description": "Whether this comment was produced by Copilot code review. Not returned for issue timeline events.",
                       "type": "boolean",
                       "example": false
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "example": null
                     },
                     "copilot_code_review_sources": {
                       "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
@@ -739329,6 +739468,18 @@
                         "description": "Whether this comment was produced by Copilot code review.",
                         "type": "boolean",
                         "example": false
+                      },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "example": null
                       },
                       "copilot_code_review_sources": {
                         "description": "Sources reported as contributing to this comment; may be incomplete.",
@@ -775877,7 +776028,7 @@
       },
       "patch": {
         "summary": "Update a repository security advisory",
-        "description": "Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.\n\nIn order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,\nor a collaborator on the repository security advisory.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
+        "description": "Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.\n\nIn order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,\nor a collaborator on the repository security advisory. Users with a custom repository role that includes permission to create, edit, and manage security advisories can also update it.\n\nTo change the `state`, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role with the relevant permissions. To accept, close, or reopen, the role must include permission to accept private vulnerability reports and close or reopen security advisories. To publish, the role must include permission to publish security advisories. Both paths also require permission to view or manage security advisories (Read or Write). Users with these custom-role permissions but without permission to create, edit, and manage security advisories can update the `state` field and no other fields.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
         "tags": [
           "security-advisories"
         ],
@@ -780074,7 +780225,7 @@
     "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/cve": {
       "post": {
         "summary": "Request a CVE for a repository security advisory",
-        "description": "If you want a CVE identification number for the security vulnerability in your project, and don't already have one, you can request a CVE identification number from GitHub. For more information see \"[Requesting a CVE identification number](https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/repository-security-advisories/publishing-a-repository-security-advisory#requesting-a-cve-identification-number-optional).\"\n\nYou may request a CVE for public repositories, but cannot do so for private repositories.\n\nIn order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
+        "description": "If you want a CVE identification number for the security vulnerability in your project, and don't already have one, you can request a CVE identification number from GitHub. For more information see \"[Requesting a CVE identification number](https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/repository-security-advisories/publishing-a-repository-security-advisory#requesting-a-cve-identification-number-optional).\"\n\nYou may request a CVE for public repositories, but cannot do so for private repositories.\n\nIn order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role that includes permission to publish security advisories together with permission to view or manage security advisories.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
         "tags": [
           "security-advisories"
         ],
@@ -780321,7 +780472,7 @@
     "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/forks": {
       "post": {
         "summary": "Create a temporary private fork",
-        "description": "Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.\n\nRepository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.\n\n> [!NOTE]\n> Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.",
+        "description": "Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.\n\nRepository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.\n\nUsers with a custom repository role that includes permission to create, edit, and manage security advisories can also create a temporary private fork. If they aren't already a collaborator on the security advisory, they are added as one so they can access the fork.\n\n> [!NOTE]\n> Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.",
         "tags": [
           "security-advisories"
         ],
@@ -811204,6 +811355,12 @@
                               "completed",
                               "percent_completed"
                             ]
+                          },
+                          "parent_issue_url": {
+                            "description": "URL to get the parent issue of this issue, if it is a sub-issue",
+                            "type": "string",
+                            "format": "uri",
+                            "nullable": true
                           },
                           "issue_dependencies_summary": {
                             "title": "Issue Dependencies Summary",
