@@ -82936,7 +82936,7 @@
     "/enterprises/{enterprise}/credentials/exports/{export_id}": {
       "get": {
         "summary": "Get an enterprise token inventory export",
-        "description": "Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.\n\nYou must be an enterprise owner (or hold a role with the \"View enterprise credentials\" permission) to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.",
+        "description": "Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.\n\nA completed export can be downloaded for 5 days. After that this endpoint returns `404`, and you need to request a new export.\n\nYou must be an enterprise owner (or hold a role with the \"View enterprise credentials\" permission) to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.",
         "tags": [
           "enterprise-admin"
         ],
@@ -86896,15 +86896,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -86914,11 +86923,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -86986,7 +87001,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -120546,7 +120562,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For `user` and `multi_user_customer` scopes, this must be `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -120684,6 +120700,20 @@
                           "description": "The name of the entity to apply the budget to",
                           "examples": [
                             "example-repository-name"
+                          ]
+                        },
+                        "user": {
+                          "type": "string",
+                          "description": "The user login when the budget is scoped to a single user (`user` scope).",
+                          "examples": [
+                            "octocat"
+                          ]
+                        },
+                        "consumed_amount": {
+                          "type": "number",
+                          "description": "The consumed amount for the specified user within the budget. Only included for `user`-scoped budgets.",
+                          "examples": [
+                            42.5
                           ]
                         },
                         "budget_amount": {
@@ -121458,7 +121488,7 @@
                   },
                   "prevent_further_usage": {
                     "type": "boolean",
-                    "description": "Whether to prevent additional spending once the budget is exceeded. For budgets with `user` or `multi_user_customer` scope, this must remain `true`."
+                    "description": "Whether to prevent additional spending once the budget is exceeded. Set to `false` for an alerting-only budget, including user-level scopes."
                   },
                   "budget_alerting": {
                     "type": "object",
@@ -122927,7 +122957,7 @@
                   },
                   "ai_credit_pool_enabled": {
                     "type": "boolean",
-                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
+                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\nIt can't be enabled for enterprises on Copilot pay-as-you-go billing.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
                   }
                 }
               },
@@ -123934,7 +123964,7 @@
                   },
                   "ai_credit_pool_enabled": {
                     "type": "boolean",
-                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
+                    "description": "Whether the cost center draws from the AI credit pool.\n\nThis can only be enabled for cost centers that contain only user or team resources.\n\nIt can't be enabled for enterprises on Copilot pay-as-you-go billing.\n\n- `false` — no cap; the cost center draws from the shared enterprise pool.\n- `true` — the cost center is capped at an amount derived from its members' license entitlements."
                   }
                 },
                 "anyOf": [
@@ -132799,7 +132829,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -137628,7 +137658,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -157477,7 +157507,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -166223,7 +166253,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -171052,7 +171082,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -261874,15 +261904,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -261892,11 +261931,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -261964,7 +262009,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -264565,7 +264611,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -269394,7 +269440,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -289154,7 +289200,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -321122,7 +321168,7 @@
                               ]
                             },
                             "status": {
-                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                               "type": [
                                 "object",
                                 "null"
@@ -332867,7 +332913,7 @@
                               ]
                             },
                             "status": {
-                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                               "type": [
                                 "object",
                                 "null"
@@ -353058,7 +353104,7 @@
           },
           {
             "name": "type",
-            "description": "Specifies the types of repositories you want returned. `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
+            "description": "Specifies the types of repositories you want returned.\n\n- `all`: All repositories the caller can access in the organization.\n- `private`: Private repositories.\n- `forks`: Repositories that are forks of another repository.\n- `sources`: Repositories that are not forks.\n- `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.\n- `internal`: Internal repositories.\n\nThese filters can overlap. For example, a fork can be private or internal, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.\n\nFor more information, see \"[Repository terminology](https://docs.github.com/enterprise-cloud@latest/repositories/creating-and-managing-repositories/about-repositories#repository-terminology).\"\n\n`internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.",
             "in": "query",
             "required": false,
             "schema": {
@@ -544470,6 +544516,27 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "documentation_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "x-github": {
@@ -555430,15 +555497,24 @@
                         "description": "The repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the repository the dismissal request is for."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the repository the dismissal request is for."
                           },
                           "full_name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The full name of the repository the dismissal request is for."
                           }
                         }
@@ -555448,11 +555524,17 @@
                         "description": "The organization associated with the repository the dismissal request is for.",
                         "properties": {
                           "id": {
-                            "type": "integer",
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
                             "description": "The ID of the organization."
                           },
                           "name": {
-                            "type": "string",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "description": "The name of the organization."
                           }
                         }
@@ -555520,7 +555602,8 @@
                           "denied",
                           "approved",
                           "cancelled",
-                          "expired"
+                          "expired",
+                          "deleted"
                         ]
                       },
                       "requester_comment": {
@@ -555849,15 +555932,24 @@
                       "description": "The repository the dismissal request is for.",
                       "properties": {
                         "id": {
-                          "type": "integer",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
                           "description": "The ID of the repository the dismissal request is for."
                         },
                         "name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The name of the repository the dismissal request is for."
                         },
                         "full_name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The full name of the repository the dismissal request is for."
                         }
                       }
@@ -555867,11 +555959,17 @@
                       "description": "The organization associated with the repository the dismissal request is for.",
                       "properties": {
                         "id": {
-                          "type": "integer",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
                           "description": "The ID of the organization."
                         },
                         "name": {
-                          "type": "string",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "The name of the organization."
                         }
                       }
@@ -555939,7 +556037,8 @@
                         "denied",
                         "approved",
                         "cancelled",
-                        "expired"
+                        "expired",
+                        "deleted"
                       ]
                     },
                     "requester_comment": {
@@ -562628,7 +562727,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -567457,7 +567556,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -597476,7 +597575,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -601747,7 +601846,7 @@
                   },
                   "status": {
                     "type": "string",
-                    "description": "The initial status of the issue. Can be `Backlog`, `Todo`, `In progress`, or `In review`. If omitted, the issue starts in `Backlog`. If you do not have permission to set the status, the supplied value is ignored and the issue starts in `Backlog`. Cannot be `null` or an empty string. Ignored when issue statuses aren't available in the repository. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                    "description": "The initial status of the issue. Can be `Backlog`, `Todo`, `In progress`, or `In review`. If omitted, the issue starts in `Backlog`. If you do not have permission to set the status, the supplied value is ignored and the issue starts in `Backlog`. Cannot be `null` or an empty string. Ignored when issue statuses aren't available in the repository. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                     "examples": [
                       "In progress"
                     ]
@@ -601940,7 +602039,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -612626,7 +612725,7 @@
                                 ]
                               },
                               "status": {
-                                "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                 "type": [
                                   "object",
                                   "null"
@@ -621294,7 +621393,7 @@
                               ]
                             },
                             "status": {
-                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                               "type": [
                                 "object",
                                 "null"
@@ -629758,7 +629857,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -634177,7 +634276,7 @@
                   },
                   "status": {
                     "type": "string",
-                    "description": "The status to give the issue. Can be `Backlog`, `Todo`, `In progress`, `In review`, `Done`, `Not planned`, or `Duplicate`. If omitted, the current status is preserved unless `state` or `state_reason` changes. Setting a status also updates `state` and `state_reason` as needed. If provided, `state` and `state_reason` must be consistent with the requested status. Changing the status to `Duplicate` requires `duplicate_issue_id`. Cannot be `null` or an empty string. The status and other applied field changes are saved together. If the status cannot be saved, those field changes are rolled back. Ignored when issue statuses aren't available in the repository. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                    "description": "The status to give the issue. Can be `Backlog`, `Todo`, `In progress`, `In review`, `Done`, `Not planned`, or `Duplicate`. If omitted, the current status is preserved unless `state` or `state_reason` changes. Setting a status also updates `state` and `state_reason` as needed. If provided, `state` and `state_reason` must be consistent with the requested status. Changing the status to `Duplicate` requires `duplicate_issue_id`. Cannot be `null` or an empty string. The status and other applied field changes are saved together. If the status cannot be saved, those field changes are rolled back. Ignored when issue statuses aren't available in the repository. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                     "examples": [
                       "In progress"
                     ]
@@ -634490,7 +634589,7 @@
                           ]
                         },
                         "status": {
-                          "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                          "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                           "type": [
                             "object",
                             "null"
@@ -638962,7 +639061,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts": {
       "get": {
         "summary": "List issue artifacts",
-        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
+        "description": "Lists artifacts attached to an issue. Results are ordered by artifact number.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.\n\nThe `type` parameter filters the response to artifacts of one type.\nResults can be requested by page. The page defaults to `1`; the page size\ndefaults to `30` and can be set from `1` to `100`.\n\nThe response is a bare array and does not include pagination metadata such as\na `Link` header, a total count, or the service's `has_next_page` signal.",
         "tags": [
           "issues"
         ],
@@ -639851,7 +639950,7 @@
     "/repos/{owner}/{repo}/issues/{issue_number}/artifacts/{artifact_number}": {
       "get": {
         "summary": "Get an issue artifact",
-        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.",
+        "description": "Returns an artifact attached to an issue by its per-issue artifact number,\nalong with its version history ordered from newest to oldest.\n\nThis endpoint can be used without authentication for public repositories.\nUnauthenticated requests are subject to the standard unauthenticated rate limit.",
         "tags": [
           "issues"
         ],
@@ -641354,7 +641453,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -645539,7 +645638,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -652170,7 +652269,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -656462,7 +656561,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -660818,7 +660917,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -665196,7 +665295,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -697610,7 +697709,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -703029,7 +703128,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -707321,7 +707420,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -711677,7 +711776,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -716035,7 +716134,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -720343,7 +720442,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -724613,7 +724712,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -728968,7 +729067,7 @@
                       ]
                     },
                     "status": {
-                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                      "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                       "type": [
                         "object",
                         "null"
@@ -745253,7 +745352,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -749694,6 +749793,22 @@
                                   "type": "boolean",
                                   "examples": [
                                     false
+                                  ]
+                                },
+                                "copilot_code_review_severity": {
+                                  "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "enum": [
+                                    "low",
+                                    "medium",
+                                    "high",
+                                    null
+                                  ],
+                                  "examples": [
+                                    null
                                   ]
                                 },
                                 "copilot_code_review_sources": {
@@ -777663,7 +777778,7 @@
     "/repos/{owner}/{repo}/planning-statuses": {
       "get": {
         "summary": "List planning statuses for a repository",
-        "description": "Lists the selectable planning statuses available.\nPlanning statuses are returned in deterministic display order:\nBacklog, Todo, In progress, In review, Done, Not planned, and Duplicate.\nClients should expect new keys to be added.\nReturns `404 Not Found` when issue statuses aren't available in the repository.\n\n> [!NOTE]\n> Issue statuses are in preview and subject to change. They're only available to accounts enrolled in the preview.\n\nYou need read access to the repository's issues to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` scope\nto use this endpoint with a private repository.\n\nFine-grained access tokens require the \"Issues\" repository permission (read).",
+        "description": "Lists the selectable planning statuses available.\nPlanning statuses are returned in deterministic display order:\nBacklog, Todo, In progress, In review, Done, Not planned, and Duplicate.\nClients should expect new keys to be added.\nReturns `404 Not Found` when issue statuses aren't available in the repository.\n\n> [!NOTE]\n> Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.\n\nYou need read access to the repository's issues to use this endpoint.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` scope\nto use this endpoint with a private repository.\n\nFine-grained access tokens require the \"Issues\" repository permission (read).",
         "tags": [
           "repos"
         ],
@@ -788687,6 +788802,22 @@
                           false
                         ]
                       },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "examples": [
+                          null
+                        ]
+                      },
                       "copilot_code_review_sources": {
                         "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
                         "type": "array",
@@ -789386,6 +789517,22 @@
                       "type": "boolean",
                       "examples": [
                         false
+                      ]
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "examples": [
+                        null
                       ]
                     },
                     "copilot_code_review_sources": {
@@ -790129,6 +790276,22 @@
                       "type": "boolean",
                       "examples": [
                         false
+                      ]
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "examples": [
+                        null
                       ]
                     },
                     "copilot_code_review_sources": {
@@ -806064,6 +806227,22 @@
                           false
                         ]
                       },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "examples": [
+                          null
+                        ]
+                      },
                       "copilot_code_review_sources": {
                         "description": "Sources reported as contributing to this comment; may be incomplete. Not returned for issue timeline events.",
                         "type": "array",
@@ -806851,6 +807030,22 @@
                       "type": "boolean",
                       "examples": [
                         false
+                      ]
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "examples": [
+                        null
                       ]
                     },
                     "copilot_code_review_sources": {
@@ -807686,6 +807881,22 @@
                       "type": "boolean",
                       "examples": [
                         false
+                      ]
+                    },
+                    "copilot_code_review_severity": {
+                      "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        null
+                      ],
+                      "examples": [
+                        null
                       ]
                     },
                     "copilot_code_review_sources": {
@@ -829303,6 +829514,22 @@
                         "type": "boolean",
                         "examples": [
                           false
+                        ]
+                      },
+                      "copilot_code_review_severity": {
+                        "description": "The Copilot code review severity of this comment, or null if unavailable.",
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          null
+                        ],
+                        "examples": [
+                          null
                         ]
                       },
                       "copilot_code_review_sources": {
@@ -870018,7 +870245,7 @@
       },
       "patch": {
         "summary": "Update a repository security advisory",
-        "description": "Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.\n\nIn order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,\nor a collaborator on the repository security advisory.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
+        "description": "Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.\n\nIn order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,\nor a collaborator on the repository security advisory. Users with a custom repository role that includes permission to create, edit, and manage security advisories can also update it.\n\nTo change the `state`, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role with the relevant permissions. To accept, close, or reopen, the role must include permission to accept private vulnerability reports and close or reopen security advisories. To publish, the role must include permission to publish security advisories. Both paths also require permission to view or manage security advisories (Read or Write). Users with these custom-role permissions but without permission to create, edit, and manage security advisories can update the `state` field and no other fields.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
         "tags": [
           "security-advisories"
         ],
@@ -874821,7 +875048,7 @@
     "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/cve": {
       "post": {
         "summary": "Request a CVE for a repository security advisory",
-        "description": "If you want a CVE identification number for the security vulnerability in your project, and don't already have one, you can request a CVE identification number from GitHub. For more information see \"[Requesting a CVE identification number](https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/repository-security-advisories/publishing-a-repository-security-advisory#requesting-a-cve-identification-number-optional).\"\n\nYou may request a CVE for public repositories, but cannot do so for private repositories.\n\nIn order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
+        "description": "If you want a CVE identification number for the security vulnerability in your project, and don't already have one, you can request a CVE identification number from GitHub. For more information see \"[Requesting a CVE identification number](https://docs.github.com/enterprise-cloud@latest/code-security/security-advisories/repository-security-advisories/publishing-a-repository-security-advisory#requesting-a-cve-identification-number-optional).\"\n\nYou may request a CVE for public repositories, but cannot do so for private repositories.\n\nIn order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role that includes permission to publish security advisories together with permission to view or manage security advisories.\n\nOAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.",
         "tags": [
           "security-advisories"
         ],
@@ -875082,7 +875309,7 @@
     "/repos/{owner}/{repo}/security-advisories/{ghsa_id}/forks": {
       "post": {
         "summary": "Create a temporary private fork",
-        "description": "Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.\n\nRepository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.\n\n> [!NOTE]\n> Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.",
+        "description": "Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.\n\nRepository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.\n\nUsers with a custom repository role that includes permission to create, edit, and manage security advisories can also create a temporary private fork. If they aren't already a collaborator on the security advisory, they are added as one so they can access the fork.\n\n> [!NOTE]\n> Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.",
         "tags": [
           "security-advisories"
         ],
@@ -888901,6 +889128,11 @@
                     "type": "boolean",
                     "description": "Either `true` to create a new private repository or `false` to create a new public one.",
                     "default": false
+                  },
+                  "custom_properties": {
+                    "type": "object",
+                    "description": "The custom properties for the new repository. The keys are the custom property names, and the values are the corresponding custom property values.\nDuring rollout, this parameter is available only for organization-owned repositories when template repository custom properties support has been enabled for the destination organization. Otherwise, providing this parameter returns HTTP 422.",
+                    "additionalProperties": true
                   }
                 },
                 "required": [
@@ -909399,7 +909631,7 @@
                         "type": "object",
                         "properties": {
                           "status": {
-                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                             "type": [
                               "object",
                               "null"
@@ -910064,6 +910296,14 @@
                               "completed",
                               "percent_completed"
                             ]
+                          },
+                          "parent_issue_url": {
+                            "description": "URL to get the parent issue of this issue, if it is a sub-issue",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri"
                           },
                           "issue_dependencies_summary": {
                             "title": "Issue Dependencies Summary",
@@ -958381,7 +958621,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -990536,7 +990776,7 @@
                               ]
                             },
                             "status": {
-                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                               "type": [
                                 "object",
                                 "null"
@@ -1010911,7 +1011151,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1015740,7 +1015980,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1025095,7 +1025335,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1029924,7 +1030164,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1039289,7 +1039529,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1044118,7 +1044358,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1064636,7 +1064876,7 @@
                               ]
                             },
                             "status": {
-                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                              "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                               "type": [
                                 "object",
                                 "null"
@@ -1081421,7 +1081661,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1086250,7 +1086490,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1095601,7 +1095841,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1100430,7 +1100670,7 @@
                                     ]
                                   },
                                   "status": {
-                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                                    "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                                     "type": [
                                       "object",
                                       "null"
@@ -1395534,7 +1395774,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1399496,7 +1399736,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1406303,7 +1406543,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1410265,7 +1410505,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1417072,7 +1417312,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1421984,7 +1422224,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1427841,7 +1428081,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1432753,7 +1432993,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1438610,7 +1438850,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1442572,7 +1442812,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1448429,7 +1448669,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1452391,7 +1452631,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1460830,7 +1461070,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1465503,7 +1465743,7 @@
                           },
                           "status": {
                             "title": "Planning status",
-                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                             "type": [
                               "object",
                               "null"
@@ -1470429,7 +1470669,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1474928,7 +1475168,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1479794,7 +1480034,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1484692,7 +1484932,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1489584,7 +1489824,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1494369,7 +1494609,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1499106,7 +1499346,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1503581,7 +1503821,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1507163,7 +1507403,7 @@
                           },
                           "status": {
                             "title": "Planning status",
-                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                             "type": [
                               "object",
                               "null"
@@ -1510400,7 +1510640,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1516016,7 +1516256,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1520702,7 +1520942,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1522731,7 +1522971,7 @@
     "issues-status-changed": {
       "post": {
         "summary": "This event occurs when there is activity relating to an issue. For more information about issues, see \"[About issues](https://docs.github.com/enterprise-cloud@latest/issues/tracking-your-work-with-issues/about-issues).\" For information about the APIs to manage issues, see [the GraphQL documentation](https://docs.github.com/enterprise-cloud@latest/graphql/reference/objects#issue) or \"[Issues](https://docs.github.com/enterprise-cloud@latest/rest/issues)\" in the REST API documentation.\n\nFor activity relating to a comment on an issue, use the `issue_comment` event.\n\nTo subscribe to this event, a GitHub App must have at least read-level access for the \"Issues\" repository permission.",
-        "description": "The status of an issue was changed. When the change also closes or reopens the issue, the `closed` or `reopened` action is sent too.\n\n> [!NOTE]\n> Issue statuses are in preview and subject to change. They're only available to accounts enrolled in the preview.",
+        "description": "The status of an issue was changed. When the change also closes or reopens the issue, the `closed` or `reopened` action is sent too.\n\n> [!NOTE]\n> Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
         "operationId": "issues/status-changed",
         "externalDocs": {
           "url": "https://docs.github.com/enterprise-cloud@latest/webhooks/webhook-events-and-payloads#issues"
@@ -1525432,7 +1525672,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1529832,7 +1530072,7 @@
                           },
                           "status": {
                             "title": "Planning status",
-                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                            "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                             "type": [
                               "object",
                               "null"
@@ -1533271,7 +1533511,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1537939,7 +1538179,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1542776,7 +1543016,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1547444,7 +1547684,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1552179,7 +1552419,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1556817,7 +1557057,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -1561484,7 +1561724,7 @@
                       },
                       "status": {
                         "title": "Planning status",
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2022137,7 +2022377,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2027049,7 +2027289,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2032907,7 +2033147,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2037819,7 +2038059,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2043677,7 +2043917,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2048589,7 +2048829,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2054447,7 +2054687,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
@@ -2059359,7 +2059599,7 @@
                         ]
                       },
                       "status": {
-                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in preview and only available to accounts enrolled in the preview.",
+                        "description": "The status of the issue, or `null` if it has none. Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.",
                         "type": [
                           "object",
                           "null"
