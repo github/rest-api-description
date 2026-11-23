@@ -30013,6 +30013,8 @@ paths:
       description: |-
         Returns the status of an enterprise token inventory export. Once the export is ready this redirects to a short-lived URL to download the CSV.
 
+        A completed export can be downloaded for 5 days. After that this endpoint returns `404`, and you need to request a new export.
+
         You must be an enterprise owner (or hold a role with the "View enterprise credentials" permission) to use this endpoint.
 
         OAuth app tokens and personal access tokens (classic) require the `read:enterprise` scope to access this endpoint.
@@ -33331,8 +33333,8 @@ paths:
                 prevent_further_usage:
                   type: boolean
                   description: Whether to prevent additional spending once the budget
-                    is exceeded. For `user` and `multi_user_customer` scopes, this
-                    must be `true`.
+                    is exceeded. Set to `false` for an alerting-only budget, including
+                    user-level scopes.
                 budget_alerting:
                   type: object
                   required:
@@ -33558,8 +33560,8 @@ paths:
                 prevent_further_usage:
                   type: boolean
                   description: Whether to prevent additional spending once the budget
-                    is exceeded. For budgets with `user` or `multi_user_customer`
-                    scope, this must remain `true`.
+                    is exceeded. Set to `false` for an alerting-only budget, including
+                    user-level scopes.
                 budget_alerting:
                   type: object
                   properties:
@@ -33841,6 +33843,8 @@ paths:
 
                     This can only be enabled for cost centers that contain only user or team resources.
 
+                    It can't be enabled for enterprises on Copilot pay-as-you-go billing.
+
                     - `false` — no cap; the cost center draws from the shared enterprise pool.
                     - `true` — the cost center is capped at an amount derived from its members' license entitlements.
             examples:
@@ -34110,6 +34114,8 @@ paths:
                     Whether the cost center draws from the AI credit pool.
 
                     This can only be enabled for cost centers that contain only user or team resources.
+
+                    It can't be enabled for enterprises on Copilot pay-as-you-go billing.
 
                     - `false` — no cap; the cost center draws from the shared enterprise pool.
                     - `true` — the cost center is capped at an amount derived from its members' license entitlements.
@@ -58698,9 +58704,21 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/org"
       - name: type
-        description: Specifies the types of repositories you want returned. `internal`
-          is not yet supported when a GitHub App calls this endpoint with an installation
-          access token.
+        description: |-
+          Specifies the types of repositories you want returned.
+
+          - `all`: All repositories the caller can access in the organization.
+          - `private`: Private repositories.
+          - `forks`: Repositories that are forks of another repository.
+          - `sources`: Repositories that are not forks.
+          - `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.
+          - `internal`: Internal repositories.
+
+          These filters can overlap. For example, a fork can be private or internal, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.
+
+          For more information, see "[Repository terminology](https://docs.github.com/enterprise-cloud@latest/repositories/creating-and-managing-repositories/about-repositories#repository-terminology)."
+
+          `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.
         in: query
         required: false
         schema:
@@ -75052,6 +75070,8 @@ paths:
           "$ref": "#/components/responses/gone"
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -81855,6 +81875,9 @@ paths:
       description: |-
         Lists artifacts attached to an issue. Results are ordered by artifact number.
 
+        This endpoint can be used without authentication for public repositories.
+        Unauthenticated requests are subject to the standard unauthenticated rate limit.
+
         The `type` parameter filters the response to artifacts of one type.
         Results can be requested by page. The page defaults to `1`; the page size
         defaults to `30` and can be set from `1` to `100`.
@@ -82081,6 +82104,9 @@ paths:
       description: |-
         Returns an artifact attached to an issue by its per-issue artifact number,
         along with its version history ordered from newest to oldest.
+
+        This endpoint can be used without authentication for public repositories.
+        Unauthenticated requests are subject to the standard unauthenticated rate limit.
       tags:
       - issues
       operationId: issues/get-issue-artifact
@@ -91276,7 +91302,9 @@ paths:
         Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.
 
         In order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,
-        or a collaborator on the repository security advisory.
+        or a collaborator on the repository security advisory. Users with a custom repository role that includes permission to create, edit, and manage security advisories can also update it.
+
+        To change the `state`, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role with the relevant permissions. To accept, close, or reopen, the role must include permission to accept private vulnerability reports and close or reopen security advisories. To publish, the role must include permission to publish security advisories. Both paths also require permission to view or manage security advisories (Read or Write). Users with these custom-role permissions but without permission to create, edit, and manage security advisories can update the `state` field and no other fields.
 
         OAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.
       tags:
@@ -91605,7 +91633,7 @@ paths:
 
         You may request a CVE for public repositories, but cannot do so for private repositories.
 
-        In order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository.
+        In order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role that includes permission to publish security advisories together with permission to view or manage security advisories.
 
         OAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.
       tags:
@@ -91641,6 +91669,8 @@ paths:
         Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.
 
         Repository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.
+
+        Users with a custom repository role that includes permission to create, edit, and manage security advisories can also create a temporary private fork. If they aren't already a collaborator on the security advisory, they are added as one so they can access the fork.
 
         > [!NOTE]
         > Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.
@@ -93756,6 +93786,12 @@ paths:
                   description: Either `true` to create a new private repository or
                     `false` to create a new public one.
                   default: false
+                custom_properties:
+                  type: object
+                  description: |-
+                    The custom properties for the new repository. The keys are the custom property names, and the values are the corresponding custom property values.
+                    During rollout, this parameter is available only for organization-owned repositories when template repository custom properties support has been enabled for the destination organization. Otherwise, providing this parameter returns HTTP 422.
+                  additionalProperties: true
               required:
               - name
             examples:
@@ -132433,13 +132469,19 @@ components:
           description: The repository the dismissal request is for.
           properties:
             id:
-              type: integer
+              type:
+              - integer
+              - 'null'
               description: The ID of the repository the dismissal request is for.
             name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The name of the repository the dismissal request is for.
             full_name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The full name of the repository the dismissal request is
                 for.
         organization:
@@ -132448,10 +132490,14 @@ components:
             request is for.
           properties:
             id:
-              type: integer
+              type:
+              - integer
+              - 'null'
               description: The ID of the organization.
             name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The name of the organization.
         requester:
           type: object
@@ -132503,6 +132549,7 @@ components:
           - approved
           - cancelled
           - expired
+          - deleted
         requester_comment:
           type:
           - string
@@ -136187,6 +136234,18 @@ components:
               description: The name of the entity to apply the budget to
               examples:
               - example-repository-name
+            user:
+              type: string
+              description: The user login when the budget is scoped to a single user
+                (`user` scope).
+              examples:
+              - octocat
+            consumed_amount:
+              type: number
+              description: The consumed amount for the specified user within the budget.
+                Only included for `user`-scoped budgets.
+              examples:
+              - 42.5
             budget_amount:
               type: integer
               description: The budget amount in whole dollars. For license-based products,
@@ -157473,6 +157532,19 @@ components:
           type: boolean
           examples:
           - false
+        copilot_code_review_severity:
+          description: The Copilot code review severity of this comment, or null if
+            unavailable.
+          type:
+          - string
+          - 'null'
+          enum:
+          - low
+          - medium
+          - high
+          -
+          examples:
+          -
         copilot_code_review_sources:
           description: Sources reported as contributing to this comment; may be incomplete.
             Not returned for issue timeline events.
@@ -159240,6 +159312,19 @@ components:
           type: boolean
           examples:
           - false
+        copilot_code_review_severity:
+          description: The Copilot code review severity of this comment, or null if
+            unavailable.
+          type:
+          - string
+          - 'null'
+          enum:
+          - low
+          - medium
+          - high
+          -
+          examples:
+          -
         copilot_code_review_sources:
           description: Sources reported as contributing to this comment; may be incomplete.
           type: array
@@ -161890,6 +161975,12 @@ components:
                 - 'null'
         sub_issues_summary:
           "$ref": "#/components/schemas/sub-issues-summary"
+        parent_issue_url:
+          description: URL to get the parent issue of this issue, if it is a sub-issue
+          type:
+          - string
+          - 'null'
+          format: uri
         issue_dependencies_summary:
           "$ref": "#/components/schemas/issue-dependencies-summary"
         issue_field_values:
