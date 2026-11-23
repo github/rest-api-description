@@ -3669,8 +3669,9 @@ paths:
   "/enterprise/live-migrations/{migration_id}":
     get:
       summary: Get an Enterprise Live Migration
-      description: Retrieve combined status, progress, cutover readiness, expiration,
-        and timing for an Enterprise Live Migration (ELM) on the current GHES appliance.
+      description: Retrieve combined status, progress, observed source archive state,
+        cutover readiness, expiration, and timing for an Enterprise Live Migration
+        (ELM) on the current GHES appliance.
       externalDocs:
         description: API method documentation
         url: https://docs.github.com/enterprise-server@3.21/rest/enterprise-admin/live-migrations#get-an-enterprise-live-migration
@@ -3709,6 +3710,10 @@ paths:
                         type: string
                       source_repository_name:
                         type: string
+                      source_repository_archived:
+                        type:
+                        - boolean
+                        - 'null'
                       target_repository_name:
                         type: string
                       target_visibility:
@@ -23667,9 +23672,22 @@ paths:
       parameters:
       - "$ref": "#/components/parameters/org"
       - name: type
-        description: Specifies the types of repositories you want returned. `internal`
-          is not yet supported when a GitHub App calls this endpoint with an installation
-          access token.
+        description: |-
+          Specifies the types of repositories you want returned.
+
+          - `all`: All repositories the caller can access in the organization.
+          - `public`: Public repositories.
+          - `private`: Private repositories.
+          - `forks`: Repositories that are forks of another repository.
+          - `sources`: Repositories that are not forks.
+          - `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.
+          - `internal`: Internal repositories.
+
+          These filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.
+
+          For more information, see "[Repository terminology](https://docs.github.com/enterprise-server@3.21/repositories/creating-and-managing-repositories/about-repositories#repository-terminology)."
+
+          `internal` is not yet supported when a GitHub App calls this endpoint with an installation access token.
         in: query
         required: false
         schema:
@@ -35834,6 +35852,8 @@ paths:
           "$ref": "#/components/responses/conflict"
         '422':
           "$ref": "#/components/responses/validation_failed_simple"
+        '503':
+          "$ref": "#/components/responses/service_unavailable"
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -82923,13 +82943,19 @@ components:
           description: The repository the dismissal request is for.
           properties:
             id:
-              type: integer
+              type:
+              - integer
+              - 'null'
               description: The ID of the repository the dismissal request is for.
             name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The name of the repository the dismissal request is for.
             full_name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The full name of the repository the dismissal request is
                 for.
         organization:
@@ -82938,10 +82964,14 @@ components:
             request is for.
           properties:
             id:
-              type: integer
+              type:
+              - integer
+              - 'null'
               description: The ID of the organization.
             name:
-              type: string
+              type:
+              - string
+              - 'null'
               description: The name of the organization.
         requester:
           type: object
@@ -82993,6 +83023,7 @@ components:
           - approved
           - cancelled
           - expired
+          - deleted
         requester_comment:
           type:
           - string
@@ -105469,6 +105500,12 @@ components:
                 - 'null'
         sub_issues_summary:
           "$ref": "#/components/schemas/sub-issues-summary"
+        parent_issue_url:
+          description: URL to get the parent issue of this issue, if it is a sub-issue
+          type:
+          - string
+          - 'null'
+          format: uri
         issue_dependencies_summary:
           "$ref": "#/components/schemas/issue-dependencies-summary"
         issue_field_values:
@@ -110546,7 +110583,8 @@ components:
         status:
           title: Planning status
           description: The status of the issue, or `null` if it has none. Issue statuses
-            are in preview and only available to accounts enrolled in the preview.
+            are in public preview and subject to change. They're rolling out gradually,
+            so they might not be available in your repositories yet.
           type:
           - object
           - 'null'
@@ -111621,7 +111659,8 @@ components:
         status:
           title: Planning status
           description: The status of the issue, or `null` if it has none. Issue statuses
-            are in preview and only available to accounts enrolled in the preview.
+            are in public preview and subject to change. They're rolling out gradually,
+            so they might not be available in your repositories yet.
           type:
           - object
           - 'null'
@@ -135914,8 +135953,9 @@ components:
               status:
                 title: Planning status
                 description: The status of the issue, or `null` if it has none. Issue
-                  statuses are in preview and only available to accounts enrolled
-                  in the preview.
+                  statuses are in public preview and subject to change. They're rolling
+                  out gradually, so they might not be available in your repositories
+                  yet.
                 type:
                 - object
                 - 'null'
@@ -137047,8 +137087,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -138057,8 +138098,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -139018,8 +139060,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -140028,8 +140071,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -141046,8 +141090,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -142033,8 +142078,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -142998,8 +143044,9 @@ components:
                 status:
                   title: Planning status
                   description: The status of the issue, or `null` if it has none.
-                    Issue statuses are in preview and only available to accounts enrolled
-                    in the preview.
+                    Issue statuses are in public preview and subject to change. They're
+                    rolling out gradually, so they might not be available in your
+                    repositories yet.
                   type:
                   - object
                   - 'null'
@@ -144439,8 +144486,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -145495,8 +145543,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -146460,8 +146509,9 @@ components:
                 status:
                   title: Planning status
                   description: The status of the issue, or `null` if it has none.
-                    Issue statuses are in preview and only available to accounts enrolled
-                    in the preview.
+                    Issue statuses are in public preview and subject to change. They're
+                    rolling out gradually, so they might not be available in your
+                    repositories yet.
                   type:
                   - object
                   - 'null'
@@ -148026,8 +148076,9 @@ components:
             status:
               title: Planning status
               description: The status of the issue, or `null` if it has none. Issue
-                statuses are in preview and only available to accounts enrolled in
-                the preview.
+                statuses are in public preview and subject to change. They're rolling
+                out gradually, so they might not be available in your repositories
+                yet.
               type:
               - object
               - 'null'
@@ -220196,7 +220247,7 @@ components:
             details: ''
     ghes-license-info:
       value:
-      - advancedSecurityEnabled: true
+        advancedSecurityEnabled: true
         advancedSecuritySeats: 0
         clusterSupport: false
         company: GitHub
@@ -220212,7 +220263,7 @@ components:
         referenceNumber: 32a145
         seats: 0
         sshAllowed: true
-        supportKey": ''
+        supportKey: ''
         unlimitedSeating: true
     ghes-license-check:
       value:
