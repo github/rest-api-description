@@ -30907,8 +30907,10 @@ paths:
                                 type: string
                               status:
                                 description: The status of the issue, or `null` if
-                                  it has none. Issue statuses are in preview and only
-                                  available to accounts enrolled in the preview.
+                                  it has none. Issue statuses are in public preview
+                                  and subject to change. They're rolling out gradually,
+                                  so they might not be available in your repositories
+                                  yet.
                                 type: object
                                 nullable: true
                                 properties:
@@ -38222,8 +38224,8 @@ paths:
                 prevent_further_usage:
                   type: boolean
                   description: Whether to prevent additional spending once the budget
-                    is exceeded. For `user` and `multi_user_customer` scopes, this
-                    must be `true`.
+                    is exceeded. Set to `false` for an alerting-only budget, including
+                    user-level scopes.
                 budget_alerting:
                   type: object
                   properties:
@@ -38342,6 +38344,16 @@ paths:
                         type: string
                         description: The name of the entity to apply the budget to
                         example: example-repository-name
+                      user:
+                        type: string
+                        description: The user login when the budget is scoped to a
+                          single user (`user` scope).
+                        example: octocat
+                      consumed_amount:
+                        type: number
+                        description: The consumed amount for the specified user within
+                          the budget. Only included for `user`-scoped budgets.
+                        example: 42.5
                       budget_amount:
                         type: integer
                         description: The budget amount in whole dollars. For license-based
@@ -38611,8 +38623,8 @@ paths:
                 prevent_further_usage:
                   type: boolean
                   description: Whether to prevent additional spending once the budget
-                    is exceeded. For budgets with `user` or `multi_user_customer`
-                    scope, this must remain `true`.
+                    is exceeded. Set to `false` for an alerting-only budget, including
+                    user-level scopes.
                 budget_alerting:
                   type: object
                   properties:
@@ -68388,7 +68400,19 @@ paths:
       parameters:
       - *107
       - name: type
-        description: Specifies the types of repositories you want returned.
+        description: |-
+          Specifies the types of repositories you want returned.
+
+          - `all`: All repositories the caller can access in the organization.
+          - `public`: Public repositories.
+          - `private`: Private repositories.
+          - `forks`: Repositories that are forks of another repository.
+          - `sources`: Repositories that are not forks.
+          - `member`: Repositories that the authenticated user has access to through direct collaboration or organization permissions, such as team membership or organization ownership.
+
+          These filters can overlap. For example, a fork can be public or private, and either a fork or a source repository can be returned by `member`. Only one `type` value can be specified per request. All results are subject to the caller's access permissions.
+
+          For more information, see "[Repository terminology](https://docs.github.com/repositories/creating-and-managing-repositories/about-repositories#repository-terminology)."
         in: query
         required: false
         schema:
@@ -101421,6 +101445,7 @@ paths:
         '409': *121
         '410': *32
         '422': *7
+        '503': *110
       x-github:
         githubCloudOnly: false
         enabledForGitHubApps: true
@@ -108973,8 +108998,9 @@ paths:
                     in `Backlog`. If you do not have permission to set the status,
                     the supplied value is ignored and the issue starts in `Backlog`.
                     Cannot be `null` or an empty string. Ignored when issue statuses
-                    aren't available in the repository. Issue statuses are in preview
-                    and only available to accounts enrolled in the preview.
+                    aren't available in the repository. Issue statuses are in public
+                    preview and subject to change. They're rolling out gradually,
+                    so they might not be available in your repositories yet.
                   example: In progress
                 assignee:
                   type: string
@@ -110769,8 +110795,9 @@ paths:
                     or an empty string. The status and other applied field changes
                     are saved together. If the status cannot be saved, those field
                     changes are rolled back. Ignored when issue statuses aren't available
-                    in the repository. Issue statuses are in preview and only available
-                    to accounts enrolled in the preview.
+                    in the repository. Issue statuses are in public preview and subject
+                    to change. They're rolling out gradually, so they might not be
+                    available in your repositories yet.
                   example: In progress
                 state_reason:
                   type: string
@@ -111123,6 +111150,9 @@ paths:
       description: |-
         Lists artifacts attached to an issue. Results are ordered by artifact number.
 
+        This endpoint can be used without authentication for public repositories.
+        Unauthenticated requests are subject to the standard unauthenticated rate limit.
+
         The `type` parameter filters the response to artifacts of one type.
         Results can be requested by page. The page defaults to `1`; the page size
         defaults to `30` and can be set from `1` to `100`.
@@ -111450,6 +111480,9 @@ paths:
       description: |-
         Returns an artifact attached to an issue by its per-issue artifact number,
         along with its version history ordered from newest to oldest.
+
+        This endpoint can be used without authentication for public repositories.
+        Unauthenticated requests are subject to the standard unauthenticated rate limit.
       tags:
       - issues
       operationId: issues/get-issue-artifact
@@ -115699,6 +115732,17 @@ paths:
                                 code review. Not returned for issue timeline events.
                               type: boolean
                               example: false
+                            copilot_code_review_severity:
+                              description: The Copilot code review severity of this
+                                comment, or null if unavailable.
+                              type: string
+                              nullable: true
+                              enum:
+                              - low
+                              - medium
+                              - high
+                              - null
+                              example:
                             copilot_code_review_sources:
                               description: Sources reported as contributing to this
                                 comment; may be incomplete. Not returned for issue
@@ -118667,7 +118711,7 @@ paths:
         Returns `404 Not Found` when issue statuses aren't available in the repository.
 
         > [!NOTE]
-        > Issue statuses are in preview and subject to change. They're only available to accounts enrolled in the preview.
+        > Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.
 
         You need read access to the repository's issues to use this endpoint.
 
@@ -123600,6 +123644,17 @@ paths:
                         review.
                       type: boolean
                       example: false
+                    copilot_code_review_severity:
+                      description: The Copilot code review severity of this comment,
+                        or null if unavailable.
+                      type: string
+                      nullable: true
+                      enum:
+                      - low
+                      - medium
+                      - high
+                      - null
+                      example:
                     copilot_code_review_sources:
                       description: Sources reported as contributing to this comment;
                         may be incomplete.
@@ -128026,7 +128081,9 @@ paths:
         Update a repository security advisory using its GitHub Security Advisory (GHSA) identifier.
 
         In order to update any security advisory, the authenticated user must be a security manager or administrator of that repository,
-        or a collaborator on the repository security advisory.
+        or a collaborator on the repository security advisory. Users with a custom repository role that includes permission to create, edit, and manage security advisories can also update it.
+
+        To change the `state`, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role with the relevant permissions. To accept, close, or reopen, the role must include permission to accept private vulnerability reports and close or reopen security advisories. To publish, the role must include permission to publish security advisories. Both paths also require permission to view or manage security advisories (Read or Write). Users with these custom-role permissions but without permission to create, edit, and manage security advisories can update the `state` field and no other fields.
 
         OAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.
       tags:
@@ -128551,7 +128608,7 @@ paths:
 
         You may request a CVE for public repositories, but cannot do so for private repositories.
 
-        In order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository.
+        In order to request a CVE for a repository security advisory, the authenticated user must be a security manager or administrator of that repository, or have a custom repository role that includes permission to publish security advisories together with permission to view or manage security advisories.
 
         OAuth app tokens and personal access tokens (classic) need the `repo` or `repository_advisories:write` scope to use this endpoint.
       tags:
@@ -128582,6 +128639,8 @@ paths:
         Create a temporary private fork to collaborate on fixing a security vulnerability in a repository.
 
         Repository administrators, organization owners, and security managers can create a temporary private fork. The original reporter of a privately reported vulnerability can also create one while they remain a collaborator on the security advisory.
+
+        Users with a custom repository role that includes permission to create, edit, and manage security advisories can also create a temporary private fork. If they aren't already a collaborator on the security advisory, they are added as one so they can access the fork.
 
         > [!NOTE]
         > Forking a repository happens asynchronously. You may have to wait up to 5 minutes before you can access the fork.
@@ -131646,6 +131705,12 @@ paths:
                   description: Either `true` to create a new private repository or
                     `false` to create a new public one.
                   default: false
+                custom_properties:
+                  type: object
+                  description: |-
+                    The custom properties for the new repository. The keys are the custom property names, and the values are the corresponding custom property values.
+                    During rollout, this parameter is available only for organization-owned repositories when template repository custom properties support has been enabled for the destination organization. Otherwise, providing this parameter returns HTTP 422.
+                  additionalProperties: true
               required:
               - name
             examples:
@@ -132446,8 +132511,9 @@ paths:
                       properties:
                         status:
                           description: The status of the issue, or `null` if it has
-                            none. Issue statuses are in preview and only available
-                            to accounts enrolled in the preview.
+                            none. Issue statuses are in public preview and subject
+                            to change. They're rolling out gradually, so they might
+                            not be available in your repositories yet.
                           type: object
                           nullable: true
                           properties:
@@ -132548,6 +132614,12 @@ paths:
                                 allOf:
                                 - *4
                         sub_issues_summary: *770
+                        parent_issue_url:
+                          description: URL to get the parent issue of this issue,
+                            if it is a sub-issue
+                          type: string
+                          format: uri
+                          nullable: true
                         issue_dependencies_summary: *771
                         issue_field_values:
                           type: array
@@ -173457,8 +173529,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -174454,8 +174527,9 @@ x-webhooks:
                       status:
                         title: Planning status
                         description: The status of the issue, or `null` if it has
-                          none. Issue statuses are in preview and only available to
-                          accounts enrolled in the preview.
+                          none. Issue statuses are in public preview and subject to
+                          change. They're rolling out gradually, so they might not
+                          be available in your repositories yet.
                         type: object
                         nullable: true
                         properties:
@@ -175610,8 +175684,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -176649,8 +176724,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -177776,8 +177852,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -179214,8 +179291,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -180261,8 +180339,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -181277,8 +181356,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -182268,8 +182348,9 @@ x-webhooks:
                         status:
                           title: Planning status
                           description: The status of the issue, or `null` if it has
-                            none. Issue statuses are in preview and only available
-                            to accounts enrolled in the preview.
+                            none. Issue statuses are in public preview and subject
+                            to change. They're rolling out gradually, so they might
+                            not be available in your repositories yet.
                           type: object
                           nullable: true
                           properties:
@@ -183667,8 +183748,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -184661,8 +184743,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -185715,8 +185798,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
@@ -185866,7 +185950,7 @@ x-webhooks:
         The status of an issue was changed. When the change also closes or reopens the issue, the `closed` or `reopened` action is sent too.
 
         > [!NOTE]
-        > Issue statuses are in preview and subject to change. They're only available to accounts enrolled in the preview.
+        > Issue statuses are in public preview and subject to change. They're rolling out gradually, so they might not be available in your repositories yet.
       operationId: issues/status-changed
       externalDocs:
         url: https://docs.github.com/webhooks/webhook-events-and-payloads#issues
@@ -186888,8 +186972,9 @@ x-webhooks:
                         status:
                           title: Planning status
                           description: The status of the issue, or `null` if it has
-                            none. Issue statuses are in preview and only available
-                            to accounts enrolled in the preview.
+                            none. Issue statuses are in public preview and subject
+                            to change. They're rolling out gradually, so they might
+                            not be available in your repositories yet.
                           type: object
                           nullable: true
                           properties:
@@ -188738,8 +188823,9 @@ x-webhooks:
                     status:
                       title: Planning status
                       description: The status of the issue, or `null` if it has none.
-                        Issue statuses are in preview and only available to accounts
-                        enrolled in the preview.
+                        Issue statuses are in public preview and subject to change.
+                        They're rolling out gradually, so they might not be available
+                        in your repositories yet.
                       type: object
                       nullable: true
                       properties:
