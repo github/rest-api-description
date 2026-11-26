@@ -28,8 +28,8 @@ name: Auto-merge OpenAPI description updates
 #     gate that has already run against the authoritative source.
 #   * Every decision is made by deterministic code, so the same inputs always
 #     produce the same merge/no-merge answer and it can be tested.
-#   * Merges are held during a GHES release-candidate window. See the "Check
-#     for an active merge freeze" step.
+#   * Merges are held while an open issue carries the `merge-freeze` label.
+#     See the "Check for an active merge freeze" step.
 #
 # Scripts are run from a checkout of this repository's default branch, never
 # from the candidate pull request.
@@ -162,25 +162,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          SHA_30: ${{ steps.select.outputs.sha_30 }}
-          SHA_31: ${{ steps.select.outputs.sha_31 }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
 
-          # Around a GHES release candidate, hold description merges until the
-          # coordinated release content is ready. A new GHES version appearing
-          # in the candidate before it exists on the default branch is the
-          # signal that this window may be active.
+          # An open merge-freeze-labeled issue is the source of truth for a
+          # hold. Closing it lets candidates introduce new GHES directories;
+          # inferring a freeze from those directories would block the very
+          # merge needed to publish them.
 
           reason=''
 
-          # --- Signal 1: an explicit, human-controlled hold ----------------
-          # A label is the escape hatch that does not depend on inference, and
-          # lets a human stop merges for any reason at all.
+          # Failed label or issue reads stop the step under `set -euo pipefail`
+          # rather than treating an unknown freeze state as clear.
           # Output is captured before matching: under `pipefail`, an early
           # exiting `grep -q` could otherwise make the producer look failed
-          # and silently drop this signal.
+          # and misread the freeze state.
           labels=$(gh label list --search 'merge-freeze' --json name -q '.[].name')
           if grep -qxF 'merge-freeze' <<<"$labels"; then
             frozen=$(gh issue list --label 'merge-freeze' --state open --json number,title \
@@ -189,50 +185,6 @@ jobs:
               reason+="Open 'merge-freeze' issue(s): $(tr '\n' ';' <<<"$frozen") "
             fi
           fi
-
-          # --- Signal 2: a GHES version not yet on the default branch ------
-          # Contents are read at the pinned commit, not at a branch name.
-          # These reads fail closed: a transient API error that looked like
-          # "no GHES directories" would silently drop the signal, so only a
-          # genuine 404 (the directory does not exist at that ref) becomes an
-          # empty listing. Anything else holds the merge.
-          errors=$(mktemp)
-
-          ghes_dirs() {
-            local ref="$1" dir="$2" listing
-            if listing=$(gh api "repos/$GH_REPO/contents/$dir?ref=$ref" -q '.[].name' 2>"$errors"); then
-              grep '^ghes-' <<<"$listing" | sort -u || true
-              return 0
-            fi
-            grep -q 'HTTP 404' "$errors" && return 0
-            cat "$errors" >&2
-            return 1
-          }
-
-          hold_unverifiable() {
-            echo "::error::Could not read $1 at $2 to check for a GHES release window; holding."
-            echo "status=frozen" >>"$GITHUB_OUTPUT"
-            echo "detail=Could not verify the GHES release state for $1 at $2" >>"$GITHUB_OUTPUT"
-            exit 0
-          }
-
-          if ! ghes_on_default=$(ghes_dirs "$DEFAULT_BRANCH" descriptions); then
-            hold_unverifiable descriptions "$DEFAULT_BRANCH"
-          fi
-
-          for sha in "$SHA_30" "$SHA_31"; do
-            [ -n "$sha" ] || continue
-            for dir in descriptions descriptions-next; do
-              if ! on_pr=$(ghes_dirs "$sha" "$dir"); then
-                hold_unverifiable "$dir" "${sha:0:7}"
-              fi
-              [ -n "$on_pr" ] || continue
-              new=$(comm -13 <(echo "$ghes_on_default") <(echo "$on_pr") | tr '\n' ' ')
-              if [ -n "${new// /}" ]; then
-                reason+="${sha:0:7}/$dir introduces new GHES version(s): $new "
-              fi
-            done
-          done
 
           if [ -n "$reason" ]; then
             echo "status=frozen" >>"$GITHUB_OUTPUT"
